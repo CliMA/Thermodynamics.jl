@@ -18,5 +18,5 @@ A package containing a library of moist thermodynamic relations
 [codecov-url]: https://codecov.io/gh/climate-machine/MoistThermodynamics.jl
 
 [bors-img]: https://bors.tech/images/badge_small.svg
-[bors-url]: https://app.bors.tech/repositories/20449
+[bors-url]: https://app.bors.tech/repositories/24018
 
