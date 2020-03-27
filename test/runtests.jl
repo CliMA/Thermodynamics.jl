@@ -7,12 +7,11 @@ using NCDatasets
 using Random
 using LinearAlgebra
 
-# TODO: convert test data to use Artifacts
-# include("testdata.jl")
-
 param_set = EarthParameterSet()
 
 float_types = [Float32, Float64]
+
+include("data_tests.jl")
 
 @testset "Isentropic processes" begin
     for FT in [Float64]
@@ -223,22 +222,6 @@ end
     p = FT(1.e5)
     q_tot = FT(0.23)
     @test exner_given_pressure(param_set, p, PhasePartition(q_tot)) isa typeof(p)
-
-    e_int, ρ, q_tot, q_pt, T, p, θ_liq_ice = MT.tested_convergence_range(param_set, 50, FT)
-
-    ts = PhaseEquil.(Ref(param_set), e_int, ρ, q_tot)
-
-    # # TODO: The following is giving an error on windows (file not found)
-    # if !Sys.iswindows()
-    #     data_folder = data_folder_moist_thermo()
-    #     ds_PhaseEquil =
-    #         Dataset(joinpath(data_folder, "test_data_PhaseEquil.nc"), "r")
-    #     e_int = Array{FT}(ds_PhaseEquil["e_int"][:])
-    #     ρ = Array{FT}(ds_PhaseEquil["ρ"][:])
-    #     q_tot = Array{FT}(ds_PhaseEquil["q_tot"][:])
-
-    #     # ts = PhaseEquil.(e_int, ρ, q_tot) # Fails
-    # end
 end
 
 
