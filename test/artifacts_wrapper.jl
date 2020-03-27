@@ -64,12 +64,12 @@ function get_data_folder(art_wrap::ArtifactsWrapper)
 
     # Query the `Artifacts.toml` file for the hash bound to the name data_name
     # (returns `nothing` if no such binding exists)
-    dycoms_hash = artifact_hash(art_wrap.data_name, art_wrap.artifact_toml)
+    data_hash = artifact_hash(art_wrap.data_name, art_wrap.artifact_toml)
 
     # If the name was not bound, or the hash it was bound to does not exist, create it!
-    if dycoms_hash == nothing || !artifact_exists(dycoms_hash)
+    if data_hash == nothing || !artifact_exists(data_hash)
         # create_artifact() returns the content-hash of the artifact directory once we're finished creating it
-        dycoms_hash = create_artifact() do artifact_dir
+        data_hash = create_artifact() do artifact_dir
             # We create the artifact by simply downloading a few files into the new artifact directory
             filenames = [af.filename for af in art_wrap.artifact_files]
             urls = [af.url for af in art_wrap.artifact_files]
@@ -81,11 +81,11 @@ function get_data_folder(art_wrap::ArtifactsWrapper)
         # Now bind that hash within our `Artifacts.toml`.  `force = true` means that if it already exists,
         # just overwrite with the new content-hash.  Unless the source files change, we do not expect
         # the content hash to change, so this should not cause unnecessary version control churn.
-        bind_artifact!(art_wrap.artifact_toml, art_wrap.data_name, dycoms_hash)
+        bind_artifact!(art_wrap.artifact_toml, art_wrap.data_name, data_hash, force = true)
     end
 
     # Get the path of the dycoms dataset, either newly created or previously generated.
     # this should be something like `~/.julia/artifacts/dbd04e28be047a54fbe9bf67e934be5b5e0d357a`
-    dataset_path = artifact_path(dycoms_hash)
+    dataset_path = artifact_path(data_hash)
     return dataset_path
 end
