@@ -5,7 +5,6 @@ using CLIMAParameters
 using CLIMAParameters.Planet
 using NCDatasets
 using Random
-using LinearAlgebra
 
 param_set = EarthParameterSet()
 

@@ -6,10 +6,15 @@ version = "0.1.0"
 [deps]
 CLIMAParameters = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RootSolvers = "7181ea78-2dcb-4de3-ab41-2b8ab5a31e74"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[compat]
+CLIMAParameters = "0.1.0"
+DocStringExtensions = "0.8.1"
+NCDatasets = "0.10.1"
+RootSolvers = "0.1.0"
+julia = "1.3"
