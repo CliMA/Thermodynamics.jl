@@ -6,6 +6,7 @@ using CLIMAParameters.Planet
 using NCDatasets
 using Random
 
+struct EarthParameterSet <: AbstractEarthParameterSet end
 param_set = EarthParameterSet()
 
 float_types = [Float32, Float64]

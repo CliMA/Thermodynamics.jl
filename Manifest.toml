@@ -17,9 +17,9 @@ version = "0.1.0"
 
 [[CLIMAParameters]]
 deps = ["Test"]
-git-tree-sha1 = "470d825fbb921ba4b1d0798fe5dcf1eef79f11c7"
+git-tree-sha1 = "e07ffe98ec361798673445962f211659d14205ea"
 uuid = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
-version = "0.1.0"
+version = "0.1.1"
 
 [[CommonSubexpressions]]
 deps = ["Test"]
@@ -29,9 +29,9 @@ version = "0.2.0"
 
 [[CompilerSupportLibraries_jll]]
 deps = ["Libdl", "Pkg"]
-git-tree-sha1 = "ff8101d6736414bc93c0f8df77b1e4095ca988c3"
+git-tree-sha1 = "7c4f882c41faa72118841185afc58a2eb00ef612"
 uuid = "e66e0078-7015-5450-92f7-15fbd957f2ae"
-version = "0.3.2+0"
+version = "0.3.3+0"
 
 [[Conda]]
 deps = ["JSON", "VersionParsing"]
