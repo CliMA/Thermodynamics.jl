@@ -1,10 +1,11 @@
 using Pkg.Artifacts
 
-include("artifacts_wrapper.jl")
+include("ArtifactWrappers.jl")
+using .ArtifactWrappers
 
 # Get dycoms dataset folder:
 dycoms_dataset =
-  ArtifactsWrapper(joinpath(@__DIR__, "Artifacts.toml"), "dycoms",
+  ArtifactWrapper(joinpath(@__DIR__, "Artifacts.toml"), "dycoms",
     ArtifactFile[
     ArtifactFile(url="https://caltech.box.com/shared/static/bxau6i46y6ikxn2sy9krgz0sw5vuptfo.nc",
               filename="test_data_PhaseEquil.nc"),
