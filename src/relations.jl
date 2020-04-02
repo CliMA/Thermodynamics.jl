@@ -349,13 +349,14 @@ The internal energy per unit mass in thermodynamic equilibrium at saturation whe
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
 """
-internal_energy_sat(
+function internal_energy_sat(
     param_set::PS,
     T::FT,
     ρ::FT,
     q_tot::FT,
-) where {FT <: Real, PS} =
-    internal_energy(param_set, T, PhasePartition_equil(param_set, T, ρ, q_tot))
+) where {FT <: Real, PS}
+    return internal_energy(param_set, T, PhasePartition_equil(param_set, T, ρ, q_tot))
+end
 
 """
     internal_energy_sat(ts::ThermodynamicState)
@@ -400,11 +401,13 @@ end
 The total energy per unit mass
 given a thermodynamic state `ts`.
 """
-total_energy(
+function total_energy(
     e_kin::FT,
     e_pot::FT,
     ts::ThermodynamicState{FT},
-) where {FT <: Real} = internal_energy(ts) + e_kin + e_pot
+) where {FT <: Real}
+    return internal_energy(ts) + e_kin + e_pot
+end
 
 """
     soundspeed_air(T[, q::PhasePartition])
@@ -500,12 +503,14 @@ isobaric specific heat capacities of the two phases, given
          (heat capacity in the higher-temperature phase minus that
          in the lower-temperature phase).
 """
-latent_heat_generic(
+function latent_heat_generic(
     param_set::PS,
     T::FT,
     LH_0::FT,
     Δcp::FT,
-) where {FT <: Real, PS} = LH_0 + Δcp * (T - FT(T_0(param_set)))
+) where {FT <: Real, PS}
+    return LH_0 + Δcp * (T - FT(T_0(param_set)))
+end
 
 
 """
@@ -567,12 +572,13 @@ relation to obtain the saturation vapor pressure `p_v_sat` as a function of
 the triple point pressure `press_triple`.
 
 """
-saturation_vapor_pressure(
+function saturation_vapor_pressure(
     param_set::PS,
     T::FT,
     ::Liquid,
-) where {FT <: Real, PS} =
-    saturation_vapor_pressure(param_set, T, FT(LH_v0(param_set)), FT(cp_v(param_set)) - FT(cp_l(param_set)))
+) where {FT <: Real, PS}
+    return saturation_vapor_pressure(param_set, T, FT(LH_v0(param_set)), FT(cp_v(param_set)) - FT(cp_l(param_set)))
+end
 
 function saturation_vapor_pressure(
     ts::ThermodynamicState{FT},
@@ -588,22 +594,25 @@ function saturation_vapor_pressure(
 
 end
 
-saturation_vapor_pressure(
+function saturation_vapor_pressure(
     param_set::PS,
     T::FT,
     ::Ice,
-) where {FT <: Real, PS} =
-    saturation_vapor_pressure(param_set, T, FT(LH_s0(param_set)), FT(cp_v(param_set)) - FT(cp_i(param_set)))
+) where {FT <: Real, PS}
+    return saturation_vapor_pressure(param_set, T, FT(LH_s0(param_set)), FT(cp_v(param_set)) - FT(cp_i(param_set)))
+end
 
-saturation_vapor_pressure(
+function saturation_vapor_pressure(
     ts::ThermodynamicState{FT},
     ::Ice,
-) where {FT <: Real, PS} = saturation_vapor_pressure(
+) where {FT <: Real, PS}
+    return saturation_vapor_pressure(
     ts.param_set,
     air_temperature(ts),
     FT(LH_s0(ts.param_set)),
     FT(cp_v(ts.param_set)) - FT(cp_i(ts.param_set)),
 )
+end
 
 function saturation_vapor_pressure(
     param_set::PS,
@@ -707,12 +716,14 @@ Compute the saturation specific humidity, given
  - `ρ` (moist-)air density
  - `p_v_sat` saturation vapor pressure
 """
-q_vap_saturation_from_pressure(
+function q_vap_saturation_from_pressure(
     param_set::PS,
     T::FT,
     ρ::FT,
     p_v_sat::FT,
-) where {FT <: Real, PS} = p_v_sat / (ρ * FT(R_v(param_set)) * T)
+) where {FT <: Real, PS}
+    return p_v_sat / (ρ * FT(R_v(param_set)) * T)
+end
 
 """
     saturation_excess(T, ρ, q::PhasePartition)
@@ -727,12 +738,14 @@ The saturation excess is the difference between the total specific humidity `q.t
 and the saturation specific humidity in equilibrium, and it is defined to be
 nonzero only if this difference is positive.
 """
-saturation_excess(
+function saturation_excess(
     param_set::PS,
     T::FT,
     ρ::FT,
     q::PhasePartition{FT},
-) where {FT <: Real, PS} = max(0, q.tot - q_vap_saturation(param_set, T, ρ, q))
+) where {FT <: Real, PS}
+    return max(0, q.tot - q_vap_saturation(param_set, T, ρ, q))
+end
 
 """
     saturation_excess(ts::ThermodynamicState)
@@ -1437,13 +1450,14 @@ The Exner function where
 and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
-exner(
+function exner(
     param_set::PS,
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, PS} =
-    exner_given_pressure(param_set, air_pressure(param_set, T, ρ, q), q)
+) where {FT <: Real, PS}
+    return exner_given_pressure(param_set, air_pressure(param_set, T, ρ, q), q)
+end
 
 """
     exner(ts::ThermodynamicState)
