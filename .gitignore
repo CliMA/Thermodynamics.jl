@@ -1,4 +1,11 @@
+# Temporary
 *.jl.cov
+*.DS_Store
+*.tar.gz
+*.jl.*.cov
+*.jl.mem
+
+# Data
 *.vtk
 *.dat
 *.csv
@@ -6,11 +13,12 @@
 *.pvtu
 *.swp
 *.png
+*.nc
+
+# Docs
 !docs/src/assets/*.png
-*.DS_Store
 docs/build/
-data/
 docs/site/
-*.jl.*.cov
-*.jl.mem
-deps/deps.jl
+
+# Deps
+Manifest.toml
