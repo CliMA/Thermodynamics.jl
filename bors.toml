@@ -1,5 +1,6 @@
 status = [
-  "climate-machine.MoistThermodynamics.jl"
+  "climate-machine.MoistThermodynamics.jl",
+  "docs-build"
 ]
 delete_merged_branches = true
 timeout_sec = 86400
