@@ -11,4 +11,5 @@ RootSolvers = "7181ea78-2dcb-4de3-ab41-2b8ab5a31e74"
 [compat]
 CLIMAParameters = "0.1.0"
 DocStringExtensions = "0.8.1"
+RootSolvers = "0.2"
 julia = "1.3"
