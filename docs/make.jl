@@ -40,7 +40,7 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/climate-machine/MoistThermodynamics.jl.git",
+    repo = "github.com/CliMA/MoistThermodynamics.jl.git",
     target = "build",
     push_preview = true,
 )

@@ -1,5 +1,5 @@
 status = [
-  "climate-machine.MoistThermodynamics.jl",
+  "CliMA.MoistThermodynamics.jl",
   "docs-build"
 ]
 delete_merged_branches = true
