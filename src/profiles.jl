@@ -34,7 +34,7 @@ end
     tested_profiles(param_set::APS, n::Int, ::Type{FT}) where {FT}
 
 A range of input arguments to thermodynamic state constructors
- - `param_set` an `AbstractParameterSet`, see the [`MoistThermodynamics`](@ref) for more details
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `e_int` internal energy
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity

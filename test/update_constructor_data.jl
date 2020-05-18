@@ -1,10 +1,9 @@
 #=
 This file is for updating the NCDataset database that stores
-input values to the moist thermodynamic state constructors
+input values to the thermodynamic state constructors
 which have caused convergence issues. Updating this database
-allows us to optimize the convergence rate of the moist
-thermodynamics constructor for a variety of realistic input
-values.
+allows us to optimize the convergence rate of the thermodynamics
+constructor for a variety of realistic input values.
 =#
 
 using NCDatasets

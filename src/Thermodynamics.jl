@@ -1,7 +1,7 @@
 """
-    MoistThermodynamics
+    Thermodynamics
 
-Moist thermodynamic functions, e.g., for air pressure (atmosphere equation
+Thermodynamic functions, e.g., for air pressure (atmosphere equation
 of state), latent heats of phase transitions, saturation vapor pressures, and
 saturation specific humidities.
 
@@ -21,9 +21,9 @@ _molmass_ratio = molmass_ratio(param_set)
 ```
 
 Because these parameters are widely used throughout this module,
-`param_set` is an argument for many MoistThermodynamics functions.
+`param_set` is an argument for many Thermodynamics functions.
 """
-module MoistThermodynamics
+module Thermodynamics
 
 using DocStringExtensions
 using RootSolvers

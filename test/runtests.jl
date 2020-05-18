@@ -2,7 +2,7 @@ rm(joinpath(@__DIR__, "..", "Manifest.toml"), force = true) # Remove local Manif
 
 test_env = joinpath(@__DIR__, "..", "env", "test")
 push!(LOAD_PATH, test_env)  # add test env
-push!(LOAD_PATH, joinpath(@__DIR__, ".."))                 # add MoistThermodynamics env
+push!(LOAD_PATH, joinpath(@__DIR__, ".."))                 # add Thermodynamics env
 
 using Pkg
 Pkg.activate(test_env)
@@ -10,10 +10,10 @@ Pkg.instantiate(; verbose = true)
 
 
 using Test
-using MoistThermodynamics
+using Thermodynamics
 using NCDatasets
 using Random
-MT = MoistThermodynamics
+MT = Thermodynamics
 
 using CLIMAParameters
 using CLIMAParameters.Planet
