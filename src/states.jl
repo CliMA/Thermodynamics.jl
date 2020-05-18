@@ -123,7 +123,7 @@ PhaseDry(param_set::APS, e_int::FT, ρ::FT) where {FT} =
 
 Constructs a [`PhaseDry`](@ref) thermodynamic state from:
 
- - `param_set` an `AbstractParameterSet`, see the [`MoistThermodynamics`](@ref) for more details
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
 """
@@ -139,7 +139,7 @@ end
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 
- - `param_set` an `AbstractParameterSet`, see the [`MoistThermodynamics`](@ref) for more details
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `θ_liq_ice` liquid-ice potential temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -172,7 +172,7 @@ end
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 
- - `param_set` an `AbstractParameterSet`, see the [`MoistThermodynamics`](@ref) for more details
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `θ_liq_ice` liquid-ice potential temperature
  - `p` pressure
  - `q_tot` total specific humidity
@@ -206,7 +206,7 @@ end
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`MoistThermodynamics`](@ref) for more details
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `p` pressure
  - `q_tot` total specific humidity
@@ -262,7 +262,7 @@ end
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
 
- - `param_set` an `AbstractParameterSet`, see the [`MoistThermodynamics`](@ref) for more details
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `θ_liq_ice` liquid-ice potential temperature
  - `ρ` (moist-)air density
  - `q_pt` phase partition
@@ -295,7 +295,7 @@ end
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
 
- - `param_set` an `AbstractParameterSet`, see the [`MoistThermodynamics`](@ref) for more details
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `θ_liq_ice` liquid-ice potential temperature
  - `p` pressure
  - `q_pt` phase partition

@@ -1,14 +1,16 @@
 
-rm(joinpath(@__DIR__, "Manifest.toml"), force = true) # Remove local Manifest
+rm(joinpath(@__DIR__, "Manifest.toml"), force = true)       # Remove local Manifest.toml
+rm(joinpath(@__DIR__, "..", "Manifest.toml"), force = true) # Remove local Manifest.toml
 
 push!(LOAD_PATH, joinpath(@__DIR__, "..", "env", "Plots")) # add Plots env
-push!(LOAD_PATH, joinpath(@__DIR__, ".."))                 # add MoistThermodynamics env
+
+# Avoiding having to add Thermodynamics deps to docs/ environment:
+push!(LOAD_PATH, joinpath(@__DIR__, ".."))                 # add Thermodynamics env
 
 using Pkg
-Pkg.activate(@__DIR__)
-Pkg.instantiate(; verbose = true)
+Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")))
 
-using MoistThermodynamics, Documenter
+using Thermodynamics, Documenter
 
 pages = Any[
     "Home" => "index.md",
@@ -32,15 +34,15 @@ format = Documenter.HTML(
 )
 
 makedocs(
-    sitename = "MoistThermodynamics.jl",
+    sitename = "Thermodynamics.jl",
     format = format,
     clean = true,
-    modules = [Documenter, MoistThermodynamics],
+    modules = [Documenter, Thermodynamics],
     pages = pages,
 )
 
 deploydocs(
-    repo = "github.com/CliMA/MoistThermodynamics.jl.git",
+    repo = "github.com/CliMA/Thermodynamics.jl.git",
     target = "build",
     push_preview = true,
 )

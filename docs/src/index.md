@@ -1,6 +1,6 @@
-# MoistThermodynamics
+# Thermodynamics
 
-MoistThermodynamics.jl provides all thermodynamic functions needed for the atmosphere and functions shared across model components. The functions are general for a moist atmosphere that includes suspended cloud condensate in the working fluid; the special case of a dry atmosphere is obtained for zero specific humidities (or simply by omitting the optional specific humidity arguments in the functions that are needed for a dry atmosphere). The general formulation assumes that there are tracers for specific humidity `q`, partitioned into
+Thermodynamics.jl provides all thermodynamic functions needed for the atmosphere and functions shared across model components. The functions are general for a moist atmosphere that includes suspended cloud condensate in the working fluid; the special case of a dry atmosphere is obtained for zero specific humidities (or simply by omitting the optional specific humidity arguments in the functions that are needed for a dry atmosphere). The general formulation assumes that there are tracers for specific humidity `q`, partitioned into
 
  - `q.tot` total water specific humidity
  - `q.liq` liquid specific humidity

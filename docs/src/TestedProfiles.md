@@ -1,12 +1,12 @@
 # Tested Profiles
 
-MoistThermodynamics.jl is tested using a set of profiles, or thermodynamic state regimes, specified in [`tested_profiles`](@ref MoistThermodynamics.tested_profiles).
+Thermodynamics.jl is tested using a set of profiles, or thermodynamic state regimes, specified in [`tested_profiles`](@ref Thermodynamics.tested_profiles).
 
 ## Dry Phase
 
 ```@example
-using MoistThermodynamics
-MT = MoistThermodynamics
+using Thermodynamics
+MT = Thermodynamics
 using CLIMAParameters
 using CLIMAParameters.Planet
 using Plots
@@ -30,8 +30,8 @@ savefig("tested_profiles_dry.svg");
 
 Here is a 2D representation:
 ```@example
-using MoistThermodynamics
-MT = MoistThermodynamics
+using Thermodynamics
+MT = Thermodynamics
 using CLIMAParameters
 using CLIMAParameters.Planet
 using Plots
@@ -48,8 +48,8 @@ savefig("tested_profiles.svg")
 
 And here is a 3D representation:
 ```@example
-using MoistThermodynamics
-MT = MoistThermodynamics
+using Thermodynamics
+MT = Thermodynamics
 using CLIMAParameters
 using CLIMAParameters.Planet
 using Plots

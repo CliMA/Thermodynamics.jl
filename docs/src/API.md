@@ -1,7 +1,7 @@
 # API
 
 ```@meta
-CurrentModule = MoistThermodynamics
+CurrentModule = Thermodynamics
 ```
 
 ## Thermodynamic State Constructors

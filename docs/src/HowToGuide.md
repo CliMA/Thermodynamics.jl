@@ -57,7 +57,7 @@ p = air_pressure(ts);
 
 ## Extending
 
-If MoistThermodynamics.jl does not have a particular thermodynamic constructor that is needed, one can implement a new one in `MoistThermodynamics/src/states.jl`. In this constructor, one must add whichever arguments they wish to offer as inputs, then translate this thermodynamic state into one of:
+If Thermodynamics.jl does not have a particular thermodynamic constructor that is needed, one can implement a new one in `Thermodynamics/src/states.jl`. In this constructor, one must add whichever arguments they wish to offer as inputs, then translate this thermodynamic state into one of:
 
  - `PhaseDry` a dry thermodynamic state, uniquely determined by two independent thermodynamic properties
  - `PhaseEquil` a moist thermodynamic state in thermodynamic equilibrium, uniquely determined by three independent thermodynamic properties
