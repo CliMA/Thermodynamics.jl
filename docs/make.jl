@@ -1,14 +1,19 @@
-
 rm(joinpath(@__DIR__, "Manifest.toml"), force = true)       # Remove local Manifest.toml
 rm(joinpath(@__DIR__, "..", "Manifest.toml"), force = true) # Remove local Manifest.toml
 
-push!(LOAD_PATH, joinpath(@__DIR__, "..", "env", "Plots")) # add Plots env
-
-# Avoiding having to add Thermodynamics deps to docs/ environment:
-push!(LOAD_PATH, joinpath(@__DIR__, ".."))                 # add Thermodynamics env
+# Avoiding having to add deps to docs/ environment:
+env_viz = joinpath(@__DIR__, "..", "env", "viz")
+env_doc = @__DIR__
 
 using Pkg
-Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")))
+push!(LOAD_PATH, env_viz); Pkg.activate(env_viz); Pkg.instantiate(; verbose=true)
+push!(LOAD_PATH, env_doc); Pkg.activate(env_doc); Pkg.instantiate(; verbose=true)
+
+cd(joinpath(@__DIR__, "..")) do
+    Pkg.develop(PackageSpec(path="."))
+    Pkg.activate(pwd())
+    Pkg.instantiate(; verbose=true)
+end
 
 using Thermodynamics, Documenter
 
