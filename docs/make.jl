@@ -1,15 +1,3 @@
-
-rm(joinpath(@__DIR__, "Manifest.toml"), force = true)       # Remove local Manifest.toml
-rm(joinpath(@__DIR__, "..", "Manifest.toml"), force = true) # Remove local Manifest.toml
-
-push!(LOAD_PATH, joinpath(@__DIR__, "..", "env", "Plots")) # add Plots env
-
-# Avoiding having to add Thermodynamics deps to docs/ environment:
-push!(LOAD_PATH, joinpath(@__DIR__, ".."))                 # add Thermodynamics env
-
-using Pkg
-Pkg.develop(PackageSpec(path=joinpath(@__DIR__, "..")))
-
 using Thermodynamics, Documenter
 
 pages = Any[
@@ -35,9 +23,12 @@ format = Documenter.HTML(
 
 makedocs(
     sitename = "Thermodynamics.jl",
+    strict = true,
     format = format,
+    checkdocs = :exports,
     clean = true,
-    modules = [Documenter, Thermodynamics],
+    doctest = true,
+    modules = [Thermodynamics],
     pages = pages,
 )
 
@@ -45,4 +36,6 @@ deploydocs(
     repo = "github.com/CliMA/Thermodynamics.jl.git",
     target = "build",
     push_preview = true,
+    devbranch = "main",
+    forcepush = true,
 )

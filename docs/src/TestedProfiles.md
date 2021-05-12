@@ -46,40 +46,6 @@ savefig("tested_profiles.svg")
 ```
 ![](tested_profiles.svg)
 
-And here is a 3D representation:
-```@example
-using Thermodynamics
-MT = Thermodynamics
-using CLIMAParameters
-using CLIMAParameters.Planet
-using Plots
-
-struct EarthParameterSet <: AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
-
-FT = Float64;
-e_int, ρ, q_tot, q_pt, T, p, θ_liq_ice = MT.tested_profiles(param_set, 50, FT);
-
-# initialize a 3D plot with 1 empty series
-plt = plot3d(
-    1,
-    xlim = (min(ρ...), max(ρ...)),
-    ylim = (min(T...), max(T...)),
-    zlim = (min(q_tot...), max(q_tot...)),
-    xlabel="density [kg/m^3]",
-    ylabel="T [K]",
-    zlabel="total specific humidity []",
-    legend=false,
-    title = "Tested states for moist thermodynamic phase",
-    marker = 2,
-)
-
-# build an animated gif by pushing new points to the plot, saving every nth frame
-@gif for i=1:length(ρ)
-    push!(plt, ρ[i], T[i], q_tot[i])
-end every 5
-```
-
 ## Moist Phase in thermodynamic non-equilibrium
 
 In progress...

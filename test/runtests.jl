@@ -1,14 +1,3 @@
-rm(joinpath(@__DIR__, "..", "Manifest.toml"), force = true) # Remove local Manifest
-
-test_env = joinpath(@__DIR__, "..", "env", "test")
-push!(LOAD_PATH, test_env)  # add test env
-push!(LOAD_PATH, joinpath(@__DIR__, ".."))                 # add Thermodynamics env
-
-using Pkg
-Pkg.activate(test_env)
-Pkg.instantiate(; verbose = true)
-
-
 using Test
 using Thermodynamics
 using NCDatasets
@@ -321,7 +310,7 @@ end
     q_tot = FT(0.23)
     @test dry_pottemp_given_pressure(param_set, T, p, PhasePartition(q_tot)) isa
           typeof(p)
-    @test air_temperature_from_liquid_ice_pottemp_given_pressure(
+    @test MT.air_temperature_from_liquid_ice_pottemp_given_pressure(
         param_set,
         dry_pottemp_given_pressure(param_set, T, p, PhasePartition(q_tot)),
         p,
@@ -590,7 +579,7 @@ end
         θ_liq_ice_ =
             liquid_ice_pottemp_given_pressure.(Ref(param_set), T, p, q_pt)
         @test all(
-            air_temperature_from_liquid_ice_pottemp_given_pressure.(
+            MT.air_temperature_from_liquid_ice_pottemp_given_pressure.(
                 Ref(param_set),
                 θ_liq_ice_,
                 p,
@@ -600,7 +589,7 @@ end
 
         # liquid_ice_pottemp-air_temperature_from_liquid_ice_pottemp_given_pressure inverse
         T =
-            air_temperature_from_liquid_ice_pottemp_given_pressure.(
+            MT.air_temperature_from_liquid_ice_pottemp_given_pressure.(
                 Ref(param_set),
                 θ_liq_ice,
                 p,
@@ -613,7 +602,7 @@ end
 
         # Accurate but expensive `LiquidIcePotTempSHumNonEquil` constructor (Non-linear temperature from θ_liq_ice)
         T_non_linear =
-            air_temperature_from_liquid_ice_pottemp_non_linear.(
+            MT.air_temperature_from_liquid_ice_pottemp_non_linear.(
                 Ref(param_set),
                 θ_liq_ice,
                 ρ,
@@ -622,7 +611,7 @@ end
                 q_pt,
             )
         T_expansion =
-            air_temperature_from_liquid_ice_pottemp.(
+            MT.air_temperature_from_liquid_ice_pottemp.(
                 Ref(param_set),
                 θ_liq_ice,
                 ρ,

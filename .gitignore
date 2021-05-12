@@ -16,7 +16,7 @@
 *.nc
 
 # Docs
-!docs/src/assets/*.png
+!docs/src/assets/*.svg
 docs/build/
 docs/site/
 

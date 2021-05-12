@@ -28,9 +28,7 @@ export dry_pottemp,
     dry_pottemp_given_pressure, virtual_pottemp, exner, exner_given_pressure
 export liquid_ice_pottemp,
     liquid_ice_pottemp_given_pressure, liquid_ice_pottemp_sat, relative_humidity
-export air_temperature_from_liquid_ice_pottemp,
-    air_temperature_from_liquid_ice_pottemp_given_pressure
-export air_temperature_from_liquid_ice_pottemp_non_linear
+
 export vapor_specific_humidity
 
 

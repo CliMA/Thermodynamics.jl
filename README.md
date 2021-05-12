@@ -5,20 +5,20 @@ A package containing a library of moist thermodynamic relations
 |---------------------:|:----------------------------------------------|
 | **Docs Build**       | [![docs build][docs-bld-img]][docs-bld-url]   |
 | **Documentation**    | [![dev][docs-dev-img]][docs-dev-url]          |
-| **Azure Build**      | [![azure][azure-img]][azure-url]              |
+| **GHA CI**           | [![gha ci][gha-ci-img]][gha-ci-url]           |
 | **Code Coverage**    | [![codecov][codecov-img]][codecov-url]        |
-| **Bors**             | [![Bors enabled][bors-img]][bors-url]         |
+| **Bors enabled**     | [![bors][bors-img]][bors-url]                 |
 
-[docs-bld-img]: https://github.com/CliMA/Thermodynamics.jl/workflows/Documentation/badge.svg
-[docs-bld-url]: https://github.com/CliMA/Thermodynamics.jl/actions?query=workflow%3ADocumentation
+[docs-bld-img]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml/badge.svg
+[docs-bld-url]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://CliMA.github.io/Thermodynamics.jl/dev/
 
-[azure-img]: https://dev.azure.com/climate-machine/Thermodynamics.jl/_apis/build/status/climate-machine.Thermodynamics.jl?branchName=master
-[azure-url]: https://dev.azure.com/climate-machine/Thermodynamics.jl/_build/latest?definitionId=1&branchName=master
+[gha-ci-img]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/ci.yml/badge.svg
+[gha-ci-url]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/ci.yml
 
-[codecov-img]: https://codecov.io/gh/CliMA/Thermodynamics.jl/branch/master/graph/badge.svg
+[codecov-img]: https://codecov.io/gh/CliMA/Thermodynamics.jl/branch/main/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/CliMA/Thermodynamics.jl
 
 [bors-img]: https://bors.tech/images/badge_small.svg
