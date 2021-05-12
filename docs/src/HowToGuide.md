@@ -65,7 +65,7 @@ If Thermodynamics.jl does not have a particular thermodynamic constructor that i
 
 For example, to add a thermodynamic state constructor that accepts temperature, density and total specific humidity, we could add the following code to states:
 
-```
+```julia
 """
     TemperatureSHumEquil_given_density(param_set, T, ρ, q_tot)
 
