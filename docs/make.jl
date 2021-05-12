@@ -6,6 +6,8 @@ pages = Any[
     "API" => "API.md",
     "How-to-guide" => "HowToGuide.md",
     "Tested profiles" => "TestedProfiles.md",
+    "Temperature profiles" => "TemperatureProfiles.md",
+    "Developer docs" => "DevDocs.md",
 ]
 
 mathengine = MathJax(Dict(
