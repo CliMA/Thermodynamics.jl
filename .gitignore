@@ -13,6 +13,7 @@
 *.pvtu
 *.swp
 *.png
+*.svg
 *.nc
 
 # Docs
