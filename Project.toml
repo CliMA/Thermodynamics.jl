@@ -1,6 +1,6 @@
 name = "Thermodynamics"
 uuid = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
-authors = ["Charles Kawczynski <kawczynski.charles@gmail.com>"]
+authors = ["Climate Modeling Alliance"]
 version = "0.3.1"
 
 [deps]
