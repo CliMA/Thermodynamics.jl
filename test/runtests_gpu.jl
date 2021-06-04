@@ -3,6 +3,8 @@ using KernelAbstractions
 using CUDAKernels
 using Thermodynamics
 using Thermodynamics.TemperatureProfiles
+using Thermodynamics.TestedProfiles
+using Thermodynamics.TestedProfiles: ProfileSet
 using UnPack
 using Random
 using RootSolvers
@@ -26,9 +28,6 @@ else
 end
 
 @show ArrayType
-
-
-include("profiles.jl")
 
 @kernel function test_thermo_kernel!(
     param_set,
@@ -57,11 +56,34 @@ include("profiles.jl")
     end
 end
 
+# Since we use `rand` to generate the ProfileSet,
+# just initialize on the CPU, and provide convert
+# function to move arrays to the GPU.
+convert_profile_set(ps::ProfileSet, ArrayType, slice) = ProfileSet(
+    ArrayType(ps.z[slice]),
+    ArrayType(ps.T[slice]),
+    ArrayType(ps.p[slice]),
+    ArrayType(ps.RS[slice]),
+    ArrayType(ps.e_int[slice]),
+    ArrayType(ps.ρ[slice]),
+    ArrayType(ps.θ_liq_ice[slice]),
+    ArrayType(ps.q_tot[slice]),
+    ArrayType(ps.q_liq[slice]),
+    ArrayType(ps.q_ice[slice]),
+    PhasePartition.(ps.q_tot[slice], ps.q_liq[slice], ps.q_ice[slice]),
+    ArrayType(ps.RH[slice]),
+    ArrayType(ps.e_pot[slice]),
+    ArrayType(ps.u[slice]),
+    ArrayType(ps.v[slice]),
+    ArrayType(ps.w[slice]),
+    ArrayType(ps.e_kin[slice]),
+    ps.phase_type,
+)
 
 @testset "Thermodynamics - kernels" begin
     FT = Float32
     dev = device(ArrayType)
-    profiles = PhaseEquilProfiles(param_set, Array)
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array)
     slice = Colon()
     profiles = convert_profile_set(profiles, ArrayType, slice)
 

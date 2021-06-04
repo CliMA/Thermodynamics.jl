@@ -74,6 +74,7 @@ include("relations.jl")
 include("isentropic.jl")
 include("config_numerical_method.jl")
 include("TemperatureProfiles.jl")
+include("TestedProfiles.jl")
 
 Base.broadcastable(dap::DryAdiabaticProcess) = Ref(dap)
 Base.broadcastable(phase::Phase) = Ref(phase)

@@ -1,12 +1,13 @@
 # Tested Profiles
 
-Thermodynamics.jl is tested using a set of profiles specified in `test/profiles.jl`.
+Thermodynamics.jl is tested using a set of profiles specified in `src/TestedProfiles.jl`.
 
 ## Dry Phase
 
 ```@example
 using Thermodynamics
 using Thermodynamics.TemperatureProfiles
+using Thermodynamics.TestedProfiles
 using UnPack
 using CLIMAParameters
 using CLIMAParameters.Planet
@@ -14,8 +15,7 @@ using Plots
 struct EarthParameterSet <: AbstractEarthParameterSet end;
 const param_set = EarthParameterSet();
 thermo_dir = dirname(dirname(pathof(Thermodynamics)));
-include(joinpath(thermo_dir, "test", "profiles.jl"))
-profiles = PhaseDryProfiles(param_set, Array{Float32});
+profiles = TestedProfiles.PhaseDryProfiles(param_set, Array{Float32});
 @unpack T, ρ, z = profiles
 p1 = scatter(ρ, z./10^3, xlabel="Density [kg/m^3]", ylabel="z [km]", title="Density");
 p2 = scatter(T, z./10^3, xlabel="Temperature [K]", ylabel="z [km]", title="Temperature");
@@ -29,6 +29,7 @@ savefig("tested_profiles_dry.svg");
 ```@example
 using Thermodynamics
 using Thermodynamics.TemperatureProfiles
+using Thermodynamics.TestedProfiles
 using UnPack
 using CLIMAParameters
 using CLIMAParameters.Planet
@@ -36,8 +37,7 @@ using Plots
 struct EarthParameterSet <: AbstractEarthParameterSet end;
 const param_set = EarthParameterSet();
 thermo_dir = dirname(dirname(pathof(Thermodynamics)));
-include(joinpath(thermo_dir, "test", "profiles.jl"))
-profiles = PhaseEquilProfiles(param_set, Array{Float32});
+profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{Float32});
 @unpack T, ρ, q_tot, z = profiles
 p1 = scatter(ρ, z./10^3, xlabel="Density [kg/m^3]", ylabel="z [km]", title="Density");
 p2 = scatter(T, z./10^3, xlabel="Temperature [K]", ylabel="z [km]", title="Temperature");

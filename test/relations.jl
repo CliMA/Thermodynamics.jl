@@ -1,6 +1,7 @@
 using Test
 using Thermodynamics
 using Thermodynamics.TemperatureProfiles
+using Thermodynamics.TestedProfiles
 using UnPack
 using BenchmarkTools
 using NCDatasets
@@ -26,7 +27,6 @@ rtol_energy = 1e-1
 
 array_types = [Array{Float32}, Array{Float64}]
 
-include("profiles.jl")
 include("data_tests.jl")
 
 compare_moisture(a::ThermodynamicState, b::ThermodynamicState) =
@@ -70,7 +70,7 @@ compare_moisture(ts::PhaseNonEquil, q_pt::PhasePartition) = all((
         _T_max = FT(T_max(param_set))
         _kappa_d = FT(kappa_d(param_set))
 
-        profiles = PhaseEquilProfiles(param_set, ArrayType)
+        profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
@@ -458,7 +458,7 @@ end
     or(a, b) = a || b
     for ArrayType in array_types
         FT = eltype(ArrayType)
-        profiles = PhaseEquilProfiles(param_set, ArrayType)
+        profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
@@ -642,7 +642,7 @@ end
 
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    profiles = PhaseEquilProfiles(param_set, ArrayType)
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
     @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
@@ -740,7 +740,7 @@ end
         FT = eltype(ArrayType)
         _MSLP = FT(MSLP(param_set))
 
-        profiles = PhaseDryProfiles(param_set, ArrayType)
+        profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
         @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
@@ -780,7 +780,7 @@ end
         @test all(total_energy.(e_kin, e_pot, ts) .≈ e_tot_proposed)
 
 
-        profiles = PhaseEquilProfiles(param_set, ArrayType)
+        profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
@@ -924,7 +924,7 @@ end
         @test all(air_density.(ts) .≈ ρ)
         @test all(compare_moisture.(ts, q_pt))
 
-        profiles = PhaseEquilProfiles(param_set, ArrayType)
+        profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
@@ -1003,7 +1003,7 @@ end
     # with converging to the same tolerances as `Float64`, so they're relaxed here.
     ArrayType = Array{Float32}
     FT = eltype(ArrayType)
-    profiles = PhaseEquilProfiles(param_set, ArrayType)
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
     @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
@@ -1122,7 +1122,7 @@ end
 
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    profiles = PhaseEquilProfiles(param_set, ArrayType)
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
     @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
@@ -1198,7 +1198,7 @@ end
 @testset "Thermodynamics - ProfileSet Iterator" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    profiles = PhaseEquilProfiles(param_set, ArrayType)
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, q_pt, z, phase_type = profiles
     @test all(z .≈ (nt.z for nt in profiles))
     @test all(T .≈ (nt.T for nt in profiles))
@@ -1209,8 +1209,7 @@ end
 @testset "Thermodynamics - Performance" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    profiles = PhaseEquilProfiles(param_set, ArrayType)
-
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack e_int, ρ, q_tot = profiles
 
     @btime TD.PhaseEquil_dev_only.(

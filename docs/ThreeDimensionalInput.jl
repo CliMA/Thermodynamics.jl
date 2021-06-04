@@ -1,5 +1,6 @@
 using Thermodynamics
 using Thermodynamics.TemperatureProfiles
+using Thermodynamics.TestedProfiles
 using UnPack
 using CLIMAParameters
 using CLIMAParameters.Planet
@@ -11,9 +12,8 @@ struct EarthParameterSet <: AbstractEarthParameterSet end;
 const param_set = EarthParameterSet();
 FT = Float64;
 thermo_dir = dirname(dirname(pathof(Thermodynamics)));
-include(joinpath(thermo_dir, "test", "profiles.jl"))
 include(joinpath(thermo_dir, "docs", "plot_helpers.jl"));
-profiles = PhaseEquilProfiles(param_set, Array{FT});
+profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
 @unpack ρ, e_int, q_tot = profiles
 
 dims = (10, 10, 10);

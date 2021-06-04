@@ -1,11 +1,18 @@
-#### Tested moist thermodynamic profiles
+"""
+    TestedProfiles
 
-#=
-This file contains functions to compute all of the
+Tested thermodynamic profiles
+
+This module contains functions to compute all of the
 thermodynamic _states_ that Thermodynamics is
 tested with in runtests.jl
-=#
+"""
+module TestedProfiles
 
+using ..Thermodynamics
+using ..Thermodynamics.TemperatureProfiles
+using CLIMAParameters: AbstractParameterSet
+using CLIMAParameters.Planet
 using Random
 
 """
@@ -60,30 +67,6 @@ function Base.iterate(ps::ProfileSet, state = 1)
 end
 Base.IteratorSize(::ProfileSet) = Base.HasLength()
 Base.length(ps::ProfileSet) = length(ps.z)
-
-# Since we use `rand` to generate the ProfileSet,
-# just initialize on the CPU, and provide convert
-# function to move arrays to the GPU.
-convert_profile_set(ps::ProfileSet, ArrayType, slice) = ProfileSet(
-    ArrayType(ps.z[slice]),
-    ArrayType(ps.T[slice]),
-    ArrayType(ps.p[slice]),
-    ArrayType(ps.RS[slice]),
-    ArrayType(ps.e_int[slice]),
-    ArrayType(ps.ρ[slice]),
-    ArrayType(ps.θ_liq_ice[slice]),
-    ArrayType(ps.q_tot[slice]),
-    ArrayType(ps.q_liq[slice]),
-    ArrayType(ps.q_ice[slice]),
-    PhasePartition.(ps.q_tot[slice], ps.q_liq[slice], ps.q_ice[slice]),
-    ArrayType(ps.RH[slice]),
-    ArrayType(ps.e_pot[slice]),
-    ArrayType(ps.u[slice]),
-    ArrayType(ps.v[slice]),
-    ArrayType(ps.w[slice]),
-    ArrayType(ps.e_kin[slice]),
-    ps.phase_type,
-)
 
 """
     input_config(
@@ -296,3 +279,5 @@ function PhaseEquilProfiles(
         phase_type,
     )
 end
+
+end # module
