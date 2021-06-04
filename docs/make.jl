@@ -1,4 +1,7 @@
 using Thermodynamics, Documenter
+using DocumenterCitations
+
+bib = CitationBibliography(joinpath(@__DIR__, "bibliography.bib"))
 
 pages = Any[
     "Home" => "index.md",
@@ -8,6 +11,8 @@ pages = Any[
     "Tested profiles" => "TestedProfiles.md",
     "Temperature profiles" => "TemperatureProfiles.md",
     "Developer docs" => "DevDocs.md",
+    "Thermodynamics overview" => "Formulation.md",
+    "References" => "References.md",
 ]
 
 mathengine = MathJax(Dict(
@@ -24,6 +29,7 @@ format = Documenter.HTML(
 )
 
 makedocs(
+    bib,
     sitename = "Thermodynamics.jl",
     strict = true,
     format = format,
