@@ -1,7 +1,7 @@
 name = "Thermodynamics"
 uuid = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 authors = ["Charles Kawczynski <kawczynski.charles@gmail.com>"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 CLIMAParameters = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
@@ -12,6 +12,6 @@ RootSolvers = "7181ea78-2dcb-4de3-ab41-2b8ab5a31e74"
 [compat]
 CLIMAParameters = "0.1.0"
 DocStringExtensions = "0.8.1"
-KernelAbstractions = "0.6"
+KernelAbstractions = "0.5, 0.6"
 RootSolvers = "0.2"
 julia = "1.3"
