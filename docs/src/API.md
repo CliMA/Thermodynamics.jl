@@ -104,3 +104,9 @@ TemperatureProfiles.TemperatureProfile
 TemperatureProfiles.DryAdiabaticProfile
 TemperatureProfiles.DecayingTemperatureProfile
 ```
+
+## Tested profiles
+
+```@docs
+Thermodynamics.TestedProfiles
+```
