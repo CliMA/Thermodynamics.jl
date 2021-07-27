@@ -25,6 +25,7 @@ PhaseEquil_ρTq
 PhaseEquil_pTq
 PhaseEquil_pθq
 PhaseEquil_peq
+PhaseEquil_psq
 PhaseEquil_ρθq
 PhaseEquil_ρpq
 PhaseNonEquil
@@ -45,6 +46,7 @@ condensate
 cp_m
 cv_m
 dry_pottemp
+entropy
 exner
 gas_constant_air
 gas_constants

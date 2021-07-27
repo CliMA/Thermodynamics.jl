@@ -38,6 +38,7 @@ struct ProfileSet{AFT, QPT, PT}
     v::AFT          # velocity (y component)
     w::AFT          # velocity (z component)
     e_kin::AFT      # kinetic energy
+    s::AFT          # entropy
     phase_type::PT  # Phase type (e.g., `PhaseDry`, `PhaseEquil`)
 end
 
@@ -61,6 +62,7 @@ function Base.iterate(ps::ProfileSet, state = 1)
         v = ps.v[state],
         w = ps.w[state],
         e_kin = ps.e_kin[state],
+        s = ps.s[state],
         phase_type = ps.phase_type,
     )
     return (nt, state + 1)
@@ -185,6 +187,7 @@ function PhaseDryProfiles(
     v = rand(FT, size(T)) * 50
     w = rand(FT, size(T)) * 50
     e_kin = (u .^ 2 .+ v .^ 2 .+ w .^ 2) / 2
+    s = entropy.(param_set, p, T, q_pt)
 
 
     return ProfileSet{typeof(T), typeof(q_pt), typeof(phase_type)}(
@@ -205,6 +208,7 @@ function PhaseDryProfiles(
         v,
         w,
         e_kin,
+        s,
         phase_type,
     )
 end
@@ -257,6 +261,7 @@ function PhaseEquilProfiles(
     v = rand(FT, size(T)) * 50
     w = rand(FT, size(T)) * 50
     e_kin = (u .^ 2 .+ v .^ 2 .+ w .^ 2) / 2
+    s = entropy.(param_set, p, T, q_pt)
 
     return ProfileSet{typeof(T), typeof(q_pt), typeof(phase_type)}(
         z,
@@ -276,6 +281,7 @@ function PhaseEquilProfiles(
         v,
         w,
         e_kin,
+        s,
         phase_type,
     )
 end

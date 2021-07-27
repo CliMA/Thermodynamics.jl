@@ -14,6 +14,7 @@ export ThermodynamicState,
     PhaseEquil_peq,
     PhaseEquil_ρθq,
     PhaseEquil_pθq,
+    PhaseEquil_psq,
     PhaseEquil_ρpq,
     PhaseNonEquil,
     PhaseNonEquil_ρTq,
@@ -358,6 +359,45 @@ function PhaseEquil_pθq(
     e_int = internal_energy(param_set, T, q)
     return PhaseEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q.tot, T)
 end
+
+"""
+    PhaseEquil_psq(param_set, p, s, q_tot)
+
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `s` entropy
+ - `q_tot` total specific humidity
+ - `temperature_tol` temperature tolerance for saturation adjustment
+ - `maxiter` maximum iterations for saturation adjustment
+"""
+function PhaseEquil_psq(
+    param_set::APS,
+    p::FT,
+    s::FT,
+    q_tot::FT,
+    maxiter::Int = 50,
+    temperature_tol::FT = FT(1e-8),
+    ::Type{sat_adjust_method} = RegulaFalsiMethod,
+) where {FT <: Real, sat_adjust_method}
+    phase_type = PhaseEquil
+    T = saturation_adjustment_psq(
+        sat_adjust_method,
+        param_set,
+        p,
+        s,
+        q_tot,
+        phase_type,
+        maxiter,
+        temperature_tol,
+    )
+    ρ = air_density_equil(param_set, T, p, q_tot)
+    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    e_int = internal_energy(param_set, T, q)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q.tot, T)
+end
+
 
 """
     PhaseEquil_ρTq(param_set, ρ, T, q_tot)

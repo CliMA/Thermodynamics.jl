@@ -460,7 +460,7 @@ end
         FT = eltype(ArrayType)
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
-        @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+        @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot, s = profiles
 
         RH_sat_mask = or.(RH .> 1, RH .≈ 1)
         RH_unsat_mask = .!or.(RH .> 1, RH .≈ 1)
@@ -610,6 +610,28 @@ end
             rtol = rtol_temperature,
         ))
 
+        # PhaseEquil_psq
+        ts_exact = PhaseEquil_psq.(param_set, p, s, q_tot)
+        ts = PhaseEquil_psq.(param_set, p, s, q_tot)
+        # Should be machine accurate:
+        @test all(compare_moisture.(ts, ts_exact))
+        # Approximate (temperature must be computed via saturation adjustment):
+        @test all(isapprox.(
+            air_density.(ts),
+            air_density.(ts_exact),
+            rtol = rtol_density,
+        ))
+        @test all(isapprox.(
+            entropy.(ts),
+            entropy.(ts_exact),
+            atol = atol_energy,
+        ))
+        @test all(isapprox.(
+            air_temperature.(ts),
+            air_temperature.(ts_exact),
+            rtol = rtol_temperature,
+        ))
+
         # PhaseNonEquil_ρθq
         ts_exact =
             PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt, 40, FT(1e-3))
@@ -644,7 +666,7 @@ end
     FT = eltype(ArrayType)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
-    @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+    @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot, s = profiles
 
     @test_throws ErrorException TD.saturation_adjustment.(
         NewtonsMethod,
@@ -719,6 +741,17 @@ end
         ResidualTolerance(FT(1e-10)),
     )
 
+    @test_throws ErrorException TD.saturation_adjustment_psq.(
+        RegulaFalsiMethod,
+        param_set,
+        p,
+        s,
+        q_tot,
+        Ref(phase_type),
+        2,
+        FT(1e-10),
+    )
+
     @test_throws ErrorException TD.saturation_adjustment_ρpq.(
         NewtonsMethodAD,
         param_set,
@@ -782,7 +815,7 @@ end
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
-        @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+        @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot, s = profiles
 
         # PhaseEquil
         ts = PhaseEquil.(param_set, e_int, ρ, q_tot, 40, FT(1e-1), SecantMethod)
@@ -801,6 +834,11 @@ end
         @test all(isapprox.(air_pressure.(ts_peq), p; rtol = rtol_pressure))
         # TODO: investigate why increasing iterations does not decrease error:
         # @show max(abs.(air_pressure.(ts_peq) .- p)...) # ~ 531
+
+        ts_psq = PhaseEquil_psq.(param_set, p, s, q_tot)
+        @test all(entropy.(ts_psq) .≈ s)
+        @test all(getproperty.(PhasePartition.(ts_psq), :tot) .≈ q_tot)
+        @test all(isapprox.(air_pressure.(ts_psq), p; rtol = rtol_pressure))
 
         ts = PhaseEquil_ρpq.(param_set, ρ, p, q_tot, true)
         @test all(air_density.(ts) .≈ ρ)
@@ -1110,6 +1148,7 @@ end
         @test typeof.(supersaturation.(ts, Liquid())) == typeof.(e_int)
         @test typeof.(virtual_pottemp.(ts)) == typeof.(e_int)
         @test eltype.(gas_constants.(ts)) == typeof.(e_int)
+        @test eltype.(entropy.(ts)) == typeof.(e_int)
 
         @test typeof.(total_specific_enthalpy.(ts, e_tot)) == typeof.(e_int)
         @test typeof.(moist_static_energy.(ts, e_pot)) == typeof.(e_int)
@@ -1181,6 +1220,7 @@ end
     @test all(virtual_pottemp.(ts_eq) .≈ virtual_pottemp.(ts_dry))
     @test all(liquid_ice_pottemp_sat.(ts_eq) .≈ liquid_ice_pottemp_sat.(ts_dry))
     @test all(exner.(ts_eq) .≈ exner.(ts_dry))
+    @test all(entropy.(ts_eq) .≈ entropy.(ts_dry))
 
     @test all(
         saturation_vapor_pressure.(ts_eq, Ice()) .≈

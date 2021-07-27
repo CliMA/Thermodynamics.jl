@@ -151,3 +151,20 @@ function sa_numerical_method_peq(
     T_2 = bound_upper_temperature(T_1, T_2)
     return SecantMethod(T_1, T_2)
 end
+
+#####
+##### Thermodynamic variable inputs: p, s, q_tot
+#####
+
+function sa_numerical_method_psq(
+    ::Type{NM},
+    param_set::APS,
+    p::FT,
+    s::FT,
+    q_tot::FT,
+    phase_type::Type{<:PhaseEquil},
+) where {FT, NM <: RegulaFalsiMethod}
+    T_1 = FT(T_min(param_set))
+    T_2 = FT(T_max(param_set))
+    return RegulaFalsiMethod(T_1, T_2)
+end

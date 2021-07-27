@@ -77,6 +77,7 @@ convert_profile_set(ps::ProfileSet, ArrayType, slice) = ProfileSet(
     ArrayType(ps.v[slice]),
     ArrayType(ps.w[slice]),
     ArrayType(ps.e_kin[slice]),
+    ArrayType(ps.s[slice]),
     ps.phase_type,
 )
 
