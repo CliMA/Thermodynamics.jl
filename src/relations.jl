@@ -213,17 +213,13 @@ vapor_specific_humidity(ts::ThermodynamicState) =
     vapor_specific_humidity(PhasePartition(ts))
 
 """
-    cp_m(param_set, [q::PhasePartition])
+    cp_m(param_set, q::PhasePartition)
 
 The isobaric specific heat capacity of moist air given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
-and, optionally
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref).
 """
-function cp_m(
-    param_set::APS,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+function cp_m(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
     _cp_d::FT = cp_d(param_set)
     _cp_v::FT = cp_v(param_set)
     _cp_l::FT = cp_l(param_set)
@@ -246,12 +242,11 @@ cp_m(ts::ThermodynamicState) = cp_m(ts.param_set, PhasePartition(ts))
 cp_m(ts::PhaseDry{FT}) where {FT <: Real} = FT(cp_d(ts.param_set))
 
 """
-    cv_m(param_set, [q::PhasePartition])
+    cv_m(param_set, q::PhasePartition)
 
 The isochoric specific heat capacity of moist air given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
-and, optionally
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref).
 """
 function cv_m(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
     _cv_d::FT = cv_d(param_set)
@@ -277,11 +272,11 @@ cv_m(ts::PhaseDry{FT}) where {FT <: Real} = FT(cv_d(ts.param_set))
 
 
 """
-    (R_m, cp_m, cv_m, γ_m) = gas_constants(param_set, [q::PhasePartition])
+    (R_m, cp_m, cv_m, γ_m) = gas_constants(param_set, q::PhasePartition)
 
 Wrapper to compute all gas constants at once, where optionally,
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref).
 
 The function returns a tuple of
  - `R_m` [`gas_constant_air`](@ref)
@@ -289,10 +284,7 @@ The function returns a tuple of
  - `cv_m` [`cv_m`](@ref)
  - `γ_m = cp_m/cv_m`
 """
-function gas_constants(
-    param_set::APS,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+function gas_constants(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
     R_gas = gas_constant_air(param_set, q)
     cp = cp_m(param_set, q)
     cv = cv_m(param_set, q)
