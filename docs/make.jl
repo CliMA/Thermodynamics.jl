@@ -1,6 +1,9 @@
 using Thermodynamics, Documenter
 using DocumenterCitations
 
+# https://github.com/jheinen/GR.jl/issues/278#issuecomment-587090846
+ENV["GKSwstype"] = "nul"
+
 bib = CitationBibliography(joinpath(@__DIR__, "bibliography.bib"))
 
 pages = Any[
