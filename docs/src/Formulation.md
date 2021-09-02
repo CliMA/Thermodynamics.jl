@@ -8,7 +8,7 @@ Here we introduce one consistent set of thermodynamic approximations for all mod
  - Showing how to construct consistent sets of thermodynamic equations that either (i) assume equilibrium of the phases and require only one prognostic water variable, or (ii) do not assume equilibrium of the phases and require prognostic variables for all water phases
  - Showing how to obtain temperatures from energy variables under either phase equilibrium assumptions (by `saturation adjustment`) or phase non-equilibrium assumptions (by a closed-form expression for temperature).
 
-The resulting thermodynamic functions are implemented in [Thermodynamics.jl](https://github.com/climate-machine/CLIMA/tree/master/src/Common/Thermodynamics).
+The resulting thermodynamic functions are implemented in [Thermodynamics.jl](https://github.com/CliMA/Thermodynamics.jl).
 
 ## Working Fluid and Equation of State
 
