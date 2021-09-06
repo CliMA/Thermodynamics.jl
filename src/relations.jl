@@ -1762,15 +1762,10 @@ function saturation_adjustment_given_pθq(
         T_2 = bound_upper_temperature(T_1, T_2)
         sol = find_zero(
             T ->
-                liquid_ice_pottemp_sat(
+                liquid_ice_pottemp_sat_given_pressure(
                     param_set,
                     heavisided(T),
-                    air_density(
-                        param_set,
-                        heavisided(T),
-                        p,
-                        PhasePartition(q_tot),
-                    ),
+                    p,
                     phase_type,
                     q_tot,
                 ) - θ_liq_ice,
@@ -2232,6 +2227,33 @@ function liquid_ice_pottemp_sat(
         param_set,
         T,
         ρ,
+        PhasePartition_equil(param_set, T, ρ, q_tot, phase_type),
+    )
+end
+
+"""
+    liquid_ice_pottemp_sat_given_pressure(param_set, T, p, phase_type, q_tot)
+
+The saturated liquid ice potential temperature where
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `p` air pressure
+ - `phase_type` a thermodynamic state type
+ - `q_tot` total specific humidity
+"""
+function liquid_ice_pottemp_sat_given_pressure(
+    param_set::APS,
+    T::FT,
+    p::FT,
+    phase_type::Type{<:ThermodynamicState},
+    q_tot::FT,
+) where {FT <: Real}
+    ρ = air_density(param_set, T, p, PhasePartition(q_tot))
+    return liquid_ice_pottemp_given_pressure(
+        param_set,
+        T,
+        p,
         PhasePartition_equil(param_set, T, ρ, q_tot, phase_type),
     )
 end
