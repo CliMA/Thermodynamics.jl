@@ -1,7 +1,7 @@
 name = "Thermodynamics"
 uuid = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 authors = ["Climate Modeling Alliance"]
-version = "0.3.2"
+version = "0.3.3"
 
 [deps]
 CLIMAParameters = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
