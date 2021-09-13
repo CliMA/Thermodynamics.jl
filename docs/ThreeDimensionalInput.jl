@@ -38,11 +38,11 @@ TS_no_err = Array{ThermodynamicState}(undef, prod(dims));
             q_tot_all[p] = q_tot[k]
 
             Thermodynamics.error_on_non_convergence() = false
-            TS_no_err[p] = PhaseEquil(param_set, e_int[j], ρ[i], q_tot[k])
+            TS_no_err[p] = PhaseEquil_ρeq(param_set, ρ[i], e_int[j], q_tot[k])
             Thermodynamics.error_on_non_convergence() = true
             # @show p/prod(linear_indices.indices)*100
             try
-                TS[p] = PhaseEquil(param_set, e_int[j], ρ[i], q_tot[k])
+                TS[p] = PhaseEquil_ρeq(param_set, ρ[i], e_int[j], q_tot[k])
             catch
                 TS[p] = nothing
             end

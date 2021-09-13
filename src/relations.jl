@@ -1645,10 +1645,10 @@ function saturation_adjustment_given_ρθq(
     _T_min::FT = T_min(param_set)
     T_1 = max(
         _T_min,
-        air_temperature_given_θρq(
+        air_temperature_given_ρθq(
             param_set,
-            θ_liq_ice,
             ρ,
+            θ_liq_ice,
             PhasePartition(q_tot),
         ),
     ) # Assume all vapor
@@ -1657,10 +1657,10 @@ function saturation_adjustment_given_ρθq(
     if unsaturated && T_1 > _T_min
         return T_1
     else
-        T_2 = air_temperature_given_θρq(
+        T_2 = air_temperature_given_ρθq(
             param_set,
-            θ_liq_ice,
             ρ,
+            θ_liq_ice,
             PhasePartition(q_tot, FT(0), q_tot),
         ) # Assume all ice
         T_2 = bound_upper_temperature(T_1, T_2)
@@ -1741,10 +1741,10 @@ function saturation_adjustment_given_pθq(
     tol::AbstractTolerance,
 ) where {FT <: Real}
     _T_min::FT = T_min(param_set)
-    T_1 = air_temperature_given_θpq(
+    T_1 = air_temperature_given_pθq(
         param_set,
-        θ_liq_ice,
         p,
+        θ_liq_ice,
         PhasePartition(q_tot),
     ) # Assume all vapor
     ρ = air_density(param_set, T_1, p, PhasePartition(q_tot))
@@ -1753,10 +1753,10 @@ function saturation_adjustment_given_pθq(
     if unsaturated && T_1 > _T_min
         return T_1
     else
-        T_2 = air_temperature_given_θpq(
+        T_2 = air_temperature_given_pθq(
             param_set,
-            θ_liq_ice,
             p,
+            θ_liq_ice,
             PhasePartition(q_tot, FT(0), q_tot),
         ) # Assume all ice
         T_2 = bound_upper_temperature(T_1, T_2)
@@ -2000,7 +2000,7 @@ function temperature_and_humidity_given_TᵥρRH(
 end
 
 """
-    air_temperature_given_θρq(param_set, θ_liq_ice, ρ, q::PhasePartition)
+    air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q::PhasePartition)
 
 The temperature given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
@@ -2009,10 +2009,10 @@ The temperature given
 and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
-function air_temperature_given_θρq(
+function air_temperature_given_ρθq(
     param_set::APS,
-    θ_liq_ice::FT,
     ρ::FT,
+    θ_liq_ice::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
 
@@ -2028,7 +2028,7 @@ function air_temperature_given_θρq(
 end
 
 """
-    air_temperature_given_θρq_nonlinear(param_set, θ_liq_ice, ρ, q::PhasePartition)
+    air_temperature_given_ρθq_nonlinear(param_set, ρ, θ_liq_ice, q::PhasePartition)
 
 Computes temperature `T` given
 
@@ -2043,15 +2043,15 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air,
 
 by finding the root of
-`T - air_temperature_given_θpq(param_set,
-                               θ_liq_ice,
+`T - air_temperature_given_pθq(param_set,
                                air_pressure(param_set, T, ρ, q),
+                               θ_liq_ice,
                                q) = 0`
 """
-function air_temperature_given_θρq_nonlinear(
+function air_temperature_given_ρθq_nonlinear(
     param_set::APS,
-    θ_liq_ice::FT,
     ρ::FT,
+    θ_liq_ice::FT,
     maxiter::Int,
     tol::AbstractTolerance,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -2060,10 +2060,10 @@ function air_temperature_given_θρq_nonlinear(
     _T_max::FT = T_max(param_set)
     sol = find_zero(
         T ->
-            T - air_temperature_given_θpq(
+            T - air_temperature_given_pθq(
                 param_set,
-                θ_liq_ice,
                 air_pressure(param_set, heavisided(T), ρ, q),
+                θ_liq_ice,
                 q,
             ),
         SecantMethod(_T_min, _T_max),
@@ -2074,7 +2074,7 @@ function air_temperature_given_θρq_nonlinear(
     if !sol.converged
         if print_warning()
             @print("-----------------------------------------\n")
-            @print("maxiter reached in air_temperature_given_θρq_nonlinear:\n")
+            @print("maxiter reached in air_temperature_given_ρθq_nonlinear:\n")
             @print("    Method=SecantMethod")
             @print(", θ_liq_ice=", θ_liq_ice)
             @print(", ρ=", ρ)
@@ -2093,10 +2093,11 @@ function air_temperature_given_θρq_nonlinear(
 end
 
 """
-    air_temperature_given_θpq(
+    air_temperature_given_pθq(
         param_set,
+        p,
         θ_liq_ice,
-        p[, q::PhasePartition]
+        [q::PhasePartition]
     )
 
 The air temperature where
@@ -2107,10 +2108,10 @@ The air temperature where
 and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
-function air_temperature_given_θpq(
+function air_temperature_given_pθq(
     param_set::APS,
-    θ_liq_ice::FT,
     p::FT,
+    θ_liq_ice::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
     return θ_liq_ice * exner_given_pressure(param_set, p, q) +

@@ -62,7 +62,7 @@ Users are encouraged to first establish a thermodynamic state with one of our
 a moist thermodynamic state using
 
 ```julia
-ts = PhaseEquil(param_set, e_int, ρ, q_tot);
+ts = PhaseEquil_ρeq(param_set, ρ, e_int, q_tot);
 ```
 
 here, `ρ` is the density of the moist air, and the internal energy `e_int =
@@ -102,7 +102,7 @@ do timestep   # timestepping loop
   e_int = e_tot - 0.5 * (u^2 + v^2 + w^2) - geopotential
 
   # compute temperature, pressure and condensate specific humidities,
-  ts = PhaseEquil(param_set, e_int, ρ, q_tot);
+  ts = PhaseEquil_ρeq(param_set, ρ, e_int, q_tot);
   T = air_temperature(ts);
   q = PhasePartition(ts);
   p = air_pressure(ts);
