@@ -110,19 +110,13 @@ function air_pressure(
     return gas_constant_air(param_set, q) * ρ * T
 end
 
+
 """
     air_pressure(ts::ThermodynamicState)
 
-The air pressure from the equation of state
-(ideal gas law), given a thermodynamic state `ts`.
+The air pressure, given a thermodynamic state `ts`.
 """
-air_pressure(ts::ThermodynamicState) = air_pressure(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    PhasePartition(ts),
-)
-
+air_pressure(ts::ThermodynamicState) = ts.p
 
 """
     air_density(param_set, T, p[, q::PhasePartition])
@@ -1015,6 +1009,26 @@ function q_vap_saturation_from_pressure(
 end
 
 """
+    q_vap_saturation_from_partial_pressures(param_set, q_tot, p, p_v_sat)
+Compute the saturation specific humidity, given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `q_tot` total water specific humidity,
+ - `p` air pressure,
+ - `p_v_sat` saturation vapor pressure
+"""
+function q_vap_saturation_from_partial_pressures(
+    param_set::APS,
+    q_tot::FT,
+    p::FT,
+    p_v_sat::FT,
+) where {FT <: Real}
+    _R_v::FT = R_v(param_set)
+    _R_d::FT = R_d(param_set)
+    return _R_d / _R_v * (1 - q_tot) * p_v_sat / (p - p_v_sat)
+end
+
+
+"""
     supersaturation(param_set, q, ρ, T, Liquid())
     supersaturation(param_set, q, ρ, T, Ice())
     supersaturation(ts, Ice())
@@ -1174,6 +1188,7 @@ liquid_fraction(ts::ThermodynamicState) = liquid_fraction(
     PhasePartition(ts),
 )
 
+
 """
     PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
 
@@ -1212,6 +1227,7 @@ PhasePartition_equil(ts::PhaseNonEquil) = PhasePartition_equil(
 )
 
 PhasePartition(ts::PhaseDry{FT}) where {FT <: Real} = q_pt_0(FT)
+
 PhasePartition(ts::PhaseEquil) = PhasePartition_equil(
     ts.param_set,
     air_temperature(ts),
