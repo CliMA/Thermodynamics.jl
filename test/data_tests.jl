@@ -24,6 +24,6 @@ dycoms_dataset_path = get_data_folder(dycoms_dataset)
     ρ = Array{FT}(ds_PhaseEquil["ρ"][:])
     q_tot = Array{FT}(ds_PhaseEquil["q_tot"][:])
 
-    ts = PhaseEquil.(Ref(param_set), e_int, ρ, q_tot, 4)
-    # ts = PhaseEquil.(Ref(param_set), e_int, ρ, q_tot, 3) # Fails
+    ts = PhaseEquil_ρeq.(Ref(param_set), ρ, e_int, q_tot, 4)
+    # ts = PhaseEquil_ρeq.(Ref(param_set), ρ, e_int, q_tot, 3) # Fails
 end

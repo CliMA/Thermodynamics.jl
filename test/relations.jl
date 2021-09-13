@@ -418,10 +418,10 @@ end
         p,
         PhasePartition(q_tot),
     ) isa typeof(p)
-    @test TD.air_temperature_given_θpq(
+    @test TD.air_temperature_given_pθq(
         param_set,
-        TD.dry_pottemp_given_pressure(param_set, T, p, PhasePartition(q_tot)),
         p,
+        TD.dry_pottemp_given_pressure(param_set, T, p, PhasePartition(q_tot)),
         PhasePartition(q_tot),
     ) ≈ T
 
@@ -464,7 +464,7 @@ end
 
         RH_sat_mask = or.(RH .> 1, RH .≈ 1)
         RH_unsat_mask = .!or.(RH .> 1, RH .≈ 1)
-        ts = PhaseEquil.(param_set, e_int, ρ, q_tot)
+        ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
         @test all(saturated.(ts[RH_sat_mask]))
         @test !any(saturated.(ts[RH_unsat_mask]))
 
@@ -487,16 +487,25 @@ end
                 phase_type,
             )
         _e_int = (e_int_upper .+ e_int_lower) / 2
-        ts = PhaseEquil.(param_set, _e_int, ρ, q_tot)
+        ts = PhaseEquil_ρeq.(param_set, ρ, _e_int, q_tot)
         @test all(air_temperature.(ts) .== Ref(_T_freeze))
 
         # Args needs to be in sync with PhaseEquil:
-        ts = PhaseEquil.(param_set, _e_int, ρ, q_tot, 8, FT(1e-1), SecantMethod)
+        ts =
+            PhaseEquil_ρeq.(
+                param_set,
+                ρ,
+                _e_int,
+                q_tot,
+                8,
+                FT(1e-1),
+                SecantMethod,
+            )
         @test all(air_temperature.(ts) .== Ref(_T_freeze))
 
         # PhaseEquil
-        ts_exact = PhaseEquil.(param_set, e_int, ρ, q_tot, 100, FT(1e-3))
-        ts = PhaseEquil.(param_set, e_int, ρ, q_tot)
+        ts_exact = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-3))
+        ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
         @test all(isapprox.(T, air_temperature.(ts), rtol = rtol_temperature))
 
         # Should be machine accurate (because ts contains `e_int`,`ρ`,`q_tot`):
@@ -542,8 +551,25 @@ end
 
         # PhaseEquil
         ts_exact =
-            PhaseEquil.(param_set, e_int, ρ, q_tot, 100, FT(1e-3), SecantMethod)
-        ts = PhaseEquil.(param_set, e_int, ρ, q_tot, 35, FT(1e-1), SecantMethod) # Needs to be in sync with default
+            PhaseEquil_ρeq.(
+                param_set,
+                ρ,
+                e_int,
+                q_tot,
+                100,
+                FT(1e-3),
+                SecantMethod,
+            )
+        ts =
+            PhaseEquil_ρeq.(
+                param_set,
+                ρ,
+                e_int,
+                q_tot,
+                35,
+                FT(1e-1),
+                SecantMethod,
+            ) # Needs to be in sync with default
         # Should be machine accurate (because ts contains `e_int`,`ρ`,`q_tot`):
         @test all(compare_moisture.(ts, ts_exact))
         @test all(internal_energy.(ts) .≈ internal_energy.(ts_exact))
@@ -690,10 +716,10 @@ end
         ResidualTolerance(FT(1e-10)),
     )
 
-    @test_throws ErrorException TD.air_temperature_given_θρq_nonlinear.(
+    @test_throws ErrorException TD.air_temperature_given_ρθq_nonlinear.(
         param_set,
-        θ_liq_ice,
         ρ,
+        θ_liq_ice,
         2,
         ResidualTolerance(FT(1e-10)),
         q_pt,
@@ -785,12 +811,21 @@ end
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
         # PhaseEquil
-        ts = PhaseEquil.(param_set, e_int, ρ, q_tot, 40, FT(1e-1), SecantMethod)
+        ts =
+            PhaseEquil_ρeq.(
+                param_set,
+                ρ,
+                e_int,
+                q_tot,
+                40,
+                FT(1e-1),
+                SecantMethod,
+            )
         @test all(internal_energy.(ts) .≈ e_int)
         @test all(getproperty.(PhasePartition.(ts), :tot) .≈ q_tot)
         @test all(air_density.(ts) .≈ ρ)
 
-        ts = PhaseEquil.(param_set, e_int, ρ, q_tot)
+        ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
         @test all(internal_energy.(ts) .≈ e_int)
         @test all(getproperty.(PhasePartition.(ts), :tot) .≈ q_tot)
         @test all(air_density.(ts) .≈ ρ)
@@ -831,15 +866,15 @@ end
         @test all(compare_moisture.(ts, q_pt))
         @test all(air_pressure.(ts) .≈ p)
 
-        # TD.air_temperature_given_θpq-liquid_ice_pottemp inverse
+        # TD.air_temperature_given_pθq-liquid_ice_pottemp inverse
         θ_liq_ice_ =
             TD.liquid_ice_pottemp_given_pressure.(param_set, T, p, q_pt)
         @test all(
-            TD.air_temperature_given_θpq.(param_set, θ_liq_ice_, p, q_pt) .≈ T,
+            TD.air_temperature_given_pθq.(param_set, p, θ_liq_ice_, q_pt) .≈ T,
         )
 
-        # liquid_ice_pottemp-TD.air_temperature_given_θpq inverse
-        T = TD.air_temperature_given_θpq.(param_set, θ_liq_ice, p, q_pt)
+        # liquid_ice_pottemp-TD.air_temperature_given_pθq inverse
+        T = TD.air_temperature_given_pθq.(param_set, p, θ_liq_ice, q_pt)
         @test all(
             TD.liquid_ice_pottemp_given_pressure.(param_set, T, p, q_pt) .≈
             θ_liq_ice,
@@ -847,16 +882,16 @@ end
 
         # Accurate but expensive `PhaseNonEquil_ρθq` constructor (Non-linear temperature from θ_liq_ice)
         T_non_linear =
-            TD.air_temperature_given_θρq_nonlinear.(
+            TD.air_temperature_given_ρθq_nonlinear.(
                 param_set,
-                θ_liq_ice,
                 ρ,
+                θ_liq_ice,
                 20,
                 ResidualTolerance(FT(5e-5)),
                 q_pt,
             )
         T_expansion =
-            TD.air_temperature_given_θρq.(param_set, θ_liq_ice, ρ, q_pt)
+            TD.air_temperature_given_ρθq.(param_set, ρ, θ_liq_ice, q_pt)
         @test all(isapprox.(T_non_linear, T_expansion, rtol = rtol_temperature))
         e_int_ = internal_energy.(param_set, T_non_linear, q_pt)
         ts = PhaseNonEquil.(param_set, e_int_, ρ, q_pt)
@@ -1017,7 +1052,7 @@ end
     ts_dry_pT = PhaseDry_pT.(param_set, p, T)
     ts_dry_ρθ = PhaseDry_ρθ.(param_set, ρ, θ_dry)
     ts_dry_pθ = PhaseDry_pθ.(param_set, p, θ_dry)
-    ts_eq = PhaseEquil.(param_set, e_int, ρ, q_tot, 15, FT(1e-1))
+    ts_eq = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 15, FT(1e-1))
     e_tot = total_energy.(e_kin, e_pot, ts_eq)
 
     ts_T =
@@ -1128,7 +1163,8 @@ end
 
     # PhasePartition test is noisy, so do this only once:
     ts_dry = PhaseDry(param_set, first(e_int), first(ρ))
-    ts_eq = PhaseEquil(param_set, first(e_int), first(ρ), typeof(first(ρ))(0))
+    ts_eq =
+        PhaseEquil_ρeq(param_set, first(ρ), first(e_int), typeof(first(ρ))(0))
     @test PhasePartition(ts_eq).tot ≈ PhasePartition(ts_dry).tot
     @test PhasePartition(ts_eq).liq ≈ PhasePartition(ts_dry).liq
     @test PhasePartition(ts_eq).ice ≈ PhasePartition(ts_dry).ice
@@ -1138,7 +1174,7 @@ end
     @test mixing_ratios(ts_eq).ice ≈ mixing_ratios(ts_dry).ice
 
     ts_dry = PhaseDry.(param_set, e_int, ρ)
-    ts_eq = PhaseEquil.(param_set, e_int, ρ, q_tot .* 0)
+    ts_eq = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot .* 0)
 
     @test all(gas_constant_air.(ts_eq) .≈ gas_constant_air.(ts_dry))
     @test all(relative_humidity.(ts_eq) .≈ relative_humidity.(ts_dry))
@@ -1214,16 +1250,16 @@ end
 
     @btime TD.PhaseEquil_dev_only.(
         $param_set,
-        $e_int,
         $ρ,
+        $e_int,
         $q_tot;
         sat_adjust_method = NewtonsMethod,
     )
 
     @btime TD.PhaseEquil_dev_only.(
         $param_set,
-        $e_int,
         $ρ,
+        $e_int,
         $q_tot;
         sat_adjust_method = RegulaFalsiMethod, maxiter = 20,
     )
@@ -1231,8 +1267,8 @@ end
     # Fails to converge:
     # @btime TD.PhaseEquil_dev_only.(
     #     $param_set,
-    #     $e_int,
     #     $ρ,
+    #     $e_int,
     #     $q_tot;
     #     sat_adjust_method = NewtonsMethodAD,
     #     maxiter = 50,
@@ -1240,8 +1276,8 @@ end
 
     @btime TD.PhaseEquil_dev_only.(
         $param_set,
-        $e_int,
         $ρ,
+        $e_int,
         $q_tot;
         sat_adjust_method = SecantMethod, maxiter = 50,
     )

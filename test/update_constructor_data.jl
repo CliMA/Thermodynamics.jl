@@ -35,7 +35,7 @@ folder = joinpath(@__DIR__, "MTConstructorData")
 output_file = joinpath(@__DIR__, "MTConstructorDataZipped.tar.gz")
 mkpath(folder)
 
-constructors = Dict("PhaseEquil" => (:e_int, :ρ, :q_tot))
+constructors = Dict("PhaseEquil" => (:ρ, :e_int, :q_tot))
 get_nc(k) = joinpath(folder, "test_data_$(k).nc")
 get_data_to_append(k) = joinpath(@__DIR__, "test_data_$(k).csv")
 

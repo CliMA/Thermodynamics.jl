@@ -9,6 +9,7 @@ export ThermodynamicState,
     PhaseDry_pθ,
     PhaseDry_ρp,
     PhaseEquil,
+    PhaseEquil_ρeq,
     PhaseEquil_ρTq,
     PhaseEquil_pTq,
     PhaseEquil_peq,
@@ -139,7 +140,7 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
  - `θ_dry` dry potential temperature
 """
 function PhaseDry_ρθ(param_set::APS, ρ::FT, θ_dry::FT) where {FT <: Real}
-    T = air_temperature_given_θρq(param_set, θ_dry, ρ)
+    T = air_temperature_given_ρθq(param_set, ρ, θ_dry)
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT, typeof(param_set)}(param_set, e_int, ρ)
 end
@@ -201,7 +202,7 @@ may be needed).
 
 # Constructors
 
-    PhaseEquil(param_set, e_int, ρ, q_tot)
+    PhaseEquil(param_set, ρ, e_int, q_tot)
 
 # Fields
 
@@ -210,10 +211,10 @@ $(DocStringExtensions.FIELDS)
 struct PhaseEquil{FT, PS} <: ThermodynamicState{FT}
     "parameter set, used to dispatch planet parameter function calls"
     param_set::PS
-    "internal energy"
-    e_int::FT
     "density of air (potentially moist)"
     ρ::FT
+    "internal energy"
+    e_int::FT
     "total specific humidity"
     q_tot::FT
     "temperature: computed via [`saturation_adjustment`](@ref)"
@@ -221,12 +222,12 @@ struct PhaseEquil{FT, PS} <: ThermodynamicState{FT}
 end
 
 """
-    PhaseEquil
+    PhaseEquil_ρeq
 
 Moist thermodynamic phase, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `e_int` internal energy
  - `ρ` density
+ - `e_int` internal energy
  - `q_tot` total specific humidity
 and, optionally
  - `maxiter` maximum iterations for saturation adjustment
@@ -234,10 +235,10 @@ and, optionally
  - `sat_adjust_method` the numerical method to use.
     See the [`Thermodynamics`](@ref) for options.
 """
-function PhaseEquil(
+function PhaseEquil_ρeq(
     param_set::APS,
-    e_int::FT,
     ρ::FT,
+    e_int::FT,
     q_tot::FT,
     maxiter::IT = nothing,
     temperature_tol::FTT = nothing,
@@ -257,7 +258,7 @@ function PhaseEquil(
         maxiter,
         temperature_tol,
     )
-    return PhaseEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q_tot_safe, T)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot_safe, T)
 end
 
 # Convenience method for comparing Numerical
@@ -266,17 +267,17 @@ end
 # should be in sync with the PhaseEquil(...) constructor
 function PhaseEquil_dev_only(
     param_set::APS,
-    e_int::FT,
     ρ::FT,
+    e_int::FT,
     q_tot::FT;
     maxiter::Int = 8,
     temperature_tol::FT = FT(1e-1),
     sat_adjust_method::Type{NM} = NewtonsMethod,
 ) where {FT <: Real, NM}
-    return PhaseEquil(
+    return PhaseEquil_ρeq(
         param_set,
-        e_int,
         ρ,
+        e_int,
         q_tot,
         maxiter,
         temperature_tol,
@@ -319,7 +320,7 @@ function PhaseEquil_ρθq(
     )
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     e_int = internal_energy(param_set, T, q_pt)
-    return PhaseEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q_tot, T)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot, T)
 end
 
 """
@@ -356,7 +357,7 @@ function PhaseEquil_pθq(
     ρ = air_density(param_set, T, p, PhasePartition(q_tot))
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     e_int = internal_energy(param_set, T, q)
-    return PhaseEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q.tot, T)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q.tot, T)
 end
 
 """
@@ -378,7 +379,7 @@ function PhaseEquil_ρTq(
     phase_type = PhaseEquil
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     e_int = internal_energy(param_set, T, q)
-    return PhaseEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q_tot, T)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot, T)
 end
 
 """
@@ -401,7 +402,7 @@ function PhaseEquil_pTq(
     ρ = air_density(param_set, T, p, PhasePartition(q_tot))
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     e_int = internal_energy(param_set, T, q)
-    return PhaseEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q_tot, T)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot, T)
 end
 
 """
@@ -438,7 +439,7 @@ function PhaseEquil_peq(
         temperature_tol,
     )
     ρ = air_density(param_set, T, p, PhasePartition(q_tot_safe))
-    return PhaseEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q_tot_safe, T)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot_safe, T)
 end
 
 """
@@ -483,7 +484,7 @@ function PhaseEquil_ρpq(
         T = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt)
         e_int = internal_energy(param_set, T, q_pt)
     end
-    return PhaseEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q_tot, T)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot, T)
 end
 
 #####
@@ -567,10 +568,10 @@ function PhaseNonEquil_ρθq(
 ) where {FT <: Real}
     phase_type = PhaseNonEquil
     tol = ResidualTolerance(potential_temperature_tol)
-    T = air_temperature_given_θρq_nonlinear(
+    T = air_temperature_given_ρθq_nonlinear(
         param_set,
-        θ_liq_ice,
         ρ,
+        θ_liq_ice,
         maxiter,
         tol,
         q_pt,
@@ -595,7 +596,7 @@ function PhaseNonEquil_pθq(
     θ_liq_ice::FT,
     q_pt::PhasePartition{FT},
 ) where {FT <: Real}
-    T = air_temperature_given_θpq(param_set, θ_liq_ice, p, q_pt)
+    T = air_temperature_given_pθq(param_set, p, θ_liq_ice, q_pt)
     ρ = air_density(param_set, T, p, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q_pt)

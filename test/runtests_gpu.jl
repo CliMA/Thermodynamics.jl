@@ -40,7 +40,7 @@ end
     i = @index(Group, Linear)
     @inbounds begin
 
-        ts = PhaseEquil(param_set, FT(e_int[i]), FT(ρ[i]), FT(q_tot[i]))
+        ts = PhaseEquil_ρeq(param_set, FT(ρ[i]), FT(e_int[i]), FT(q_tot[i]))
         dst[1, i] = air_temperature(ts)
 
         ts_ρpq = PhaseEquil_ρpq(
@@ -100,7 +100,8 @@ convert_profile_set(ps::ProfileSet, ArrayType, slice) = ProfileSet(
     event = kernel!(param_set, d_dst, e_int, ρ, p, q_tot, ndrange = ndrange)
     wait(dev, event)
 
-    ts_correct = PhaseEquil.(param_set, Array(e_int), Array(ρ), Array(q_tot))
+    ts_correct =
+        PhaseEquil_ρeq.(param_set, Array(ρ), Array(e_int), Array(q_tot))
     @test all(Array(d_dst)[1, :] .≈ air_temperature.(ts_correct))
 
     ts_correct =
