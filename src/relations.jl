@@ -86,7 +86,8 @@ a thermodynamic state `ts`.
 """
 gas_constant_air(ts::ThermodynamicState) =
     gas_constant_air(ts.param_set, PhasePartition(ts))
-gas_constant_air(ts::PhaseDry{FT}) where {FT <: Real} = FT(R_d(ts.param_set))
+gas_constant_air(ts::AbstractPhaseDry{FT}) where {FT <: Real} =
+    FT(R_d(ts.param_set))
 
 
 """
@@ -172,8 +173,8 @@ or
  - `relative_humidity` relative humidity (can exceed 1 when there is super saturation/condensate)
 """
 total_specific_humidity(ts::ThermodynamicState) = ts.q_tot
-total_specific_humidity(ts::PhaseDry{FT}) where {FT} = FT(0)
-total_specific_humidity(ts::PhaseNonEquil) = ts.q.tot
+total_specific_humidity(ts::AbstractPhaseDry{FT}) where {FT} = FT(0)
+total_specific_humidity(ts::AbstractPhaseNonEquil) = ts.q.tot
 
 """
     liquid_specific_humidity(ts::ThermodynamicState)
@@ -186,8 +187,8 @@ or
 """
 liquid_specific_humidity(q::PhasePartition) = q.liq
 liquid_specific_humidity(ts::ThermodynamicState) = PhasePartition(ts).liq
-liquid_specific_humidity(ts::PhaseDry{FT}) where {FT} = FT(0)
-liquid_specific_humidity(ts::PhaseNonEquil) = ts.q.liq
+liquid_specific_humidity(ts::AbstractPhaseDry{FT}) where {FT} = FT(0)
+liquid_specific_humidity(ts::AbstractPhaseNonEquil) = ts.q.liq
 
 """
     ice_specific_humidity(ts::ThermodynamicState)
@@ -200,8 +201,8 @@ or
 """
 ice_specific_humidity(q::PhasePartition) = q.ice
 ice_specific_humidity(ts::ThermodynamicState) = PhasePartition(ts).ice
-ice_specific_humidity(ts::PhaseDry{FT}) where {FT} = FT(0)
-ice_specific_humidity(ts::PhaseNonEquil) = ts.q.ice
+ice_specific_humidity(ts::AbstractPhaseDry{FT}) where {FT} = FT(0)
+ice_specific_humidity(ts::AbstractPhaseNonEquil) = ts.q.ice
 
 """
     vapor_specific_humidity(q::PhasePartition{FT})
@@ -239,7 +240,7 @@ cp_m(param_set::APS, ::Type{FT}) where {FT <: Real} =
 The isobaric specific heat capacity of moist air, given a thermodynamic state `ts`.
 """
 cp_m(ts::ThermodynamicState) = cp_m(ts.param_set, PhasePartition(ts))
-cp_m(ts::PhaseDry{FT}) where {FT <: Real} = FT(cp_d(ts.param_set))
+cp_m(ts::AbstractPhaseDry{FT}) where {FT <: Real} = FT(cp_d(ts.param_set))
 
 """
     cv_m(param_set, q::PhasePartition)
@@ -268,7 +269,7 @@ cv_m(param_set::APS, ::Type{FT}) where {FT <: Real} =
 The isochoric specific heat capacity of moist air, given a thermodynamic state `ts`.
 """
 cv_m(ts::ThermodynamicState) = cv_m(ts.param_set, PhasePartition(ts))
-cv_m(ts::PhaseDry{FT}) where {FT <: Real} = FT(cv_d(ts.param_set))
+cv_m(ts::AbstractPhaseDry{FT}) where {FT <: Real} = FT(cv_d(ts.param_set))
 
 
 """
@@ -338,7 +339,7 @@ The air temperature, given a thermodynamic state `ts`.
 """
 air_temperature(ts::ThermodynamicState) =
     air_temperature(ts.param_set, internal_energy(ts), PhasePartition(ts))
-air_temperature(ts::PhaseEquil) = ts.T
+air_temperature(ts::AbstractPhaseEquil) = ts.T
 
 """
     air_temperature_from_ideal_gas_law(param_set, p, ρ, q::PhasePartition)
@@ -1203,7 +1204,7 @@ function PhasePartition_equil(
     return PhasePartition(q_tot, q_liq, q_ice)
 end
 
-PhasePartition_equil(ts::PhaseNonEquil) = PhasePartition_equil(
+PhasePartition_equil(ts::AbstractPhaseNonEquil) = PhasePartition_equil(
     ts.param_set,
     air_temperature(ts),
     air_density(ts),
@@ -1211,15 +1212,15 @@ PhasePartition_equil(ts::PhaseNonEquil) = PhasePartition_equil(
     typeof(ts),
 )
 
-PhasePartition(ts::PhaseDry{FT}) where {FT <: Real} = q_pt_0(FT)
-PhasePartition(ts::PhaseEquil) = PhasePartition_equil(
+PhasePartition(ts::AbstractPhaseDry{FT}) where {FT <: Real} = q_pt_0(FT)
+PhasePartition(ts::AbstractPhaseEquil) = PhasePartition_equil(
     ts.param_set,
     air_temperature(ts),
     air_density(ts),
     total_specific_humidity(ts),
     typeof(ts),
 )
-PhasePartition(ts::PhaseNonEquil) = ts.q
+PhasePartition(ts::AbstractPhaseNonEquil) = ts.q
 
 function ∂e_int_∂T(
     param_set::APS,
@@ -2395,7 +2396,7 @@ relative_humidity(ts::ThermodynamicState{FT}) where {FT <: Real} =
         PhasePartition(ts),
     )
 
-relative_humidity(ts::PhaseDry{FT}) where {FT <: Real} = FT(0)
+relative_humidity(ts::AbstractPhaseDry{FT}) where {FT <: Real} = FT(0)
 
 """
     total_specific_enthalpy(e_tot, R_m, T)
