@@ -186,6 +186,15 @@ end
         phase_type,
         PhasePartition(FT(0)),
     ) == ρ_v_triple / ρ
+
+    @test TD.q_vap_saturation_from_pressure(
+        param_set,
+        q_tot,
+        p,
+        _T_triple,
+        phase_type,
+    ) == _R_d / _R_v * (1 - q_tot) * _press_triple / (p - _press_triple)
+
     phase_type = PhaseNonEquil
     @test q_vap_saturation(
         param_set,
@@ -301,6 +310,10 @@ end
     @test q.liq ≈ FT(0)
     @test 0 < q.ice <= q_tot
 
+    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
+    @test q.liq ≈ FT(0)
+    @test 0 < q.ice <= q_tot
+
     T = FT(_T_freeze + 10)
     ρ = FT(0.1)
     q_tot = FT(0.60)
@@ -314,6 +327,10 @@ end
     ) === FT(2 / 3)
     phase_type = PhaseDry
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    @test 0 < q.liq <= q_tot
+    @test q.ice ≈ 0
+
+    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
     @test 0 < q.liq <= q_tot
     @test q.ice ≈ 0
 
@@ -377,6 +394,11 @@ end
     @test q.tot - q.liq - q.ice ≈
           vapor_specific_humidity(q) ≈
           q_vap_saturation(param_set, T, ρ, phase_type)
+
+    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
+    @test q.tot - q.liq - q.ice ≈
+          vapor_specific_humidity(q) ≈
+          TD.q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
 
     ρ = FT(1)
     ρu = FT[1, 2, 3]

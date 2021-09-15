@@ -124,6 +124,7 @@ air_pressure(ts::ThermodynamicState) = air_pressure(
     PhasePartition(ts),
 )
 
+air_pressure(ts::PhaseEquil) = ts.p
 
 """
     air_density(param_set, T, p[, q::PhasePartition])
@@ -899,7 +900,7 @@ function q_vap_saturation_generic(
     phase::Phase,
 ) where {FT <: Real}
     p_v_sat = saturation_vapor_pressure(param_set, T, phase)
-    return q_vap_saturation_from_pressure(param_set, T, ρ, p_v_sat)
+    return q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
 end
 
 """
@@ -952,7 +953,7 @@ function q_vap_saturation(
     # saturation vapor pressure over possible mixture of liquid and ice
     p_v_sat = saturation_vapor_pressure(param_set, T, LH_0, Δcp)
 
-    return q_vap_saturation_from_pressure(param_set, T, ρ, p_v_sat)
+    return q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
 
 end
 
@@ -996,7 +997,7 @@ q_vap_saturation_ice(ts::ThermodynamicState) = q_vap_saturation_generic(
 )
 
 """
-    q_vap_saturation_from_pressure(param_set, T, ρ, p_v_sat)
+    q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
 
 Compute the saturation specific humidity, given
 
@@ -1005,7 +1006,7 @@ Compute the saturation specific humidity, given
  - `ρ` (moist-)air density
  - `p_v_sat` saturation vapor pressure
 """
-function q_vap_saturation_from_pressure(
+function q_vap_saturation_from_density(
     param_set::APS,
     T::FT,
     ρ::FT,
@@ -1013,6 +1014,29 @@ function q_vap_saturation_from_pressure(
 ) where {FT <: Real}
     _R_v::FT = R_v(param_set)
     return p_v_sat / (ρ * _R_v * T)
+end
+
+"""
+    q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
+Compute the saturation specific humidity, given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `q_tot` total water specific humidity,
+ - `p` air pressure,
+ - `T` air tempearture
+ - `phase_type` a thermodynamic state type
+
+"""
+function q_vap_saturation_from_pressure(
+    param_set::APS,
+    q_tot::FT,
+    p::FT,
+    T::FT,
+    phase_type::Type{<:ThermodynamicState},
+) where {FT <: Real}
+    _R_v::FT = R_v(param_set)
+    _R_d::FT = R_d(param_set)
+    p_v_sat = saturation_vapor_pressure(param_set, phase_type, T)
+    return _R_d / _R_v * (1 - q_tot) * p_v_sat / (p - p_v_sat)
 end
 
 """
@@ -1149,6 +1173,7 @@ function liquid_fraction(
     _T_freeze::FT = T_freeze(param_set)
     return FT(T > _T_freeze)
 end
+
 function liquid_fraction(
     param_set::APS,
     T::FT,
@@ -1211,6 +1236,34 @@ PhasePartition_equil(ts::AbstractPhaseNonEquil) = PhasePartition_equil(
     total_specific_humidity(ts),
     typeof(ts),
 )
+
+
+"""
+    PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
+Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object using the
+[`liquid_fraction`](@ref) function where
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `p` air pressure
+ - `q_tot` total specific humidity
+ - `phase_type` a thermodynamic state type
+The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
+"""
+function PhasePartition_equil_given_p(
+    param_set::APS,
+    T::FT,
+    p::FT,
+    q_tot::FT,
+    phase_type::Type{<:ThermodynamicState},
+) where {FT <: Real}
+
+    q_v_sat = q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
+    _liquid_frac = liquid_fraction(param_set, T, phase_type)
+    q_c = q_tot - q_v_sat
+    q_liq = _liquid_frac * q_c
+    q_ice = (1 - _liquid_frac) * q_c
+    return PhasePartition(q_tot, q_liq, q_ice)
+end
 
 PhasePartition(ts::AbstractPhaseDry{FT}) where {FT <: Real} = q_pt_0(FT)
 PhasePartition(ts::AbstractPhaseEquil) = PhasePartition_equil(
@@ -1581,10 +1634,10 @@ Compute the temperature `T` that is consistent with
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
+ - `maxiter` maximum iterations for non-linear equation solve
  - `tol` absolute tolerance for saturation adjustment iterations. Can be one of:
     - `SolutionTolerance()` to stop when `|x_2 - x_1| < tol`
     - `ResidualTolerance()` to stop when `|f(x)| < tol`
- - `maxiter` maximum iterations for non-linear equation solve
 
 by finding the root of
 
@@ -1651,16 +1704,16 @@ end
         θ_liq_ice,
         q_tot,
         phase_type,
-        tol,
-        maxiter
+        maxiter,
+        tol
     )
 
 Compute the temperature `T` that is consistent with
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` air pressure
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
- - `p` pressure
  - `phase_type` a thermodynamic state type
  - `tol` absolute tolerance for saturation adjustment iterations. Can be one of:
     - `SolutionTolerance()` to stop when `|x_2 - x_1| < tol`
@@ -1669,11 +1722,7 @@ Compute the temperature `T` that is consistent with
 
 by finding the root of
 
-`θ_{liq_ice} - liquid_ice_pottemp_sat(param_set,
-                                      T,
-                                      air_density(param_set, T, p, PhasePartition(q_tot)),
-                                      phase_type,
-                                      q_tot) = 0`
+`θ_{liq_ice} - liquid_ice_pottemp_given_pressure(param_set, T, p, phase_type, q_tot) = 0`
 
 See also [`saturation_adjustment`](@ref).
 """
@@ -1687,46 +1736,52 @@ function saturation_adjustment_given_pθq(
     tol::AbstractTolerance,
 ) where {FT <: Real}
     _T_min::FT = T_min(param_set)
+    _cp_d::FT = cp_d(param_set)
+    _cp_v::FT = cp_v(param_set)
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
-    T_1 = air_temp(PhasePartition(q_tot)) # Assume all vapor
-    ρ_T(T) = air_density(param_set, heavisided(T), p, PhasePartition(q_tot))
-    ρ = ρ_T(T_1)
-    q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
-    unsaturated = q_tot <= q_v_sat
+    q_vap_sat(T) =
+        q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
+    T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
+    q_v_sat_1 = q_vap_sat(T_1)
+    unsaturated = q_tot <= q_v_sat_1
     if unsaturated && T_1 > _T_min
         return T_1
     end
     T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
     T_2 = bound_upper_temperature(T_1, T_2)
+    function roots(T)
+        q_pt = PhasePartition_equil_given_p(
+            param_set,
+            T,
+            oftype(T, p),
+            oftype(T, q_tot),
+            phase_type,
+        )
+        return oftype(T, θ_liq_ice) - liquid_ice_pottemp_given_pressure(
+            param_set,
+            T,
+            oftype(T, p),
+            q_pt,
+        )
+    end
     sol = find_zero(
-        T ->
-            liquid_ice_pottemp_sat(
-                param_set,
-                heavisided(T),
-                ρ_T(T),
-                phase_type,
-                q_tot,
-            ) - θ_liq_ice,
+        roots,
         SecantMethod(T_1, T_2),
         CompactSolution(),
         tol,
         maxiter,
     )
     if !sol.converged
-        if print_warning()
-            @print("-----------------------------------------\n")
-            @print("maxiter reached in saturation_adjustment_given_pθq:\n")
-            @print("    Method=SecantMethod")
-            @print(", p=", p)
-            @print(", θ_liq_ice=", θ_liq_ice)
-            @print(", q_tot=", q_tot)
-            @print(", T=", sol.root)
-            @print(", maxiter=", maxiter)
-            @print(", tol=", tol.tol, "\n")
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
+        print("-----------------------------------------\n")
+        print("maxiter reached in saturation_adjustment_given_pθq:\n")
+        print("    Method=SecantMethod")
+        print(", p=", p)
+        print(", θ_liq_ice=", θ_liq_ice)
+        print(", q_tot=", q_tot)
+        print(", T=", sol.root)
+        print(", maxiter=", maxiter)
+        print(", tol=", tol.tol, "\n")
+        error("Failed to converge with printed set of inputs.")
     end
     return sol.root
 end

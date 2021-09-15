@@ -11,7 +11,6 @@ Thermodynamics
 
 ```@docs
 PhasePartition
-PhasePartition_equil
 ThermodynamicState
 PhaseDry
 PhaseDry_pT
@@ -36,6 +35,13 @@ PhaseNonEquil_peq
 PhaseNonEquil_ρpq
 ```
 
+## Types
+
+```
+Ice
+Liquid
+```
+
 ## Thermodynamic state methods
 
 ```@docs
@@ -50,7 +56,6 @@ exner
 gas_constant_air
 gas_constants
 has_condensate
-Ice
 ice_specific_humidity
 internal_energy
 internal_energy_dry
@@ -62,7 +67,6 @@ latent_heat_fusion
 latent_heat_liq_ice
 latent_heat_sublim
 latent_heat_vapor
-Liquid
 liquid_fraction
 liquid_ice_pottemp
 liquid_ice_pottemp_sat
@@ -73,14 +77,12 @@ moist_static_energy
 q_vap_saturation
 q_vap_saturation_liquid
 q_vap_saturation_ice
-q_vap_saturation_generic
 relative_humidity
 saturated
 saturation_adjustment
 saturation_excess
 saturation_vapor_pressure
 soundspeed_air
-shum_to_mixing_ratio
 specific_enthalpy
 specific_volume
 supersaturation
@@ -90,6 +92,15 @@ total_specific_humidity
 vapor_specific_humidity
 virtual_pottemp
 virtual_temperature
+```
+
+## Internal methods
+```
+shum_to_mixing_ratio
+q_vap_saturation_generic
+q_vap_saturation_from_pressure
+PhasePartition_equil
+PhasePartition_equil_given_p
 ```
 
 ## Dispatch types
