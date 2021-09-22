@@ -1306,65 +1306,46 @@ function saturation_adjustment(
     unsaturated = q_tot <= q_v_sat
     if unsaturated && T_1 > _T_min
         return T_1
-    else
-        _T_freeze::FT = T_freeze(param_set)
-        e_int_upper = internal_energy_sat(
+    end
+    _T_freeze::FT = T_freeze(param_set)
+    e_int_sat(T) =
+        internal_energy_sat(param_set, heavisided(T), ρ, q_tot, phase_type)
+    e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
+    e_int_lower = e_int_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
+    if e_int_lower < e_int < e_int_upper
+        return _T_freeze
+    end
+    sol = find_zero(
+        T -> e_int_sat(T) - e_int,
+        sa_numerical_method(
+            sat_adjust_method,
             param_set,
-            _T_freeze + temperature_tol / 2, # /2 => resulting interval is `temperature_tol` wide
             ρ,
+            e_int,
             q_tot,
             phase_type,
-        )
-        e_int_lower = internal_energy_sat(
-            param_set,
-            _T_freeze - temperature_tol / 2, # /2 => resulting interval is `temperature_tol` wide
-            ρ,
-            q_tot,
-            phase_type,
-        )
-        if e_int_lower < e_int < e_int_upper
-            return _T_freeze
-        else
-            sol = find_zero(
-                T ->
-                    internal_energy_sat(
-                        param_set,
-                        heavisided(T),
-                        oftype(T, ρ),
-                        oftype(T, q_tot),
-                        phase_type,
-                    ) - e_int,
-                sa_numerical_method(
-                    sat_adjust_method,
-                    param_set,
-                    ρ,
-                    e_int,
-                    q_tot,
-                    phase_type,
-                ),
-                CompactSolution(),
-                tol,
-                maxiter,
-            )
-            if !sol.converged
-                if print_warning()
-                    @print("-----------------------------------------\n")
-                    @print("maxiter reached in saturation_adjustment:\n")
-                    print_numerical_method(sat_adjust_method)
-                    @print(", e_int=", e_int)
-                    @print(", ρ=", ρ)
-                    @print(", q_tot=", q_tot)
-                    @print(", T=", sol.root)
-                    @print(", maxiter=", maxiter)
-                    @print(", tol=", tol.tol, "\n")
-                end
-                if error_on_non_convergence()
-                    error("Failed to converge with printed set of inputs.")
-                end
-            end
-            return sol.root
+        ),
+        CompactSolution(),
+        tol,
+        maxiter,
+    )
+    if !sol.converged
+        if print_warning()
+            @print("-----------------------------------------\n")
+            @print("maxiter reached in saturation_adjustment:\n")
+            print_numerical_method(sat_adjust_method)
+            @print(", e_int=", e_int)
+            @print(", ρ=", ρ)
+            @print(", q_tot=", q_tot)
+            @print(", T=", sol.root)
+            @print(", maxiter=", maxiter)
+            @print(", tol=", tol.tol, "\n")
+        end
+        if error_on_non_convergence()
+            error("Failed to converge with printed set of inputs.")
         end
     end
+    return sol.root
 end
 
 """
@@ -1423,70 +1404,47 @@ function saturation_adjustment_given_peq(
     unsaturated = q_tot <= q_v_sat
     if unsaturated && T_1 > _T_min
         return T_1
-    else
-        _T_freeze::FT = T_freeze(param_set)
-        e_int_upper = internal_energy_sat(
+    end
+    _T_freeze::FT = T_freeze(param_set)
+    e_int_sat(T) =
+        internal_energy_sat(param_set, heavisided(T), ρ_T(T), q_tot, phase_type)
+
+    e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
+    e_int_lower = e_int_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
+    if e_int_lower < e_int < e_int_upper
+        return _T_freeze
+    end
+    sol = find_zero(
+        T -> e_int_sat(T) - e_int,
+        sa_numerical_method_peq(
+            sat_adjust_method,
             param_set,
-            _T_freeze + temperature_tol / 2, # /2 => resulting interval is `temperature_tol` wide
-            ρ_T(_T_freeze + temperature_tol / 2),
+            p,
+            e_int,
             q_tot,
             phase_type,
-        )
-        e_int_lower = internal_energy_sat(
-            param_set,
-            _T_freeze - temperature_tol / 2, # /2 => resulting interval is `temperature_tol` wide
-            ρ_T(_T_freeze - temperature_tol / 2),
-            q_tot,
-            phase_type,
-        )
-        if e_int_lower < e_int < e_int_upper
-            return _T_freeze
-        else
-            sol = find_zero(
-                T ->
-                    internal_energy_sat(
-                        param_set,
-                        heavisided(T),
-                        air_density(
-                            param_set,
-                            T,
-                            oftype(T, p),
-                            PhasePartition(oftype(T, q_tot)),
-                        ),
-                        oftype(T, q_tot),
-                        phase_type,
-                    ) - e_int,
-                sa_numerical_method_peq(
-                    sat_adjust_method,
-                    param_set,
-                    p,
-                    e_int,
-                    q_tot,
-                    phase_type,
-                ),
-                CompactSolution(),
-                tol,
-                maxiter,
-            )
-            if !sol.converged
-                if print_warning()
-                    @print("-----------------------------------------\n")
-                    @print("maxiter reached in saturation_adjustment_peq:\n")
-                    print_numerical_method(sat_adjust_method)
-                    @print(", e_int=", e_int)
-                    @print(", p=", p)
-                    @print(", q_tot=", q_tot)
-                    @print(", T=", sol.root)
-                    @print(", maxiter=", maxiter)
-                    @print(", tol=", tol.tol, "\n")
-                end
-                if error_on_non_convergence()
-                    error("Failed to converge with printed set of inputs.")
-                end
-            end
-            return sol.root
+        ),
+        CompactSolution(),
+        tol,
+        maxiter,
+    )
+    if !sol.converged
+        if print_warning()
+            @print("-----------------------------------------\n")
+            @print("maxiter reached in saturation_adjustment_peq:\n")
+            print_numerical_method(sat_adjust_method)
+            @print(", e_int=", e_int)
+            @print(", p=", p)
+            @print(", q_tot=", q_tot)
+            @print(", T=", sol.root)
+            @print(", maxiter=", maxiter)
+            @print(", tol=", tol.tol, "\n")
+        end
+        if error_on_non_convergence()
+            error("Failed to converge with printed set of inputs.")
         end
     end
+    return sol.root
 end
 
 """
@@ -1644,59 +1602,46 @@ function saturation_adjustment_given_ρθq(
     tol::AbstractTolerance,
 ) where {FT <: Real}
     _T_min::FT = T_min(param_set)
-    T_1 = max(
-        _T_min,
-        air_temperature_given_ρθq(
-            param_set,
-            ρ,
-            θ_liq_ice,
-            PhasePartition(q_tot),
-        ),
-    ) # Assume all vapor
+    air_temp(q) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q)
+    T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
     unsaturated = q_tot <= q_v_sat
     if unsaturated && T_1 > _T_min
         return T_1
-    else
-        T_2 = air_temperature_given_ρθq(
-            param_set,
-            ρ,
-            θ_liq_ice,
-            PhasePartition(q_tot, FT(0), q_tot),
-        ) # Assume all ice
-        T_2 = bound_upper_temperature(T_1, T_2)
-        sol = find_zero(
-            T ->
-                liquid_ice_pottemp_sat(
-                    param_set,
-                    heavisided(T),
-                    ρ,
-                    phase_type,
-                    q_tot,
-                ) - θ_liq_ice,
-            SecantMethod(T_1, T_2),
-            CompactSolution(),
-            tol,
-            maxiter,
-        )
-        if !sol.converged
-            if print_warning()
-                @print("-----------------------------------------\n")
-                @print("maxiter reached in saturation_adjustment_given_ρθq:\n")
-                @print("    Method=SecantMethod")
-                @print(", ρ=", ρ)
-                @print(", θ_liq_ice=", θ_liq_ice)
-                @print(", q_tot=", q_tot)
-                @print(", T=", sol.root)
-                @print(", maxiter=", maxiter)
-                @print(", tol=", tol.tol, "\n")
-            end
-            if error_on_non_convergence()
-                error("Failed to converge with printed set of inputs.")
-            end
-        end
-        return sol.root
     end
+    T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
+    T_2 = bound_upper_temperature(T_1, T_2)
+    sol = find_zero(
+        T ->
+            liquid_ice_pottemp_sat(
+                param_set,
+                heavisided(T),
+                ρ,
+                phase_type,
+                q_tot,
+            ) - θ_liq_ice,
+        SecantMethod(T_1, T_2),
+        CompactSolution(),
+        tol,
+        maxiter,
+    )
+    if !sol.converged
+        if print_warning()
+            @print("-----------------------------------------\n")
+            @print("maxiter reached in saturation_adjustment_given_ρθq:\n")
+            @print("    Method=SecantMethod")
+            @print(", ρ=", ρ)
+            @print(", θ_liq_ice=", θ_liq_ice)
+            @print(", q_tot=", q_tot)
+            @print(", T=", sol.root)
+            @print(", maxiter=", maxiter)
+            @print(", tol=", tol.tol, "\n")
+        end
+        if error_on_non_convergence()
+            error("Failed to converge with printed set of inputs.")
+        end
+    end
+    return sol.root
 end
 
 """
@@ -1742,62 +1687,48 @@ function saturation_adjustment_given_pθq(
     tol::AbstractTolerance,
 ) where {FT <: Real}
     _T_min::FT = T_min(param_set)
-    T_1 = air_temperature_given_pθq(
-        param_set,
-        p,
-        θ_liq_ice,
-        PhasePartition(q_tot),
-    ) # Assume all vapor
-    ρ = air_density(param_set, T_1, p, PhasePartition(q_tot))
+    air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
+    T_1 = air_temp(PhasePartition(q_tot)) # Assume all vapor
+    ρ_T(T) = air_density(param_set, heavisided(T), p, PhasePartition(q_tot))
+    ρ = ρ_T(T_1)
     q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
     unsaturated = q_tot <= q_v_sat
     if unsaturated && T_1 > _T_min
         return T_1
-    else
-        T_2 = air_temperature_given_pθq(
-            param_set,
-            p,
-            θ_liq_ice,
-            PhasePartition(q_tot, FT(0), q_tot),
-        ) # Assume all ice
-        T_2 = bound_upper_temperature(T_1, T_2)
-        sol = find_zero(
-            T ->
-                liquid_ice_pottemp_sat(
-                    param_set,
-                    heavisided(T),
-                    air_density(
-                        param_set,
-                        heavisided(T),
-                        p,
-                        PhasePartition(q_tot),
-                    ),
-                    phase_type,
-                    q_tot,
-                ) - θ_liq_ice,
-            SecantMethod(T_1, T_2),
-            CompactSolution(),
-            tol,
-            maxiter,
-        )
-        if !sol.converged
-            if print_warning()
-                @print("-----------------------------------------\n")
-                @print("maxiter reached in saturation_adjustment_given_pθq:\n")
-                @print("    Method=SecantMethod")
-                @print(", p=", p)
-                @print(", θ_liq_ice=", θ_liq_ice)
-                @print(", q_tot=", q_tot)
-                @print(", T=", sol.root)
-                @print(", maxiter=", maxiter)
-                @print(", tol=", tol.tol, "\n")
-            end
-            if error_on_non_convergence()
-                error("Failed to converge with printed set of inputs.")
-            end
-        end
-        return sol.root
     end
+    T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
+    T_2 = bound_upper_temperature(T_1, T_2)
+    sol = find_zero(
+        T ->
+            liquid_ice_pottemp_sat(
+                param_set,
+                heavisided(T),
+                ρ_T(T),
+                phase_type,
+                q_tot,
+            ) - θ_liq_ice,
+        SecantMethod(T_1, T_2),
+        CompactSolution(),
+        tol,
+        maxiter,
+    )
+    if !sol.converged
+        if print_warning()
+            @print("-----------------------------------------\n")
+            @print("maxiter reached in saturation_adjustment_given_pθq:\n")
+            @print("    Method=SecantMethod")
+            @print(", p=", p)
+            @print(", θ_liq_ice=", θ_liq_ice)
+            @print(", q_tot=", q_tot)
+            @print(", T=", sol.root)
+            @print(", maxiter=", maxiter)
+            @print(", tol=", tol.tol, "\n")
+        end
+        if error_on_non_convergence()
+            error("Failed to converge with printed set of inputs.")
+        end
+    end
+    return sol.root
 end
 
 """
