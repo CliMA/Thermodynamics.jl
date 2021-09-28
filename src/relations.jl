@@ -154,6 +154,87 @@ The (moist-)air density, given a thermodynamic state `ts`.
 air_density(ts::ThermodynamicState) = ts.ρ
 
 """
+    air_density_equil(
+        param_set,
+        T,
+        p,
+        q_tot,
+    )
+
+Compute the (equilibrium-)air density `ρ` that is consistent with
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `p` pressure
+ - `q_tot` total specific humidity
+by finding the root of
+```
+ρ - air_density(
+    param_set,
+    T,
+    p,
+    PhasePartition_equil(param_set, T, ρ, q_tot, PhaseEquil)
+)
+```
+This air density is in sync with that computed from `air_density`,
+which relies on the full `PhasePartition`.
+See also [`saturation_adjustment`](@ref).
+!!! warn
+    This is an expensive function, and has internalized
+    iterative solver parameters to simplify the interface.
+"""
+function air_density_equil(
+    param_set::APS,
+    T::FT,
+    p::FT,
+    q_tot::FT,
+) where {FT <: Real}
+    # Assume all liquid
+    ρ_init = air_density(param_set, T, p, PhasePartition(q_tot))
+    phase_type = PhaseEquil
+    maxiter = 50
+    tol = SolutionTolerance(eps(FT))
+    sol = find_zero(
+        ρ -> begin
+            _q_tot = oftype(ρ, q_tot)
+            _p = oftype(ρ, p)
+
+            q_pt = PhasePartition_equil(
+                param_set,
+                oftype(ρ, T),
+                ρ,
+                oftype(ρ, q_tot),
+                phase_type,
+            )
+            # TODO: is one of these equations preferred over the other?
+            # (e.g., physically / numerically)
+            # T - air_temperature_from_ideal_gas_law(param_set, _p, ρ, q_pt)
+            ρ - air_density(param_set, oftype(ρ, T), _p, q_pt)
+        end,
+        NewtonsMethodAD(ρ_init),
+        CompactSolution(),
+        tol,
+        maxiter,
+    )
+    if !sol.converged
+        if print_warning()
+            @print("-----------------------------------------\n")
+            @print("maxiter reached in air_density_equil:\n")
+            @print("    Method=NewtonsMethodAD")
+            @print(", T=", T)
+            @print(", p=", p)
+            @print(", q_tot=", q_tot)
+            @print(", ρ=", sol.root)
+            @print(", maxiter=", maxiter)
+            @print(", tol=", tol.tol, "\n")
+        end
+        if error_on_non_convergence()
+            error("Failed to converge with printed set of inputs.")
+        end
+    end
+    return sol.root
+end
+
+"""
     specific_volume(ts::ThermodynamicState)
 
 The (moist-)air specific volume, given a thermodynamic state `ts`.
@@ -1398,7 +1479,7 @@ function saturation_adjustment_given_peq(
     tol = ResidualTolerance(temperature_tol * _cv_d)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
-    ρ_T(T) = air_density(param_set, T, p, PhasePartition(q_tot))
+    ρ_T(T) = air_density_equil(param_set, T, p, q_tot)
     ρ_1 = ρ_T(T_1)
     q_v_sat = q_vap_saturation(param_set, T_1, ρ_1, phase_type)
     unsaturated = q_tot <= q_v_sat
@@ -1671,7 +1752,7 @@ by finding the root of
 
 `θ_{liq_ice} - liquid_ice_pottemp_sat(param_set,
                                       T,
-                                      air_density(param_set, T, p, PhasePartition(q_tot)),
+                                      air_density_equil(param_set, T, p, q_tot),
                                       phase_type,
                                       q_tot) = 0`
 
@@ -1689,7 +1770,7 @@ function saturation_adjustment_given_pθq(
     _T_min::FT = T_min(param_set)
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_1 = air_temp(PhasePartition(q_tot)) # Assume all vapor
-    ρ_T(T) = air_density(param_set, heavisided(T), p, PhasePartition(q_tot))
+    ρ_T(T) = air_density_equil(param_set, heavisided(T), p, q_tot)
     ρ = ρ_T(T_1)
     q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
     unsaturated = q_tot <= q_v_sat

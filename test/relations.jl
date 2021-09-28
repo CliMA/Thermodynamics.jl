@@ -18,7 +18,6 @@ const param_set = EarthParameterSet()
 
 # Tolerances for tested quantities:
 atol_temperature = 5e-1
-atol_pressure = MSLP(param_set) * 2e-2
 atol_energy = cv_d(param_set) * atol_temperature
 rtol_temperature = 1e-1
 rtol_density = rtol_temperature
@@ -833,9 +832,7 @@ end
         ts_peq = PhaseEquil_peq.(param_set, p, e_int, q_tot)
         @test all(internal_energy.(ts_peq) .≈ e_int)
         @test all(getproperty.(PhasePartition.(ts_peq), :tot) .≈ q_tot)
-        @test all(isapprox.(air_pressure.(ts_peq), p; rtol = rtol_pressure))
-        # TODO: investigate why increasing iterations does not decrease error:
-        # @show max(abs.(air_pressure.(ts_peq) .- p)...) # ~ 531
+        @test all(air_pressure.(ts_peq) .≈ p)
 
         ts = PhaseEquil_ρpq.(param_set, ρ, p, q_tot, true)
         @test all(air_density.(ts) .≈ ρ)
@@ -925,7 +922,7 @@ end
             rtol = rtol_temperature,
         ))
         @test all(compare_moisture.(ts, q_pt))
-        @test all(isapprox.(air_pressure.(ts), p, atol = atol_pressure))
+        @test all(air_pressure.(ts) .≈ p)
 
         # PhaseNonEquil_pθq
         ts = PhaseNonEquil_pθq.(param_set, p, θ_liq_ice, q_pt)

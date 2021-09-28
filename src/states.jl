@@ -344,8 +344,8 @@ function PhaseEquil_pθq(
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
-    maxiter::Int = 30,
-    temperature_tol::FT = FT(1e-1),
+    maxiter::Int = 50,
+    temperature_tol::FT = FT(1e-3),
 ) where {FT <: Real}
     phase_type = PhaseEquil
     tol = ResidualTolerance(temperature_tol)
@@ -358,7 +358,7 @@ function PhaseEquil_pθq(
         maxiter,
         tol,
     )
-    ρ = air_density(param_set, T, p, PhasePartition(q_tot))
+    ρ = air_density_equil(param_set, T, p, q_tot)
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     e_int = internal_energy(param_set, T, q)
     return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q.tot, T)
@@ -403,7 +403,7 @@ function PhaseEquil_pTq(
     q_tot::FT,
 ) where {FT <: Real}
     phase_type = PhaseEquil
-    ρ = air_density(param_set, T, p, PhasePartition(q_tot))
+    ρ = air_density_equil(param_set, T, p, q_tot)
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     e_int = internal_energy(param_set, T, q)
     return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot, T)
@@ -442,7 +442,7 @@ function PhaseEquil_peq(
         maxiter,
         temperature_tol,
     )
-    ρ = air_density(param_set, T, p, PhasePartition(q_tot_safe))
+    ρ = air_density_equil(param_set, T, p, q_tot_safe)
     return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot_safe, T)
 end
 
