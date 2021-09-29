@@ -217,6 +217,8 @@ struct PhaseEquil{FT, PS} <: AbstractPhaseEquil{FT}
     param_set::PS
     "density of air (potentially moist)"
     ρ::FT
+    "air pressure"
+    p::FT
     "internal energy"
     e_int::FT
     "total specific humidity"
@@ -262,7 +264,16 @@ function PhaseEquil_ρeq(
         maxiter,
         temperature_tol,
     )
-    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot_safe, T)
+    q_pt = PhasePartition_equil(param_set, T, ρ, q_tot_safe, phase_type)
+    p = air_pressure(param_set, T, ρ, q_pt)
+    return PhaseEquil{FT, typeof(param_set)}(
+        param_set,
+        ρ,
+        p,
+        e_int,
+        q_tot_safe,
+        T,
+    )
 end
 
 # Convenience method for comparing Numerical
@@ -323,45 +334,9 @@ function PhaseEquil_ρθq(
         tol,
     )
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    p = air_pressure(param_set, T, ρ, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
-    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot, T)
-end
-
-"""
-    PhaseEquil_pθq(param_set, p, θ_liq_ice, q_tot)
-
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
- - `θ_liq_ice` liquid-ice potential temperature
- - `q_tot` total specific humidity
- - `temperature_tol` temperature tolerance for saturation adjustment
- - `maxiter` maximum iterations for saturation adjustment
-"""
-function PhaseEquil_pθq(
-    param_set::APS,
-    p::FT,
-    θ_liq_ice::FT,
-    q_tot::FT,
-    maxiter::Int = 30,
-    temperature_tol::FT = FT(1e-1),
-) where {FT <: Real}
-    phase_type = PhaseEquil
-    tol = ResidualTolerance(temperature_tol)
-    T = saturation_adjustment_given_pθq(
-        param_set,
-        p,
-        θ_liq_ice,
-        q_tot,
-        phase_type,
-        maxiter,
-        tol,
-    )
-    ρ = air_density(param_set, T, p, PhasePartition(q_tot))
-    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
-    e_int = internal_energy(param_set, T, q)
-    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q.tot, T)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, p, e_int, q_tot, T)
 end
 
 """
@@ -381,9 +356,10 @@ function PhaseEquil_ρTq(
     q_tot::FT,
 ) where {FT <: Real}
     phase_type = PhaseEquil
-    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
-    e_int = internal_energy(param_set, T, q)
-    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot, T)
+    q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    p = air_pressure(param_set, T, ρ, q_pt)
+    e_int = internal_energy(param_set, T, q_pt)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, p, e_int, q_tot, T)
 end
 
 """
@@ -403,10 +379,18 @@ function PhaseEquil_pTq(
     q_tot::FT,
 ) where {FT <: Real}
     phase_type = PhaseEquil
-    ρ = air_density(param_set, T, p, PhasePartition(q_tot))
-    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
-    e_int = internal_energy(param_set, T, q)
-    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot, T)
+    q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
+    ρ = air_density(param_set, T, p, q_pt)
+    e_int = internal_energy(param_set, T, q_pt)
+    return PhaseEquil{FT, typeof(param_set)}(
+        param_set,
+        ρ,
+        p,
+        e_int,
+        q_tot_safe,
+        T,
+    )
 end
 
 """
@@ -442,8 +426,16 @@ function PhaseEquil_peq(
         maxiter,
         temperature_tol,
     )
-    ρ = air_density(param_set, T, p, PhasePartition(q_tot_safe))
-    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot_safe, T)
+    q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
+    ρ = air_density(param_set, T, p, q_pt)
+    return PhaseEquil{FT, typeof(param_set)}(
+        param_set,
+        ρ,
+        p,
+        e_int,
+        q_tot_safe,
+        T,
+    )
 end
 
 """
@@ -488,8 +480,57 @@ function PhaseEquil_ρpq(
         T = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt)
         e_int = internal_energy(param_set, T, q_pt)
     end
-    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, e_int, q_tot, T)
+    return PhaseEquil{FT, typeof(param_set)}(param_set, ρ, p, e_int, q_tot, T)
 end
+
+
+"""
+    PhaseEquil_pθq(param_set, θ_liq_ice, q_tot)
+
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` air pressure
+ - `θ_liq_ice` liquid-ice potential temperature
+ - `q_tot` total specific humidity
+ - `temperature_tol` temperature tolerance for saturation adjustment
+ - `maxiter` maximum iterations for saturation adjustment
+"""
+function PhaseEquil_pθq(
+    param_set::APS,
+    p::FT,
+    θ_liq_ice::FT,
+    q_tot::FT,
+    maxiter::IT = nothing,
+    temperature_tol::FTT = nothing,
+) where {FT <: Real, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
+    maxiter === nothing && (maxiter = 50)
+    temperature_tol === nothing && (temperature_tol = FT(1e-3))
+    phase_type = PhaseEquil
+    q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    tol = ResidualTolerance(temperature_tol)
+    T = saturation_adjustment_given_pθq(
+        param_set,
+        p,
+        θ_liq_ice,
+        q_tot_safe,
+        phase_type,
+        maxiter,
+        tol,
+    )
+    q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
+    ρ = air_density(param_set, T, p, q_pt)
+    e_int = internal_energy(param_set, T, q_pt)
+    return PhaseEquil{FT, typeof(param_set)}(
+        param_set,
+        ρ,
+        p,
+        e_int,
+        q_tot_safe,
+        T,
+    )
+end
+
 
 #####
 ##### Non-equilibrium states

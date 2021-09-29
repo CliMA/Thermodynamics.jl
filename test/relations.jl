@@ -3,22 +3,27 @@ using Thermodynamics
 using Thermodynamics.TemperatureProfiles
 using Thermodynamics.TestedProfiles
 using UnPack
+using KernelAbstractions: @print
 using BenchmarkTools
 using NCDatasets
 using Random
+
 using RootSolvers
+import RootSolvers
+const RS = RootSolvers
+
 const TD = Thermodynamics
 using LinearAlgebra
 
 using CLIMAParameters
 using CLIMAParameters.Planet
+const APS = AbstractEarthParameterSet
 
 struct EarthParameterSet <: AbstractEarthParameterSet end
 const param_set = EarthParameterSet()
 
 # Tolerances for tested quantities:
 atol_temperature = 5e-1
-atol_pressure = MSLP(param_set) * 2e-2
 atol_energy = cv_d(param_set) * atol_temperature
 rtol_temperature = 1e-1
 rtol_density = rtol_temperature
@@ -186,6 +191,15 @@ end
         phase_type,
         PhasePartition(FT(0)),
     ) == ρ_v_triple / ρ
+
+    @test TD.q_vap_saturation_from_pressure(
+        param_set,
+        q_tot,
+        p,
+        _T_triple,
+        phase_type,
+    ) == _R_d / _R_v * (1 - q_tot) * _press_triple / (p - _press_triple)
+
     phase_type = PhaseNonEquil
     @test q_vap_saturation(
         param_set,
@@ -301,6 +315,10 @@ end
     @test q.liq ≈ FT(0)
     @test 0 < q.ice <= q_tot
 
+    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
+    @test q.liq ≈ FT(0)
+    @test 0 < q.ice <= q_tot
+
     T = FT(_T_freeze + 10)
     ρ = FT(0.1)
     q_tot = FT(0.60)
@@ -314,6 +332,10 @@ end
     ) === FT(2 / 3)
     phase_type = PhaseDry
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    @test 0 < q.liq <= q_tot
+    @test q.ice ≈ 0
+
+    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
     @test 0 < q.liq <= q_tot
     @test q.ice ≈ 0
 
@@ -377,6 +399,11 @@ end
     @test q.tot - q.liq - q.ice ≈
           vapor_specific_humidity(q) ≈
           q_vap_saturation(param_set, T, ρ, phase_type)
+
+    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
+    @test q.tot - q.liq - q.ice ≈
+          vapor_specific_humidity(q) ≈
+          TD.q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
 
     ρ = FT(1)
     ρu = FT[1, 2, 3]
@@ -833,9 +860,19 @@ end
         ts_peq = PhaseEquil_peq.(param_set, p, e_int, q_tot)
         @test all(internal_energy.(ts_peq) .≈ e_int)
         @test all(getproperty.(PhasePartition.(ts_peq), :tot) .≈ q_tot)
-        @test all(isapprox.(air_pressure.(ts_peq), p; rtol = rtol_pressure))
-        # TODO: investigate why increasing iterations does not decrease error:
-        # @show max(abs.(air_pressure.(ts_peq) .- p)...) # ~ 531
+        @test all(air_pressure.(ts_peq) .≈ p)
+
+        ts_pθq = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
+        @test all(air_pressure.(ts_pθq) .≈ p)
+        # TODO: Run some tests to make sure that this decreses with
+        # decreasing temperature_tol (and increasing maxiter)
+        # @show maximum(abs.(liquid_ice_pottemp.(ts_pθq) .- θ_liq_ice))
+        @test all(isapprox.(
+            liquid_ice_pottemp.(ts_pθq),
+            θ_liq_ice,
+            rtol = rtol_temperature,
+        ))
+        @test all(getproperty.(PhasePartition.(ts_pθq), :tot) .≈ q_tot)
 
         ts = PhaseEquil_ρpq.(param_set, ρ, p, q_tot, true)
         @test all(air_density.(ts) .≈ ρ)
@@ -925,7 +962,7 @@ end
             rtol = rtol_temperature,
         ))
         @test all(compare_moisture.(ts, q_pt))
-        @test all(isapprox.(air_pressure.(ts), p, atol = atol_pressure))
+        @test all(air_pressure.(ts) .≈ p)
 
         # PhaseNonEquil_pθq
         ts = PhaseNonEquil_pθq.(param_set, p, θ_liq_ice, q_pt)
@@ -1038,6 +1075,18 @@ end
     # with converging to the same tolerances as `Float64`, so they're relaxed here.
     ArrayType = Array{Float32}
     FT = eltype(ArrayType)
+
+    profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
+    @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
+    @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+
+    θ_dry = dry_pottemp.(param_set, T, ρ)
+    ts_dry = PhaseDry.(param_set, e_int, ρ)
+    ts_dry_ρp = PhaseDry_ρp.(param_set, ρ, p)
+    ts_dry_pT = PhaseDry_pT.(param_set, p, T)
+    ts_dry_ρθ = PhaseDry_ρθ.(param_set, ρ, θ_dry)
+    ts_dry_pθ = PhaseDry_pθ.(param_set, p, θ_dry)
+
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, p, RS, e_int, ρ, θ_liq_ice, phase_type = profiles
     @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
@@ -1046,40 +1095,34 @@ end
     @test typeof.(internal_energy.(ρ, ρ .* e_int, Ref(ρu), e_pot)) ==
           typeof.(e_int)
 
-    θ_dry = dry_pottemp.(param_set, T, ρ)
-    ts_dry = PhaseDry.(param_set, e_int, ρ)
-    ts_dry_ρp = PhaseDry_ρp.(param_set, ρ, p)
-    ts_dry_pT = PhaseDry_pT.(param_set, p, T)
-    ts_dry_ρθ = PhaseDry_ρθ.(param_set, ρ, θ_dry)
-    ts_dry_pθ = PhaseDry_pθ.(param_set, p, θ_dry)
     ts_eq = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 15, FT(1e-1))
     e_tot = total_energy.(e_kin, e_pot, ts_eq)
 
     ts_T =
         PhaseEquil_ρTq.(
             param_set,
-            air_density.(ts_dry),
-            air_temperature.(ts_dry),
+            air_density.(ts_eq),
+            air_temperature.(ts_eq),
             q_tot,
         )
     ts_Tp =
         PhaseEquil_pTq.(
             param_set,
-            air_pressure.(ts_dry),
-            air_temperature.(ts_dry),
+            air_pressure.(ts_eq),
+            air_temperature.(ts_eq),
             q_tot,
         )
 
     ts_ρp =
         PhaseEquil_ρpq.(
             param_set,
-            air_density.(ts_dry),
-            air_pressure.(ts_dry),
+            air_density.(ts_eq),
+            air_pressure.(ts_eq),
             q_tot,
         )
 
     @test all(air_temperature.(ts_T) .≈ air_temperature.(ts_Tp))
-    # @test all(isapprox.(air_pressure.(ts_T), air_pressure.(ts_Tp), atol = _MSLP * 2e-2)) # TODO: Fails, needs fixing / better test
+    @test all(air_pressure.(ts_T) .≈ air_pressure.(ts_Tp))
     @test all(total_specific_humidity.(ts_T) .≈ total_specific_humidity.(ts_Tp))
 
     ts_neq = PhaseNonEquil.(param_set, e_int, ρ, q_pt)
