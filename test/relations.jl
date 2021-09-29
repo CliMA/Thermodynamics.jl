@@ -33,7 +33,6 @@ rtol_energy = 1e-1
 array_types = [Array{Float32}, Array{Float64}]
 
 include("data_tests.jl")
-include("pressure_constructor_helpers.jl")
 
 compare_moisture(a::ThermodynamicState, b::ThermodynamicState) =
     compare_moisture(a, PhasePartition(b))
@@ -874,14 +873,6 @@ end
             rtol = rtol_temperature,
         ))
         @test all(getproperty.(PhasePartition.(ts_pθq), :tot) .≈ q_tot)
-
-        # Make sure that density and pressure formulations are unified:
-        ts_pθq_uni = PhaseEquil_pθq_unified.(param_set, p, θ_liq_ice, q_tot)
-        @test all(air_pressure.(ts_pθq) .≈ air_pressure.(ts_pθq_uni))
-        @test all(
-            liquid_ice_pottemp.(ts_pθq) .≈ liquid_ice_pottemp.(ts_pθq_uni),
-        )
-        @test all(compare_moisture.(ts_pθq, ts_pθq_uni))
 
         ts = PhaseEquil_ρpq.(param_set, ρ, p, q_tot, true)
         @test all(air_density.(ts) .≈ ρ)
