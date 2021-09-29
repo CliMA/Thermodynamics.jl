@@ -37,7 +37,7 @@ PhaseNonEquil_ρpq
 
 ## Types
 
-```
+```@docs
 Ice
 Liquid
 ```
@@ -95,7 +95,8 @@ virtual_temperature
 ```
 
 ## Internal methods
-```
+
+```@docs
 shum_to_mixing_ratio
 q_vap_saturation_generic
 q_vap_saturation_from_pressure
