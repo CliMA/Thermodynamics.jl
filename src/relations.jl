@@ -1772,15 +1772,15 @@ function saturation_adjustment_given_pθq(
         maxiter,
     )
     if !sol.converged
-        print("-----------------------------------------\n")
-        print("maxiter reached in saturation_adjustment_given_pθq:\n")
-        print("    Method=SecantMethod")
-        print(", p=", p)
-        print(", θ_liq_ice=", θ_liq_ice)
-        print(", q_tot=", q_tot)
-        print(", T=", sol.root)
-        print(", maxiter=", maxiter)
-        print(", tol=", tol.tol, "\n")
+        @print("-----------------------------------------\n")
+        @print("maxiter reached in saturation_adjustment_given_pθq:\n")
+        @print("    Method=SecantMethod")
+        @print(", p=", p)
+        @print(", θ_liq_ice=", θ_liq_ice)
+        @print(", q_tot=", q_tot)
+        @print(", T=", sol.root)
+        @print(", maxiter=", maxiter)
+        @print(", tol=", tol.tol, "\n")
         error("Failed to converge with printed set of inputs.")
     end
     return sol.root
