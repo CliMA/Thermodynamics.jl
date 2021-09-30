@@ -248,7 +248,7 @@ function PhaseEquil_ρeq(
     q_tot::FT,
     maxiter::IT = nothing,
     temperature_tol::FTT = nothing,
-    ::Type{sat_adjust_method} = NewtonsMethod,
+    ::Type{sat_adjust_method} = RS.NewtonsMethod,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
     maxiter === nothing && (maxiter = 8)
     temperature_tol === nothing && (temperature_tol = FT(1e-1))
@@ -287,7 +287,7 @@ function PhaseEquil_dev_only(
     q_tot::FT;
     maxiter::Int = 8,
     temperature_tol::FT = FT(1e-1),
-    sat_adjust_method::Type{NM} = NewtonsMethod,
+    sat_adjust_method::Type{NM} = RS.NewtonsMethod,
 ) where {FT <: Real, NM}
     return PhaseEquil_ρeq(
         param_set,
@@ -323,7 +323,7 @@ function PhaseEquil_ρθq(
     maxiter === nothing && (maxiter = 36)
     temperature_tol === nothing && (temperature_tol = FT(1e-1))
     phase_type = PhaseEquil
-    tol = ResidualTolerance(temperature_tol)
+    tol = RS.ResidualTolerance(temperature_tol)
     T = saturation_adjustment_given_ρθq(
         param_set,
         ρ,
@@ -410,7 +410,7 @@ function PhaseEquil_peq(
     q_tot::FT,
     maxiter::IT = nothing,
     temperature_tol::FTT = nothing,
-    ::Type{sat_adjust_method} = SecantMethod,
+    ::Type{sat_adjust_method} = RS.SecantMethod,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
     maxiter === nothing && (maxiter = 40)
     temperature_tol === nothing && (temperature_tol = FT(1e-2))
@@ -459,7 +459,7 @@ function PhaseEquil_ρpq(
     q_tot::FT,
     perform_sat_adjust = false,
     maxiter::Int = 5,
-    ::Type{sat_adjust_method} = NewtonsMethodAD,
+    ::Type{sat_adjust_method} = RS.NewtonsMethodAD,
 ) where {FT <: Real, sat_adjust_method}
 
     phase_type = PhaseEquil
@@ -508,7 +508,7 @@ function PhaseEquil_pθq(
     temperature_tol === nothing && (temperature_tol = FT(1e-3))
     phase_type = PhaseEquil
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
-    tol = ResidualTolerance(temperature_tol)
+    tol = RS.ResidualTolerance(temperature_tol)
     T = saturation_adjustment_given_pθq(
         param_set,
         p,
@@ -612,7 +612,7 @@ function PhaseNonEquil_ρθq(
     potential_temperature_tol::FT = FT(1e-2),
 ) where {FT <: Real}
     phase_type = PhaseNonEquil
-    tol = ResidualTolerance(potential_temperature_tol)
+    tol = RS.ResidualTolerance(potential_temperature_tol)
     T = air_temperature_given_ρθq_nonlinear(
         param_set,
         ρ,
