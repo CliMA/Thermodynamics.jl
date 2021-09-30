@@ -9,11 +9,16 @@ tested with in runtests.jl
 """
 module TestedProfiles
 
-using ..Thermodynamics
-using ..Thermodynamics.TemperatureProfiles
-using CLIMAParameters: AbstractParameterSet
-using CLIMAParameters.Planet
-using Random
+import ..Thermodynamics
+const TD = Thermodynamics
+const TP = TD.TemperatureProfiles
+
+import ..CLIMAParameters
+const CP = CLIMAParameters
+const CPP = CP.Planet
+const APS = CP.AbstractParameterSet
+
+import Random
 
 """
     ProfileSet
@@ -98,7 +103,7 @@ end
 
 """
     shared_profiles(
-        param_set::AbstractParameterSet,
+        param_set::APS,
         z_range::AbstractArray,
         relative_sat::AbstractArray,
         T_surface,
@@ -114,7 +119,7 @@ states, including:
  - `RS` relative saturation
 """
 function shared_profiles(
-    param_set::AbstractParameterSet,
+    param_set::APS,
     z_range::AbstractArray,
     relative_sat::AbstractArray,
     T_surface,
@@ -134,7 +139,7 @@ function shared_profiles(
     # will not be in hydrostatic balance, but this does not
     # matter for the thermodynamic test profiles.
     profile =
-        DecayingTemperatureProfile{FT}(param_set, FT(T_surface), FT(T_min))
+        TP.DecayingTemperatureProfile{FT}(param_set, FT(T_surface), FT(T_min))
     for i in linear_indices.indices[1]
         for j in linear_indices.indices[2]
             k = linear_indices[i, j]
@@ -155,31 +160,28 @@ end
 
 Returns a `ProfileSet` used to test dry thermodynamic states.
 """
-function PhaseDryProfiles(
-    param_set::AbstractParameterSet,
-    ::Type{ArrayType},
-) where {ArrayType}
-    phase_type = PhaseDry
+function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
+    phase_type = TD.PhaseDry
 
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
     z, T_virt, p, RS =
         shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
     T = T_virt
     FT = eltype(T)
-    _R_d::FT = R_d(param_set)
-    _grav::FT = grav(param_set)
-    ρ = p ./ (_R_d .* T)
+    R_d::FT = CPP.R_d(param_set)
+    grav::FT = CPP.grav(param_set)
+    ρ = p ./ (R_d .* T)
 
     # Additional variables
     q_tot = similar(T)
     fill!(q_tot, 0)
-    q_pt = PhasePartition_equil.(param_set, T, ρ, q_tot, phase_type)
-    e_int = internal_energy.(param_set, T, q_pt)
-    θ_liq_ice = liquid_ice_pottemp.(param_set, T, ρ, q_pt)
+    q_pt = TD.PhasePartition_equil.(param_set, T, ρ, q_tot, phase_type)
+    e_int = TD.internal_energy.(param_set, T, q_pt)
+    θ_liq_ice = TD.liquid_ice_pottemp.(param_set, T, ρ, q_pt)
     q_liq = getproperty.(q_pt, :liq)
     q_ice = getproperty.(q_pt, :ice)
-    RH = relative_humidity.(param_set, T, p, phase_type, q_pt)
-    e_pot = _grav * z
+    RH = TD.relative_humidity.(param_set, T, p, phase_type, q_pt)
+    e_pot = grav * z
     Random.seed!(15)
     u = rand(FT, size(T)) * 50
     v = rand(FT, size(T)) * 50
@@ -218,11 +220,8 @@ end
 
 Returns a `ProfileSet` used to test moist states in thermodynamic equilibrium.
 """
-function PhaseEquilProfiles(
-    param_set::AbstractParameterSet,
-    ::Type{ArrayType},
-) where {ArrayType}
-    phase_type = PhaseEquil
+function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
+    phase_type = TD.PhaseEquil
 
     # Prescribe z_range, relative_sat, T_surface, T_min
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
@@ -233,25 +232,26 @@ function PhaseEquilProfiles(
     T = T_virt
 
     FT = eltype(T)
-    _R_d = FT(R_d(param_set))
-    _grav::FT = grav(param_set)
+    R_d::FT = CPP.R_d(param_set)
+    grav::FT = CPP.grav(param_set)
     # Compute total specific humidity from temperature, pressure
     # and relative saturation, and partition the saturation excess
     # according to temperature.
-    ρ = p ./ (_R_d .* T)
-    q_tot = RS .* q_vap_saturation.(Ref(param_set), T, ρ, Ref(phase_type))
-    q_pt = PhasePartition_equil.(Ref(param_set), T, ρ, q_tot, Ref(phase_type))
+    ρ = p ./ (R_d .* T)
+    q_tot = RS .* TD.q_vap_saturation.(Ref(param_set), T, ρ, Ref(phase_type))
+    q_pt =
+        TD.PhasePartition_equil.(Ref(param_set), T, ρ, q_tot, Ref(phase_type))
 
     # Extract phase partitioning and update pressure
     # to be thermodynamically consistent with T, ρ, q_pt
     q_liq = getproperty.(q_pt, :liq)
     q_ice = getproperty.(q_pt, :ice)
-    p = air_pressure.(Ref(param_set), T, ρ, q_pt)
+    p = TD.air_pressure.(Ref(param_set), T, ρ, q_pt)
 
-    e_int = internal_energy.(Ref(param_set), T, q_pt)
-    θ_liq_ice = liquid_ice_pottemp.(Ref(param_set), T, ρ, q_pt)
-    RH = relative_humidity.(Ref(param_set), T, p, Ref(phase_type), q_pt)
-    e_pot = _grav * z
+    e_int = TD.internal_energy.(Ref(param_set), T, q_pt)
+    θ_liq_ice = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_pt)
+    RH = TD.relative_humidity.(Ref(param_set), T, p, Ref(phase_type), q_pt)
+    e_pot = grav * z
     Random.seed!(15)
     u = rand(FT, size(T)) * 50
     v = rand(FT, size(T)) * 50

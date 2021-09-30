@@ -42,14 +42,19 @@ The currently supported numerical methods, in RootSolvers.jl, are:
 """
 module Thermodynamics
 
-using DocStringExtensions
-using RootSolvers
-using RootSolvers: AbstractTolerance
-using KernelAbstractions: @print
+import DocStringExtensions
+const DSE = DocStringExtensions
 
-using CLIMAParameters: AbstractParameterSet
-using CLIMAParameters.Planet
-const APS = AbstractParameterSet
+import RootSolvers
+const RS = RootSolvers
+
+import KernelAbstractions
+const KA = KernelAbstractions
+
+import CLIMAParameters
+const CP = CLIMAParameters
+const CPP = CP.Planet
+const APS = CP.AbstractParameterSet
 
 Base.broadcastable(param_set::APS) = Ref(param_set)
 
