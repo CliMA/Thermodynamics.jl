@@ -1126,7 +1126,8 @@ end
     @test all(total_specific_humidity.(ts_T) .≈ total_specific_humidity.(ts_Tp))
 
     ts_neq = PhaseNonEquil.(param_set, e_int, ρ, q_pt)
-    ts_T_neq = PhaseNonEquil_ρTq.(param_set, ρ, T, q_pt)
+    ts_ρT_neq = PhaseNonEquil_ρTq.(param_set, ρ, T, q_pt)
+    ts_pT_neq = PhaseNonEquil_pTq.(param_set, p, T, q_pt)
 
     ts_θ_liq_ice_eq =
         PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-3))
@@ -1146,7 +1147,8 @@ end
         ts_Tp,
         ts_ρp,
         ts_neq,
-        ts_T_neq,
+        ts_ρT_neq,
+        ts_pT_neq,
         ts_θ_liq_ice_eq,
         ts_θ_liq_ice_eq_p,
         ts_θ_liq_ice_neq,

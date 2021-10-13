@@ -18,6 +18,7 @@ export ThermodynamicState,
     PhaseEquil_ρpq,
     PhaseNonEquil,
     PhaseNonEquil_ρTq,
+    PhaseNonEquil_pTq,
     PhaseNonEquil_ρθq,
     PhaseNonEquil_pθq,
     PhaseNonEquil_peq,
@@ -642,6 +643,27 @@ function PhaseNonEquil_pθq(
     q_pt::PhasePartition{FT},
 ) where {FT <: Real}
     T = air_temperature_given_pθq(param_set, p, θ_liq_ice, q_pt)
+    ρ = air_density(param_set, T, p, q_pt)
+    e_int = internal_energy(param_set, T, q_pt)
+    return PhaseNonEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q_pt)
+end
+
+"""
+    PhaseNonEquil_pTq(param_set, p, T, q_pt)
+
+Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `T` air temperature
+ - `q_pt` phase partition
+"""
+function PhaseNonEquil_pTq(
+    param_set::APS,
+    p::FT,
+    T::FT,
+    q_pt::PhasePartition{FT},
+) where {FT <: Real}
     ρ = air_density(param_set, T, p, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT, typeof(param_set)}(param_set, e_int, ρ, q_pt)
