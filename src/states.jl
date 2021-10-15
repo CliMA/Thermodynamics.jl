@@ -486,7 +486,7 @@ end
 
 
 """
-    PhaseEquil_pθq(param_set, θ_liq_ice, q_tot)
+    PhaseEquil_pθq(param_set, θ_liq_ice, q_tot[, maxiter, temperature_tol, sat_adjust_method])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 
@@ -496,6 +496,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
  - `q_tot` total specific humidity
  - `temperature_tol` temperature tolerance for saturation adjustment
  - `maxiter` maximum iterations for saturation adjustment
+ - `sat_adjust_method` the numerical method to use.
 """
 function PhaseEquil_pθq(
     param_set::APS,
@@ -504,13 +505,15 @@ function PhaseEquil_pθq(
     q_tot::FT,
     maxiter::IT = nothing,
     temperature_tol::FTT = nothing,
-) where {FT <: Real, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
+    ::Type{sat_adjust_method} = RS.SecantMethod,
+) where {FT <: Real, IT <: ITERTYPE, FTT <: TOLTYPE(FT), sat_adjust_method}
     maxiter === nothing && (maxiter = 50)
     temperature_tol === nothing && (temperature_tol = FT(1e-3))
     phase_type = PhaseEquil
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     tol = RS.ResidualTolerance(temperature_tol)
     T = saturation_adjustment_given_pθq(
+        sat_adjust_method,
         param_set,
         p,
         θ_liq_ice,
