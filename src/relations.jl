@@ -1699,6 +1699,7 @@ end
 
 """
     saturation_adjustment_given_pθq(
+        sat_adjust_method,
         param_set,
         p,
         θ_liq_ice,
@@ -1719,6 +1720,7 @@ Compute the temperature `T` that is consistent with
     - `SolutionTolerance()` to stop when `|x_2 - x_1| < tol`
     - `ResidualTolerance()` to stop when `|f(x)| < tol`
  - `maxiter` maximum iterations for non-linear equation solve
+- `sat_adjust_method` the numerical method to use.
 
 by finding the root of
 
@@ -1727,6 +1729,7 @@ by finding the root of
 See also [`saturation_adjustment`](@ref).
 """
 function saturation_adjustment_given_pθq(
+    ::Type{sat_adjust_method},
     param_set::APS,
     p::FT,
     θ_liq_ice::FT,
@@ -1734,7 +1737,7 @@ function saturation_adjustment_given_pθq(
     phase_type::Type{<:PhaseEquil},
     maxiter::Int,
     tol::RS.AbstractTolerance,
-) where {FT <: Real}
+) where {FT <: Real, sat_adjust_method}
     _T_min::FT = CPP.T_min(param_set)
     cp_d::FT = CPP.cp_d(param_set)
     cp_v::FT = CPP.cp_v(param_set)
@@ -1747,8 +1750,6 @@ function saturation_adjustment_given_pθq(
     if unsaturated && T_1 > _T_min
         return T_1
     end
-    T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
-    T_2 = bound_upper_temperature(T_1, T_2)
     function roots(T)
         q_pt = PhasePartition_equil_given_p(
             param_set,
@@ -1766,22 +1767,33 @@ function saturation_adjustment_given_pθq(
     end
     sol = RS.find_zero(
         roots,
-        RS.SecantMethod(T_1, T_2),
+        sa_numerical_method_pθq(
+            sat_adjust_method,
+            param_set,
+            p,
+            θ_liq_ice,
+            q_tot,
+            phase_type,
+        ),
         RS.CompactSolution(),
         tol,
         maxiter,
     )
     if !sol.converged
-        KA.@print("-----------------------------------------\n")
-        KA.@print("maxiter reached in saturation_adjustment_given_pθq:\n")
-        KA.@print("    Method=SecantMethod")
-        KA.@print(", p=", p)
-        KA.@print(", θ_liq_ice=", θ_liq_ice)
-        KA.@print(", q_tot=", q_tot)
-        KA.@print(", T=", sol.root)
-        KA.@print(", maxiter=", maxiter)
-        KA.@print(", tol=", tol.tol, "\n")
-        error("Failed to converge with printed set of inputs.")
+        if print_warning()
+            KA.@print("-----------------------------------------\n")
+            KA.@print("maxiter reached in saturation_adjustment_given_pθq:\n")
+            print_numerical_method(sat_adjust_method)
+            KA.@print(", p=", p)
+            KA.@print(", θ_liq_ice=", θ_liq_ice)
+            KA.@print(", q_tot=", q_tot)
+            KA.@print(", T=", sol.root)
+            KA.@print(", maxiter=", maxiter)
+            KA.@print(", tol=", tol.tol, "\n")
+        end
+        if error_on_non_convergence()
+            error("Failed to converge with printed set of inputs.")
+        end
     end
     return sol.root
 end

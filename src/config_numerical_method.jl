@@ -151,3 +151,40 @@ function sa_numerical_method_peq(
     T_2 = bound_upper_temperature(T_1, T_2)
     return RS.SecantMethod(T_1, T_2)
 end
+
+#####
+##### Thermodynamic variable inputs: p, θ_liq_ice, q_tot
+#####
+
+function sa_numerical_method_pθq(
+    ::Type{NM},
+    param_set::APS,
+    p::FT,
+    θ_liq_ice::FT,
+    q_tot::FT,
+    phase_type::Type{<:PhaseEquil},
+) where {FT, NM <: RS.RegulaFalsiMethod}
+    _T_min::FT = CPP.T_min(param_set)
+    _T_max::FT = CPP.T_max(param_set)
+    air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
+    T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
+    T_2 = T_1 + 10
+    T_1 = T_1 - 10
+    return RS.RegulaFalsiMethod(T_1, T_2)
+end
+
+function sa_numerical_method_pθq(
+    ::Type{NM},
+    param_set::APS,
+    p::FT,
+    θ_liq_ice::FT,
+    q_tot::FT,
+    phase_type::Type{<:PhaseEquil},
+) where {FT, NM <: RS.SecantMethod}
+    _T_min::FT = CPP.T_min(param_set)
+    air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
+    T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
+    T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
+    T_2 = bound_upper_temperature(T_1, T_2)
+    return RS.SecantMethod(T_1, T_2)
+end

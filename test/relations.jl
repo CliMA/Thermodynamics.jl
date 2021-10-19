@@ -9,8 +9,6 @@ using NCDatasets
 using Random
 
 using RootSolvers
-import RootSolvers
-const RS = RootSolvers
 
 const TD = Thermodynamics
 using LinearAlgebra
@@ -639,6 +637,17 @@ end
         # PhaseEquil_pθq
         ts_exact = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-3))
         ts = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
+
+        ts =
+            PhaseEquil_pθq.(
+                param_set,
+                p,
+                θ_liq_ice,
+                q_tot,
+                40,
+                FT(1e-3),
+                RootSolvers.RegulaFalsiMethod,
+            )
         # Should be machine accurate:
         @test all(compare_moisture.(ts, ts_exact))
         # Approximate (temperature must be computed via saturation adjustment):
@@ -763,6 +772,7 @@ end
     )
 
     @test_throws ErrorException TD.saturation_adjustment_given_pθq.(
+        SecantMethod,
         param_set,
         p,
         θ_liq_ice,
