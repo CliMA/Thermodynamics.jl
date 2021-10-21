@@ -27,3 +27,56 @@ dycoms_dataset_path = get_data_folder(dycoms_dataset)
     ts = PhaseEquil_ρeq.(Ref(param_set), ρ, e_int, q_tot, 4)
     # ts = PhaseEquil_ρeq.(Ref(param_set), ρ, e_int, q_tot, 3) # Fails
 end
+
+@testset "pθq data-driven tests" begin
+    #! format: off
+    pθq_broken = [
+        # (; p = , θ_liq_ice = , q_tot = ),
+        # (; p = , θ_liq_ice = , q_tot = ),
+        # (; p = , θ_liq_ice = , q_tot = ),
+        # (; p = , θ_liq_ice = , q_tot = ),
+        # (; p = , θ_liq_ice = , q_tot = ),
+    ]
+    #! format: on
+    # config = (50, 1e-3, RootSolvers.RegulaFalsiMethod)
+    # config = (50, 1e-3, RootSolvers.NewtonMethodAD)
+    config = ()
+    if !isempty(pθq_broken)
+        p_arr = getproperty.(pθq_broken, :p)
+        θ_liq_ice_arr = getproperty.(pθq_broken, :θ_liq_ice)
+        q_tot_arr = getproperty.(pθq_broken, :q_tot)
+        for (p, θ_liq_ice, q_tot) in zip(p_arr, θ_liq_ice_arr, q_tot_arr)
+            @test_broken begin
+                ts = PhaseEquil_pθq(param_set, p, θ_liq_ice, q_tot, config...)
+                air_pressure(ts) == p
+            end
+        end
+    end
+
+    #! format: off
+    pθq = [
+        (; p = 82307.30319719888, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 88357.42589002676, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 81090.35731696963, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 75461.41343839701, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 71158.23329080557, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 68032.73180723468, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 59906.16044902247, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 51740.77281055945, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 50056.7894012541, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 48806.70567178993, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+        (; p = 27564.73889538213, θ_liq_ice = 296.7074342326652, q_tot = 0.01894019026929829,),
+    ]
+    #! format: on
+    if !isempty(pθq)
+        p_arr = getproperty.(pθq, :p)
+        θ_liq_ice_arr = getproperty.(pθq, :θ_liq_ice)
+        q_tot_arr = getproperty.(pθq, :q_tot)
+        for (p, θ_liq_ice, q_tot) in zip(p_arr, θ_liq_ice_arr, q_tot_arr)
+            @test begin
+                ts = PhaseEquil_pθq(param_set, p, θ_liq_ice, q_tot, config...)
+                air_pressure(ts) == p
+            end
+        end
+    end
+end

@@ -672,6 +672,47 @@ end
             rtol = rtol_temperature,
         ))
 
+        # PhaseEquil_pθq (freezing)
+        _T_freeze = FT(T_freeze(param_set))
+
+        function θ_liq_ice_closure(T, p, q_tot)
+            q_pt_closure = TD.PhasePartition_equil_given_p(
+                param_set,
+                T,
+                p,
+                q_tot,
+                phase_type,
+            )
+            θ_liq_ice_close = TD.liquid_ice_pottemp_given_pressure(
+                param_set,
+                T,
+                p,
+                q_pt_closure,
+            )
+            return θ_liq_ice_close
+        end
+
+        θ_liq_ice_upper =
+            θ_liq_ice_closure.(Ref(_T_freeze + sqrt(eps(FT))), p, q_tot)
+        θ_liq_ice_lower =
+            θ_liq_ice_closure.(Ref(_T_freeze - sqrt(eps(FT))), p, q_tot)
+        θ_liq_ice_mid = (θ_liq_ice_upper .+ θ_liq_ice_lower) ./ 2
+
+        ts_lower = PhaseEquil_pθq.(param_set, p, θ_liq_ice_lower, q_tot)
+        ts_upper = PhaseEquil_pθq.(param_set, p, θ_liq_ice_upper, q_tot)
+        ts_mid = PhaseEquil_pθq.(param_set, p, θ_liq_ice_mid, q_tot)
+
+        @test count(air_temperature.(ts_lower) .== Ref(_T_freeze)) ≥ 217
+        @test count(air_temperature.(ts_upper) .== Ref(_T_freeze)) ≥ 217
+        @test count(air_temperature.(ts_mid) .== Ref(_T_freeze)) ≥ 1395
+        # we should do this instead, but we're failing because some inputs are bad
+        # E.g. p ~ 110_000 Pa, q_tot ~ 0.16, which results in negative θ_liq_ice
+        # This means that we should probably update our tested profiles.
+        # @test all(air_temperature.(ts_lower) .== Ref(_T_freeze))
+        # @test all(air_temperature.(ts_upper) .== Ref(_T_freeze))
+        # @test all(air_temperature.(ts_mid) .== Ref(_T_freeze))
+
+        # @show ρ, θ_liq_ice, q_pt
         # PhaseNonEquil_ρθq
         ts_exact =
             PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt, 40, FT(1e-3))
@@ -779,7 +820,18 @@ end
         q_tot,
         Ref(phase_type),
         2,
-        ResidualTolerance(FT(1e-10)),
+        FT(1e-10),
+    )
+
+    @test_throws ErrorException TD.saturation_adjustment_given_pθq.(
+        NewtonsMethodAD,
+        param_set,
+        p,
+        θ_liq_ice,
+        q_tot,
+        Ref(phase_type),
+        2,
+        FT(1e-10),
     )
 
     @test_throws ErrorException TD.saturation_adjustment_ρpq.(
@@ -883,6 +935,16 @@ end
             rtol = rtol_temperature,
         ))
         @test all(getproperty.(PhasePartition.(ts_pθq), :tot) .≈ q_tot)
+
+        # We can't pass on this yet, due to https://github.com/CliMA/ClimateMachine.jl/issues/263
+        # ts_pθq = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-3), NewtonsMethodAD)
+        # @test all(air_pressure.(ts_pθq) .≈ p)
+        # @test all(isapprox.(
+        #     liquid_ice_pottemp.(ts_pθq),
+        #     θ_liq_ice,
+        #     rtol = rtol_temperature,
+        # ))
+        # @test all(getproperty.(PhasePartition.(ts_pθq), :tot) .≈ q_tot)
 
         ts = PhaseEquil_ρpq.(param_set, ρ, p, q_tot, true)
         @test all(air_density.(ts) .≈ ρ)

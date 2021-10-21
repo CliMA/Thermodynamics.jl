@@ -511,7 +511,6 @@ function PhaseEquil_pθq(
     temperature_tol === nothing && (temperature_tol = FT(1e-3))
     phase_type = PhaseEquil
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
-    tol = RS.ResidualTolerance(temperature_tol)
     T = saturation_adjustment_given_pθq(
         sat_adjust_method,
         param_set,
@@ -520,7 +519,7 @@ function PhaseEquil_pθq(
         q_tot_safe,
         phase_type,
         maxiter,
-        tol,
+        temperature_tol,
     )
     q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
     ρ = air_density(param_set, T, p, q_pt)

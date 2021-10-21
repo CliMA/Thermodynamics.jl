@@ -188,3 +188,17 @@ function sa_numerical_method_pθq(
     T_2 = bound_upper_temperature(T_1, T_2)
     return RS.SecantMethod(T_1, T_2)
 end
+
+function sa_numerical_method_pθq(
+    ::Type{NM},
+    param_set::APS,
+    p::FT,
+    θ_liq_ice::FT,
+    q_tot::FT,
+    phase_type::Type{<:PhaseEquil},
+) where {FT, NM <: RS.NewtonsMethodAD}
+    T_min::FT = CPP.T_min(param_set)
+    air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
+    T_init = max(T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
+    return RS.NewtonsMethodAD(T_init)
+end
