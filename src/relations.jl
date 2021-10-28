@@ -57,6 +57,7 @@ export has_condensate
 export specific_enthalpy
 export total_specific_enthalpy
 export moist_static_energy
+export specific_entropy
 export saturated
 
 heavisided(x) = (x > 0) * x
@@ -2466,6 +2467,126 @@ function moist_static_energy(
     e_pot::FT,
 ) where {FT <: Real}
     return specific_enthalpy(ts) + e_pot
+end
+
+"""
+    specific_entropy(param_set, p, T, q)
+    specific_entropy(ts)
+
+Specific entropy, given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `T` temperature
+ - `q` phase partition
+
+following equations (29)-(33) of [Pressel2015](@cite).
+"""
+function specific_entropy(
+    param_set::APS,
+    p::FT,
+    T::FT,
+    q::PhasePartition{FT},
+) where {FT <: Real}
+    L_v = latent_heat_vapor(param_set, T)
+    L_s = latent_heat_sublim(param_set, T)
+    s_d = specific_entropy_dry(param_set, p, T, q)
+    s_v = specific_entropy_vapor(param_set, p, T, q)
+    return (1 - q.tot) * s_d + q.tot * s_v - (q.liq * L_v + q.ice * L_s) / T
+end
+
+specific_entropy(ts::ThermodynamicState) = specific_entropy(
+    ts.param_set,
+    air_pressure(ts),
+    air_temperature(ts),
+    PhasePartition(ts),
+)
+
+"""
+    specific_entropy_dry(param_set, p, T, q)
+
+The dry air specific entropy, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `T` temperature
+ - `q` phase partition
+"""
+function specific_entropy_dry(
+    param_set::APS,
+    p::FT,
+    T::FT,
+    q::PhasePartition{FT},
+) where {FT <: Real}
+    T_ref::FT = CPP.entropy_reference_temperature(param_set)
+    p_ref::FT = CPP.MSLP(param_set)
+    s_d_ref::FT = CPP.entropy_dry_air(param_set)
+    R_d::FT = CPP.R_d(param_set)
+    cp_d::FT = CPP.cp_d(param_set)
+    p_d = partial_pressure_dry(param_set, p, q)
+    return s_d_ref + cp_d * log(T / T_ref) - R_d * log((p_d + eps(FT)) / p_ref)
+end
+
+"""
+    specific_entropy_vapor(param_set, p, T, q)
+
+The specific entropy of water vapor, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `T` temperature
+ - `q` phase partition
+"""
+function specific_entropy_vapor(
+    param_set::APS,
+    p::FT,
+    T::FT,
+    q::PhasePartition{FT},
+) where {FT <: Real}
+    T_ref::FT = CPP.entropy_reference_temperature(param_set)
+    p_ref::FT = CPP.MSLP(param_set)
+    s_v_ref::FT = CPP.entropy_water_vapor(param_set)
+    R_v::FT = CPP.R_v(param_set)
+    cp_v::FT = CPP.cp_v(param_set)
+    p_v = partial_pressure_vapor(param_set, p, q)
+    return s_v_ref + cp_v * log(T / T_ref) - R_v * log((p_v + eps(FT)) / p_ref)
+end
+
+"""
+    partial_pressure_dry(param_set, p, q)
+
+The specific entropy of water vapor, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` air pressure
+ - `q` phase partition
+"""
+function partial_pressure_dry(
+    param_set::APS,
+    p::FT,
+    q::PhasePartition{FT},
+) where {FT <: Real}
+    molmass_ratio::FT = CPP.molmass_ratio(param_set)
+    return p * (1 - q.tot) /
+           (1 - q.tot + vapor_specific_humidity(q) / molmass_ratio)
+end
+
+"""
+    partial_pressure_vapor(param_set, p, q)
+
+The specific entropy of water vapor, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` air pressure
+ - `q` phase partition
+"""
+function partial_pressure_vapor(
+    param_set::APS,
+    p::FT,
+    q::PhasePartition{FT},
+) where {FT <: Real}
+    molmass_ratio::FT = CPP.molmass_ratio(param_set)
+    return p * vapor_specific_humidity(q) / molmass_ratio /
+           (1 - q.tot + vapor_specific_humidity(q) / molmass_ratio)
 end
 
 """

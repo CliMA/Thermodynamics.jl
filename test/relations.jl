@@ -1261,6 +1261,7 @@ end
         @test typeof.(supersaturation.(ts, Ice())) == typeof.(e_int)
         @test typeof.(supersaturation.(ts, Liquid())) == typeof.(e_int)
         @test typeof.(virtual_pottemp.(ts)) == typeof.(e_int)
+        @test typeof.(specific_entropy.(ts)) == typeof.(e_int)
         @test eltype.(gas_constants.(ts)) == typeof.(e_int)
 
         @test typeof.(total_specific_enthalpy.(ts, e_tot)) == typeof.(e_int)
@@ -1332,6 +1333,7 @@ end
     @test all(liquid_ice_pottemp.(ts_eq) .≈ liquid_ice_pottemp.(ts_dry))
     @test all(dry_pottemp.(ts_eq) .≈ dry_pottemp.(ts_dry))
     @test all(virtual_pottemp.(ts_eq) .≈ virtual_pottemp.(ts_dry))
+    @test all(specific_entropy.(ts_eq) .≈ specific_entropy.(ts_dry))
     @test all(liquid_ice_pottemp_sat.(ts_eq) .≈ liquid_ice_pottemp_sat.(ts_dry))
     @test all(exner.(ts_eq) .≈ exner.(ts_dry))
 
