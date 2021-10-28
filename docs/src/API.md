@@ -93,6 +93,7 @@ total_specific_humidity
 vapor_specific_humidity
 virtual_pottemp
 virtual_temperature
+specific_entropy
 ```
 
 ## Internal methods
