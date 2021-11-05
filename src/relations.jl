@@ -2487,10 +2487,11 @@ function specific_entropy(
     T::FT,
     q::PhasePartition{FT},
 ) where {FT <: Real}
-    L = latent_heat_liq_ice(param_set, q)
+    L_v = latent_heat_vapor(param_set, T)
+    L_s = latent_heat_sublim(param_set, T)
     s_d = specific_entropy_dry(param_set, p, T, q)
     s_v = specific_entropy_vapor(param_set, p, T, q)
-    return (1 - q.tot) * s_d + q.tot * s_v - L / T
+    return (1 - q.tot) * s_d + q.tot * s_v - (q.liq * L_v + q.ice * L_s) / T
 end
 
 specific_entropy(ts::ThermodynamicState) = specific_entropy(
