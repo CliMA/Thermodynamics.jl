@@ -3,8 +3,6 @@ using Thermodynamics
 using Thermodynamics.TemperatureProfiles
 using Thermodynamics.TestedProfiles
 using UnPack
-using KernelAbstractions: @print
-using BenchmarkTools
 using NCDatasets
 using Random
 
@@ -1359,46 +1357,4 @@ end
     @test all(T .≈ (nt.T for nt in profiles))
     @test all(getproperty.(q_pt, :tot) .≈ (nt.q_pt.tot for nt in profiles))
     @test all(phase_type .== (nt.phase_type for nt in profiles))
-end
-
-@testset "Thermodynamics - Performance" begin
-    ArrayType = Array{Float64}
-    FT = eltype(ArrayType)
-    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    @unpack e_int, ρ, q_tot = profiles
-
-    @btime TD.PhaseEquil_dev_only.(
-        $param_set,
-        $ρ,
-        $e_int,
-        $q_tot;
-        sat_adjust_method = NewtonsMethod,
-    )
-
-    @btime TD.PhaseEquil_dev_only.(
-        $param_set,
-        $ρ,
-        $e_int,
-        $q_tot;
-        sat_adjust_method = RegulaFalsiMethod, maxiter = 20,
-    )
-
-    # Fails to converge:
-    # @btime TD.PhaseEquil_dev_only.(
-    #     $param_set,
-    #     $ρ,
-    #     $e_int,
-    #     $q_tot;
-    #     sat_adjust_method = NewtonsMethodAD,
-    #     maxiter = 50,
-    # )
-
-    @btime TD.PhaseEquil_dev_only.(
-        $param_set,
-        $ρ,
-        $e_int,
-        $q_tot;
-        sat_adjust_method = SecantMethod, maxiter = 50,
-    )
-
 end
