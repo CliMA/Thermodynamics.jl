@@ -37,6 +37,15 @@ steps:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
+  - label: ":rocket: Constructor benchmarks"
+    command:
+      - "julia --project=test perf/benchmark.jl"
+    agents:
+      config: cpu
+      queue: central
+      slurm_ntasks: 1
+    timeout_in_minutes: 60
+
   - label: "GPU tests Julia 1.7"
     command:
       - "julia --project -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
