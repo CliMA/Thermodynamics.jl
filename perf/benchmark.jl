@@ -1,6 +1,6 @@
 include("common.jl")
 
-@testset "Thermodynamics - Performance pθq constructor" begin
+@testset "Thermodynamics - Performance state constructors" begin
 
     trial = BenchmarkTools.@benchmark $thermo_state_ρeq_newton()
     show(stdout, MIME("text/plain"), trial)
