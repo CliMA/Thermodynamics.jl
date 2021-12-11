@@ -1742,29 +1742,33 @@ function saturation_adjustment_given_pθq(
     T_freeze::FT = CPP.T_freeze(param_set)
     cp_d::FT = CPP.cp_d(param_set)
     cp_v::FT = CPP.cp_v(param_set)
-    air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
+
+    air_temp = let phase_type = param_set, p = p, θ_liq_ice = θ_liq_ice
+        q -> air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
+    end
+    phase_part =
+        let param_set = param_set, phase_type = phase_type, p = p, q_tot = q_tot
+            T ->
+                PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
+        end
     θ_liq_ice_closure =
         let phase_type = phase_type, param_set = param_set, q_tot = q_tot, p = p
             T -> begin
-                q_pt = PhasePartition_equil_given_p(
-                    param_set,
-                    T,
-                    oftype(T, p),
-                    oftype(T, q_tot),
-                    phase_type,
-                )
-                liquid_ice_pottemp_given_pressure(
-                    param_set,
-                    T,
-                    oftype(T, p),
-                    q_pt,
-                )
+                liquid_ice_pottemp_given_pressure(param_set, T, p, phase_part(T))
             end
         end
-    q_vap_sat(T, phase_type) =
-        q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
+    q_vap_sat =
+        let phase_type = phase_type, param_set = param_set, q_tot = q_tot, p = p
+            T -> q_vap_saturation_from_pressure(
+                param_set,
+                q_tot,
+                p,
+                T,
+                phase_type,
+            )
+        end
     T_1 = max(T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
-    q_v_sat_1 = q_vap_sat(T_1, phase_type)
+    q_v_sat_1 = q_vap_sat(T_1)
     unsaturated = q_tot <= q_v_sat_1
     if unsaturated && T_1 > T_min
         return T_1
@@ -1774,7 +1778,9 @@ function saturation_adjustment_given_pθq(
     if θ_liq_ice_lower < θ_liq_ice < θ_liq_ice_upper
         return T_freeze
     end
-    roots(T) = oftype(T, θ_liq_ice) - θ_liq_ice_closure(T)
+    roots = let θ_liq_ice = θ_liq_ice
+        T -> oftype(T, θ_liq_ice) - θ_liq_ice_closure(T)
+    end
     sol = RS.find_zero(
         roots,
         sa_numerical_method_pθq(
