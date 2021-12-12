@@ -19,7 +19,7 @@ const param_set = EarthParameterSet()
 
 ArrayType = Array{Float64}
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-UnPack.@unpack e_int, ρ, p, θ_liq_ice, q_tot = profiles
+UnPack.@unpack e_int, T, ρ, p, θ_liq_ice, q_tot = profiles
 
 function thermo_state_ρeq_newton()
     ts =
@@ -56,4 +56,8 @@ end
 
 function thermo_state_pθq()
     ts = TD.PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
+end
+
+function thermo_state_pTq()
+    ts = TD.PhaseEquil_pTq.(param_set, p, T, q_tot)
 end

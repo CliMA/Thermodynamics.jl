@@ -62,5 +62,5 @@ steps:
       slurm_gres: "gpu:1"
     env:
       JULIA_VERSION: "1.7.0"
-      CUDA_VERSION: "11.2"
+      CUDA_VERSION: "10.2"
     timeout_in_minutes: 60

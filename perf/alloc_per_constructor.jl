@@ -8,15 +8,12 @@ include("common.jl")
 constructor = ENV["ALLOCATION_CONSTRUCTOR"]
 @info "Recording allocations for $constructor"
 
-
-if constructor == "ρeq"
-    thermo_state = thermo_state_ρeq_newton
-else
-end
-if constructor == "pθq"
-    thermo_state = thermo_state_pθq
-else
-end
+thermo_state_map = Dict(
+    "ρeq" => thermo_state_ρeq_newton,
+    "pθq" => thermo_state_pθq,
+    "pTq" => thermo_state_pTq,
+)
+thermo_state = thermo_state_map[constructor]
 
 thermo_state() # compile first
 Profile.clear_malloc_data()

@@ -526,8 +526,8 @@ function internal_energy_sat(
     T::FT,
     ρ::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
-) where {FT <: Real}
+    ::Type{phase_type},
+) where {FT <: Real, phase_type <: ThermodynamicState}
     return internal_energy(
         param_set,
         T,
@@ -851,9 +851,9 @@ end
 
 function saturation_vapor_pressure(
     param_set::APS,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T::FT,
-) where {FT <: Real}
+) where {FT <: Real, phase_type <: ThermodynamicState}
     LH_s0 = FT(CPP.LH_s0(param_set))
     LH_v0 = FT(CPP.LH_v0(param_set))
     cp_v = FT(CPP.cp_v(param_set))
@@ -933,9 +933,9 @@ function q_vap_saturation(
     param_set::APS,
     T::FT,
     ρ::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+) where {FT <: Real, phase_type <: ThermodynamicState}
 
     LH_v0::FT = CPP.LH_v0(param_set)
     LH_s0::FT = CPP.LH_s0(param_set)
@@ -1032,8 +1032,8 @@ function q_vap_saturation_from_pressure(
     q_tot::FT,
     p::FT,
     T::FT,
-    phase_type::Type{<:ThermodynamicState},
-) where {FT <: Real}
+    ::Type{phase_type},
+) where {FT <: Real, phase_type <: ThermodynamicState}
     R_v::FT = CPP.R_v(param_set)
     R_d::FT = CPP.R_d(param_set)
     p_v_sat = saturation_vapor_pressure(param_set, phase_type, T)
@@ -1108,9 +1108,9 @@ function saturation_excess(
     param_set::APS,
     T::FT,
     ρ::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     q::PhasePartition{FT},
-) where {FT <: Real}
+) where {FT <: Real, phase_type <: ThermodynamicState}
     return max(0, q.tot - q_vap_saturation(param_set, T, ρ, phase_type, q))
 end
 
@@ -1168,9 +1168,9 @@ is a function that is 1 above `T_freeze` and goes to zero below `T_freeze`.
 function liquid_fraction(
     param_set::APS,
     T::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+) where {FT <: Real, phase_type <: ThermodynamicState}
     _T_freeze::FT = CPP.T_freeze(param_set)
     return FT(T > _T_freeze)
 end
@@ -1178,9 +1178,9 @@ end
 function liquid_fraction(
     param_set::APS,
     T::FT,
-    phase_type::Type{<:PhaseNonEquil},
+    ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+) where {FT <: Real, phase_type <: PhaseNonEquil}
     q_c = condensate(q)     # condensate specific humidity
     if has_condensate(q_c)
         return q.liq / q_c
@@ -1220,8 +1220,8 @@ function PhasePartition_equil(
     T::FT,
     ρ::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
-) where {FT <: Real}
+    ::Type{phase_type},
+) where {FT <: Real, phase_type <: ThermodynamicState}
     _liquid_frac = liquid_fraction(param_set, T, phase_type)                    # fraction of condensate that is liquid
     q_c = saturation_excess(param_set, T, ρ, phase_type, PhasePartition(q_tot)) # condensate specific humidity
     q_liq = _liquid_frac * q_c                                                  # liquid specific humidity
@@ -1255,8 +1255,8 @@ function PhasePartition_equil_given_p(
     T::FT,
     p::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
-) where {FT <: Real}
+    ::Type{phase_type},
+) where {FT <: Real, phase_type <: ThermodynamicState}
 
     q_v_sat = q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
     _liquid_frac = liquid_fraction(param_set, T, phase_type)
@@ -1282,8 +1282,8 @@ function ∂e_int_∂T(
     e_int::FT,
     ρ::FT,
     q_tot::FT,
-    phase_type::Type{<:PhaseEquil},
-) where {FT <: Real}
+    ::Type{phase_type},
+) where {FT <: Real, phase_type <: PhaseEquil}
     LH_v0::FT = CPP.LH_v0(param_set)
     LH_s0::FT = CPP.LH_s0(param_set)
     R_v::FT = CPP.R_v(param_set)
@@ -1346,10 +1346,10 @@ function saturation_adjustment(
     e_int::FT,
     ρ::FT,
     q_tot::FT,
-    phase_type::Type{<:PhaseEquil},
+    ::Type{phase_type},
     maxiter::Int,
     temperature_tol::FT,
-) where {FT <: Real, sat_adjust_method}
+) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = CPP.T_min(param_set)
     cv_d::FT = CPP.cv_d(param_set)
     # Convert temperature tolerance to a convergence criterion on internal energy residuals
@@ -1442,10 +1442,10 @@ function saturation_adjustment_given_peq(
     p::FT,
     e_int::FT,
     q_tot::FT,
-    phase_type::Type{<:PhaseEquil},
+    ::Type{phase_type},
     maxiter::Int,
     temperature_tol::FT,
-) where {FT <: Real, sat_adjust_method}
+) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = CPP.T_min(param_set)
     cv_d = FT(CPP.cv_d(param_set))
     # Convert temperature tolerance to a convergence criterion on internal energy residuals
@@ -1541,10 +1541,10 @@ function saturation_adjustment_ρpq(
     ρ::FT,
     p::FT,
     q_tot::FT,
-    phase_type::Type{<:PhaseEquil},
+    ::Type{phase_type},
     maxiter::Int,
     temperature_tol::FT = sqrt(eps(FT)),
-) where {FT <: Real, sat_adjust_method}
+) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.SolutionTolerance(temperature_tol)
     # Use `oftype` to preserve diagonalized type signatures:
     sol = RS.find_zero(
@@ -1651,10 +1651,10 @@ function saturation_adjustment_given_ρθq(
     ρ::FT,
     θ_liq_ice::FT,
     q_tot::FT,
-    phase_type::Type{<:PhaseEquil},
+    ::Type{phase_type},
     maxiter::Int,
     tol::RS.AbstractTolerance,
-) where {FT <: Real}
+) where {FT <: Real, phase_type <: PhaseEquil}
     _T_min::FT = CPP.T_min(param_set)
     air_temp(q) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q)
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
@@ -1733,10 +1733,10 @@ function saturation_adjustment_given_pθq(
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
-    phase_type::Type{<:PhaseEquil},
+    ::Type{phase_type},
     maxiter::Int,
     temperature_tol::FT,
-) where {FT <: Real, sat_adjust_method}
+) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.ResidualTolerance(temperature_tol)
     T_min::FT = CPP.T_min(param_set)
     T_freeze::FT = CPP.T_freeze(param_set)
@@ -1940,8 +1940,8 @@ function virt_temp_from_RH(
     T::FT,
     ρ::FT,
     RH::FT,
-    phase_type::Type{<:ThermodynamicState},
-) where {FT <: AbstractFloat}
+    ::Type{phase_type},
+) where {FT <: AbstractFloat, phase_type <: ThermodynamicState}
     q_tot = RH * q_vap_saturation(param_set, T, ρ, phase_type)
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     return virtual_temperature(param_set, T, ρ, q_pt)
@@ -1962,10 +1962,10 @@ function temperature_and_humidity_given_TᵥρRH(
     T_virt::FT,
     ρ::FT,
     RH::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     maxiter::Int = 100,
     tol::RS.AbstractTolerance = RS.ResidualTolerance{FT}(sqrt(eps(FT))),
-) where {FT <: AbstractFloat}
+) where {FT <: AbstractFloat, phase_type <: ThermodynamicState}
 
     _T_min::FT = CPP.T_min(param_set)
     _T_max = T_virt
@@ -2210,9 +2210,9 @@ function liquid_ice_pottemp_sat(
     param_set::APS,
     T::FT,
     ρ::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+) where {FT <: Real, phase_type <: ThermodynamicState}
     q_v_sat = q_vap_saturation(param_set, T, ρ, phase_type, q)
     return liquid_ice_pottemp(param_set, T, ρ, PhasePartition(q_v_sat))
 end
@@ -2232,9 +2232,9 @@ function liquid_ice_pottemp_sat(
     param_set::APS,
     T::FT,
     ρ::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     q_tot::FT,
-) where {FT <: Real}
+) where {FT <: Real, phase_type <: ThermodynamicState}
     return liquid_ice_pottemp(
         param_set,
         T,
@@ -2377,9 +2377,9 @@ function relative_humidity(
     param_set::APS,
     T::FT,
     p::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+) where {FT <: Real, phase_type <: ThermodynamicState}
     R_v::FT = CPP.R_v(param_set)
     q_vap = vapor_specific_humidity(q)
     p_vap = q_vap * air_density(param_set, T, p, q) * R_v * T
