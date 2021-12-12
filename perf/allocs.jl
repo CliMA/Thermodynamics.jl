@@ -20,7 +20,7 @@ all_dirs_to_monitor = [
 # https://github.com/jheinen/GR.jl/issues/278#issuecomment-587090846
 ENV["GKSwstype"] = "nul"
 
-constructors = ["ρeq", "pθq"]
+constructors = ["ρeq", "pθq", "pTq"]
 
 allocs = Dict()
 for constructor in constructors
@@ -101,6 +101,10 @@ function plot_allocs(constructor, allocs_per_case, n_unique_bytes)
     end
 
     all_bytes = all_bytes ./ 10^3
+    if isempty(all_bytes)
+        @info "$constructor: 0 allocations! 🎉"
+        return nothing
+    end
     max_bytes = maximum(all_bytes)
     @info "$constructor: $all_bytes"
     xtick_name(filename, linenumber) = "$filename, line number: $linenumber"
