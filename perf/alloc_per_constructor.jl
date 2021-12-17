@@ -9,7 +9,7 @@ constructor = ENV["ALLOCATION_CONSTRUCTOR"]
 @info "Recording allocations for $constructor"
 
 thermo_state_map = Dict(
-    "ρeq" => thermo_state_ρeq_newton,
+    "ρeq" => thermo_state_ρeq,
     "pθq" => thermo_state_pθq,
     "pTq" => thermo_state_pTq,
 )
