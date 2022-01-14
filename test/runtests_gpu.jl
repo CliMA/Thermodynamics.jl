@@ -2,17 +2,24 @@ if !("." in LOAD_PATH)
     push!(LOAD_PATH, ".")
 end
 using Test
+
 using KernelAbstractions
-using CUDAKernels
+const KA = KernelAbstractions
+
+import CUDAKernels
+const CK = CUDAKernels
+
 import Thermodynamics
 const TD = Thermodynamics
 
 import UnPack
+
 using Random
+using LinearAlgebra
+
 import RootSolvers
 const RS = RootSolvers
 
-using LinearAlgebra
 import CLIMAParameters
 const CP = CLIMAParameters
 
@@ -20,13 +27,13 @@ struct EarthParameterSet <: CP.AbstractEarthParameterSet end
 const param_set = EarthParameterSet()
 
 if get(ARGS, 1, "Array") == "CuArray"
-    using CUDA
+    import CUDA
     ArrayType = CUDA.CuArray
     CUDA.allowscalar(false)
-    device(::Type{T}) where {T <: CuArray} = CUDADevice()
+    device(::Type{T}) where {T <: CUDA.CuArray} = CK.CUDADevice()
 else
     ArrayType = Array
-    device(::Type{T}) where {T <: Array} = CPU()
+    device(::Type{T}) where {T <: Array} = CK.CPU()
 end
 
 @show ArrayType

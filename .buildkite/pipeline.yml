@@ -1,19 +1,34 @@
 env:
   JULIA_VERSION: "1.7.0"
   OPENBLAS_NUM_THREADS: 1
+  CUDA_VERSION: "10.2"
   JULIA_PKG_SERVER: ""
 
 steps:
-  - label: "init :computer:"
+  - label: "init cpu environment :computer:"
     key: "init_cpu_env"
     command:
       - "julia --project=test -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
+      - "julia --project=test -e 'using Pkg; Pkg.resolve()'"
       - "julia --project=test -e 'using Pkg; Pkg.precompile()'"
       - "julia --project=test -e 'using Pkg; Pkg.status()'"
     agents:
       config: cpu
       queue: central
       slurm_ntasks: 1
+
+  - label: "init gpu environment :computer:"
+    key: "init_gpu_env"
+    command:
+      - "julia --project=gpuenv -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
+      - "julia --project=gpuenv -e 'using Pkg; Pkg.resolve()'"
+      - "julia --project=gpuenv -e 'using Pkg; Pkg.precompile()'"
+      - "julia --project=gpuenv -e 'using Pkg; Pkg.status()'"
+    agents:
+      config: gpu
+      queue: central
+      slurm_ntasks: 1
+      slurm_gres: "gpu:1"
 
   - wait
 
@@ -46,21 +61,22 @@ steps:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
-  - label: "GPU tests Julia 1.7"
+  - label: "KernelAbstraction GPU tests"
     command:
-      - "julia --project -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
-      - "julia --project -e 'using Pkg; Pkg.precompile()'"
-      - "julia --project -e 'using Pkg; Pkg.add(\"CUDA\")'"
-      - "julia --project -e 'using CUDA; CUDA.versioninfo()'"
-      - "julia --project -e 'using CUDA; CUDA.precompile_runtime()'"
-      - "julia --project -e 'using Pkg; Pkg.status()'"
-      - "julia --project -e 'using Pkg; Pkg.test(;test_args=[\"CuArray\"])'"
+      - "julia --project=gpuenv test/runtests_gpu.jl CuArray"
     agents:
       config: gpu
       queue: central
       slurm_ntasks: 1
       slurm_gres: "gpu:1"
-    env:
-      JULIA_VERSION: "1.7.0"
-      CUDA_VERSION: "10.2"
+    timeout_in_minutes: 60
+
+  - label: "KernelAbstraction CPU tests"
+    command:
+      - "julia --project=gpuenv test/runtests_gpu.jl"
+    agents:
+      config: gpu # we control CPU/GPU flag in script
+      queue: central
+      slurm_ntasks: 1
+      slurm_gres: "gpu:1"
     timeout_in_minutes: 60
