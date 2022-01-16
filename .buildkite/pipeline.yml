@@ -12,6 +12,11 @@ steps:
       - "julia --project=test -e 'using Pkg; Pkg.resolve()'"
       - "julia --project=test -e 'using Pkg; Pkg.precompile()'"
       - "julia --project=test -e 'using Pkg; Pkg.status()'"
+
+      - "julia --project=perf -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
+      - "julia --project=perf -e 'using Pkg; Pkg.resolve()'"
+      - "julia --project=perf -e 'using Pkg; Pkg.precompile()'"
+      - "julia --project=perf -e 'using Pkg; Pkg.status()'"
     agents:
       config: cpu
       queue: central
@@ -43,7 +48,7 @@ steps:
 
   - label: ":rocket: Allocations analysis"
     command:
-      - "julia --project=test perf/allocs.jl"
+      - "julia --project=perf perf/allocs.jl"
     artifact_paths:
       - "perf/allocations_output/*"
     agents:
@@ -54,7 +59,7 @@ steps:
 
   - label: ":rocket: Constructor benchmarks"
     command:
-      - "julia --project=test perf/benchmark.jl"
+      - "julia --project=perf perf/benchmark.jl"
     agents:
       config: cpu
       queue: central

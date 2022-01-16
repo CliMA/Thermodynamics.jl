@@ -1,6 +1,3 @@
-if !("." in LOAD_PATH)
-    push!(LOAD_PATH, ".")
-end
 using Test
 import Thermodynamics
 const TD = Thermodynamics
