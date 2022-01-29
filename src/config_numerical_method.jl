@@ -80,10 +80,30 @@ function sa_numerical_method(
     ::Type{phase_type},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     T_min::FT = CPP.T_min(param_set)
+
+    e_int_v0::FT = CPP.e_int_v0(param_set)
+    e_int_i0::FT = CPP.e_int_i0(param_set)
+    cv_d::FT = CPP.cv_d(param_set)
+    cv_l::FT = CPP.cv_l(param_set)
+    T_0::FT = CPP.T_0(param_set)
+
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
+
+    # Sometimes T_1 is slightly larger than the root.
+    # So, we subtract a small amount to ensure the root is bounded
+    T_1 = air_temperature(param_set, e_int, PhasePartition(q_tot)) - FT(0.1) # Assume all vapor
+    T_1 = max(T_min, T_1)
+
     T_2 = air_temperature(param_set, e_int, q_pt)
-    T_1 = max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
-    T_2 = bound_upper_temperature(T_1, T_2)
+    # T_1 = max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+    # T_2 = bound_upper_temperature(T_1, T_2)
+
+    # This bound works in the reference states, but not in the full 3D input space
+    # T_2 = T_0 + ( e_int + q_tot * e_int_i0 )  / cv_d + FT(0.1)
+    # T_1 = T_0 +
+    #        ( e_int - q_tot * e_int_v0 )  / (cv_d + (cv_l - cv_d) * q_tot) - FT(0.1)
+    # T_1 = max(_T_min, T_1)
+
     return RS.RegulaFalsiMethod(T_1, T_2)
 end
 
