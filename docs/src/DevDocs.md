@@ -1,4 +1,7 @@
-# Input space exploration
+# Saturation adjustment input space convergence maps
+
+The saturation adjustment procedure requires solving a non-linear
+equation.
 
 In the [Tested Profiles](@ref) section, we plotted the tested thermodynamic
 states. In this section, we explore the convergence of the
@@ -11,18 +14,35 @@ or likely to be observed in climate simulations, but showing
 the convergence space helps illustrate the buffer between our
 tested profiles and the nearest space where convergence fails.
 
+This section is dedicated to monitoring the status and improvement
+of the performance and robustness of various numerical methods
+in solving the saturation adjustment equations for various thermodynamic
+formulations.
+
+!!! note
+
+    `dims` in `docs/src/saturation_adjustment.jl` is currently set to
+    ``dims = (6, 6, 6);`` to avoid heavy computations in the doc build, but you
+    may want to increase it to, e.g., ``dims = (10, 10, 10);`` when running locally
+    to see a higher resolution map.
+
 ```@example
-include(joinpath(@__DIR__, "..", "ThreeDimensionalInput.jl"))
+include("saturation_adjustment.jl")
 ```
 
-## Converged cases (3D view)
-![](Scatter3DConverged.svg)
+## 3D space
+| Numerical method  | Converged  |  Non-converged |
+:-----------------:|:-----------------:|:---------------------:
+SecantMethod | ![](3DSpace_converged_SecantMethod.svg)       |  ![](3DSpace_non_converged_SecantMethod.svg)
+NewtonsMethod | ![](3DSpace_converged_NewtonsMethod.svg)      |  ![](3DSpace_non_converged_NewtonsMethod.svg)
+NewtonsMethodAD | ![](3DSpace_converged_NewtonsMethodAD.svg)    |  ![](3DSpace_non_converged_NewtonsMethodAD.svg)
+RegulaFalsiMethod | ![](3DSpace_converged_RegulaFalsiMethod.svg)  |  ![](3DSpace_non_converged_RegulaFalsiMethod.svg)
 
-## Non-converged cases (3D view)
-![](Scatter3DNonConverged.svg)
+## 2D slices, binned by total specific humidity
 
-## Converged cases (2D view), binned by total specific humidity
-![](Slices2DConverged.svg)
-
-## Non-converged cases (2D view), binned by total specific humidity
-![](Slices2DNonConverged.svg)
+| Numerical method  | Converged  |  Non-converged |
+:-----------------:|:-----------------:|:---------------------:
+SecantMethod | ![](2DSlice_converged_SecantMethod.svg)  |  ![](2DSlice_non_converged_SecantMethod.svg)
+NewtonsMethod | ![](2DSlice_converged_NewtonsMethod.svg)  |  ![](2DSlice_non_converged_NewtonsMethod.svg)
+NewtonsMethodAD | ![](2DSlice_converged_NewtonsMethodAD.svg)  |  ![](2DSlice_non_converged_NewtonsMethodAD.svg)
+RegulaFalsiMethod | ![](2DSlice_converged_RegulaFalsiMethod.svg)  |  ![](2DSlice_non_converged_RegulaFalsiMethod.svg)
