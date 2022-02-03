@@ -1,5 +1,6 @@
-if !("." in LOAD_PATH)
-    push!(LOAD_PATH, ".")
+if !haskey(ENV, "BUILDKITE")
+    import Pkg
+    Pkg.develop(Pkg.PackageSpec(; path = dirname(@__DIR__)))
 end
 using Test
 
