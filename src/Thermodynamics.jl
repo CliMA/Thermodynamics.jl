@@ -51,12 +51,252 @@ const RS = RootSolvers
 import KernelAbstractions
 const KA = KernelAbstractions
 
-import CLIMAParameters
-const CP = CLIMAParameters
-const CPP = CP.Planet
-const APS = CP.AbstractParameterSet
+#import CLIMAParameters
+#const CP = CLIMAParameters
+#const CPP = CP.Planet
+#const APS = CP.AbstractParameterSet
 
-Base.broadcastable(param_set::APS) = Ref(param_set)
+####
+#### ThermodynamicsParameters object
+####
+
+#=
+# When we get proper name conventions, otherwise we use aliases below
+struct ThermodynamicsParameters{FT} 
+    thermodynamics_temperature_reference
+    mean_sea_level_pressure
+    gas_constant_dry_air
+    isobaric_specific_heat_dry_air
+    isochoric_specific_heat_dry_air
+    isobaric_specific_heat_vapor
+    isochoric_specific_heat_vapor
+    isobaric_specific_heat_liquid
+    isochoric_specific_heat_liquid
+    isobaric_specific_heat_ice
+    isochoric_specific_heat_ice
+    latent_heat_vaporization_at_reference    
+    latent_heat_sublimation_at_reference
+    latent_heat_fusion_at_reference
+    specific_internal_energy_vapor_at_reference
+    specific_internal_energy_ice_at_reference
+    pressure_triple_point
+    temperature_triple_point
+    gas_constant_vapor
+    temperature_water_freeze
+    temperature_saturation_adjustment_min
+    temperature_saturation_adjustment_max
+    entropy_reference_temperature
+    entropy_dry_air
+    entropy_water_vapor
+    adiabatic_exponent_dry_air
+    gas_constant
+    molar_mass_dry_air
+    molar_mass_water
+    temperature_mean_at_reference
+    temperature_min_at_reference
+    gravitational_acceleration
+    temperature_homogenous_nucleation
+end
+
+function ThermodynamicsParameters(param_set::NamedTuple)
+
+    # Used in thermodynamics, from parameter file
+    thermodynamics_temperature_reference = param_set.thermodynamics_temperature_reference
+    mean_sea_level_pressure = param_set.mean_sea_level_pressure
+    isobaric_specific_heat_dry_air = param_set.isobaric_specific_heat_dry_air
+    isobaric_specific_heat_vapor = param_set.isobaric_specific_heat_vapor
+    isobaric_specific_heat_liquid = param_set.isobaric_specific_heat_liquid
+    isobaric_specific_heat_ice = param_set.isobaric_specific_heat_ice
+    latent_heat_vaporization_at_reference = param_set.latent_heat_vaporization_at_reference
+    latent_heat_sublimation_at_reference = param_set.latent_heat_sublimation_at_reference
+    pressure_triple_point = param_set.pressure_triple_point
+    temperature_triple_point = param_set.temperature_triple_point
+    temperature_water_freeze = param_set.temperature_water_freeze
+    temperature_saturation_adjustment_min = param_set.temperature_saturation_adjustment_min
+    temperature_saturation_adjustment_max = param_set.temperature_saturation_adjustment_max 
+    entropy_reference_temperature = param_set.entropy_reference_temperature
+    entropy_dry_air = param_set.entropy_dry_air
+    entropy_water_vapor = param_set.entropy_water_vapor
+    adiabatic_exponent_dry_air = param_set.adiabatic_exponent_dry_air
+    gas_constant = param_set.gas_constant
+    molar_mass_dry_air = param_set.molar_mass_dry_air
+    molar_mass_water = param_set.molar_mass_water
+    temperature_mean_at_reference = param_set.temperature_mean_at_reference
+    temperature_min_at_reference = param_set.temperature_min_at_reference
+    gravitational_acceleration = param_set.gravitational_acceleration
+    temperature_homogenous_nucleation = param_set.temperature_homogenous_nucleation
+
+    # derived parameters from parameter file
+    gas_constant_dry_air = gas_constant/ molar_mass_dry_air
+    molar_mass_ratio_dry_air_water = molar_mass_dry_air / molar_mass_water
+    gas_constant_vapor = gas_constant / molar_mass_water
+    latent_heat_fusion_at_reference = latent_heat_sublimation_at_reference - latent_heat_vaporization_at_reference
+    specific_internal_energy_vapor_at_reference =  latent_heat_vaporization_at_reference - gas_constant_vapor * thermodynamics_temperature_reference
+    specific_internal_energy_ice_at_reference =  latent_heat_fusion_at_reference
+    isobaric_specific_heat_dry_air = gas_constant_dry_air / adiabatic_exponent_dry_air
+    isochoric_specific_heat_dry_air = isobaric_specific_heat_dry_air -  gas_constant_dry_air 
+    isochoric_specific_heat_vapor = isobaric_specific_heat_vapor - gas_constant_vapor
+    isochoric_specific_heat_liquid = isobaric_specific_heat_liquid
+    isochoric_specific_heat_ice = isobaric_specific_heat_ice
+    
+    return ThermoDynamicsParameters{typeof(param_set)[1]}(
+        thermodynamics_temperature_reference,
+        mean_sea_level_pressure,
+        gas_constant_dry_air,
+        isobaric_specific_heat_dry_air,
+        isochoric_specific_heat_dry_air,
+        isobaric_specific_heat_vapor,
+        isochoric_specific_heat_vapor,
+        isobaric_specific_heat_liquid,
+        isochoric_specific_heat_liquid,
+        isobaric_specific_heat_ice,
+        isochoric_specific_heat_ice,
+        latent_heat_vaporization_at_reference    ,
+        latent_heat_sublimation_at_reference,
+        latent_heat_fusion_at_reference,
+        specific_internal_energy_vapor_at_reference,
+        specific_internal_energy_ice_at_reference,
+        pressure_triple_point,
+        temperature_triple_point,
+        gas_constant_vapor,
+        temperature_water_freeze,
+        temperature_saturation_adjustment_min,
+        temperature_saturation_adjustment_max,
+        entropy_reference_temperature,
+        entropy_dry_air,
+        entropy_water_vapor,
+        adiabatic_exponent_dry_air,
+        gas_constant,
+        molar_mass_dry_air,    
+        molar_mass_water,
+        temperature_mean_at_reference,
+        temperature_min_at_reference,
+        gravitational_acceleration,
+        temperature_homogenous_nucleation
+    )
+end
+=#
+
+struct ThermodynamicsParameters{FT}
+    T_0
+    MSLP
+    R_d
+    cp_d
+    cv_d
+    cp_v
+    cv_v
+    cp_l
+    cv_l
+    cp_i
+    cv_i
+    LH_v0
+    LH_s0
+    LH_f0
+    e_int_v0
+    e_int_i0
+    press_triple
+    T_triple
+    R_v
+    T_freeze
+    T_min
+    T_max
+    entropy_reference_temperature
+    entropy_dry_air
+    entropy_water_vapor
+    kappa_d
+    gas_constant
+    molmass_dryair
+    molmass_water
+    T_surf_ref
+    T_min_ref
+    grav
+    molmass_ratio
+    T_icenuc
+end
+
+function ThermodynamicsParameters(param_set::NamedTuple)
+
+    # Used in thermodynamics, from parameter file
+    T_0 = param_set.T_0
+    MSLP = param_set.MSLP
+    cp_v = param_set.cp_v
+    cp_l = param_set.cp_l
+    cp_i = param_set.cp_i
+    LH_v0 = param_set.LH_v0
+    LH_s0 = param_set.LH_s0
+    press_triple = param_set.press_triple
+    T_triple = param_set.T_triple
+    T_freeze = param_set.T_freeze
+    T_min = param_set.T_min
+    T_max = param_set.T_max
+    entropy_reference_temperature = param_set.entropy_reference_temperature
+    entropy_dry_air = param_set.entropy_dry_air
+    entropy_water_vapor = param_set.entropy_water_vapor
+    kappa_d = param_set.kappa_d
+    gas_constant = param_set.gas_constant
+    molmass_dryair = param_set.molmass_dryair
+    molmass_water = param_set.molmass_water
+    T_surf_ref = param_set.T_surf_ref
+    T_min_ref = param_set.T_min_ref
+    grav = param_set.grav
+    T_icenuc = param_set.T_icenuc
+
+    # derived parameters from parameter file
+    R_d = gas_constant / molmass_dryair
+    molmass_ratio = molmass_dryair / molmass_water
+    R_v = gas_constant / molmass_water
+    LH_f0 = LH_s0 - LH_v0
+    e_int_v0 = LH_v0 - R_v * T_0
+    e_int_i0 = LH_f0
+    cp_d = R_d / kappa_d
+    cv_d = cp_d - R_d
+    cv_v = cp_v - R_v
+    cv_l = cp_l
+    cv_i = cp_i
+
+    return ThermodynamicsParameters{typeof(param_set[1])}(
+        T_0,
+        MSLP,
+        R_d,
+        cp_d,
+        cv_d,
+        cp_v,
+        cv_v,
+        cp_l,
+        cv_l,
+        cp_i,
+        cv_i,
+        LH_v0,
+        LH_s0,
+        LH_f0,
+        e_int_v0,
+        e_int_i0,
+        press_triple,
+        T_triple,
+        R_v,
+        T_freeze,
+        T_min,
+        T_max,
+        entropy_reference_temperature,
+        entropy_dry_air,
+        entropy_water_vapor,
+        kappa_d,
+        gas_constant,
+        molmass_dryair,
+        molmass_water,
+        T_surf_ref,
+        T_min_ref,
+        grav,
+        molmass_ratio,
+        T_icenuc,
+    )
+end
+
+
+
+
+
+Base.broadcastable(param_set::ThermodynamicsParameters) = Ref(param_set)
 
 # Allow users to skip error on non-convergence
 # by importing:

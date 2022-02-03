@@ -23,14 +23,14 @@ The air pressure for an isentropic process, where
  - `Φ` gravitational potential
 """
 function air_pressure_given_θ(
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     θ::FT,
     Φ::FT,
     ::DryAdiabaticProcess,
 ) where {FT <: AbstractFloat}
-    MSLP::FT = CPP.MSLP(param_set)
-    _R_d::FT = CPP.R_d(param_set)
-    _cp_d::FT = CPP.cp_d(param_set)
+    MSLP::FT = param_set.MSLP
+    _R_d::FT = param_set.R_d
+    _cp_d::FT = param_set.cp_d
     return MSLP * (1 - Φ / (θ * _cp_d))^(_cp_d / _R_d)
 end
 
@@ -45,13 +45,13 @@ The air pressure for an isentropic process, where
  - `p∞` ambient pressure
 """
 function air_pressure(
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     T::FT,
     T∞::FT,
     p∞::FT,
     ::DryAdiabaticProcess,
 ) where {FT <: AbstractFloat}
-    _kappa_d::FT = CPP.kappa_d(param_set)
+    _kappa_d::FT = param_set.kappa_d
     return p∞ * (T / T∞)^(FT(1) / _kappa_d)
 end
 
@@ -65,13 +65,13 @@ The air temperature for an isentropic process, where
  - `θ` potential temperature
 """
 function air_temperature(
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     p::FT,
     θ::FT,
     ::DryAdiabaticProcess,
 ) where {FT <: AbstractFloat}
-    _R_d::FT = CPP.R_d(param_set)
-    _cp_d::FT = CPP.cp_d(param_set)
-    MSLP::FT = CPP.MSLP(param_set)
+    _R_d::FT = param_set.R_d
+    _cp_d::FT = param_set.cp_d
+    MSLP::FT = param_set.MSLP
     return (p / MSLP)^(_R_d / _cp_d) * θ
 end

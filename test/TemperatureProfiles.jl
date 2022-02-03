@@ -1,18 +1,23 @@
 using Test
 using Thermodynamics.TemperatureProfiles
 using Thermodynamics
-using CLIMAParameters
-using CLIMAParameters.Planet
+
+#using CLIMAParameters
+#using CLIMAParameters.Planet
+
 using ForwardDiff
 
-struct EarthParameterSet <: AbstractEarthParameterSet end
-const param_set = EarthParameterSet()
+#struct EarthParameterSet <: AbstractEarthParameterSet end
+#const param_set = EarthParameterSet()
+
+param_set = Thermodynamics.ThermodynamicsParameters(full_parameter_set)
+
 
 @testset "TemperatureProfiles - DecayingTemperatureProfile" begin
     for FT in [Float32, Float64]
-        _grav = FT(grav(param_set))
-        _R_d = FT(R_d(param_set))
-        _MSLP = FT(MSLP(param_set))
+        _grav = FT(param_set.grav)
+        _R_d = FT(param_set.R_d)
+        _MSLP = FT(param_set.MSLP)
 
         z = collect(range(FT(0), stop = FT(25e3), length = 100))
         n = 7

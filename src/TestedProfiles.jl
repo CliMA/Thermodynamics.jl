@@ -13,10 +13,11 @@ import ..Thermodynamics
 const TD = Thermodynamics
 const TP = TD.TemperatureProfiles
 
-import ..CLIMAParameters
-const CP = CLIMAParameters
-const CPP = CP.Planet
-const APS = CP.AbstractParameterSet
+import Thermodynamics.ThermodynamicsParameters
+#import ..CLIMAParameters
+#const CP = CLIMAParameters
+#const CPP = CP.Planet
+#const APS = CP.AbstractParameterSet
 
 import Random
 
@@ -103,7 +104,7 @@ end
 
 """
     shared_profiles(
-        param_set::APS,
+        param_set::ThermodynamicsParameters,
         z_range::AbstractArray,
         relative_sat::AbstractArray,
         T_surface,
@@ -119,7 +120,7 @@ states, including:
  - `RS` relative saturation
 """
 function shared_profiles(
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     z_range::AbstractArray,
     relative_sat::AbstractArray,
     T_surface,
@@ -160,7 +161,10 @@ end
 
 Returns a `ProfileSet` used to test dry thermodynamic states.
 """
-function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
+function PhaseDryProfiles(
+    param_set::ThermodynamicsParameters,
+    ::Type{ArrayType},
+) where {ArrayType}
     phase_type = TD.PhaseDry{eltype(ArrayType), typeof(param_set)}
 
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
@@ -168,8 +172,8 @@ function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
         shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
     T = T_virt
     FT = eltype(T)
-    R_d::FT = CPP.R_d(param_set)
-    grav::FT = CPP.grav(param_set)
+    R_d::FT = param_set.R_d
+    grav::FT = param_set.grav
     ρ = p ./ (R_d .* T)
 
     # Additional variables
@@ -220,7 +224,10 @@ end
 
 Returns a `ProfileSet` used to test moist states in thermodynamic equilibrium.
 """
-function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
+function PhaseEquilProfiles(
+    param_set::ThermodynamicsParameters,
+    ::Type{ArrayType},
+) where {ArrayType}
     phase_type = TD.PhaseEquil{eltype(ArrayType), typeof(param_set)}
 
     # Prescribe z_range, relative_sat, T_surface, T_min
@@ -232,8 +239,8 @@ function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     T = T_virt
 
     FT = eltype(T)
-    R_d::FT = CPP.R_d(param_set)
-    grav::FT = CPP.grav(param_set)
+    R_d::FT = param_set.R_d
+    grav::FT = param_set.grav
     # Compute total specific humidity from temperature, pressure
     # and relative saturation, and partition the saturation excess
     # according to temperature.

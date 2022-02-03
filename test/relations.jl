@@ -13,15 +13,18 @@ const RS = RootSolvers
 
 using LinearAlgebra
 
-import CLIMAParameters
-const CP = CLIMAParameters
+#import CLIMAParameters
+#const CP = CLIMAParameters
 
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end
-const param_set = EarthParameterSet()
+#struct EarthParameterSet <: CP.AbstractEarthParameterSet end
+#const param_set = EarthParameterSet()
+
+param_set = Thermodynamics.ThermodynamicsParameters(full_parameter_set)
+
 
 # Tolerances for tested quantities:
 atol_temperature = 5e-1
-atol_energy = cv_d(param_set) * atol_temperature
+atol_energy = param_set.cv_d * atol_temperature
 rtol_temperature = 1e-1
 rtol_density = rtol_temperature
 rtol_pressure = 1e-1
@@ -47,30 +50,30 @@ compare_moisture(ts::PhaseNonEquil, q_pt::PhasePartition) = all((
     for ArrayType in array_types
         FT = eltype(ArrayType)
 
-        _R_d = FT(R_d(param_set))
-        _molmass_ratio = FT(molmass_ratio(param_set))
-        _cp_d = FT(cp_d(param_set))
-        _cp_v = FT(cp_v(param_set))
-        _cp_l = FT(cp_l(param_set))
-        _cv_d = FT(cv_d(param_set))
-        _cv_v = FT(cv_v(param_set))
-        _cv_l = FT(cv_l(param_set))
-        _cv_i = FT(cv_i(param_set))
-        _T_0 = FT(T_0(param_set))
-        _e_int_v0 = FT(e_int_v0(param_set))
-        _e_int_i0 = FT(e_int_i0(param_set))
-        _LH_v0 = FT(LH_v0(param_set))
-        _LH_s0 = FT(LH_s0(param_set))
-        _cp_i = FT(cp_i(param_set))
-        _LH_f0 = FT(LH_f0(param_set))
-        _press_triple = FT(press_triple(param_set))
-        _R_v = FT(R_v(param_set))
-        _T_triple = FT(T_triple(param_set))
-        _T_freeze = FT(T_freeze(param_set))
-        _T_min = FT(T_min(param_set))
-        _MSLP = FT(MSLP(param_set))
-        _T_max = FT(T_max(param_set))
-        _kappa_d = FT(kappa_d(param_set))
+        _R_d = FT(param_set.R_d)
+        _molmass_ratio = FT(param_set.molmass_ratio)
+        _cp_d = FT(param_set.cp_d)
+        _cp_v = FT(param_set.cp_v)
+        _cp_l = FT(param_set.cp_l)
+        _cv_d = FT(param_set.cv_d)
+        _cv_v = FT(param_set.cv_v)
+        _cv_l = FT(param_set.cv_l)
+        _cv_i = FT(param_set.cv_i)
+        _T_0 = FT(param_set.T_0)
+        _e_int_v0 = FT(param_set.e_int_v0)
+        _e_int_i0 = FT(param_set.e_int_i0)
+        _LH_v0 = FT(param_set.LH_v0)
+        _LH_s0 = FT(param_set.LH_s0)
+        _cp_i = FT(param_set.cp_i)
+        _LH_f0 = FT(param_set.LH_f0)
+        _press_triple = FT(param_set.press_triple)
+        _R_v = FT(param_set.R_v)
+        _T_triple = FT(param_set.T_triple)
+        _T_freeze = FT(param_set.T_freeze)
+        _T_min = FT(param_set.T_min)
+        _MSLP = FT(param_set.MSLP)
+        _T_max = FT(param_set.T_max)
+        _kappa_d = FT(param_set.kappa_d)
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
@@ -102,31 +105,31 @@ end
 
 @testset "Thermodynamics - correctness" begin
     FT = Float64
-    _R_d = FT(R_d(param_set))
-    _molmass_ratio = FT(molmass_ratio(param_set))
-    _cp_d = FT(cp_d(param_set))
-    _cp_v = FT(cp_v(param_set))
-    _cp_l = FT(cp_l(param_set))
-    _cv_d = FT(cv_d(param_set))
-    _cv_v = FT(cv_v(param_set))
-    _cv_l = FT(cv_l(param_set))
-    _cv_i = FT(cv_i(param_set))
-    _T_0 = FT(T_0(param_set))
-    _e_int_v0 = FT(e_int_v0(param_set))
-    _e_int_i0 = FT(e_int_i0(param_set))
-    _LH_v0 = FT(LH_v0(param_set))
-    _LH_s0 = FT(LH_s0(param_set))
-    _cp_i = FT(cp_i(param_set))
-    _LH_f0 = FT(LH_f0(param_set))
-    _press_triple = FT(press_triple(param_set))
-    _R_v = FT(R_v(param_set))
-    _T_triple = FT(T_triple(param_set))
-    _T_freeze = FT(T_freeze(param_set))
-    _T_min = FT(T_min(param_set))
-    _MSLP = FT(MSLP(param_set))
-    _T_max = FT(T_max(param_set))
-    _kappa_d = FT(kappa_d(param_set))
-    _T_icenuc = FT(T_icenuc(param_set))
+    _R_d = FT(param_set.R_d)
+    _molmass_ratio = FT(param_set.molmass_ratio)
+    _cp_d = FT(param_set.cp_d)
+    _cp_v = FT(param_set.cp_v)
+    _cp_l = FT(param_set.cp_l)
+    _cv_d = FT(param_set.cv_d)
+    _cv_v = FT(param_set.cv_v)
+    _cv_l = FT(param_set.cv_l)
+    _cv_i = FT(param_set.cv_i)
+    _T_0 = FT(param_set.T_0)
+    _e_int_v0 = FT(param_set.e_int_v0)
+    _e_int_i0 = FT(param_set.e_int_i0)
+    _LH_v0 = FT(param_set.LH_v0)
+    _LH_s0 = FT(param_set.LH_s0)
+    _cp_i = FT(param_set.cp_i)
+    _LH_f0 = FT(param_set.LH_f0)
+    _press_triple = FT(param_set.press_triple)
+    _R_v = FT(param_set.R_v)
+    _T_triple = FT(param_set.T_triple)
+    _T_freeze = FT(param_set.T_freeze)
+    _T_min = FT(param_set.T_min)
+    _MSLP = FT(param_set.MSLP)
+    _T_max = FT(param_set.T_max)
+    _kappa_d = FT(param_set.kappa_d)
+    _T_icenuc = FT(param_set.T_icenuc)
 
     # ideal gas law
     @test air_pressure(param_set, FT(1), FT(1), PhasePartition(FT(1))) === _R_v
@@ -493,7 +496,7 @@ end
         @test !any(saturated.(ts[RH_unsat_mask]))
 
         # PhaseEquil (freezing)
-        _T_freeze = FT(T_freeze(param_set))
+        _T_freeze = FT(param_set.T_freeze)
         e_int_upper =
             internal_energy_sat.(
                 param_set,
@@ -672,7 +675,7 @@ end
         ))
 
         # PhaseEquil_pθq (freezing)
-        _T_freeze = FT(T_freeze(param_set))
+        _T_freeze = FT(param_set.T_freeze)
 
         function θ_liq_ice_closure(T, p, q_tot)
             q_pt_closure = TD.PhasePartition_equil_given_p(
@@ -852,7 +855,7 @@ end
 
     for ArrayType in array_types
         FT = eltype(ArrayType)
-        _MSLP = FT(MSLP(param_set))
+        _MSLP = FT(param_set.MSLP)
 
         profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
         @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
@@ -1101,7 +1104,7 @@ end
 
 
         # Test virtual temperature and inverse functions:
-        _R_d = FT(R_d(param_set))
+        _R_d = FT(param_set.R_d)
         T_virt = virtual_temperature.(param_set, T, ρ, q_pt)
         @test all(T_virt ≈ gas_constant_air.(param_set, q_pt) ./ _R_d .* T)
 

@@ -6,10 +6,11 @@ const DSE = DocStringExtensions
 export TemperatureProfile,
     IsothermalProfile, DecayingTemperatureProfile, DryAdiabaticProfile
 
-import ..CLIMAParameters
-const CP = CLIMAParameters
-const CPP = CP.Planet
-const APS = CP.AbstractParameterSet
+import Thermodynamics.ThermodynamicsParameters
+#import ..CLIMAParameters
+#const CP = CLIMAParameters
+#const CPP = CP.Planet
+#const APS = CP.AbstractParameterSet
 
 """
     TemperatureProfile
@@ -18,7 +19,7 @@ Specifies the temperature or virtual temperature profile for a reference state.
 
 Instances of this type are required to be callable objects with the following signature
 
-    T,p = (::TemperatureProfile)(param_set::APS, z::FT) where {FT}
+    T,p = (::TemperatureProfile)(param_set::ThermodynamicsParameters, z::FT) where {FT}
 
 where `T` is the temperature or virtual temperature (in K), and `p` is the pressure (in Pa).
 """
@@ -31,11 +32,14 @@ abstract type TemperatureProfile{FT} end
 A uniform virtual temperature profile, which is implemented
 as a special case of [`DecayingTemperatureProfile`](@ref).
 """
-IsothermalProfile(param_set::APS, T_virt::FT) where {FT} =
+IsothermalProfile(param_set::ThermodynamicsParameters, T_virt::FT) where {FT} =
     DecayingTemperatureProfile{FT}(param_set, T_virt, T_virt)
 
-function IsothermalProfile(param_set::APS, ::Type{FT}) where {FT}
-    T_virt = FT(CPP.T_surf_ref(param_set))
+function IsothermalProfile(
+    param_set::ThermodynamicsParameters,
+    ::Type{FT},
+) where {FT}
+    T_virt = FT(param_set.T_surf_ref)
     return DecayingTemperatureProfile{FT}(param_set, T_virt, T_virt)
 end
 
@@ -55,9 +59,9 @@ struct DryAdiabaticProfile{FT} <: TemperatureProfile{FT}
     "Minimum temperature (K)"
     T_min_ref::FT
     function DryAdiabaticProfile{FT}(
-        param_set::APS,
-        T_surface::FT = FT(CPP.T_surf_ref(param_set)),
-        _T_min_ref::FT = FT(CPP.T_min_ref(param_set)),
+        param_set::ThermodynamicsParameters,
+        T_surface::FT = FT(param_set.T_surf_ref),
+        _T_min_ref::FT = FT(param_set.T_min_ref),
     ) where {FT}
         return new{FT}(T_surface, _T_min_ref)
     end
@@ -65,7 +69,7 @@ end
 
 """
     (profile::DryAdiabaticProfile)(
-        param_set::APS,
+        param_set::ThermodynamicsParameters,
         z::FT,
     ) where {FT}
 
@@ -73,12 +77,15 @@ Returns dry adiabatic temperature and pressure profiles
 with zero relative humidity. The temperature is truncated
 to be greater than or equal to `profile.T_min_ref`.
 """
-function (profile::DryAdiabaticProfile)(param_set::APS, z::FT) where {FT}
+function (profile::DryAdiabaticProfile)(
+    param_set::ThermodynamicsParameters,
+    z::FT,
+) where {FT}
 
-    R_d::FT = CPP.R_d(param_set)
-    cp_d::FT = CPP.cp_d(param_set)
-    grav::FT = CPP.grav(param_set)
-    MSLP::FT = CPP.MSLP(param_set)
+    R_d::FT = param_set.R_d
+    cp_d::FT = param_set.cp_d
+    grav::FT = param_set.grav
+    MSLP::FT = param_set.MSLP
 
     # Temperature
     Γ = grav / cp_d
@@ -117,21 +124,23 @@ struct DecayingTemperatureProfile{FT} <: TemperatureProfile{FT}
     "Height scale over which virtual temperature drops (m)"
     H_t::FT
     function DecayingTemperatureProfile{FT}(
-        param_set::APS,
-        _T_virt_surf::FT = FT(CPP.T_surf_ref(param_set)),
-        _T_min_ref::FT = FT(CPP.T_min_ref(param_set)),
-        H_t::FT = FT(CPP.R_d(param_set)) * _T_virt_surf /
-                  FT(CPP.grav(param_set)),
+        param_set::ThermodynamicsParameters,
+        _T_virt_surf::FT = FT(param_set.T_surf_ref),
+        _T_min_ref::FT = FT(param_set.T_min_ref),
+        H_t::FT = FT(param_set.R_d) * _T_virt_surf / FT(param_set.grav),
     ) where {FT}
         return new{FT}(_T_virt_surf, _T_min_ref, H_t)
     end
 end
 
 
-function (profile::DecayingTemperatureProfile)(param_set::APS, z::FT) where {FT}
-    R_d::FT = CPP.R_d(param_set)
-    grav::FT = CPP.grav(param_set)
-    MSLP::FT = CPP.MSLP(param_set)
+function (profile::DecayingTemperatureProfile)(
+    param_set::ThermodynamicsParameters,
+    z::FT,
+) where {FT}
+    R_d::FT = param_set.R_d
+    grav::FT = param_set.grav
+    MSLP::FT = param_set.MSLP
 
     # Scale height for surface temperature
     H_sfc = R_d * profile.T_virt_surf / grav

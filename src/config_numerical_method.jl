@@ -26,13 +26,13 @@ end
 #####
 function sa_numerical_method(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     ρ::FT,
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT, NM <: RS.NewtonsMethod, phase_type <: PhaseEquil}
-    T_min::FT = CPP.T_min(param_set)
+    T_min::FT = param_set.T_min
     T_init =
         max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     return RS.NewtonsMethod(
@@ -43,13 +43,13 @@ end
 
 function sa_numerical_method(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     ρ::FT,
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
-    T_min::FT = CPP.T_min(param_set)
+    T_min::FT = param_set.T_min
     T_init =
         max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     return RS.NewtonsMethodAD(T_init)
@@ -57,13 +57,13 @@ end
 
 function sa_numerical_method(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     ρ::FT,
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
-    T_min::FT = CPP.T_min(param_set)
+    T_min::FT = param_set.T_min
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature(param_set, e_int, q_pt)
     T_1 = max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
@@ -73,13 +73,13 @@ end
 
 function sa_numerical_method(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     ρ::FT,
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
-    T_min::FT = CPP.T_min(param_set)
+    T_min::FT = param_set.T_min
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature(param_set, e_int, q_pt)
     T_1 = max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
@@ -93,7 +93,7 @@ end
 
 function sa_numerical_method_ρpq(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     ρ::FT,
     p::FT,
     q_tot::FT,
@@ -106,7 +106,7 @@ end
 
 function sa_numerical_method_ρpq(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     ρ::FT,
     p::FT,
     q_tot::FT,
@@ -124,13 +124,13 @@ end
 
 function sa_numerical_method_peq(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     p::FT,
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
-    T_min::FT = CPP.T_min(param_set)
+    T_min::FT = param_set.T_min
     T_init =
         max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     return RS.NewtonsMethodAD(T_init)
@@ -138,13 +138,13 @@ end
 
 function sa_numerical_method_peq(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     p::FT,
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
-    T_min::FT = CPP.T_min(param_set)
+    T_min::FT = param_set.T_min
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature(param_set, e_int, q_pt)
     T_1 = max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
@@ -158,14 +158,14 @@ end
 
 function sa_numerical_method_pθq(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
-    _T_min::FT = CPP.T_min(param_set)
-    _T_max::FT = CPP.T_max(param_set)
+    _T_min::FT = param_set.T_min
+    _T_max::FT = param_set.T_max
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     T_2 = T_1 + 10
@@ -175,13 +175,13 @@ end
 
 function sa_numerical_method_pθq(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
-    _T_min::FT = CPP.T_min(param_set)
+    _T_min::FT = param_set.T_min
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
@@ -191,13 +191,13 @@ end
 
 function sa_numerical_method_pθq(
     ::Type{NM},
-    param_set::APS,
+    param_set::ThermodynamicsParameters,
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
-    T_min::FT = CPP.T_min(param_set)
+    T_min::FT = param_set.T_min
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_init = max(T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     return RS.NewtonsMethodAD(T_init)
