@@ -8,11 +8,13 @@ steps:
   - label: "init cpu environment :computer:"
     key: "init_cpu_env"
     command:
+      - "julia --project=test -e 'using Pkg; Pkg.develop(path=\".\")'"
       - "julia --project=test -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project=test -e 'using Pkg; Pkg.resolve()'"
       - "julia --project=test -e 'using Pkg; Pkg.precompile()'"
       - "julia --project=test -e 'using Pkg; Pkg.status()'"
 
+      - "julia --project=perf -e 'using Pkg; Pkg.develop(path=\".\")'"
       - "julia --project=perf -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project=perf -e 'using Pkg; Pkg.resolve()'"
       - "julia --project=perf -e 'using Pkg; Pkg.precompile()'"
@@ -25,6 +27,7 @@ steps:
   - label: "init gpu environment :computer:"
     key: "init_gpu_env"
     command:
+      - "julia --project=gpuenv -e 'using Pkg; Pkg.develop(path=\".\")'"
       - "julia --project=gpuenv -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project=gpuenv -e 'using Pkg; Pkg.resolve()'"
       - "julia --project=gpuenv -e 'using Pkg; Pkg.precompile()'"

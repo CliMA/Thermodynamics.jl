@@ -1,5 +1,7 @@
-import Pkg
-Pkg.develop(path = ".")
+if !haskey(ENV, "BUILDKITE")
+    import Pkg
+    Pkg.develop(Pkg.PackageSpec(; path = dirname(@__DIR__)))
+end
 import Thermodynamics
 import RootSolvers
 import CLIMAParameters
