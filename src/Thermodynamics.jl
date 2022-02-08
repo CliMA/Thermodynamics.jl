@@ -292,7 +292,7 @@ function ThermodynamicsParameters(param_set::NamedTuple)
     )
 end
 
-
+const TPS = ThermodynamicsParameters
 
 
 
