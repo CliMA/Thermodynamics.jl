@@ -69,29 +69,26 @@ The specific gas constant of moist air given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
-function gas_constant_air(
-    param_set::ThermodynamicsParameters,
-    q::PhasePartition{FT},
-) where {FT}
+function gas_constant_air(param_set::TPS, q::PhasePartition{FT}) where {FT}
     R_d::FT = param_set.R_d
     molmass_ratio::FT = param_set.molmass_ratio
     return R_d *
            (1 + (molmass_ratio - 1) * q.tot - molmass_ratio * (q.liq + q.ice))
 end
 
-gas_constant_air(param_set::ThermodynamicsParameters, ::Type{FT}) where {FT} =
+gas_constant_air(param_set::TPS, ::Type{FT}) where {FT} =
     gas_constant_air(param_set, q_pt_0(FT))
 
 """
-    gas_constant_air(ts::ThermodynamicState)
+    gas_constant_air(param_set::TPS, ts::ThermodynamicState)
 
 The specific gas constant of moist air given
 a thermodynamic state `ts`.
 """
-gas_constant_air(ts::ThermodynamicState) =
-    gas_constant_air(ts.param_set, PhasePartition(ts))
-gas_constant_air(ts::AbstractPhaseDry{FT}) where {FT <: Real} =
-    FT(ts.param_set.R_d)
+gas_constant_air(param_set::TPS, ts::ThermodynamicState) =
+    gas_constant_air(param_set, PhasePartition(param_set, ts))
+gas_constant_air(param_set::TPS, ts::AbstractPhaseDry{FT}) where {FT <: Real} =
+    FT(param_set.R_d)
 
 
 """
@@ -107,7 +104,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function air_pressure(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -116,19 +113,19 @@ function air_pressure(
 end
 
 """
-    air_pressure(ts::ThermodynamicState)
+    air_pressure(param_set::TPS, ts::ThermodynamicState)
 
 The air pressure from the equation of state
 (ideal gas law), given a thermodynamic state `ts`.
 """
-air_pressure(ts::ThermodynamicState) = air_pressure(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    PhasePartition(ts),
+air_pressure(param_set::TPS, ts::ThermodynamicState) = air_pressure(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
+    PhasePartition(param_set, ts),
 )
 
-air_pressure(ts::PhaseEquil) = ts.p
+air_pressure(param_set::TPS, ts::PhaseEquil) = ts.p
 
 """
     air_density(param_set, T, p[, q::PhasePartition])
@@ -143,7 +140,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function air_density(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     p::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -152,21 +149,22 @@ function air_density(
 end
 
 """
-    air_density(ts::ThermodynamicState)
+    air_density(param_set::TPS, ts::ThermodynamicState)
 
 The (moist-)air density, given a thermodynamic state `ts`.
 """
-air_density(ts::ThermodynamicState) = ts.ρ
+air_density(param_set::TPS, ts::ThermodynamicState) = ts.ρ
 
 """
-    specific_volume(ts::ThermodynamicState)
+    specific_volume(param_set::TPS, ts::ThermodynamicState)
 
 The (moist-)air specific volume, given a thermodynamic state `ts`.
 """
-specific_volume(ts::ThermodynamicState) = 1 / air_density(ts)
+specific_volume(param_set::TPS, ts::ThermodynamicState) =
+    1 / air_density(param_set, ts)
 
 """
-    total_specific_humidity(ts::ThermodynamicState)
+    total_specific_humidity(param_set::TPS, ts::ThermodynamicState)
     total_specific_humidity(param_set, T, p, relative_humidity)
 
 Total specific humidity given
@@ -177,12 +175,13 @@ or
  - `p` pressure
  - `relative_humidity` relative humidity (can exceed 1 when there is super saturation/condensate)
 """
-total_specific_humidity(ts::ThermodynamicState) = ts.q_tot
-total_specific_humidity(ts::AbstractPhaseDry{FT}) where {FT} = FT(0)
-total_specific_humidity(ts::AbstractPhaseNonEquil) = ts.q.tot
+total_specific_humidity(param_set::TPS, ts::ThermodynamicState) = ts.q_tot
+total_specific_humidity(param_set::TPS, ts::AbstractPhaseDry{FT}) where {FT} =
+    FT(0)
+total_specific_humidity(param_set::TPS, ts::AbstractPhaseNonEquil) = ts.q.tot
 
 """
-    liquid_specific_humidity(ts::ThermodynamicState)
+    liquid_specific_humidity(param_set::TPS, ts::ThermodynamicState)
     liquid_specific_humidity(q::PhasePartition)
 
 Liquid specific humidity given
@@ -190,13 +189,15 @@ Liquid specific humidity given
 or
  - `q` a `PhasePartition`
 """
-liquid_specific_humidity(q::PhasePartition) = q.liq
-liquid_specific_humidity(ts::ThermodynamicState) = PhasePartition(ts).liq
-liquid_specific_humidity(ts::AbstractPhaseDry{FT}) where {FT} = FT(0)
-liquid_specific_humidity(ts::AbstractPhaseNonEquil) = ts.q.liq
+liquid_specific_humidity(param_set::TPS, q::PhasePartition) = q.liq
+liquid_specific_humidity(param_set::TPS, ts::ThermodynamicState) =
+    PhasePartition(param_set, ts).liq
+liquid_specific_humidity(param_set::TPS, ts::AbstractPhaseDry{FT}) where {FT} =
+    FT(0)
+liquid_specific_humidity(param_set::TPS, ts::AbstractPhaseNonEquil) = ts.q.liq
 
 """
-    ice_specific_humidity(ts::ThermodynamicState)
+    ice_specific_humidity(param_set::TPS, ts::ThermodynamicState)
     ice_specific_humidity(q::PhasePartition)
 
 Ice specific humidity given
@@ -205,18 +206,21 @@ or
  - `q` a `PhasePartition`
 """
 ice_specific_humidity(q::PhasePartition) = q.ice
-ice_specific_humidity(ts::ThermodynamicState) = PhasePartition(ts).ice
-ice_specific_humidity(ts::AbstractPhaseDry{FT}) where {FT} = FT(0)
-ice_specific_humidity(ts::AbstractPhaseNonEquil) = ts.q.ice
+ice_specific_humidity(param_set::TPS, ts::ThermodynamicState) =
+    PhasePartition(param_set, ts).ice
+ice_specific_humidity(param_set::TPS, ts::AbstractPhaseDry{FT}) where {FT} =
+    FT(0)
+ice_specific_humidity(param_set::TPS, ts::AbstractPhaseNonEquil) = ts.q.ice
 
 """
     vapor_specific_humidity(q::PhasePartition{FT})
 
 The vapor specific humidity, given a `PhasePartition` `q`.
 """
-vapor_specific_humidity(q::PhasePartition) = max(0, q.tot - q.liq - q.ice)
-vapor_specific_humidity(ts::ThermodynamicState) =
-    vapor_specific_humidity(PhasePartition(ts))
+vapor_specific_humidity(param_set::TPS, q::PhasePartition) =
+    max(0, q.tot - q.liq - q.ice)
+vapor_specific_humidity(param_set::TPS, ts::ThermodynamicState) =
+    vapor_specific_humidity(param_set, PhasePartition(param_set, ts))
 
 """
     cp_m(param_set, q::PhasePartition)
@@ -225,10 +229,7 @@ The isobaric specific heat capacity of moist air given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref).
 """
-function cp_m(
-    param_set::ThermodynamicsParameters,
-    q::PhasePartition{FT},
-) where {FT <: Real}
+function cp_m(param_set::TPS, q::PhasePartition{FT}) where {FT <: Real}
     cp_d::FT = param_set.cp_d
     cp_v::FT = param_set.cp_v
     cp_l::FT = param_set.cp_l
@@ -239,16 +240,18 @@ function cp_m(
            (cp_i - cp_v) * q.ice
 end
 
-cp_m(param_set::ThermodynamicsParameters, ::Type{FT}) where {FT <: Real} =
+cp_m(param_set::TPS, ::Type{FT}) where {FT <: Real} =
     cp_m(param_set, q_pt_0(FT))
 
 """
-    cp_m(ts::ThermodynamicState)
+    cp_m(param_set::TPS, ts::ThermodynamicState)
 
 The isobaric specific heat capacity of moist air, given a thermodynamic state `ts`.
 """
-cp_m(ts::ThermodynamicState) = cp_m(ts.param_set, PhasePartition(ts))
-cp_m(ts::AbstractPhaseDry{FT}) where {FT <: Real} = FT(ts.param_set.cp_d)
+cp_m(param_set::TPS, ts::ThermodynamicState) =
+    cp_m(param_set, PhasePartition(param_set, ts))
+cp_m(param_set::TPS, ts::AbstractPhaseDry{FT}) where {FT <: Real} =
+    FT(param_set.cp_d)
 
 """
     cv_m(param_set, q::PhasePartition)
@@ -257,10 +260,7 @@ The isochoric specific heat capacity of moist air given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref).
 """
-function cv_m(
-    param_set::ThermodynamicsParameters,
-    q::PhasePartition{FT},
-) where {FT <: Real}
+function cv_m(param_set::TPS, q::PhasePartition{FT}) where {FT <: Real}
     cv_d::FT = param_set.cv_d
     cv_v::FT = param_set.cv_v
     cv_l::FT = param_set.cv_l
@@ -271,16 +271,18 @@ function cv_m(
            (cv_i - cv_v) * q.ice
 end
 
-cv_m(param_set::ThermodynamicsParameters, ::Type{FT}) where {FT <: Real} =
+cv_m(param_set::TPS, ::Type{FT}) where {FT <: Real} =
     cv_m(param_set, q_pt_0(FT))
 
 """
-    cv_m(ts::ThermodynamicState)
+    cv_m(param_set::TPS, ts::ThermodynamicState)
 
 The isochoric specific heat capacity of moist air, given a thermodynamic state `ts`.
 """
-cv_m(ts::ThermodynamicState) = cv_m(ts.param_set, PhasePartition(ts))
-cv_m(ts::AbstractPhaseDry{FT}) where {FT <: Real} = FT(ts.param_set.cv_d)
+cv_m(param_set::TPS, ts::ThermodynamicState) =
+    cv_m(param_set, PhasePartition(param_set, ts))
+cv_m(param_set::TPS, ts::AbstractPhaseDry{FT}) where {FT <: Real} =
+    FT(param_set.cv_d)
 
 
 """
@@ -296,10 +298,7 @@ The function returns a tuple of
  - `cv_m` [`cv_m`](@ref)
  - `γ_m = cp_m/cv_m`
 """
-function gas_constants(
-    param_set::ThermodynamicsParameters,
-    q::PhasePartition{FT},
-) where {FT <: Real}
+function gas_constants(param_set::TPS, q::PhasePartition{FT}) where {FT <: Real}
     R_gas = gas_constant_air(param_set, q)
     cp = cp_m(param_set, q)
     cv = cv_m(param_set, q)
@@ -308,7 +307,7 @@ function gas_constants(
 end
 
 """
-    (R_m, cp_m, cv_m, γ_m) = gas_constants(ts::ThermodynamicState)
+    (R_m, cp_m, cv_m, γ_m) = gas_constants(param_set::TPS, ts::ThermodynamicState)
 
 Wrapper to compute all gas constants at once, given a thermodynamic state `ts`.
 
@@ -319,8 +318,8 @@ The function returns a tuple of
  - `γ_m = cp_m/cv_m`
 
 """
-gas_constants(ts::ThermodynamicState) =
-    gas_constants(ts.param_set, PhasePartition(ts))
+gas_constants(param_set::TPS, ts::ThermodynamicState) =
+    gas_constants(param_set, PhasePartition(param_set, ts))
 
 """
     air_temperature(param_set, e_int, q::PhasePartition)
@@ -333,7 +332,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function air_temperature(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     e_int::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
@@ -347,13 +346,16 @@ function air_temperature(
 end
 
 """
-    air_temperature(ts::ThermodynamicState)
+    air_temperature(param_set::TPS, ts::ThermodynamicState)
 
 The air temperature, given a thermodynamic state `ts`.
 """
-air_temperature(ts::ThermodynamicState) =
-    air_temperature(ts.param_set, internal_energy(ts), PhasePartition(ts))
-air_temperature(ts::AbstractPhaseEquil) = ts.T
+air_temperature(param_set::TPS, ts::ThermodynamicState) = air_temperature(
+    param_set,
+    internal_energy(param_set, ts),
+    PhasePartition(param_set, ts),
+)
+air_temperature(param_set::TPS, ts::AbstractPhaseEquil) = ts.T
 
 """
     air_temperature_from_ideal_gas_law(param_set, p, ρ, q::PhasePartition)
@@ -367,7 +369,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function air_temperature_from_ideal_gas_law(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -387,7 +389,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function internal_energy(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
@@ -399,11 +401,11 @@ function internal_energy(
 end
 
 """
-    internal_energy(ts::ThermodynamicState)
+    internal_energy(param_set::TPS, ts::ThermodynamicState)
 
 The internal energy per unit mass, given a thermodynamic state `ts`.
 """
-internal_energy(ts::ThermodynamicState) = ts.e_int
+internal_energy(param_set::TPS, ts::ThermodynamicState) = ts.e_int
 
 """
     internal_energy(ρ::FT, ρe::FT, ρu::AbstractVector{FT}, e_pot::FT)
@@ -436,10 +438,7 @@ The dry air internal energy
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-function internal_energy_dry(
-    param_set::ThermodynamicsParameters,
-    T::FT,
-) where {FT <: Real}
+function internal_energy_dry(param_set::TPS, T::FT) where {FT <: Real}
     T_0::FT = param_set.T_0
     cv_d::FT = param_set.cv_d
 
@@ -447,12 +446,12 @@ function internal_energy_dry(
 end
 
 """
-    internal_energy_dry(ts::ThermodynamicState)
+    internal_energy_dry(param_set::TPS, ts::ThermodynamicState)
 
 The the dry air internal energy, given a thermodynamic state `ts`.
 """
-internal_energy_dry(ts::ThermodynamicState) =
-    internal_energy_dry(ts.param_set, air_temperature(ts))
+internal_energy_dry(param_set::TPS, ts::ThermodynamicState) =
+    internal_energy_dry(param_set, air_temperature(param_set, ts))
 
 """
     internal_energy_vapor(param_set, T)
@@ -462,10 +461,7 @@ The water vapor internal energy
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-function internal_energy_vapor(
-    param_set::ThermodynamicsParameters,
-    T::FT,
-) where {FT <: Real}
+function internal_energy_vapor(param_set::TPS, T::FT) where {FT <: Real}
     T_0::FT = param_set.T_0
     cv_v::FT = param_set.cv_v
     e_int_v0::FT = param_set.e_int_v0
@@ -474,12 +470,12 @@ function internal_energy_vapor(
 end
 
 """
-    internal_energy_vapor(ts::ThermodynamicState)
+    internal_energy_vapor(param_set::TPS, ts::ThermodynamicState)
 
 The the water vapor internal energy, given a thermodynamic state `ts`.
 """
-internal_energy_vapor(ts::ThermodynamicState) =
-    internal_energy_vapor(ts.param_set, air_temperature(ts))
+internal_energy_vapor(param_set::TPS, ts::ThermodynamicState) =
+    internal_energy_vapor(param_set, air_temperature(param_set, ts))
 
 """
     internal_energy_liquid(param_set, T)
@@ -489,10 +485,7 @@ The liquid water internal energy
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-function internal_energy_liquid(
-    param_set::ThermodynamicsParameters,
-    T::FT,
-) where {FT <: Real}
+function internal_energy_liquid(param_set::TPS, T::FT) where {FT <: Real}
     T_0::FT = param_set.T_0
     cv_l::FT = param_set.cv_l
 
@@ -500,12 +493,12 @@ function internal_energy_liquid(
 end
 
 """
-    internal_energy_liquid(ts::ThermodynamicState)
+    internal_energy_liquid(param_set::TPS, ts::ThermodynamicState)
 
 The the liquid water internal energy, given a thermodynamic state `ts`.
 """
-internal_energy_liquid(ts::ThermodynamicState) =
-    internal_energy_liquid(ts.param_set, air_temperature(ts))
+internal_energy_liquid(param_set::TPS, ts::ThermodynamicState) =
+    internal_energy_liquid(param_set, air_temperature(param_set, ts))
 
 """
     internal_energy_ice(param_set, T)
@@ -515,10 +508,7 @@ The ice internal energy
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-function internal_energy_ice(
-    param_set::ThermodynamicsParameters,
-    T::FT,
-) where {FT <: Real}
+function internal_energy_ice(param_set::TPS, T::FT) where {FT <: Real}
     T_0::FT = param_set.T_0
     cv_i::FT = param_set.cv_i
     e_int_i0::FT = param_set.e_int_i0
@@ -527,12 +517,12 @@ function internal_energy_ice(
 end
 
 """
-    internal_energy_ice(ts::ThermodynamicState)
+    internal_energy_ice(param_set::TPS, ts::ThermodynamicState)
 
 The the ice internal energy, given a thermodynamic state `ts`.
 """
-internal_energy_ice(ts::ThermodynamicState) =
-    internal_energy_ice(ts.param_set, air_temperature(ts))
+internal_energy_ice(param_set::TPS, ts::ThermodynamicState) =
+    internal_energy_ice(param_set, air_temperature(param_set, ts))
 
 """
     internal_energy_sat(param_set, T, ρ, q_tot, phase_type)
@@ -546,7 +536,7 @@ The internal energy per unit mass in thermodynamic equilibrium at saturation whe
  - `phase_type` a thermodynamic state type
 """
 function internal_energy_sat(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     q_tot::FT,
@@ -560,19 +550,20 @@ function internal_energy_sat(
 end
 
 """
-    internal_energy_sat(ts::ThermodynamicState)
+    internal_energy_sat(param_set::TPS, ts::ThermodynamicState)
 
 The internal energy per unit mass in
 thermodynamic equilibrium at saturation,
 given a thermodynamic state `ts`.
 """
-internal_energy_sat(ts::ThermodynamicState) = internal_energy_sat(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    total_specific_humidity(ts),
-    typeof(ts),
-)
+internal_energy_sat(param_set::TPS, ts::ThermodynamicState) =
+    internal_energy_sat(
+        param_set,
+        air_temperature(param_set, ts),
+        air_density(param_set, ts),
+        total_specific_humidity(param_set, ts),
+        typeof(ts),
+    )
 
 
 """
@@ -589,7 +580,7 @@ and, optionally,
 
 """
 function total_energy(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     e_kin::FT,
     e_pot::FT,
     T::FT,
@@ -599,17 +590,18 @@ function total_energy(
 end
 
 """
-    total_energy(e_kin, e_pot, ts::ThermodynamicState)
+    total_energy(param_set, e_kin, e_pot, ts::ThermodynamicState)
 
 The total energy per unit mass
 given a thermodynamic state `ts`.
 """
 function total_energy(
+    param_set::TPS,
     e_kin::FT,
     e_pot::FT,
     ts::ThermodynamicState{FT},
 ) where {FT <: Real}
-    return internal_energy(ts) + e_kin + e_pot
+    return internal_energy(param_set, ts) + e_kin + e_pot
 end
 
 """
@@ -626,7 +618,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function total_energy_given_ρp(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     ρ::FT,
     p::FT,
     e_kin::FT,
@@ -647,7 +639,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function soundspeed_air(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
@@ -657,12 +649,15 @@ function soundspeed_air(
 end
 
 """
-    soundspeed_air(ts::ThermodynamicState)
+    soundspeed_air(param_set::TPS, ts::ThermodynamicState)
 
 The speed of sound in unstratified air given a thermodynamic state `ts`.
 """
-soundspeed_air(ts::ThermodynamicState) =
-    soundspeed_air(ts.param_set, air_temperature(ts), PhasePartition(ts))
+soundspeed_air(param_set::TPS, ts::ThermodynamicState) = soundspeed_air(
+    param_set,
+    air_temperature(param_set, ts),
+    PhasePartition(param_set, ts),
+)
 
 
 """
@@ -672,10 +667,7 @@ The specific latent heat of vaporization where
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-function latent_heat_vapor(
-    param_set::ThermodynamicsParameters,
-    T::FT,
-) where {FT <: Real}
+function latent_heat_vapor(param_set::TPS, T::FT) where {FT <: Real}
     cp_l::FT = param_set.cp_l
     cp_v::FT = param_set.cp_v
     LH_v0::FT = param_set.LH_v0
@@ -683,13 +675,13 @@ function latent_heat_vapor(
 end
 
 """
-    latent_heat_vapor(ts::ThermodynamicState)
+    latent_heat_vapor(param_set::TPS, ts::ThermodynamicState)
 
 The specific latent heat of vaporization
 given a thermodynamic state `ts`.
 """
-latent_heat_vapor(ts::ThermodynamicState) =
-    latent_heat_vapor(ts.param_set, air_temperature(ts))
+latent_heat_vapor(param_set::TPS, ts::ThermodynamicState) =
+    latent_heat_vapor(param_set, air_temperature(param_set, ts))
 
 """
     latent_heat_sublim(param_set, T::FT) where {FT<:Real}
@@ -698,10 +690,7 @@ The specific latent heat of sublimation where
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-function latent_heat_sublim(
-    param_set::ThermodynamicsParameters,
-    T::FT,
-) where {FT <: Real}
+function latent_heat_sublim(param_set::TPS, T::FT) where {FT <: Real}
     LH_s0::FT = param_set.LH_s0
     cp_v::FT = param_set.cp_v
     cp_i::FT = param_set.cp_i
@@ -709,13 +698,13 @@ function latent_heat_sublim(
 end
 
 """
-    latent_heat_sublim(ts::ThermodynamicState)
+    latent_heat_sublim(param_set::TPS, ts::ThermodynamicState)
 
 The specific latent heat of sublimation
 given a thermodynamic state `ts`.
 """
-latent_heat_sublim(ts::ThermodynamicState) =
-    latent_heat_sublim(ts.param_set, air_temperature(ts))
+latent_heat_sublim(param_set::TPS, ts::ThermodynamicState) =
+    latent_heat_sublim(param_set, air_temperature(param_set, ts))
 
 """
     latent_heat_fusion(param_set, T::FT) where {FT<:Real}
@@ -724,10 +713,7 @@ The specific latent heat of fusion where
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-function latent_heat_fusion(
-    param_set::ThermodynamicsParameters,
-    T::FT,
-) where {FT <: Real}
+function latent_heat_fusion(param_set::TPS, T::FT) where {FT <: Real}
     LH_f0::FT = param_set.LH_f0
     cp_l::FT = param_set.cp_l
     cp_i::FT = param_set.cp_i
@@ -735,13 +721,13 @@ function latent_heat_fusion(
 end
 
 """
-    latent_heat_fusion(ts::ThermodynamicState)
+    latent_heat_fusion(param_set::TPS, ts::ThermodynamicState)
 
 The specific latent heat of fusion
 given a thermodynamic state `ts`.
 """
-latent_heat_fusion(ts::ThermodynamicState) =
-    latent_heat_fusion(ts.param_set, air_temperature(ts))
+latent_heat_fusion(param_set::TPS, ts::ThermodynamicState) =
+    latent_heat_fusion(param_set, air_temperature(param_set, ts))
 
 """
     latent_heat_generic(param_set, T::FT, LH_0::FT, Δcp::FT) where {FT<:Real}
@@ -758,7 +744,7 @@ isobaric specific heat capacities of the two phases, given
          in the lower-temperature phase).
 """
 function latent_heat_generic(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     LH_0::FT,
     Δcp::FT,
@@ -830,7 +816,7 @@ the triple point pressure `press_triple`.
 
 """
 function saturation_vapor_pressure(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ::Liquid,
 ) where {FT <: Real}
@@ -841,15 +827,16 @@ function saturation_vapor_pressure(
 end
 
 function saturation_vapor_pressure(
+    param_set::TPS,
     ts::ThermodynamicState{FT},
     ::Liquid,
 ) where {FT <: Real}
-    LH_v0::FT = ts.param_set.LH_v0
-    cp_v::FT = ts.param_set.cp_v
-    cp_l::FT = ts.param_set.cp_l
+    LH_v0::FT = param_set.LH_v0
+    cp_v::FT = param_set.cp_v
+    cp_l::FT = param_set.cp_l
     return saturation_vapor_pressure(
-        ts.param_set,
-        air_temperature(ts),
+        param_set,
+        air_temperature(param_set, ts),
         LH_v0,
         cp_v - cp_l,
     )
@@ -857,7 +844,7 @@ function saturation_vapor_pressure(
 end
 
 function saturation_vapor_pressure(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ::Ice,
 ) where {FT <: Real}
@@ -868,22 +855,23 @@ function saturation_vapor_pressure(
 end
 
 function saturation_vapor_pressure(
+    param_set::TPS,
     ts::ThermodynamicState{FT},
     ::Ice,
 ) where {FT <: Real}
-    LH_s0::FT = ts.param_set.LH_s0
-    cp_v::FT = ts.param_set.cp_v
-    cp_i::FT = ts.param_set.cp_i
+    LH_s0::FT = param_set.LH_s0
+    cp_v::FT = param_set.cp_v
+    cp_i::FT = param_set.cp_i
     return saturation_vapor_pressure(
-        ts.param_set,
-        air_temperature(ts),
+        param_set,
+        air_temperature(param_set, ts),
         LH_s0,
         cp_v - cp_i,
     )
 end
 
 function saturation_vapor_pressure(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     ::Type{phase_type},
     T::FT,
 ) where {FT <: Real, phase_type <: ThermodynamicState}
@@ -899,7 +887,7 @@ function saturation_vapor_pressure(
 end
 
 function saturation_vapor_pressure(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     LH_0::FT,
     Δcp::FT,
@@ -928,7 +916,7 @@ and, optionally,
  - `Ice()` indicating condensate is ice
 """
 function q_vap_saturation_generic(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     phase::Phase,
@@ -963,7 +951,7 @@ fraction of liquid given by temperature dependent `liquid_fraction(param_set, T,
 and the fraction of ice by the complement `1 - liquid_fraction(param_set, T, phase_type)`.
 """
 function q_vap_saturation(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     ::Type{phase_type},
@@ -992,43 +980,45 @@ function q_vap_saturation(
 end
 
 """
-    q_vap_saturation(ts::ThermodynamicState)
+    q_vap_saturation(param_set::TPS, ts::ThermodynamicState)
 
 Compute the saturation specific humidity, given a thermodynamic state `ts`.
 """
-q_vap_saturation(ts::ThermodynamicState) = q_vap_saturation(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
+q_vap_saturation(param_set::TPS, ts::ThermodynamicState) = q_vap_saturation(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
     typeof(ts),
-    PhasePartition(ts),
+    PhasePartition(param_set, ts),
 )
 
 """
-    q_vap_saturation_liquid(ts::ThermodynamicState)
+    q_vap_saturation_liquid(param_set::TPS, ts::ThermodynamicState)
 
 Compute the saturation specific humidity over liquid,
 given a thermodynamic state `ts`.
 """
-q_vap_saturation_liquid(ts::ThermodynamicState) = q_vap_saturation_generic(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    Liquid(),
-)
+q_vap_saturation_liquid(param_set::TPS, ts::ThermodynamicState) =
+    q_vap_saturation_generic(
+        param_set,
+        air_temperature(param_set, ts),
+        air_density(param_set, ts),
+        Liquid(),
+    )
 
 """
-    q_vap_saturation_ice(ts::ThermodynamicState)
+    q_vap_saturation_ice(param_set::TPS, ts::ThermodynamicState)
 
 Compute the saturation specific humidity over ice,
 given a thermodynamic state `ts`.
 """
-q_vap_saturation_ice(ts::ThermodynamicState) = q_vap_saturation_generic(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    Ice(),
-)
+q_vap_saturation_ice(param_set::TPS, ts::ThermodynamicState) =
+    q_vap_saturation_generic(
+        param_set,
+        air_temperature(param_set, ts),
+        air_density(param_set, ts),
+        Ice(),
+    )
 
 """
     q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
@@ -1041,7 +1031,7 @@ Compute the saturation specific humidity, given
  - `p_v_sat` saturation vapor pressure
 """
 function q_vap_saturation_from_density(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     p_v_sat::FT,
@@ -1061,7 +1051,7 @@ Compute the saturation specific humidity, given
 
 """
 function q_vap_saturation_from_pressure(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     q_tot::FT,
     p::FT,
     T::FT,
@@ -1089,7 +1079,7 @@ end
 Returns supersaturation (qv/qv_sat -1) over water or ice.
 """
 function supersaturation(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     q::PhasePartition{FT},
     ρ::FT,
     T::FT,
@@ -1097,12 +1087,12 @@ function supersaturation(
 ) where {FT <: Real}
 
     q_sat::FT = q_vap_saturation_generic(param_set, T, ρ, Liquid())
-    q_vap::FT = vapor_specific_humidity(q)
+    q_vap::FT = vapor_specific_humidity(param_set, q)
 
     return q_vap / q_sat - FT(1)
 end
 function supersaturation(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     q::PhasePartition{FT},
     ρ::FT,
     T::FT,
@@ -1110,17 +1100,18 @@ function supersaturation(
 ) where {FT <: Real}
 
     q_sat::FT = q_vap_saturation_generic(param_set, T, ρ, Ice())
-    q_vap::FT = vapor_specific_humidity(q)
+    q_vap::FT = vapor_specific_humidity(param_set, q)
 
     return q_vap / q_sat - FT(1)
 end
-supersaturation(ts::ThermodynamicState, phase::Phase) = supersaturation(
-    ts.param_set,
-    PhasePartition(ts),
-    air_density(ts),
-    air_temperature(ts),
-    phase,
-)
+supersaturation(param_set::TPS, ts::ThermodynamicState, phase::Phase) =
+    supersaturation(
+        param_set,
+        PhasePartition(param_set, ts),
+        air_density(param_set, ts),
+        air_temperature(param_set, ts),
+        phase,
+    )
 
 """
     saturation_excess(param_set, T, ρ, phase_type, q::PhasePartition)
@@ -1138,7 +1129,7 @@ and the saturation specific humidity in equilibrium, and it is defined to be
 nonzero only if this difference is positive.
 """
 function saturation_excess(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     ::Type{phase_type},
@@ -1148,38 +1139,40 @@ function saturation_excess(
 end
 
 """
-    saturation_excess(ts::ThermodynamicState)
+    saturation_excess(param_set::TPS, ts::ThermodynamicState)
 
 Compute the saturation excess in equilibrium,
 given a thermodynamic state `ts`.
 """
-saturation_excess(ts::ThermodynamicState) = saturation_excess(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
+saturation_excess(param_set::TPS, ts::ThermodynamicState) = saturation_excess(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
     typeof(ts),
-    PhasePartition(ts),
+    PhasePartition(param_set, ts),
 )
 
 """
     condensate(q::PhasePartition{FT})
-    condensate(ts::ThermodynamicState)
+    condensate(param_set::TPS, ts::ThermodynamicState)
 
 Condensate of the phase partition.
 """
 condensate(q::PhasePartition) = q.liq + q.ice
-condensate(ts::ThermodynamicState) = condensate(PhasePartition(ts))
+condensate(param_set::TPS, ts::ThermodynamicState) =
+    condensate(PhasePartition(param_set, ts))
 
 """
     has_condensate(q::PhasePartition{FT})
-    has_condensate(ts::ThermodynamicState)
+    has_condensate(param_set::TPS, ts::ThermodynamicState)
 
 Bool indicating if condensate exists in the phase
 partition
 """
 has_condensate(q_c::FT) where {FT} = q_c > eps(FT)
 has_condensate(q::PhasePartition) = has_condensate(condensate(q))
-has_condensate(ts::ThermodynamicState) = has_condensate(PhasePartition(ts))
+has_condensate(param_set::TPS, ts::ThermodynamicState) =
+    has_condensate(PhasePartition(param_set, ts))
 
 
 """
@@ -1199,7 +1192,7 @@ Otherwise, phase equilibrium is assumed so that the fraction of liquid
 is a function that is 1 above `T_freeze` and goes to zero below `T_freeze`.
 """
 function liquid_fraction(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -1209,7 +1202,7 @@ function liquid_fraction(
 end
 
 function liquid_fraction(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -1223,15 +1216,15 @@ function liquid_fraction(
 end
 
 """
-    liquid_fraction(ts::ThermodynamicState)
+    liquid_fraction(param_set::TPS, ts::ThermodynamicState)
 
 The fraction of condensate that is liquid given a thermodynamic state `ts`.
 """
-liquid_fraction(ts::ThermodynamicState) = liquid_fraction(
-    ts.param_set,
-    air_temperature(ts),
+liquid_fraction(param_set::TPS, ts::ThermodynamicState) = liquid_fraction(
+    param_set,
+    air_temperature(param_set, ts),
     typeof(ts),
-    PhasePartition(ts),
+    PhasePartition(param_set, ts),
 )
 
 """
@@ -1249,7 +1242,7 @@ Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object
 The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
 """
 function PhasePartition_equil(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     q_tot::FT,
@@ -1263,13 +1256,14 @@ function PhasePartition_equil(
     return PhasePartition(q_tot, q_liq, q_ice)
 end
 
-PhasePartition_equil(ts::AbstractPhaseNonEquil) = PhasePartition_equil(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    total_specific_humidity(ts),
-    typeof(ts),
-)
+PhasePartition_equil(param_set::TPS, ts::AbstractPhaseNonEquil) =
+    PhasePartition_equil(
+        param_set,
+        air_temperature(param_set, ts),
+        air_density(param_set, ts),
+        total_specific_humidity(param_set, ts),
+        typeof(ts),
+    )
 
 
 """
@@ -1284,7 +1278,7 @@ Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object
 The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
 """
 function PhasePartition_equil_given_p(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     p::FT,
     q_tot::FT,
@@ -1299,18 +1293,19 @@ function PhasePartition_equil_given_p(
     return PhasePartition(q_tot, q_liq, q_ice)
 end
 
-PhasePartition(ts::AbstractPhaseDry{FT}) where {FT <: Real} = q_pt_0(FT)
-PhasePartition(ts::AbstractPhaseEquil) = PhasePartition_equil(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    total_specific_humidity(ts),
+PhasePartition(param_set::TPS, ts::AbstractPhaseDry{FT}) where {FT <: Real} =
+    q_pt_0(FT)
+PhasePartition(param_set::TPS, ts::AbstractPhaseEquil) = PhasePartition_equil(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
+    total_specific_humidity(param_set, ts),
     typeof(ts),
 )
-PhasePartition(ts::AbstractPhaseNonEquil) = ts.q
+PhasePartition(param_set::TPS, ts::AbstractPhaseNonEquil) = ts.q
 
 function ∂e_int_∂T(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     e_int::FT,
     ρ::FT,
@@ -1375,7 +1370,7 @@ See also [`saturation_adjustment`](@ref).
 """
 function saturation_adjustment(
     ::Type{sat_adjust_method},
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     e_int::FT,
     ρ::FT,
     q_tot::FT,
@@ -1471,7 +1466,7 @@ See also [`saturation_adjustment`](@ref).
 """
 function saturation_adjustment_given_peq(
     ::Type{sat_adjust_method},
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     e_int::FT,
     q_tot::FT,
@@ -1570,7 +1565,7 @@ See also [`saturation_adjustment`](@ref).
 """
 function saturation_adjustment_ρpq(
     ::Type{sat_adjust_method},
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     ρ::FT,
     p::FT,
     q_tot::FT,
@@ -1680,7 +1675,7 @@ by finding the root of
 See also [`saturation_adjustment`](@ref).
 """
 function saturation_adjustment_given_ρθq(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     ρ::FT,
     θ_liq_ice::FT,
     q_tot::FT,
@@ -1762,7 +1757,7 @@ See also [`saturation_adjustment`](@ref).
 """
 function saturation_adjustment_given_pθq(
     ::Type{sat_adjust_method},
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
@@ -1847,7 +1842,7 @@ with specific latent heat evaluated at reference temperature `T_0` given
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function latent_heat_liq_ice(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
     LH_v0::FT = param_set.LH_v0
@@ -1867,7 +1862,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function liquid_ice_pottemp_given_pressure(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     p::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -1890,7 +1885,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function liquid_ice_pottemp(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -1904,16 +1899,16 @@ function liquid_ice_pottemp(
 end
 
 """
-    liquid_ice_pottemp(ts::ThermodynamicState)
+    liquid_ice_pottemp(param_set::TPS, ts::ThermodynamicState)
 
 The liquid-ice potential temperature,
 given a thermodynamic state `ts`.
 """
-liquid_ice_pottemp(ts::ThermodynamicState) = liquid_ice_pottemp(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    PhasePartition(ts),
+liquid_ice_pottemp(param_set::TPS, ts::ThermodynamicState) = liquid_ice_pottemp(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
+    PhasePartition(param_set, ts),
 )
 
 """
@@ -1928,7 +1923,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
  """
 function dry_pottemp(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -1948,7 +1943,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
  """
 function dry_pottemp_given_pressure(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     p::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -1957,19 +1952,19 @@ function dry_pottemp_given_pressure(
 end
 
 """
-    dry_pottemp(ts::ThermodynamicState)
+    dry_pottemp(param_set::TPS, ts::ThermodynamicState)
 
 The dry potential temperature, given a thermodynamic state `ts`.
 """
-dry_pottemp(ts::ThermodynamicState) = dry_pottemp(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    PhasePartition(ts),
+dry_pottemp(param_set::TPS, ts::ThermodynamicState) = dry_pottemp(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
+    PhasePartition(param_set, ts),
 )
 
 function virt_temp_from_RH(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     RH::FT,
@@ -1991,7 +1986,7 @@ The air temperature and `q_tot` where
  - `phase_type` a thermodynamic state type
 """
 function temperature_and_humidity_given_TᵥρRH(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T_virt::FT,
     ρ::FT,
     RH::FT,
@@ -2049,7 +2044,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function air_temperature_given_ρθq(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     ρ::FT,
     θ_liq_ice::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -2088,7 +2083,7 @@ by finding the root of
                                q) = 0`
 """
 function air_temperature_given_ρθq_nonlinear(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     ρ::FT,
     θ_liq_ice::FT,
     maxiter::Int,
@@ -2148,7 +2143,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function air_temperature_given_pθq(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     θ_liq_ice::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -2169,7 +2164,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function virtual_pottemp(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -2180,16 +2175,16 @@ function virtual_pottemp(
 end
 
 """
-    virtual_pottemp(ts::ThermodynamicState)
+    virtual_pottemp(param_set::TPS, ts::ThermodynamicState)
 
 The virtual potential temperature,
 given a thermodynamic state `ts`.
 """
-virtual_pottemp(ts::ThermodynamicState) = virtual_pottemp(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    PhasePartition(ts),
+virtual_pottemp(param_set::TPS, ts::ThermodynamicState) = virtual_pottemp(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
+    PhasePartition(param_set, ts),
 )
 
 """
@@ -2204,7 +2199,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function virtual_temperature(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -2214,17 +2209,18 @@ function virtual_temperature(
 end
 
 """
-    virtual_temperature(ts::ThermodynamicState)
+    virtual_temperature(param_set::TPS, ts::ThermodynamicState)
 
 The virtual temperature,
 given a thermodynamic state `ts`.
 """
-virtual_temperature(ts::ThermodynamicState) = virtual_temperature(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    PhasePartition(ts),
-)
+virtual_temperature(param_set::TPS, ts::ThermodynamicState) =
+    virtual_temperature(
+        param_set,
+        air_temperature(param_set, ts),
+        air_density(param_set, ts),
+        PhasePartition(param_set, ts),
+    )
 
 
 """
@@ -2240,7 +2236,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function liquid_ice_pottemp_sat(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     ::Type{phase_type},
@@ -2262,7 +2258,7 @@ The saturated liquid ice potential temperature where
  - `q_tot` total specific humidity
 """
 function liquid_ice_pottemp_sat(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     ::Type{phase_type},
@@ -2277,17 +2273,18 @@ function liquid_ice_pottemp_sat(
 end
 
 """
-    liquid_ice_pottemp_sat(ts::ThermodynamicState)
+    liquid_ice_pottemp_sat(param_set::TPS, ts::ThermodynamicState)
 
 The liquid potential temperature given a thermodynamic state `ts`.
 """
-liquid_ice_pottemp_sat(ts::ThermodynamicState) = liquid_ice_pottemp_sat(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    typeof(ts),
-    PhasePartition(ts),
-)
+liquid_ice_pottemp_sat(param_set::TPS, ts::ThermodynamicState) =
+    liquid_ice_pottemp_sat(
+        param_set,
+        air_temperature(param_set, ts),
+        air_density(param_set, ts),
+        typeof(ts),
+        PhasePartition(param_set, ts),
+    )
 
 """
     exner_given_pressure(param_set, p[, q::PhasePartition])
@@ -2299,7 +2296,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function exner_given_pressure(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
@@ -2322,7 +2319,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 function exner(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
@@ -2331,15 +2328,15 @@ function exner(
 end
 
 """
-    exner(ts::ThermodynamicState)
+    exner(param_set::TPS, ts::ThermodynamicState)
 
 The Exner function, given a thermodynamic state `ts`.
 """
-exner(ts::ThermodynamicState) = exner(
-    ts.param_set,
-    air_temperature(ts),
-    air_density(ts),
-    PhasePartition(ts),
+exner(param_set::TPS, ts::ThermodynamicState) = exner(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
+    PhasePartition(param_set, ts),
 )
 
 """
@@ -2371,14 +2368,15 @@ function mixing_ratios(q::PhasePartition{FT}) where {FT <: Real}
 end
 
 """
-    mixing_ratios(ts::ThermodynamicState)
+    mixing_ratios(param_set::TPS, ts::ThermodynamicState)
 
 Mixing ratios stored, in a phase partition, for
  - total specific humidity
  - liquid specific humidity
  - ice specific humidity
 """
-mixing_ratios(ts::ThermodynamicState) = mixing_ratios(PhasePartition(ts))
+mixing_ratios(param_set::TPS, ts::ThermodynamicState) =
+    mixing_ratios(PhasePartition(param_set, ts))
 
 """
     vol_vapor_mixing_ratio(param_set, q::PhasePartition)
@@ -2388,11 +2386,11 @@ given a parameter set `param_set`
 and a phase partition, `q`.
 """
 function vol_vapor_mixing_ratio(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     q::PhasePartition{FT},
 ) where {FT <: Real}
     molmass_ratio::FT = param_set.molmass_ratio
-    q_vap = vapor_specific_humidity(q)
+    q_vap = vapor_specific_humidity(param_set, q)
     return molmass_ratio * shum_to_mixing_ratio(q_vap, q.tot)
 end
 
@@ -2407,34 +2405,37 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
  """
 function relative_humidity(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     T::FT,
     p::FT,
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     R_v::FT = param_set.R_v
-    q_vap = vapor_specific_humidity(q)
+    q_vap = vapor_specific_humidity(param_set, q)
     p_vap = q_vap * air_density(param_set, T, p, q) * R_v * T
     p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
     return p_vap / p_vap_sat
 end
 
 """
-    relative_humidity(ts::ThermodynamicState)
+    relative_humidity(param_set::TPS, ts::ThermodynamicState)
 
 The relative humidity, given a thermodynamic state `ts`.
 """
-relative_humidity(ts::ThermodynamicState{FT}) where {FT <: Real} =
-    relative_humidity(
-        ts.param_set,
-        air_temperature(ts),
-        air_pressure(ts),
-        typeof(ts),
-        PhasePartition(ts),
-    )
+relative_humidity(
+    param_set::TPS,
+    ts::ThermodynamicState{FT},
+) where {FT <: Real} = relative_humidity(
+    param_set,
+    air_temperature(param_set, ts),
+    air_pressure(param_set, ts),
+    typeof(ts),
+    PhasePartition(param_set, ts),
+)
 
-relative_humidity(ts::AbstractPhaseDry{FT}) where {FT <: Real} = FT(0)
+relative_humidity(param_set::TPS, ts::AbstractPhaseDry{FT}) where {FT <: Real} =
+    FT(0)
 
 """
     total_specific_enthalpy(e_tot, R_m, T)
@@ -2449,18 +2450,19 @@ function total_specific_enthalpy(e_tot::FT, R_m::FT, T::FT) where {FT <: Real}
 end
 
 """
-    total_specific_enthalpy(ts)
+    total_specific_enthalpy(param_set, ts)
 
 Total specific enthalpy, given
  - `e_tot` total specific energy
  - `ts` a thermodynamic state
 """
 function total_specific_enthalpy(
+    param_set::TPS,
     ts::ThermodynamicState{FT},
     e_tot::FT,
 ) where {FT <: Real}
-    R_m = gas_constant_air(ts)
-    T = air_temperature(ts)
+    R_m = gas_constant_air(param_set, ts)
+    T = air_temperature(param_set, ts)
     return total_specific_enthalpy(e_tot, R_m, T)
 end
 
@@ -2477,14 +2479,17 @@ function specific_enthalpy(e_int::FT, R_m::FT, T::FT) where {FT <: Real}
 end
 
 """
-    specific_enthalpy(ts)
+    specific_enthalpy(param_set, ts)
 
 Specific enthalpy, given a thermodynamic state `ts`.
 """
-function specific_enthalpy(ts::ThermodynamicState{FT}) where {FT <: Real}
-    e_int = internal_energy(ts)
-    R_m = gas_constant_air(ts)
-    T = air_temperature(ts)
+function specific_enthalpy(
+    param_set::TPS,
+    ts::ThermodynamicState{FT},
+) where {FT <: Real}
+    e_int = internal_energy(param_set, ts)
+    R_m = gas_constant_air(param_set, ts)
+    T = air_temperature(param_set, ts)
     return specific_enthalpy(e_int, R_m, T)
 end
 
@@ -2496,15 +2501,16 @@ Moist static energy, given
  - `e_pot` potential energy (e.g., gravitational) per unit mass
 """
 function moist_static_energy(
+    param_set::TPS,
     ts::ThermodynamicState{FT},
     e_pot::FT,
 ) where {FT <: Real}
-    return specific_enthalpy(ts) + e_pot
+    return specific_enthalpy(param_set, ts) + e_pot
 end
 
 """
     specific_entropy(param_set, p, T, q)
-    specific_entropy(ts)
+    specific_entropy(param_set, ts)
 
 Specific entropy, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
@@ -2515,7 +2521,7 @@ Specific entropy, given
 following equations (29)-(33) of [Pressel2015](@cite).
 """
 function specific_entropy(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     T::FT,
     q::PhasePartition{FT},
@@ -2527,11 +2533,11 @@ function specific_entropy(
     return (1 - q.tot) * s_d + q.tot * s_v - (q.liq * L_v + q.ice * L_s) / T
 end
 
-specific_entropy(ts::ThermodynamicState) = specific_entropy(
-    ts.param_set,
-    air_pressure(ts),
-    air_temperature(ts),
-    PhasePartition(ts),
+specific_entropy(param_set::TPS, ts::ThermodynamicState) = specific_entropy(
+    param_set,
+    air_pressure(param_set, ts),
+    air_temperature(param_set, ts),
+    PhasePartition(param_set, ts),
 )
 
 """
@@ -2545,7 +2551,7 @@ The dry air specific entropy, given
  - `q` phase partition
 """
 function specific_entropy_dry(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     T::FT,
     q::PhasePartition{FT},
@@ -2570,7 +2576,7 @@ The specific entropy of water vapor, given
  - `q` phase partition
 """
 function specific_entropy_vapor(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     T::FT,
     q::PhasePartition{FT},
@@ -2594,13 +2600,13 @@ The specific entropy of water vapor, given
  - `q` phase partition
 """
 function partial_pressure_dry(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     q::PhasePartition{FT},
 ) where {FT <: Real}
     molmass_ratio::FT = param_set.molmass_ratio
     return p * (1 - q.tot) /
-           (1 - q.tot + vapor_specific_humidity(q) / molmass_ratio)
+           (1 - q.tot + vapor_specific_humidity(param_set, q) / molmass_ratio)
 end
 
 """
@@ -2613,22 +2619,22 @@ The specific entropy of water vapor, given
  - `q` phase partition
 """
 function partial_pressure_vapor(
-    param_set::ThermodynamicsParameters,
+    param_set::TPS,
     p::FT,
     q::PhasePartition{FT},
 ) where {FT <: Real}
     molmass_ratio::FT = param_set.molmass_ratio
-    return p * vapor_specific_humidity(q) / molmass_ratio /
-           (1 - q.tot + vapor_specific_humidity(q) / molmass_ratio)
+    return p * vapor_specific_humidity(param_set, q) / molmass_ratio /
+           (1 - q.tot + vapor_specific_humidity(param_set, q) / molmass_ratio)
 end
 
 """
-    saturated(ts::ThermodynamicState)
+    saturated(param_set::TPS, ts::ThermodynamicState)
 
 Boolean indicating if thermodynamic
 state is saturated.
 """
-function saturated(ts::ThermodynamicState)
-    RH = relative_humidity(ts)
+function saturated(param_set::TPS, ts::ThermodynamicState)
+    RH = relative_humidity(param_set, ts)
     return RH ≈ 1 || RH > 1
 end

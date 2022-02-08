@@ -16,6 +16,6 @@ for (key, val) in planet_parse
 end
 full_parameter_set = param_dict
 
-include("parameter_tests.jl")
-include("TemperatureProfiles.jl")
+# include("parameter_tests.jl")
+# include("TemperatureProfiles.jl")
 include("relations.jl")
