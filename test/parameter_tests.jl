@@ -42,10 +42,10 @@ using Thermodynamics
     #check parameter_file agrees with current CP defaults
     for (k, v) in full_parameter_set
         if ~(k in universal_constant_aliases)
-            cpp_k = getfield(CPP,Symbol(k))
+            cpp_k = getfield(CPP, Symbol(k))
             @test (v ≈ cpp_k(param_set_cpp))
         else
-            cp_k = getfield(CP,Symbol(k))
+            cp_k = getfield(CP, Symbol(k))
             @test (v ≈ cp_k())
         end
     end
@@ -56,10 +56,10 @@ using Thermodynamics
     for fn in fieldnames(typeof(param_set_by_alias))
         v = getfield(param_set_by_alias, fn)
         if ~(String(fn) in universal_constant_aliases)
-            cpp_fn = getfield(CPP,fn)
+            cpp_fn = getfield(CPP, fn)
             @test (v ≈ cpp_fn(param_set_cpp))
         else
-            cp_fn = getfield(CP,fn)
+            cp_fn = getfield(CP, fn)
             @test (v ≈ cp_fn())
         end
     end
