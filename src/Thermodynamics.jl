@@ -74,7 +74,7 @@ struct ThermodynamicsParameters{FT}
     isochoric_specific_heat_liquid::FT
     isobaric_specific_heat_ice::FT
     isochoric_specific_heat_ice::FT
-    latent_heat_vaporization_at_reference    ::FT
+    latent_heat_vaporization_at_reference::FT
     latent_heat_sublimation_at_reference::FT
     latent_heat_fusion_at_reference::FT
     specific_internal_energy_vapor_at_reference::FT
@@ -101,30 +101,30 @@ end
 function ThermodynamicsParameters(param_set::NamedTuple)
 
     # Used in thermodynamics, from parameter file
-    thermodynamics_temperature_reference = param_set.thermodynamics_temperature_reference
-    mean_sea_level_pressure = param_set.mean_sea_level_pressure
-    isobaric_specific_heat_dry_air = param_set.isobaric_specific_heat_dry_air
-    isobaric_specific_heat_vapor = param_set.isobaric_specific_heat_vapor
-    isobaric_specific_heat_liquid = param_set.isobaric_specific_heat_liquid
-    isobaric_specific_heat_ice = param_set.isobaric_specific_heat_ice
-    latent_heat_vaporization_at_reference = param_set.latent_heat_vaporization_at_reference
-    latent_heat_sublimation_at_reference = param_set.latent_heat_sublimation_at_reference
-    pressure_triple_point = param_set.pressure_triple_point
-    temperature_triple_point = param_set.temperature_triple_point
-    temperature_water_freeze = param_set.temperature_water_freeze
-    temperature_saturation_adjustment_min = param_set.temperature_saturation_adjustment_min
-    temperature_saturation_adjustment_max = param_set.temperature_saturation_adjustment_max 
-    entropy_reference_temperature = param_set.entropy_reference_temperature
-    entropy_dry_air = param_set.entropy_dry_air
-    entropy_water_vapor = param_set.entropy_water_vapor
-    adiabatic_exponent_dry_air = param_set.adiabatic_exponent_dry_air
-    gas_constant = param_set.gas_constant
-    molar_mass_dry_air = param_set.molar_mass_dry_air
-    molar_mass_water = param_set.molar_mass_water
-    temperature_mean_at_reference = param_set.temperature_mean_at_reference
-    temperature_min_at_reference = param_set.temperature_min_at_reference
-    gravitational_acceleration = param_set.gravitational_acceleration
-    temperature_homogenous_nucleation = param_set.temperature_homogenous_nucleation
+    thermodynamics_temperature_reference = param_set["thermodynamics_temperature_reference"]
+    mean_sea_level_pressure = param_set["mean_sea_level_pressure"]
+    isobaric_specific_heat_dry_air = param_set["isobaric_specific_heat_dry_air"]
+    isobaric_specific_heat_vapor = param_set["isobaric_specific_heat_vapor"]
+    isobaric_specific_heat_liquid = param_set["isobaric_specific_heat_liquid"]
+    isobaric_specific_heat_ice = param_set["isobaric_specific_heat_ice"]
+    latent_heat_vaporization_at_reference = param_set["latent_heat_vaporization_at_reference"]
+    latent_heat_sublimation_at_reference = param_set["latent_heat_sublimation_at_reference"]
+    pressure_triple_point = param_set["pressure_triple_point"]
+    temperature_triple_point = param_set["temperature_triple_point"]
+    temperature_water_freeze = param_set["temperature_water_freeze"]
+    temperature_saturation_adjustment_min = param_set["temperature_saturation_adjustment_min"]
+    temperature_saturation_adjustment_max = param_set["temperature_saturation_adjustment_max "]
+    entropy_reference_temperature = param_set["entropy_reference_temperature"]
+    entropy_dry_air = param_set["entropy_dry_air"]
+    entropy_water_vapor = param_set["entropy_water_vapor"]
+    adiabatic_exponent_dry_air = param_set["adiabatic_exponent_dry_air"]
+    gas_constant = param_set["gas_constant"]
+    molar_mass_dry_air = param_set["molar_mass_dry_air"]
+    molar_mass_water = param_set["molar_mass_water"]
+    temperature_mean_at_reference = param_set["temperature_mean_at_reference"]
+    temperature_min_at_reference = param_set["temperature_min_at_reference"]
+    gravitational_acceleration = param_set["gravitational_acceleration"]
+    temperature_homogenous_nucleation = param_set["temperature_homogenous_nucleation"]
 
     # derived parameters from parameter file
     gas_constant_dry_air = gas_constant/ molar_mass_dry_air
@@ -139,7 +139,7 @@ function ThermodynamicsParameters(param_set::NamedTuple)
     isochoric_specific_heat_liquid = isobaric_specific_heat_liquid
     isochoric_specific_heat_ice = isobaric_specific_heat_ice
     
-    return ThermoDynamicsParameters{typeof(param_set)[1]}(
+    return ThermoDynamicsParameters{valtype(param_set)}(
         thermodynamics_temperature_reference,
         mean_sea_level_pressure,
         gas_constant_dry_air,
@@ -214,32 +214,32 @@ struct ThermodynamicsParameters{FT}
     T_icenuc::FT
 end
 
-function ThermodynamicsParameters(param_set::NamedTuple)
+function ThermodynamicsParameters(param_set::Dict)
 
     # Used in thermodynamics, from parameter file
-    T_0 = param_set.T_0
-    MSLP = param_set.MSLP
-    cp_v = param_set.cp_v
-    cp_l = param_set.cp_l
-    cp_i = param_set.cp_i
-    LH_v0 = param_set.LH_v0
-    LH_s0 = param_set.LH_s0
-    press_triple = param_set.press_triple
-    T_triple = param_set.T_triple
-    T_freeze = param_set.T_freeze
-    T_min = param_set.T_min
-    T_max = param_set.T_max
-    entropy_reference_temperature = param_set.entropy_reference_temperature
-    entropy_dry_air = param_set.entropy_dry_air
-    entropy_water_vapor = param_set.entropy_water_vapor
-    kappa_d = param_set.kappa_d
-    gas_constant = param_set.gas_constant
-    molmass_dryair = param_set.molmass_dryair
-    molmass_water = param_set.molmass_water
-    T_surf_ref = param_set.T_surf_ref
-    T_min_ref = param_set.T_min_ref
-    grav = param_set.grav
-    T_icenuc = param_set.T_icenuc
+    T_0 = param_set["T_0"]
+    MSLP = param_set["MSLP"]
+    cp_v = param_set["cp_v"]
+    cp_l = param_set["cp_l"]
+    cp_i = param_set["cp_i"]
+    LH_v0 = param_set["LH_v0"]
+    LH_s0 = param_set["LH_s0"]
+    press_triple = param_set["press_triple"]
+    T_triple = param_set["T_triple"]
+    T_freeze = param_set["T_freeze"]
+    T_min = param_set["T_min"]
+    T_max = param_set["T_max"]
+    entropy_reference_temperature = param_set["entropy_reference_temperature"]
+    entropy_dry_air = param_set["entropy_dry_air"]
+    entropy_water_vapor = param_set["entropy_water_vapor"]
+    kappa_d = param_set["kappa_d"]
+    gas_constant = param_set["gas_constant"]
+    molmass_dryair = param_set["molmass_dryair"]
+    molmass_water = param_set["molmass_water"]
+    T_surf_ref = param_set["T_surf_ref"]
+    T_min_ref = param_set["T_min_ref"]
+    grav = param_set["grav"]
+    T_icenuc = param_set["T_icenuc"]
 
     # derived parameters from parameter file
     R_d = gas_constant / molmass_dryair
@@ -254,7 +254,7 @@ function ThermodynamicsParameters(param_set::NamedTuple)
     cv_l = cp_l
     cv_i = cp_i
 
-    return ThermodynamicsParameters{typeof(param_set[1])}(
+    return ThermodynamicsParameters{valtype(param_set)}(
         T_0,
         MSLP,
         R_d,
