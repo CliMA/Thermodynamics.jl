@@ -1,9 +1,8 @@
-
-
 using Test
 
 
 ### read parameters needed for tests
+#=
 using TOML
 planet_parse = TOML.parsefile(joinpath(@__DIR__, "planet_parameters.toml"))
 param_dict = Dict{String, Any}()
@@ -14,7 +13,8 @@ for (key, val) in planet_parse
     # for now we use the aliases
     param_dict[val["alias"]] = val["value"]
 end
-full_parameter_set = param_dict
+=#
+#full_parameter_set = param_dict
 universal_constant_aliases = [
     "gas_constant",
     "light_speed",
@@ -29,9 +29,9 @@ universal_constant_aliases = [
 
 #get CLIMAParameters to check consistency
 #import CLIMAParameters
-#const CP = CLIMAParameters
+const CP = CLIMAParameters
 const CPP = CP.Planet
-struct EarthParameterSet <: AbstractEarthParameterSet end
+struct EarthParameterSet <: CP.AbstractEarthParameterSet end
 const param_set_cpp = EarthParameterSet()
 
 using Thermodynamics
