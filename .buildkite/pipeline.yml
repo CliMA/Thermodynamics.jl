@@ -8,7 +8,13 @@ steps:
   - label: "init cpu environment :computer:"
     key: "init_cpu_env"
     command:
-      - "julia --project=test -e 'using Pkg; Pkg.develop(path=\".\")'"
+      - "julia --project -e 'using Pkg; Pkg.add(PackageSpec(name=\"CLIMAParameters\", rev=\"orad/refactor-parameters-v2\"))'"
+      - "julia --project -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
+      - "julia --project -e 'using Pkg; Pkg.resolve()'"
+      - "julia --project -e 'using Pkg; Pkg.precompile()'"
+      - "julia --project -e 'using Pkg; Pkg.status()'"
+
+- "julia --project=test -e 'using Pkg; Pkg.develop(path=\".\")'"
       - "julia --project=test -e 'using Pkg; Pkg.add(PackageSpec(name=\"CLIMAParameters\", rev=\"orad/refactor-parameters-v2\"))'"
       - "julia --project=test -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project=test -e 'using Pkg; Pkg.resolve()'"
