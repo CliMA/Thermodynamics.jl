@@ -10,7 +10,7 @@ steps:
     command:
       - "julia --project=test -e 'using Pkg; Pkg.develop(path=\".\")'"
       - "julia --project=test -e 'using Pkg; Pkg.rm(\"CLIMAParameters\")'"
-      - "julia --project=test -e 'using Pkg; Pkg.add(\"https://github.com/CliMA/CLIMAParameters.jl.git#orad/refactor-parameters-v2\")'"
+      - "julia --project=test -e 'using Pkg; Pkg.add(url=\"https://github.com/CliMA/CLIMAParameters.jl.git#orad/refactor-parameters-v2\")'"
       - "julia --project=test -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project=test -e 'using Pkg; Pkg.resolve()'"
       - "julia --project=test -e 'using Pkg; Pkg.precompile()'"
@@ -18,7 +18,7 @@ steps:
 
       - "julia --project=perf -e 'using Pkg; Pkg.develop(path=\".\")'"
       - "julia --project=test -e 'using Pkg; Pkg.rm(\"CLIMAParameters\")'"
-      - "julia --project=test -e 'using Pkg; Pkg.add(\"https://github.com/CliMA/CLIMAParameters.jl.git#orad/refactor-parameters-v2\")'"
+      - "julia --project=test -e 'using Pkg; Pkg.add(url=\"https://github.com/CliMA/CLIMAParameters.jl.git#orad/refactor-parameters-v2\")'"
       - "julia --project=perf -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
       - "julia --project=perf -e 'using Pkg; Pkg.resolve()'"
       - "julia --project=perf -e 'using Pkg; Pkg.precompile()'"
