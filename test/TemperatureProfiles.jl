@@ -2,7 +2,7 @@ using Test
 using Thermodynamics.TemperatureProfiles
 using Thermodynamics
 
-#using CLIMAParameters
+import CLIMAParameters
 #using CLIMAParameters.Planet
 
 using ForwardDiff
@@ -12,6 +12,7 @@ using ForwardDiff
 
 param_set = Thermodynamics.ThermodynamicsParameters(full_parameter_set)
 
+CLIMAParameters.write_log_file(full_parameter_set,"test_log_file.toml")
 
 @testset "TemperatureProfiles - DecayingTemperatureProfile" begin
     for FT in [Float32, Float64]
