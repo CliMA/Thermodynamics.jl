@@ -24,7 +24,7 @@ const RS = RootSolvers
 
 # read parameters needed for tests
 import CLIMAParameters
-full_parameter_set = CLIMAParameters.create_parameter_dict(dict_type = "alias")
+full_parameter_set = CLIMAParameters.create_parameter_struct(dict_type = "alias")
 
 param_set = TD.ThermodynamicsParameters(full_parameter_set)
 
