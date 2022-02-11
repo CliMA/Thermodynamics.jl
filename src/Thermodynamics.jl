@@ -51,7 +51,8 @@ const RS = RootSolvers
 import KernelAbstractions
 const KA = KernelAbstractions
 
-#import CLIMAParameters
+import CLIMAParameters
+
 #const CP = CLIMAParameters
 #const CPP = CP.Planet
 #const APS = CP.AbstractParameterSet
@@ -214,33 +215,19 @@ struct ThermodynamicsParameters{FT}
     T_icenuc::FT
 end
 
-function ThermodynamicsParameters(param_set::Dict)
+function ThermodynamicsParameters(param_set::CLIMAParameters.ParamDict)
 
     # Used in thermodynamics, from parameter file
-    T_0 = param_set["T_0"]
-    MSLP = param_set["MSLP"]
-    cp_v = param_set["cp_v"]
-    cp_l = param_set["cp_l"]
-    cp_i = param_set["cp_i"]
-    LH_v0 = param_set["LH_v0"]
-    LH_s0 = param_set["LH_s0"]
-    press_triple = param_set["press_triple"]
-    T_triple = param_set["T_triple"]
-    T_freeze = param_set["T_freeze"]
-    T_min = param_set["T_min"]
-    T_max = param_set["T_max"]
-    entropy_reference_temperature = param_set["entropy_reference_temperature"]
-    entropy_dry_air = param_set["entropy_dry_air"]
-    entropy_water_vapor = param_set["entropy_water_vapor"]
-    kappa_d = param_set["kappa_d"]
-    gas_constant = param_set["gas_constant"]
-    molmass_dryair = param_set["molmass_dryair"]
-    molmass_water = param_set["molmass_water"]
-    T_surf_ref = param_set["T_surf_ref"]
-    T_min_ref = param_set["T_min_ref"]
-    grav = param_set["grav"]
-    T_icenuc = param_set["T_icenuc"]
+    aliases= ["T_0", "MSLP","cp_v","cp_l" ,"cp_i","LH_v0","LH_s0","press_triple",
+              "T_triple","T_freeze","T_min" ,"T_max","entropy_reference_temperature" ,
+              "entropy_dry_air","entropy_water_vapor","kappa_d","gas_constant",
+              "molmass_dryair","molmass_water","T_surf_ref","T_min_ref","grav","T_icenuc"]
 
+    (T_0, MSLP,cp_v,cp_l ,cp_i,LH_v0,LH_s0,press_triple,
+     T_triple,T_freeze,T_min ,T_max,entropy_reference_temperature ,
+     entropy_dry_air,entropy_water_vapor,kappa_d,gas_constant,
+     molmass_dryair,molmass_water,T_surf_ref,T_min_ref,grav,T_icenuc) = CLIMAParameters.get_parameter_values!(param_set,aliases,Thermodynamics)
+    
     # derived parameters from parameter file
     R_d = gas_constant / molmass_dryair
     molmass_ratio = molmass_dryair / molmass_water
@@ -254,7 +241,7 @@ function ThermodynamicsParameters(param_set::Dict)
     cv_l = cp_l
     cv_i = cp_i
 
-    return ThermodynamicsParameters{valtype(param_set)}(
+    return ThermodynamicsParameters{CLIMAParameters.get_parametric_type(param_set)}(
         T_0,
         MSLP,
         R_d,
