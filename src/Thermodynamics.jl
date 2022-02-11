@@ -218,16 +218,62 @@ end
 function ThermodynamicsParameters(param_set::CLIMAParameters.ParamDict)
 
     # Used in thermodynamics, from parameter file
-    aliases= ["T_0", "MSLP","cp_v","cp_l" ,"cp_i","LH_v0","LH_s0","press_triple",
-              "T_triple","T_freeze","T_min" ,"T_max","entropy_reference_temperature" ,
-              "entropy_dry_air","entropy_water_vapor","kappa_d","gas_constant",
-              "molmass_dryair","molmass_water","T_surf_ref","T_min_ref","grav","T_icenuc"]
+    aliases = [
+        "T_0",
+        "MSLP",
+        "cp_v",
+        "cp_l",
+        "cp_i",
+        "LH_v0",
+        "LH_s0",
+        "press_triple",
+        "T_triple",
+        "T_freeze",
+        "T_min",
+        "T_max",
+        "entropy_reference_temperature",
+        "entropy_dry_air",
+        "entropy_water_vapor",
+        "kappa_d",
+        "gas_constant",
+        "molmass_dryair",
+        "molmass_water",
+        "T_surf_ref",
+        "T_min_ref",
+        "grav",
+        "T_icenuc",
+    ]
 
-    (T_0, MSLP,cp_v,cp_l ,cp_i,LH_v0,LH_s0,press_triple,
-     T_triple,T_freeze,T_min ,T_max,entropy_reference_temperature ,
-     entropy_dry_air,entropy_water_vapor,kappa_d,gas_constant,
-     molmass_dryair,molmass_water,T_surf_ref,T_min_ref,grav,T_icenuc) = CLIMAParameters.get_parameter_values!(param_set,aliases,"Thermodynamics")
-    
+    (
+        T_0,
+        MSLP,
+        cp_v,
+        cp_l,
+        cp_i,
+        LH_v0,
+        LH_s0,
+        press_triple,
+        T_triple,
+        T_freeze,
+        T_min,
+        T_max,
+        entropy_reference_temperature,
+        entropy_dry_air,
+        entropy_water_vapor,
+        kappa_d,
+        gas_constant,
+        molmass_dryair,
+        molmass_water,
+        T_surf_ref,
+        T_min_ref,
+        grav,
+        T_icenuc,
+    ) = CLIMAParameters.get_parameter_values!(
+        param_set,
+        aliases,
+        "Thermodynamics",
+    )
+
     # derived parameters from parameter file
     R_d = gas_constant / molmass_dryair
     molmass_ratio = molmass_dryair / molmass_water
@@ -241,7 +287,9 @@ function ThermodynamicsParameters(param_set::CLIMAParameters.ParamDict)
     cv_l = cp_l
     cv_i = cp_i
 
-    return ThermodynamicsParameters{CLIMAParameters.get_parametric_type(param_set)}(
+    return ThermodynamicsParameters{
+        CLIMAParameters.get_parametric_type(param_set),
+    }(
         T_0,
         MSLP,
         R_d,

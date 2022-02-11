@@ -5,7 +5,8 @@ end
 
 # read parameters needed for tests
 import CLIMAParameters
-full_parameter_set = CLIMAParameters.create_parameter_struct(dict_type = "alias")
+full_parameter_set =
+    CLIMAParameters.create_parameter_struct(dict_type = "alias")
 
 
 #include("parameter_tests.jl")
