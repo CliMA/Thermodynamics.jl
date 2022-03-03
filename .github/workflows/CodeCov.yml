@@ -19,15 +19,18 @@ jobs:
     - name: Set up Julia
       uses: julia-actions/setup-julia@latest
       with:
-        version: 1.6.0
+        version: 1.7.0
 
     - name: Test with coverage
       env:
         JULIA_PROJECT: "@."
       run: |
+        julia --project=test/ -e 'using Pkg; Pkg.add(PackageSpec(name="Thermodynamics", rev="orad/refactor-parameters-v1b"))'
+        julia --project=test/ -e 'using Pkg; Pkg.add(PackageSpec(name="CLIMAParameters", rev="mb/refactor-parameters"))'
+        
         julia --project=@. -e 'using Pkg; Pkg.instantiate()'
         julia --project=@. -e 'using Pkg; Pkg.test(coverage=true)'
-
+        julia --project=test; add Pkg
     - name: Generate coverage file
       env:
         JULIA_PROJECT: "@."
