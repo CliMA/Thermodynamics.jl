@@ -1163,7 +1163,7 @@ them.
 
 # ThermodynamicState
 Otherwise, phase equilibrium is assumed so that the fraction of liquid
-is a function that is 1 above `T_freeze` and goes to zero below `T_freeze`.
+is a function that is 1 above `T_freeze` and goes to zero below `T_icenuc`.
 """
 function liquid_fraction(
     param_set::APS,
@@ -1172,7 +1172,16 @@ function liquid_fraction(
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     _T_freeze::FT = CPP.T_freeze(param_set)
-    return FT(T > _T_freeze)
+    _T_icenuc::FT = CPP.T_icenuc(param_set)
+    _pow_icenuc::FT = CPP.pow_icenuc(param_set)
+
+    if T > _T_freeze
+        return FT(1)
+    elseif (T > _T_icenuc && T <= _T_freeze)
+        return ((T - _T_icenuc) / (_T_freeze - _T_icenuc))^_pow_icenuc
+    else
+        return FT(0)
+    end
 end
 
 function liquid_fraction(
@@ -1293,19 +1302,24 @@ function ∂e_int_∂T(
     cv_i::FT = CPP.cv_i(param_set)
     e_int_v0::FT = CPP.e_int_v0(param_set)
     e_int_i0::FT = CPP.e_int_i0(param_set)
+    T_f::FT = CPP.T_freeze(param_set)
+    T_i::FT = CPP.T_icenuc(param_set)
+    n_i::FT = CPP.pow_icenuc(param_set)
 
-    cvm = cv_m(
-        param_set,
-        PhasePartition_equil(param_set, T, ρ, q_tot, phase_type),
-    )
+    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    q_c = condensate(q)
+    cvm = cv_m(param_set, q)
     q_vap_sat = q_vap_saturation(param_set, T, ρ, phase_type)
     λ = liquid_fraction(param_set, T, phase_type)
     L = λ * LH_v0 + (1 - λ) * LH_s0
+
+    ∂λ_∂T = (T_i < T < T_f) ? (1 / (T_f - T_i))^n_i * n_i * T^(n_i - 1) : FT(0)
     ∂q_vap_sat_∂T = q_vap_sat * L / (R_v * T^2)
     dcvm_dq_vap = cv_v - λ * cv_l - (1 - λ) * cv_i
     return cvm +
            (e_int_v0 + (1 - λ) * e_int_i0 + (T - T_0) * dcvm_dq_vap) *
-           ∂q_vap_sat_∂T
+           ∂q_vap_sat_∂T +
+           q_c * e_int_i0 * ∂λ_∂T
 end
 
 """

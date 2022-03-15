@@ -703,7 +703,7 @@ end
 
         @test count(air_temperature.(ts_lower) .== Ref(_T_freeze)) ≥ 217
         @test count(air_temperature.(ts_upper) .== Ref(_T_freeze)) ≥ 217
-        @test count(air_temperature.(ts_mid) .== Ref(_T_freeze)) ≥ 1395
+        @test count(air_temperature.(ts_mid) .== Ref(_T_freeze)) ≥ 1392
         # we should do this instead, but we're failing because some inputs are bad
         # E.g. p ~ 110_000 Pa, q_tot ~ 0.16, which results in negative θ_liq_ice
         # This means that we should probably update our tested profiles.
