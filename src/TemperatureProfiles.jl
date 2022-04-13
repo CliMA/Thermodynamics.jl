@@ -6,10 +6,12 @@ const DSE = DocStringExtensions
 export TemperatureProfile,
     IsothermalProfile, DecayingTemperatureProfile, DryAdiabaticProfile
 
-import ..CLIMAParameters
+import CLIMAParameters
 const CP = CLIMAParameters
-const CPP = CP.Planet
 const APS = CP.AbstractParameterSet
+
+import ..InternalClimaParams
+const ICP = InternalClimaParams
 
 """
     TemperatureProfile
@@ -35,7 +37,7 @@ IsothermalProfile(param_set::APS, T_virt::FT) where {FT} =
     DecayingTemperatureProfile{FT}(param_set, T_virt, T_virt)
 
 function IsothermalProfile(param_set::APS, ::Type{FT}) where {FT}
-    T_virt = FT(CPP.T_surf_ref(param_set))
+    T_virt = FT(ICP.T_surf_ref(param_set))
     return DecayingTemperatureProfile{FT}(param_set, T_virt, T_virt)
 end
 
@@ -56,8 +58,8 @@ struct DryAdiabaticProfile{FT} <: TemperatureProfile{FT}
     T_min_ref::FT
     function DryAdiabaticProfile{FT}(
         param_set::APS,
-        T_surface::FT = FT(CPP.T_surf_ref(param_set)),
-        _T_min_ref::FT = FT(CPP.T_min_ref(param_set)),
+        T_surface::FT = FT(ICP.T_surf_ref(param_set)),
+        _T_min_ref::FT = FT(ICP.T_min_ref(param_set)),
     ) where {FT}
         return new{FT}(T_surface, _T_min_ref)
     end
@@ -75,10 +77,10 @@ to be greater than or equal to `profile.T_min_ref`.
 """
 function (profile::DryAdiabaticProfile)(param_set::APS, z::FT) where {FT}
 
-    R_d::FT = CPP.R_d(param_set)
-    cp_d::FT = CPP.cp_d(param_set)
-    grav::FT = CPP.grav(param_set)
-    MSLP::FT = CPP.MSLP(param_set)
+    R_d::FT = ICP.R_d(param_set)
+    cp_d::FT = ICP.cp_d(param_set)
+    grav::FT = ICP.grav(param_set)
+    MSLP::FT = ICP.MSLP(param_set)
 
     # Temperature
     Γ = grav / cp_d
@@ -118,10 +120,10 @@ struct DecayingTemperatureProfile{FT} <: TemperatureProfile{FT}
     H_t::FT
     function DecayingTemperatureProfile{FT}(
         param_set::APS,
-        _T_virt_surf::FT = FT(CPP.T_surf_ref(param_set)),
-        _T_min_ref::FT = FT(CPP.T_min_ref(param_set)),
-        H_t::FT = FT(CPP.R_d(param_set)) * _T_virt_surf /
-                  FT(CPP.grav(param_set)),
+        _T_virt_surf::FT = FT(ICP.T_surf_ref(param_set)),
+        _T_min_ref::FT = FT(ICP.T_min_ref(param_set)),
+        H_t::FT = FT(ICP.R_d(param_set)) * _T_virt_surf /
+                  FT(ICP.grav(param_set)),
     ) where {FT}
         return new{FT}(_T_virt_surf, _T_min_ref, H_t)
     end
@@ -129,9 +131,9 @@ end
 
 
 function (profile::DecayingTemperatureProfile)(param_set::APS, z::FT) where {FT}
-    R_d::FT = CPP.R_d(param_set)
-    grav::FT = CPP.grav(param_set)
-    MSLP::FT = CPP.MSLP(param_set)
+    R_d::FT = ICP.R_d(param_set)
+    grav::FT = ICP.grav(param_set)
+    MSLP::FT = ICP.MSLP(param_set)
 
     # Scale height for surface temperature
     H_sfc = R_d * profile.T_virt_surf / grav

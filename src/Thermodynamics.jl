@@ -53,8 +53,11 @@ const KA = KernelAbstractions
 
 import CLIMAParameters
 const CP = CLIMAParameters
-const CPP = CP.Planet
 const APS = CP.AbstractParameterSet
+
+include("InternalClimaParams.jl")
+import .InternalClimaParams
+const ICP = InternalClimaParams
 
 Base.broadcastable(param_set::APS) = Ref(param_set)
 
