@@ -51,7 +51,7 @@ end
     @inbounds begin
 
         ts = TD.PhaseEquil_ρeq(param_set, FT(ρ[i]), FT(e_int[i]), FT(q_tot[i]))
-        dst[1, i] = TD.air_temperature(ts)
+        dst[1, i] = TD.air_temperature(param_set, ts)
 
         ts_ρpq = TD.PhaseEquil_ρpq(
             param_set,
@@ -62,7 +62,7 @@ end
             100,
             RS.RegulaFalsiMethod,
         )
-        dst[2, i] = TD.air_temperature(ts_ρpq)
+        dst[2, i] = TD.air_temperature(param_set, ts_ρpq)
     end
 end
 
@@ -113,7 +113,7 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
 
     ts_correct =
         TD.PhaseEquil_ρeq.(param_set, Array(ρ), Array(e_int), Array(q_tot))
-    @test all(Array(d_dst)[1, :] .≈ TD.air_temperature.(ts_correct))
+    @test all(Array(d_dst)[1, :] .≈ TD.air_temperature.(param_set, ts_correct))
 
     ts_correct =
         TD.PhaseEquil_ρpq.(
@@ -125,6 +125,6 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
             100,
             RS.RegulaFalsiMethod,
         )
-    @test all(Array(d_dst)[2, :] .≈ TD.air_temperature.(ts_correct))
+    @test all(Array(d_dst)[2, :] .≈ TD.air_temperature.(param_set, ts_correct))
 
 end

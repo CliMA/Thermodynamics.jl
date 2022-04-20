@@ -48,7 +48,7 @@ end
         for (p, θ_liq_ice, q_tot) in zip(p_arr, θ_liq_ice_arr, q_tot_arr)
             @test_broken begin
                 ts = PhaseEquil_pθq(param_set, p, θ_liq_ice, q_tot, config...)
-                air_pressure(ts) == p
+                air_pressure(param_set, ts) == p
             end
         end
     end
@@ -75,7 +75,7 @@ end
         for (p, θ_liq_ice, q_tot) in zip(p_arr, θ_liq_ice_arr, q_tot_arr)
             @test begin
                 ts = PhaseEquil_pθq(param_set, p, θ_liq_ice, q_tot, config...)
-                air_pressure(ts) == p
+                air_pressure(param_set, ts) == p
             end
         end
     end

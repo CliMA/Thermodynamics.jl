@@ -162,7 +162,7 @@ end
 Returns a `ProfileSet` used to test dry thermodynamic states.
 """
 function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
-    phase_type = TD.PhaseDry{eltype(ArrayType), typeof(param_set)}
+    phase_type = TD.PhaseDry{eltype(ArrayType)}
 
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
     z, T_virt, p, RS =
@@ -222,7 +222,7 @@ end
 Returns a `ProfileSet` used to test moist states in thermodynamic equilibrium.
 """
 function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
-    phase_type = TD.PhaseEquil{eltype(ArrayType), typeof(param_set)}
+    phase_type = TD.PhaseEquil{eltype(ArrayType)}
 
     # Prescribe z_range, relative_sat, T_surface, T_min
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
