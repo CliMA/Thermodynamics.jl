@@ -72,8 +72,8 @@ we've established a thermodynamic state, we can call [Thermodynamic state
 methods](@ref) that support thermodynamic states:
 
 ```julia
-T = air_temperature(ts);
-q = PhasePartition(ts);
+T = air_temperature(param_set, ts);
+q = PhasePartition(param_set, ts);
 ```
 
 No changes to the "right-hand sides" of the dynamical equations are needed
@@ -90,7 +90,7 @@ q_tot          = ...
 (u, v, w)    = ...
 e_kin           = 0.5 * (u^2 + v^2 + w^2)
 
-e_tot        = total_energy(e_kin, geopotential, T, q_tot)
+e_tot        = total_energy(param_set, e_kin, geopotential, T, q_tot)
 
 do timestep   # timestepping loop
 
@@ -103,9 +103,9 @@ do timestep   # timestepping loop
 
   # compute temperature, pressure and condensate specific humidities,
   ts = PhaseEquil_ρeq(param_set, ρ, e_int, q_tot);
-  T = air_temperature(ts);
-  q = PhasePartition(ts);
-  p = air_pressure(ts);
+  T = air_temperature(param_set, ts);
+  q = PhasePartition(param_set, ts);
+  p = air_pressure(param_set, ts);
 
 end
 ```
@@ -119,6 +119,6 @@ non-equilibrium moist thermodynamic state:
 ```julia
 q_tot, q_liq, q_ice = ...
 ts = PhaseNonEquil(param_set, e_int, ρ, PhasePartition(q_tot, q_liq, q_ice));
-T = air_temperature(ts);
-p = air_pressure(ts);
+T = air_temperature(param_set, ts);
+p = air_pressure(param_set, ts);
 ```
