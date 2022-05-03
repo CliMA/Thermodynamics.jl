@@ -2023,7 +2023,9 @@ function temperature_and_humidity_given_TᵥρRH(
     if !sol.converged
         if print_warning()
             KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in temperature_and_humidity_given_TᵥρRH:\n")
+            KA.@print(
+                "maxiter reached in temperature_and_humidity_given_TᵥρRH:\n"
+            )
             KA.@print("    Method=SecantMethod")
             KA.@print(", T_virt=", T_virt)
             KA.@print(", RH=", RH)
@@ -2121,7 +2123,9 @@ function air_temperature_given_ρθq_nonlinear(
     if !sol.converged
         if print_warning()
             KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in air_temperature_given_ρθq_nonlinear:\n")
+            KA.@print(
+                "maxiter reached in air_temperature_given_ρθq_nonlinear:\n"
+            )
             KA.@print("    Method=SecantMethod")
             KA.@print(", θ_liq_ice=", θ_liq_ice)
             KA.@print(", ρ=", ρ)

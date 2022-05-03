@@ -536,11 +536,13 @@ end
         # PhaseEquil
         ts_exact = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-3))
         ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
-        @test all(isapprox.(
-            T,
-            air_temperature.(param_set, ts),
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox.(
+                T,
+                air_temperature.(param_set, ts),
+                rtol = rtol_temperature,
+            ),
+        )
 
         # Should be machine accurate (because ts contains `e_int`,`ρ`,`q_tot`):
         @test all(compare_moisture.(param_set, ts, ts_exact))
@@ -552,16 +554,20 @@ end
             air_density.(param_set, ts) .≈ air_density.(param_set, ts_exact),
         )
         # Approximate (temperature must be computed via saturation adjustment):
-        @test all(isapprox.(
-            air_pressure.(param_set, ts),
-            air_pressure.(param_set, ts_exact),
-            rtol = rtol_pressure,
-        ))
-        @test all(isapprox.(
-            air_temperature.(param_set, ts),
-            air_temperature.(param_set, ts_exact),
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox.(
+                air_pressure.(param_set, ts),
+                air_pressure.(param_set, ts_exact),
+                rtol = rtol_pressure,
+            ),
+        )
+        @test all(
+            isapprox.(
+                air_temperature.(param_set, ts),
+                air_temperature.(param_set, ts_exact),
+                rtol = rtol_temperature,
+            ),
+        )
 
         dry_mask = abs.(q_tot .- 0) .< eps(FT)
         q_dry = q_pt[dry_mask]
@@ -621,16 +627,20 @@ end
             air_density.(param_set, ts) .≈ air_density.(param_set, ts_exact),
         )
         # Approximate (temperature must be computed via saturation adjustment):
-        @test all(isapprox.(
-            air_pressure.(param_set, ts),
-            air_pressure.(param_set, ts_exact),
-            rtol = rtol_pressure,
-        ))
-        @test all(isapprox.(
-            air_temperature.(param_set, ts),
-            air_temperature.(param_set, ts_exact),
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox.(
+                air_pressure.(param_set, ts),
+                air_pressure.(param_set, ts_exact),
+                rtol = rtol_pressure,
+            ),
+        )
+        @test all(
+            isapprox.(
+                air_temperature.(param_set, ts),
+                air_temperature.(param_set, ts_exact),
+                rtol = rtol_temperature,
+            ),
+        )
 
         # PhaseEquil_ρθq
         ts_exact = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-3))
@@ -641,21 +651,27 @@ end
         )
         @test all(compare_moisture.(param_set, ts, ts_exact))
         # Approximate (temperature must be computed via saturation adjustment):
-        @test all(isapprox.(
-            internal_energy.(param_set, ts),
-            internal_energy.(param_set, ts_exact),
-            atol = atol_energy,
-        ))
-        @test all(isapprox.(
-            liquid_ice_pottemp.(param_set, ts),
-            liquid_ice_pottemp.(param_set, ts_exact),
-            rtol = rtol_temperature,
-        ))
-        @test all(isapprox.(
-            air_temperature.(param_set, ts),
-            air_temperature.(param_set, ts_exact),
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox.(
+                internal_energy.(param_set, ts),
+                internal_energy.(param_set, ts_exact),
+                atol = atol_energy,
+            ),
+        )
+        @test all(
+            isapprox.(
+                liquid_ice_pottemp.(param_set, ts),
+                liquid_ice_pottemp.(param_set, ts_exact),
+                rtol = rtol_temperature,
+            ),
+        )
+        @test all(
+            isapprox.(
+                air_temperature.(param_set, ts),
+                air_temperature.(param_set, ts_exact),
+                rtol = rtol_temperature,
+            ),
+        )
 
         # PhaseEquil_pθq
         ts_exact = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-3))
@@ -674,26 +690,34 @@ end
         # Should be machine accurate:
         @test all(compare_moisture.(param_set, ts, ts_exact))
         # Approximate (temperature must be computed via saturation adjustment):
-        @test all(isapprox.(
-            air_density.(param_set, ts),
-            air_density.(param_set, ts_exact),
-            rtol = rtol_density,
-        ))
-        @test all(isapprox.(
-            internal_energy.(param_set, ts),
-            internal_energy.(param_set, ts_exact),
-            atol = atol_energy,
-        ))
-        @test all(isapprox.(
-            liquid_ice_pottemp.(param_set, ts),
-            liquid_ice_pottemp.(param_set, ts_exact),
-            rtol = rtol_temperature,
-        ))
-        @test all(isapprox.(
-            air_temperature.(param_set, ts),
-            air_temperature.(param_set, ts_exact),
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox.(
+                air_density.(param_set, ts),
+                air_density.(param_set, ts_exact),
+                rtol = rtol_density,
+            ),
+        )
+        @test all(
+            isapprox.(
+                internal_energy.(param_set, ts),
+                internal_energy.(param_set, ts_exact),
+                atol = atol_energy,
+            ),
+        )
+        @test all(
+            isapprox.(
+                liquid_ice_pottemp.(param_set, ts),
+                liquid_ice_pottemp.(param_set, ts_exact),
+                rtol = rtol_temperature,
+            ),
+        )
+        @test all(
+            isapprox.(
+                air_temperature.(param_set, ts),
+                air_temperature.(param_set, ts_exact),
+                rtol = rtol_temperature,
+            ),
+        )
 
         # PhaseEquil_pθq (freezing)
         _T_freeze = FT(CPP.T_freeze(param_set))
@@ -749,21 +773,27 @@ end
             air_density.(param_set, ts) .≈ air_density.(param_set, ts_exact),
         )
         # Approximate (temperature must be computed via non-linear solve):
-        @test all(isapprox.(
-            internal_energy.(param_set, ts),
-            internal_energy.(param_set, ts_exact),
-            atol = atol_energy,
-        ))
-        @test all(isapprox.(
-            liquid_ice_pottemp.(param_set, ts),
-            liquid_ice_pottemp.(param_set, ts_exact),
-            rtol = rtol_temperature,
-        ))
-        @test all(isapprox.(
-            air_temperature.(param_set, ts),
-            air_temperature.(param_set, ts_exact),
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox.(
+                internal_energy.(param_set, ts),
+                internal_energy.(param_set, ts_exact),
+                atol = atol_energy,
+            ),
+        )
+        @test all(
+            isapprox.(
+                liquid_ice_pottemp.(param_set, ts),
+                liquid_ice_pottemp.(param_set, ts_exact),
+                rtol = rtol_temperature,
+            ),
+        )
+        @test all(
+            isapprox.(
+                air_temperature.(param_set, ts),
+                air_temperature.(param_set, ts_exact),
+                rtol = rtol_temperature,
+            ),
+        )
 
     end
 
@@ -974,11 +1004,13 @@ end
         # TODO: Run some tests to make sure that this decreses with
         # decreasing temperature_tol (and increasing maxiter)
         # @show maximum(abs.(liquid_ice_pottemp.(param_set, ts_pθq) .- θ_liq_ice))
-        @test all(isapprox.(
-            liquid_ice_pottemp.(param_set, ts_pθq),
-            θ_liq_ice,
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox.(
+                liquid_ice_pottemp.(param_set, ts_pθq),
+                θ_liq_ice,
+                rtol = rtol_temperature,
+            ),
+        )
         @test all(
             getproperty.(PhasePartition.(param_set, ts_pθq), :tot) .≈ q_tot,
         )
@@ -1052,24 +1084,26 @@ end
         e_int_ = internal_energy.(param_set, T_non_linear, q_pt)
         ts = PhaseNonEquil.(param_set, e_int_, ρ, q_pt)
         @test all(T_non_linear .≈ air_temperature.(param_set, ts))
-        @test all(isapprox(
-            θ_liq_ice,
-            liquid_ice_pottemp.(param_set, ts),
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox(
+                θ_liq_ice,
+                liquid_ice_pottemp.(param_set, ts),
+                rtol = rtol_temperature,
+            ),
+        )
 
         # PhaseEquil_ρθq
         ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-3))
-        @test all(isapprox.(
-            liquid_ice_pottemp.(param_set, ts),
-            θ_liq_ice,
-            rtol = rtol_temperature,
-        ))
-        @test all(isapprox.(
-            air_density.(param_set, ts),
-            ρ,
-            rtol = rtol_density,
-        ))
+        @test all(
+            isapprox.(
+                liquid_ice_pottemp.(param_set, ts),
+                θ_liq_ice,
+                rtol = rtol_temperature,
+            ),
+        )
+        @test all(
+            isapprox.(air_density.(param_set, ts), ρ, rtol = rtol_density),
+        )
         @test all(getproperty.(PhasePartition.(param_set, ts), :tot) .≈ q_tot)
 
         # The PhaseEquil_pθq constructor
@@ -1079,11 +1113,13 @@ end
 
         # PhaseEquil_pθq
         ts = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 35, FT(1e-3))
-        @test all(isapprox.(
-            liquid_ice_pottemp.(param_set, ts),
-            θ_liq_ice,
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox.(
+                liquid_ice_pottemp.(param_set, ts),
+                θ_liq_ice,
+                rtol = rtol_temperature,
+            ),
+        )
         @test all(compare_moisture.(param_set, ts, q_pt))
         @test all(air_pressure.(param_set, ts) .≈ p)
 
@@ -1114,11 +1150,13 @@ end
 
         # PhaseNonEquil_ρθq
         ts = PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt, 5, FT(1e-3))
-        @test all(isapprox.(
-            θ_liq_ice,
-            liquid_ice_pottemp.(param_set, ts),
-            rtol = rtol_temperature,
-        ))
+        @test all(
+            isapprox.(
+                θ_liq_ice,
+                liquid_ice_pottemp.(param_set, ts),
+                rtol = rtol_temperature,
+            ),
+        )
         @test all(air_density.(param_set, ts) .≈ ρ)
         @test all(compare_moisture.(param_set, ts, q_pt))
 
@@ -1173,11 +1211,13 @@ end
         q_pt_rec = last.(T_rec_qpt_rec)
 
         # Test convergence of virtual temperature iterations
-        @test all(isapprox.(
-            T_virt,
-            virtual_temperature.(param_set, T_rec, ρ, q_pt_rec),
-            atol = sqrt(eps(FT)),
-        ))
+        @test all(
+            isapprox.(
+                T_virt,
+                virtual_temperature.(param_set, T_rec, ρ, q_pt_rec),
+                atol = sqrt(eps(FT)),
+            ),
+        )
 
         # Test that reconstructed specific humidity is close
         # to original specific humidity
