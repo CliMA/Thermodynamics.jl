@@ -47,8 +47,8 @@ ts = Dict(
     for NM in numerical_methods
 )
 ts_no_err = Dict(
-    NM => Array{TD.ThermodynamicState}(undef, prod(dims))
-    for NM in numerical_methods
+    NM => Array{TD.ThermodynamicState}(undef, prod(dims)) for
+    NM in numerical_methods
 )
 
 @inbounds for i in linear_indices.indices[1]
