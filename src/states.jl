@@ -38,6 +38,8 @@ abstract type AbstractPhaseDry{FT} <: ThermodynamicState{FT} end
 abstract type AbstractPhaseEquil{FT} <: ThermodynamicState{FT} end
 abstract type AbstractPhaseNonEquil{FT} <: ThermodynamicState{FT} end
 
+Base.eltype(::ThermodynamicState{FT}) where {FT} = FT
+
 """
     PhasePartition
 
