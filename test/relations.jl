@@ -914,7 +914,7 @@ end
         _MSLP = FT(CPP.MSLP(param_set))
 
         profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
-        @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
+        @unpack T, p, e_int, h, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
         # PhaseDry
@@ -999,6 +999,13 @@ end
         )
         @test all(air_pressure.(param_set, ts_peq) .≈ p)
 
+        ts_phq = PhaseEquil_phq.(param_set, p, h, q_tot)
+        @test all(specific_enthalpy.(param_set, ts_peq) .≈ h)
+        @test all(
+            getproperty.(PhasePartition.(param_set, ts_phq), :tot) .≈ q_tot,
+        )
+        @test all(air_pressure.(param_set, ts_phq) .≈ p)
+
         ts_pθq = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
         @test all(air_pressure.(param_set, ts_pθq) .≈ p)
         # TODO: Run some tests to make sure that this decreses with
@@ -1051,6 +1058,11 @@ end
 
         ts = PhaseNonEquil_peq.(param_set, p, e_int, q_pt)
         @test all(internal_energy.(param_set, ts) .≈ e_int)
+        @test all(compare_moisture.(param_set, ts, q_pt))
+        @test all(air_pressure.(param_set, ts) .≈ p)
+
+        ts = PhaseNonEquil_phq.(param_set, p, h, q_pt)
+        @test all(specific_enthalpy.(param_set, ts) .≈ h)
         @test all(compare_moisture.(param_set, ts, q_pt))
         @test all(air_pressure.(param_set, ts) .≈ p)
 

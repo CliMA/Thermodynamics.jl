@@ -1,6 +1,7 @@
 # Atmospheric equation of state
 export air_pressure
 export air_temperature
+export air_temperature_from_enthalpy
 export air_density
 export specific_volume
 export soundspeed_air
@@ -344,6 +345,33 @@ function air_temperature(
     ) / cv_m(param_set, q)
 end
 
+
+## YAIR check this
+"""
+    air_temperature(param_set, h, q::PhasePartition)
+
+The air temperature, where
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `h` internal energy per unit mass
+and, optionally,
+ - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+"""
+function air_temperature_from_enthalpy(
+    param_set::APS,
+    h::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+) where {FT <: Real}
+    cp_m_ = cp_m(param_set, q)
+    T_0::FT = ICP.T_0(param_set)
+    R_d::FT = ICP.R_d(param_set)
+    LH_v0::FT = ICP.LH_v0(param_set)
+    LH_f0::FT = ICP.LH_f0(param_set)
+    e_int_i0::FT = ICP.e_int_i0(param_set)
+    q_vap::FT = vapor_specific_humidity(q)
+    return (h + cp_m_*T_0 - q_vap*LH_v0} + q_i*LH_f0 - (FT(1-q.tot)*R_d*T_0)/cp_m_
+end
+
 """
     air_temperature(param_set::APS, ts::ThermodynamicState)
 
@@ -522,6 +550,7 @@ The the ice internal energy, given a thermodynamic state `ts`.
 """
 internal_energy_ice(param_set::APS, ts::ThermodynamicState) =
     internal_energy_ice(param_set, air_temperature(param_set, ts))
+
 
 """
     internal_energy_sat(param_set, T, ρ, q_tot, phase_type)
@@ -1542,6 +1571,106 @@ function saturation_adjustment_given_peq(
     return sol.root
 end
 
+
+"""
+    saturation_adjustment_given_phq(
+        sat_adjust_method,
+        param_set,
+        h,
+        p,
+        q_tot,
+        phase_type,
+        maxiter,
+        temperature_tol
+    )
+
+Compute the temperature that is consistent with
+
+ - `sat_adjust_method` the numerical method to use.
+    See the [`Thermodynamics`](@ref) for options.
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `h` specific_enthalpy
+ - `p` air pressure
+ - `q_tot` total specific humidity
+ - `phase_type` a thermodynamic state type
+ - `maxiter` maximum iterations for non-linear equation solve
+ - `temperature_tol` temperature tolerance
+
+by finding the root of
+
+`h - enthalpy_sat(param_set, T, ρ(T), q_tot, phase_type) = 0`
+
+where `ρ(T) = air_density(param_set, T, p, PhasePartition(q_tot))`
+
+using the given numerical method `sat_adjust_method`.
+
+See also [`saturation_adjustment`](@ref).
+"""
+function saturation_adjustment_given_phq(
+    ::Type{sat_adjust_method},
+    param_set::APS,
+    p::FT,
+    h::FT,
+    q_tot::FT,
+    ::Type{phase_type},
+    maxiter::Int,
+    temperature_tol::FT,
+) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+    _T_min::FT = ICP.T_min(param_set)
+    cp_d::FT = ICP.cp_d(param_set)
+    # Convert temperature tolerance to a convergence criterion on internal energy residuals
+    tol = RS.ResidualTolerance(temperature_tol * cp_d)
+
+    T_1 = max(_T_min, air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot))) # Assume all vapor
+    ρ_T(T) = air_density(param_set, T, p, PhasePartition(q_tot))
+    ρ_1 = ρ_T(T_1)
+    q_v_sat = q_vap_saturation(param_set, T_1, ρ_1, phase_type)
+    unsaturated = q_tot <= q_v_sat
+    if unsaturated && T_1 > _T_min
+        return T_1
+    end
+    _T_freeze::FT = ICP.T_freeze(param_set)
+    h_sat(T) =
+        specific_enthalpy_sat(param_set, heavisided(T), ρ_T(T), q_tot, phase_type)
+
+    h_upper = h_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
+    h_lower = h_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
+    if h_lower < h < h_upper
+        return _T_freeze
+    end
+    sol = RS.find_zero(
+        T -> h_sat(T) - h,
+        sa_numerical_method_peq(
+            sat_adjust_method,
+            param_set,
+            p,
+            h,
+            q_tot,
+            phase_type,
+        ),
+        RS.CompactSolution(),
+        tol,
+        maxiter,
+    )
+    if !sol.converged
+        if print_warning()
+            KA.@print("-----------------------------------------\n")
+            KA.@print("maxiter reached in saturation_adjustment_peq:\n")
+            print_numerical_method(sat_adjust_method)
+            KA.@print(", h=", h)
+            KA.@print(", p=", p)
+            KA.@print(", q_tot=", q_tot)
+            KA.@print(", T=", sol.root)
+            KA.@print(", maxiter=", maxiter)
+            KA.@print(", tol=", tol.tol, "\n")
+        end
+        if error_on_non_convergence()
+            error("Failed to converge with printed set of inputs.")
+        end
+    end
+    return sol.root
+end
+
 """
     saturation_adjustment_ρpq(
         sat_adjust_method,
@@ -2510,6 +2639,52 @@ function specific_enthalpy(
     T = air_temperature(param_set, ts)
     return specific_enthalpy(e_int, R_m, T)
 end
+
+"""
+    specific_enthalpy(param_set, T[, q::PhasePartition])
+
+The specific_enthalpy per unit mass, given a thermodynamic state `ts` or
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+and, optionally,
+ - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+"""
+function specific_enthalpy(
+    param_set::APS,
+    T::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+) where {FT <: Real}
+    R_m = gas_constant_air(param_set, q)
+    e_int = internal_energy(param_set,T,q)
+    return specific_enthalpy(e_int, R_m, T)
+end
+
+"""
+    specific_enthalpy_sat(param_set, T, ρ, q_tot, phase_type)
+
+The enthalpy per unit mass in thermodynamic equilibrium at saturation where
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `ρ` (moist-)air density
+ - `q_tot` total specific humidity
+ - `phase_type` a thermodynamic state type
+"""
+function specific_enthalpy_sat(
+    param_set::APS,
+    T::FT,
+    ρ::FT,
+    q_tot::FT,
+    ::Type{phase_type},
+) where {FT <: Real, phase_type <: ThermodynamicState}
+    return specific_enthalpy(
+        param_set,
+        T,
+        PhasePartition_equil(param_set, T, ρ, q_tot, phase_type),
+    )
+end
+
 
 """
     moist_static_energy(param_set, ts, e_pot)
