@@ -348,7 +348,7 @@ end
 
 ## YAIR check this
 """
-    air_temperature(param_set, h, q::PhasePartition)
+    air_temperature_from_enthalpy(param_set, h, q::PhasePartition)
 
 The air temperature, where
 
