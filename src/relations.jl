@@ -1640,7 +1640,7 @@ function saturation_adjustment_given_phq(
     end
     sol = RS.find_zero(
         T -> h_sat(T) - h,
-        sa_numerical_method_peq(
+        sa_numerical_method_phq(
             sat_adjust_method,
             param_set,
             p,
