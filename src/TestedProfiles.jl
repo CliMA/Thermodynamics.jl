@@ -32,6 +32,7 @@ struct ProfileSet{AFT, QPT, PT}
     p::AFT          # Pressure
     RS::AFT         # Relative saturation
     e_int::AFT      # Internal energy
+    h::AFT          # Specific enthalpy
     ρ::AFT          # Density
     θ_liq_ice::AFT  # Liquid Ice Potential temperature
     q_tot::AFT      # Total specific humidity
@@ -55,6 +56,7 @@ function Base.iterate(ps::ProfileSet, state = 1)
         p = ps.p[state],
         RS = ps.RS[state],
         e_int = ps.e_int[state],
+        h = ps.h[state],
         ρ = ps.ρ[state],
         θ_liq_ice = ps.θ_liq_ice[state],
         q_tot = ps.q_tot[state],
@@ -178,6 +180,7 @@ function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     fill!(q_tot, 0)
     q_pt = TD.PhasePartition_equil.(param_set, T, ρ, q_tot, phase_type)
     e_int = TD.internal_energy.(param_set, T, q_pt)
+    h = TD.specific_enthalpy.(param_set, T, q_pt)
     θ_liq_ice = TD.liquid_ice_pottemp.(param_set, T, ρ, q_pt)
     q_liq = getproperty.(q_pt, :liq)
     q_ice = getproperty.(q_pt, :ice)
@@ -196,6 +199,7 @@ function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
         p,
         RS,
         e_int,
+        h,
         ρ,
         θ_liq_ice,
         q_tot,
@@ -250,6 +254,7 @@ function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     p = TD.air_pressure.(Ref(param_set), T, ρ, q_pt)
 
     e_int = TD.internal_energy.(Ref(param_set), T, q_pt)
+    h = TD.specific_enthalpy.(Ref(param_set), T, q_pt)
     θ_liq_ice = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_pt)
     RH = TD.relative_humidity.(Ref(param_set), T, p, Ref(phase_type), q_pt)
     e_pot = grav * z
@@ -265,6 +270,7 @@ function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
         p,
         RS,
         e_int,
+        h,
         ρ,
         θ_liq_ice,
         q_tot,

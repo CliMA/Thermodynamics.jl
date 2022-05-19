@@ -76,6 +76,7 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
         ArrayType(ps.p[slice]),
         ArrayType(ps.RS[slice]),
         ArrayType(ps.e_int[slice]),
+        ArrayType(ps.h[slice]),
         ArrayType(ps.ρ[slice]),
         ArrayType(ps.θ_liq_ice[slice]),
         ArrayType(ps.q_tot[slice]),
