@@ -369,7 +369,7 @@ function air_temperature_from_enthalpy(
     LH_f0::FT = ICP.LH_f0(param_set)
     e_int_i0::FT = ICP.e_int_i0(param_set)
     q_vap::FT = vapor_specific_humidity(q)
-    return (h + cp_m_*T_0 - q_vap*LH_v0} + q_i*LH_f0 - (FT(1-q.tot)*R_d*T_0)/cp_m_
+    return (h + cp_m_*T_0 - q_vap*LH_v0) + q_i*LH_f0 - ((1-q.tot)*R_d*T_0)/cp_m_
 end
 
 """
