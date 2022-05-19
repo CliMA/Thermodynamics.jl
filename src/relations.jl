@@ -1655,7 +1655,7 @@ function saturation_adjustment_given_phq(
     if !sol.converged
         if print_warning()
             KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_peq:\n")
+            KA.@print("maxiter reached in saturation_adjustment_phq:\n")
             print_numerical_method(sat_adjust_method)
             KA.@print(", h=", h)
             KA.@print(", p=", p)
