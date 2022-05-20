@@ -16,6 +16,7 @@ PhaseDry
 PhaseDry_pT
 PhaseDry_pθ
 PhaseDry_pe
+PhaseDry_ph
 PhaseDry_ρθ
 PhaseDry_ρT
 PhaseDry_ρp
@@ -25,6 +26,7 @@ PhaseEquil_ρTq
 PhaseEquil_pTq
 PhaseEquil_pθq
 PhaseEquil_peq
+PhaseEquil_phq
 PhaseEquil_ρθq
 PhaseEquil_ρpq
 PhaseNonEquil
@@ -33,6 +35,7 @@ PhaseNonEquil_pTq
 PhaseNonEquil_ρθq
 PhaseNonEquil_pθq
 PhaseNonEquil_peq
+PhaseNonEquil_phq
 PhaseNonEquil_ρpq
 ```
 

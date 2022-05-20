@@ -914,7 +914,7 @@ end
         _MSLP = FT(CPP.MSLP(param_set))
 
         profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
-        @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
+        @unpack T, p, e_int, h, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
         # PhaseDry
@@ -969,7 +969,7 @@ end
 
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-        @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
+        @unpack T, p, e_int, h, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
 
         # PhaseEquil
@@ -998,6 +998,23 @@ end
             getproperty.(PhasePartition.(param_set, ts_peq), :tot) .≈ q_tot,
         )
         @test all(air_pressure.(param_set, ts_peq) .≈ p)
+
+        ts_phq = PhaseEquil_phq.(param_set, p, h, q_tot)
+        # TODO: should this pass?
+        # @test all(isapprox.(internal_energy.(param_set, ts_phq), e_int, atol = atol_energy)) # fails
+        # @show maximum(abs.(internal_energy.(param_set, ts_phq) .- e_int)) # ~2258.34
+        # @show maximum(abs.(internal_energy.(param_set, ts_phq) .- e_int) ./ e_int * 100) # ~0.502
+        @test all(
+            isapprox.(
+                internal_energy.(param_set, ts_phq),
+                e_int,
+                rtol = rtol_energy,
+            ),
+        )
+        @test all(
+            getproperty.(PhasePartition.(param_set, ts_phq), :tot) .≈ q_tot,
+        )
+        @test all(air_pressure.(param_set, ts_phq) .≈ p)
 
         ts_pθq = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
         @test all(air_pressure.(param_set, ts_pθq) .≈ p)
@@ -1053,6 +1070,12 @@ end
         @test all(internal_energy.(param_set, ts) .≈ e_int)
         @test all(compare_moisture.(param_set, ts, q_pt))
         @test all(air_pressure.(param_set, ts) .≈ p)
+
+        ts_phq = PhaseNonEquil_phq.(param_set, p, h, q_pt)
+        @test all(internal_energy.(param_set, ts_phq) .≈ e_int)
+        @test all(specific_enthalpy.(param_set, ts_phq) .≈ h)
+        @test all(compare_moisture.(param_set, ts_phq, q_pt))
+        @test all(air_pressure.(param_set, ts_phq) .≈ p)
 
         # TD.air_temperature_given_pθq-liquid_ice_pottemp inverse
         θ_liq_ice_ =

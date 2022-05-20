@@ -153,6 +153,64 @@ function sa_numerical_method_peq(
 end
 
 #####
+##### Thermodynamic variable inputs: p, h, q_tot
+#####
+
+function sa_numerical_method_phq(
+    ::Type{NM},
+    param_set::APS,
+    p::FT,
+    h::FT,
+    q_tot::FT,
+    ::Type{phase_type},
+) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
+    T_min::FT = ICP.T_min(param_set)
+    T_init = max(
+        T_min,
+        air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot)),
+    ) # Assume all vapor
+    return RS.NewtonsMethodAD(T_init)
+end
+
+function sa_numerical_method_phq(
+    ::Type{NM},
+    param_set::APS,
+    p::FT,
+    h::FT,
+    q_tot::FT,
+    ::Type{phase_type},
+) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
+    T_min::FT = ICP.T_min(param_set)
+    q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
+    T_2 = air_temperature_from_enthalpy(param_set, h, q_pt)
+    T_1 = max(
+        T_min,
+        air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot)),
+    ) # Assume all vapor
+    T_2 = bound_upper_temperature(T_1, T_2)
+    return RS.SecantMethod(T_1, T_2)
+end
+
+function sa_numerical_method_phq(
+    ::Type{NM},
+    param_set::APS,
+    p::FT,
+    h::FT,
+    q_tot::FT,
+    ::Type{phase_type},
+) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
+    T_min::FT = ICP.T_min(param_set)
+    q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
+    T_2 = air_temperature_from_enthalpy(param_set, h, q_pt)
+    T_1 = max(
+        T_min,
+        air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot)),
+    ) # Assume all vapor
+    T_2 = bound_upper_temperature(T_1, T_2)
+    return RS.RegulaFalsiMethod(T_1, T_2)
+end
+
+#####
 ##### Thermodynamic variable inputs: p, θ_liq_ice, q_tot
 #####
 
