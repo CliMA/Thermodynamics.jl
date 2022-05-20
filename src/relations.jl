@@ -2019,7 +2019,7 @@ function liquid_ice_pottemp_given_pressure(
     # liquid-ice potential temperature, approximating latent heats
     # of phase transitions as constants
     return dry_pottemp_given_pressure(param_set, T, p, q) *
-           (1 - latent_heat_liq_ice(param_set, q) / (cp_m(param_set, q) * T))
+           exp( - latent_heat_liq_ice(param_set, q) / (cp_m(param_set, q) * T))
 end
 
 
