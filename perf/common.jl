@@ -1,6 +1,7 @@
 using Test
 import Thermodynamics
 const TD = Thermodynamics
+const ICP = TD.InternalClimaParams
 
 import UnPack
 import BenchmarkTools
@@ -10,11 +11,13 @@ const RS = RootSolvers
 
 import CLIMAParameters
 const CP = CLIMAParameters
+const FT = Float64
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+const param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
 
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end
-const param_set = EarthParameterSet()
-
-ArrayType = Array{Float64}
+ArrayType = Array{FT}
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
 UnPack.@unpack e_int, T, ρ, p, θ_liq_ice, q_tot = profiles
 

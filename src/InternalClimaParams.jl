@@ -1,42 +1,68 @@
 module InternalClimaParams
 
-import CLIMAParameters
-const CP = CLIMAParameters
-const CPP = CP.Planet
-const APS = CP.AbstractParameterSet
+"""
+    ThermodynamicsParameters
 
-T_min(param_set::APS) = CPP.T_min(param_set)
-T_max(param_set::APS) = CPP.T_max(param_set)
-MSLP(param_set::APS) = CPP.MSLP(param_set)
-R_d(param_set::APS) = CPP.R_d(param_set)
-cp_d(param_set::APS) = CPP.cp_d(param_set)
-kappa_d(param_set::APS) = CPP.kappa_d(param_set)
-molmass_ratio(param_set::APS) = CPP.molmass_ratio(param_set)
-cp_v(param_set::APS) = CPP.cp_v(param_set)
-cp_l(param_set::APS) = CPP.cp_l(param_set)
-cp_i(param_set::APS) = CPP.cp_i(param_set)
-cv_d(param_set::APS) = CPP.cv_d(param_set)
-cv_v(param_set::APS) = CPP.cv_v(param_set)
-cv_l(param_set::APS) = CPP.cv_l(param_set)
-cv_i(param_set::APS) = CPP.cv_i(param_set)
-T_0(param_set::APS) = CPP.T_0(param_set)
-e_int_v0(param_set::APS) = CPP.e_int_v0(param_set)
-e_int_i0(param_set::APS) = CPP.e_int_i0(param_set)
-LH_v0(param_set::APS) = CPP.LH_v0(param_set)
-LH_s0(param_set::APS) = CPP.LH_s0(param_set)
-LH_f0(param_set::APS) = CPP.LH_f0(param_set)
-press_triple(param_set::APS) = CPP.press_triple(param_set)
-R_v(param_set::APS) = CPP.R_v(param_set)
-T_triple(param_set::APS) = CPP.T_triple(param_set)
-T_freeze(param_set::APS) = CPP.T_freeze(param_set)
-T_icenuc(param_set::APS) = CPP.T_icenuc(param_set)
-pow_icenuc(param_set::APS) = CPP.pow_icenuc(param_set)
-entropy_reference_temperature(param_set::APS) =
-    CPP.entropy_reference_temperature(param_set)
-entropy_dry_air(param_set::APS) = CPP.entropy_dry_air(param_set)
-entropy_water_vapor(param_set::APS) = CPP.entropy_water_vapor(param_set)
-T_surf_ref(param_set::APS) = CPP.T_surf_ref(param_set)
-T_min_ref(param_set::APS) = CPP.T_min_ref(param_set)
-grav(param_set::APS) = CPP.grav(param_set)
+Parameters for Thermodynamics.jl.
+
+# Example
+```
+import CLIMAParameters as CP
+import Thermodynamics.InternalClimaParams as ICP
+FT = Float64;
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias");
+aliases = string.(fieldnames(ICP.ThermodynamicsParameters));
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics");
+param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...);
+```
+"""
+Base.@kwdef struct ThermodynamicsParameters{FT}
+    T_0::FT
+    MSLP::FT
+    cp_v::FT
+    cp_l::FT
+    cp_i::FT
+    LH_v0::FT
+    LH_s0::FT
+    press_triple::FT
+    T_triple::FT
+    T_freeze::FT
+    T_min::FT
+    T_max::FT
+    entropy_reference_temperature::FT
+    entropy_dry_air::FT
+    entropy_water_vapor::FT
+    kappa_d::FT
+    gas_constant::FT
+    molmass_dryair::FT
+    molmass_water::FT
+    T_surf_ref::FT
+    T_min_ref::FT
+    grav::FT
+    T_icenuc::FT
+    pow_icenuc::FT
+end
+
+const ATP = ThermodynamicsParameters
+
+Base.broadcastable(ps::ATP) = Ref(ps)
+
+# wrappers
+for fn in fieldnames(ATP)
+    @eval $(fn)(ps::ATP) = ps.$(fn)
+end
+
+# Derived parameters
+R_d(ps::ATP) = ps.gas_constant / ps.molmass_dryair
+R_v(ps::ATP) = ps.gas_constant / ps.molmass_water
+molmass_ratio(ps::ATP) = ps.molmass_dryair / ps.molmass_water
+LH_f0(ps::ATP) = ps.LH_s0 - ps.LH_v0
+e_int_v0(ps::ATP) = ps.LH_v0 - R_v(ps) * ps.T_0
+e_int_i0(ps::ATP) = LH_f0(ps)
+cp_d(ps::ATP) = R_d(ps) / ps.kappa_d
+cv_d(ps::ATP) = cp_d(ps) - R_d(ps)
+cv_v(ps::ATP) = ps.cp_v - R_v(ps)
+cv_l(ps::ATP) = ps.cp_l
+cv_i(ps::ATP) = ps.cp_i
 
 end

@@ -6,12 +6,9 @@ const DSE = DocStringExtensions
 export TemperatureProfile,
     IsothermalProfile, DecayingTemperatureProfile, DryAdiabaticProfile
 
-import CLIMAParameters
-const CP = CLIMAParameters
-const APS = CP.AbstractParameterSet
-
 import ..InternalClimaParams
 const ICP = InternalClimaParams
+const APS = ICP.ThermodynamicsParameters
 
 """
     TemperatureProfile

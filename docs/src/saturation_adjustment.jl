@@ -6,10 +6,13 @@ FT = Float64;
 import Thermodynamics as TD
 const ICP = TD.InternalClimaParams
 import CLIMAParameters as CP
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
 
 TD.print_warning() = false
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+const param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
 (; ρ, q_tot) = profiles
 T_true = profiles.T

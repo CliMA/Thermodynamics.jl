@@ -14,16 +14,30 @@ const RS = RootSolvers
 
 using LinearAlgebra
 
+const ICP = TD.InternalClimaParams
+
 import CLIMAParameters
 const CP = CLIMAParameters
-const CPP = CP.Planet
 
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end
-const param_set = EarthParameterSet()
+function get_parameter_set(::Type{FT}) where {FT}
+    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+    aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+    param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+    logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
+    CP.log_parameter_information(toml_dict, logfilepath)
+    return param_set
+end
+
+const param_set_Float64 = get_parameter_set(Float64)
+const param_set_Float32 = get_parameter_set(Float32)
+parameter_set(::Type{Float64}) = param_set_Float64
+parameter_set(::Type{Float32}) = param_set_Float32
+
 
 # Tolerances for tested quantities:
 atol_temperature = 5e-1
-atol_energy = ICP.cv_d(param_set) * atol_temperature
+atol_energy = ICP.cv_d(param_set_Float64) * atol_temperature
 rtol_temperature = 1e-1
 rtol_density = rtol_temperature
 rtol_pressure = 1e-1
@@ -48,6 +62,7 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
 @testset "Thermodynamics - isentropic processes" begin
     for ArrayType in array_types
         FT = eltype(ArrayType)
+        param_set = parameter_set(FT)
 
         _R_d = FT(ICP.R_d(param_set))
         _molmass_ratio = FT(ICP.molmass_ratio(param_set))
@@ -104,6 +119,7 @@ end
 
 @testset "Thermodynamics - correctness" begin
     FT = Float64
+    param_set = parameter_set(FT)
     _R_d = FT(ICP.R_d(param_set))
     _molmass_ratio = FT(ICP.molmass_ratio(param_set))
     _cp_d = FT(ICP.cp_d(param_set))
@@ -489,6 +505,7 @@ end
     or(a, b) = a || b
     for ArrayType in array_types
         FT = eltype(ArrayType)
+        param_set = parameter_set(FT)
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
@@ -804,6 +821,7 @@ end
 
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
+    param_set = parameter_set(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
     @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
@@ -912,6 +930,7 @@ end
 
     for ArrayType in array_types
         FT = eltype(ArrayType)
+        param_set = parameter_set(FT)
         _MSLP = FT(ICP.MSLP(param_set))
 
         profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
@@ -1265,6 +1284,7 @@ end
     # with converging to the same tolerances as `Float64`, so they're relaxed here.
     ArrayType = Array{Float32}
     FT = eltype(ArrayType)
+    param_set = parameter_set(FT)
 
     profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
     @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
@@ -1403,6 +1423,7 @@ end
 
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
+    param_set = parameter_set(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
     @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
@@ -1570,6 +1591,7 @@ end
 @testset "Thermodynamics - ProfileSet Iterator" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
+    param_set = parameter_set(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, q_pt, z, phase_type = profiles
     @test all(z .≈ (nt.z for nt in profiles))
@@ -1577,3 +1599,6 @@ end
     @test all(getproperty.(q_pt, :tot) .≈ (nt.q_pt.tot for nt in profiles))
     @test all(phase_type .== (nt.phase_type for nt in profiles))
 end
+
+rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
+rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)

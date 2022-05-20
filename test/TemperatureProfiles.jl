@@ -3,15 +3,29 @@ import Thermodynamics
 const TD = Thermodynamics
 const ICP = TD.InternalClimaParams
 const TP = TD.TemperatureProfiles
-import CLIMAParameters
-const CP = CLIMAParameters
 using ForwardDiff
 
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end
-const param_set = EarthParameterSet()
+import CLIMAParameters
+const CP = CLIMAParameters
+
+function get_parameter_set(::Type{FT}) where {FT}
+    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+    aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+    param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+    logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
+    CP.log_parameter_information(toml_dict, logfilepath)
+    return param_set
+end
+
+const param_set_Float64 = get_parameter_set(Float64)
+const param_set_Float32 = get_parameter_set(Float32)
+parameter_set(::Type{Float64}) = param_set_Float64
+parameter_set(::Type{Float32}) = param_set_Float32
 
 @testset "TemperatureProfiles - DecayingTemperatureProfile" begin
     for FT in [Float32, Float64]
+        param_set = parameter_set(FT)
         _grav = FT(ICP.grav(param_set))
         _R_d = FT(ICP.R_d(param_set))
         _MSLP = FT(ICP.MSLP(param_set))
@@ -62,3 +76,6 @@ const param_set = EarthParameterSet()
 
     end
 end
+
+rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
+rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)

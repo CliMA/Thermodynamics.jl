@@ -13,11 +13,9 @@ import ..Thermodynamics
 const TD = Thermodynamics
 const TP = TD.TemperatureProfiles
 
-import CLIMAParameters
-const CP = CLIMAParameters
-const APS = CP.AbstractParameterSet
 import ..InternalClimaParams
 const ICP = InternalClimaParams
+const APS = ICP.ThermodynamicsParameters
 
 import Random
 

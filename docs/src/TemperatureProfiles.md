@@ -23,8 +23,10 @@ import Plots
 import CLIMAParameters as CP
 import Thermodynamics.InternalClimaParams as ICP
 FT = Float64;
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
 isothermal = TD.TemperatureProfiles.IsothermalProfile(param_set, FT);
@@ -48,8 +50,10 @@ import Plots
 import CLIMAParameters as CP
 import Thermodynamics.InternalClimaParams as ICP
 FT = Float64;
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
 decaying = TD.TemperatureProfiles.DecayingTemperatureProfile{FT}(param_set);
@@ -72,8 +76,10 @@ import Plots
 import CLIMAParameters as CP
 import Thermodynamics.InternalClimaParams as ICP
 FT = Float64;
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
 dry_adiabatic = TD.TemperatureProfiles.DryAdiabaticProfile{FT}(param_set);

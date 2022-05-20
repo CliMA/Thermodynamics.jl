@@ -9,9 +9,11 @@ import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
 import Thermodynamics.InternalClimaParams as ICP
-FT = Float32;
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+FT = Float64;
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
 
 profiles = TD.TestedProfiles.PhaseDryProfiles(param_set, Array{FT});
 (;T, ρ, z) = profiles
@@ -29,9 +31,11 @@ import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
 import Thermodynamics.InternalClimaParams as ICP
-FT = Float32;
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+FT = Float64;
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
 
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
 (;T, ρ, q_tot, z) = profiles

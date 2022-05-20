@@ -12,9 +12,11 @@ import BenchmarkTools
 
 import CLIMAParameters
 const CP = CLIMAParameters
-
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end
-const param_set = EarthParameterSet()
+const FT = Float64
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+const param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
 
 #####
 ##### Finding indexes in profiles satisfying certain conditions
