@@ -1,8 +1,5 @@
 status = [
   "buildkite/thermodynamics-ci",
-  "ci 1.4 - ubuntu-latest",
-  "ci 1.4 - windows-latest",
-  "ci 1.4 - macOS-latest",
   "ci 1.5 - ubuntu-latest",
   "ci 1.5 - windows-latest",
   "ci 1.5 - macOS-latest",
