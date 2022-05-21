@@ -1,26 +1,17 @@
-import Thermodynamics
-import Thermodynamics.TemperatureProfiles
-
-const TD = Thermodynamics
-const TP = TD.TemperatureProfiles
-
 import RootSolvers
 const RS = RootSolvers
-
-import CLIMAParameters
-const CP = CLIMAParameters
-
-import UnPack
 import Plots
-TD.print_warning() = false
 
+FT = Float64;
+import Thermodynamics as TD
+const ICP = TD.InternalClimaParams
+import CLIMAParameters as CP
 struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
 const param_set = EarthParameterSet();
-FT = Float64;
 
-const src_dir = dirname(dirname(pathof(Thermodynamics)));
+TD.print_warning() = false
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
-UnPack.@unpack ρ, q_tot = profiles
+(; ρ, q_tot) = profiles
 T_true = profiles.T
 prof_pts = (ρ, T_true, q_tot)
 

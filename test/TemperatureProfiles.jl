@@ -1,18 +1,20 @@
 using Test
-using Thermodynamics.TemperatureProfiles
-using Thermodynamics
-using CLIMAParameters
-using CLIMAParameters.Planet
+import Thermodynamics
+const TD = Thermodynamics
+const ICP = TD.InternalClimaParams
+const TP = TD.TemperatureProfiles
+import CLIMAParameters
+const CP = CLIMAParameters
 using ForwardDiff
 
-struct EarthParameterSet <: AbstractEarthParameterSet end
+struct EarthParameterSet <: CP.AbstractEarthParameterSet end
 const param_set = EarthParameterSet()
 
 @testset "TemperatureProfiles - DecayingTemperatureProfile" begin
     for FT in [Float32, Float64]
-        _grav = FT(grav(param_set))
-        _R_d = FT(R_d(param_set))
-        _MSLP = FT(MSLP(param_set))
+        _grav = FT(ICP.grav(param_set))
+        _R_d = FT(ICP.R_d(param_set))
+        _MSLP = FT(ICP.MSLP(param_set))
 
         z = collect(range(FT(0), stop = FT(25e3), length = 100))
         n = 7
@@ -24,15 +26,15 @@ const param_set = EarthParameterSet()
         for (_T_virt_surf, _T_min_ref, _H_t) in
             zip(_T_virt_surf_range, _T_min_ref_range, _H_t_range)
             profiles = [
-                DecayingTemperatureProfile{FT}(
+                TP.DecayingTemperatureProfile{FT}(
                     param_set,
                     _T_virt_surf,
                     _T_min_ref,
                     _H_t,
                 ),
-                DryAdiabaticProfile{FT}(param_set, _T_virt_surf, _T_min_ref),
-                IsothermalProfile(param_set, _T_virt_surf),
-                IsothermalProfile(param_set, FT),
+                TP.DryAdiabaticProfile{FT}(param_set, _T_virt_surf, _T_min_ref),
+                TP.IsothermalProfile(param_set, _T_virt_surf),
+                TP.IsothermalProfile(param_set, FT),
             ]
 
             for profile in profiles

@@ -18,25 +18,24 @@ to one of the temperature profile constructors.
 ### IsothermalProfile
 
 ```@example
-using Thermodynamics
-using Thermodynamics.TemperatureProfiles
-using CLIMAParameters
-using CLIMAParameters.Planet
-using Plots
-struct EarthParameterSet <: AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+import Thermodynamics as TD
+import Plots
+import CLIMAParameters as CP
+import Thermodynamics.InternalClimaParams as ICP
 FT = Float64;
+struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
+const param_set = EarthParameterSet();
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
-isothermal = IsothermalProfile(param_set, FT);
-args = isothermal.(Ref(param_set), z)
-T = first.(args)
-p = last.(args)
+isothermal = TD.TemperatureProfiles.IsothermalProfile(param_set, FT);
+args = isothermal.(Ref(param_set), z);
+T = first.(args);
+p = last.(args);
 
-p1 = plot(T, z./10^3, xlabel="Temperature [K]");
-p2 = plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
-plot(p1, p2, layout=(1,2), title="Isothermal", ylabel="z [km]")
-savefig("isothermal.svg")
+p1 = Plots.plot(T, z./10^3, xlabel="Temperature [K]");
+p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
+Plots.plot(p1, p2, layout=(1,2), title="Isothermal", ylabel="z [km]");
+Plots.savefig("isothermal.svg");
 ```
 ![](isothermal.svg)
 
@@ -44,52 +43,50 @@ savefig("isothermal.svg")
 ### DecayingTemperatureProfile
 
 ```@example
-using Thermodynamics.TemperatureProfiles
-using Thermodynamics
-using CLIMAParameters
-using CLIMAParameters.Planet
-using Plots
-struct EarthParameterSet <: AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+import Thermodynamics as TD
+import Plots
+import CLIMAParameters as CP
+import Thermodynamics.InternalClimaParams as ICP
 FT = Float64;
+struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
+const param_set = EarthParameterSet();
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
-decaying = DecayingTemperatureProfile{FT}(param_set);
-args = decaying.(Ref(param_set), z)
-T = first.(args)
-p = last.(args)
+decaying = TD.TemperatureProfiles.DecayingTemperatureProfile{FT}(param_set);
+args = decaying.(Ref(param_set), z);
+T = first.(args);
+p = last.(args);
 
-p1 = plot(T, z./10^3, xlabel="Temperature [K]");
-p2 = plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
-plot(p1, p2, layout=(1,2), ylabel="z [km]", title="Decaying")
-savefig("decaying.svg")
+p1 = Plots.plot(T, z./10^3, xlabel="Temperature [K]");
+p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
+Plots.plot(p1, p2, layout=(1,2), ylabel="z [km]", title="Decaying");
+Plots.savefig("decaying.svg")
 ```
 ![](decaying.svg)
 
 ### DryAdiabaticProfile
 
 ```@example
-using Thermodynamics.TemperatureProfiles
-using Thermodynamics
-using CLIMAParameters
-using CLIMAParameters.Planet
-using Plots
-struct EarthParameterSet <: AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+import Thermodynamics as TD
+import Plots
+import CLIMAParameters as CP
+import Thermodynamics.InternalClimaParams as ICP
 FT = Float64;
+struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
+const param_set = EarthParameterSet();
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
-dry_adiabatic = DryAdiabaticProfile{FT}(param_set);
+dry_adiabatic = TD.TemperatureProfiles.DryAdiabaticProfile{FT}(param_set);
 args = dry_adiabatic.(Ref(param_set), z)
 T = first.(args)
 p = last.(args)
-θ_dry = Thermodynamics.dry_pottemp_given_pressure.(Ref(param_set), T, p)
+θ_dry = TD.dry_pottemp_given_pressure.(Ref(param_set), T, p)
 
-p1 = plot(T, z./10^3, xlabel="Temperature [K]");
-p2 = plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
-p3 = plot(θ_dry, z./10^3, xlabel="Potential temperature [K]");
-plot(p1, p2, p3, layout=(1,3), ylabel="z [km]", title="Dry adiabatic")
-savefig("dry_adiabatic.svg")
+p1 = Plots.plot(T, z./10^3, xlabel="Temperature [K]");
+p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
+p3 = Plots.plot(θ_dry, z./10^3, xlabel="Potential temperature [K]");
+Plots.plot(p1, p2, p3, layout=(1,3), ylabel="z [km]", title="Dry adiabatic")
+Plots.savefig("dry_adiabatic.svg")
 ```
 ![](dry_adiabatic.svg)
 

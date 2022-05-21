@@ -13,11 +13,10 @@ CLIMAParameters.jl defines several functions (e.g., many planet
 parameters). For example, to compute the mole-mass ratio:
 
 ```julia
-using CLIMAParameters.Planet: molmass_ratio
-using CLIMAParameters: AbstractEarthParameterSet
-struct EarthParameterSet <: AbstractEarthParameterSet end
+import CLIMAParameters as CP
+struct EarthParameterSet <: CP.AbstractEarthParameterSet end
 param_set = EarthParameterSet()
-_molmass_ratio = molmass_ratio(param_set)
+_molmass_ratio = CP.Planet.molmass_ratio(param_set)
 ```
 
 Because these parameters are widely used throughout this module,
