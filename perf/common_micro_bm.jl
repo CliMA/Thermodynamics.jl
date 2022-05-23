@@ -4,6 +4,8 @@ import PrettyTables
 import OrderedCollections
 const TD = Thermodynamics
 const ICP = TD.InternalClimaParams
+using JET
+using Test
 
 import UnPack
 import BenchmarkTools
@@ -13,6 +15,10 @@ const CP = CLIMAParameters
 
 struct EarthParameterSet <: CP.AbstractEarthParameterSet end
 const param_set = EarthParameterSet()
+
+#####
+##### Finding indexes in profiles satisfying certain conditions
+#####
 
 function find_freezing_index(profiles)
     i = findfirst(T -> T === ICP.T_freeze(param_set), profiles.T)
@@ -71,6 +77,10 @@ function sample_args(profiles, sym, constructor)
     kwargs = get_kwargs(profiles, constructor)
     return getindex.(values(kwargs), i)
 end
+
+#####
+##### BenchmarkTools's trial utils
+#####
 
 get_summary(trial) = (;
     # Using some BenchmarkTools internals :/
@@ -135,3 +145,24 @@ function tabulate_summary(summary)
         alignment = vcat(:l, repeat([:r], length(header[1]) - 1)),
     )
 end
+
+#####
+##### Constructor-specific configurations
+#####
+
+# unpack variables from profiles into NamedTuple:
+up(profiles, syms) = (; zip(syms, getproperty.(Ref(profiles), syms))...)
+get_kwargs(p, ::typeof(TD.PhaseEquil_ρeq)) = up(p, :(ρ, e_int, q_tot).args)
+get_kwargs(p, ::typeof(TD.PhaseEquil_pθq)) = up(p, :(p, θ_liq_ice, q_tot).args)
+get_kwargs(p, ::typeof(TD.PhaseEquil_peq)) = up(p, :(p, e_int, q_tot).args)
+get_kwargs(p, ::typeof(TD.PhaseEquil_pTq)) = up(p, :(p, T, q_tot).args)
+
+# Conditions to perform microbenchmarks and JET tests:
+# note: No freezing points exist in
+#       TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)!
+#       so we're not testing performance of these branches.
+
+conditions(::typeof(TD.PhaseEquil_ρeq)) = (:dry, :sat_adjust)
+conditions(::typeof(TD.PhaseEquil_peq)) = (:dry, :sat_adjust)
+conditions(::typeof(TD.PhaseEquil_pθq)) = (:dry, :sat_adjust)
+conditions(::typeof(TD.PhaseEquil_pTq)) = (:dry, :moist) # no sat adjust exists!
