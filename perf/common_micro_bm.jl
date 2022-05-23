@@ -153,9 +153,13 @@ end
 # unpack variables from profiles into NamedTuple:
 up(profiles, syms) = (; zip(syms, getproperty.(Ref(profiles), syms))...)
 get_kwargs(p, ::typeof(TD.PhaseEquil_ρeq)) = up(p, :(ρ, e_int, q_tot).args)
-get_kwargs(p, ::typeof(TD.PhaseEquil_pθq)) = up(p, :(p, θ_liq_ice, q_tot).args)
-get_kwargs(p, ::typeof(TD.PhaseEquil_peq)) = up(p, :(p, e_int, q_tot).args)
+get_kwargs(p, ::typeof(TD.PhaseEquil_ρTq)) = up(p, :(p, T, q_tot).args)
 get_kwargs(p, ::typeof(TD.PhaseEquil_pTq)) = up(p, :(p, T, q_tot).args)
+get_kwargs(p, ::typeof(TD.PhaseEquil_peq)) = up(p, :(p, e_int, q_tot).args)
+get_kwargs(p, ::typeof(TD.PhaseEquil_phq)) = up(p, :(p, h, q_tot).args)
+get_kwargs(p, ::typeof(TD.PhaseEquil_ρθq)) = up(p, :(ρ, θ_liq_ice, q_tot).args)
+get_kwargs(p, ::typeof(TD.PhaseEquil_pθq)) = up(p, :(p, θ_liq_ice, q_tot).args)
+get_kwargs(p, ::typeof(TD.PhaseEquil_ρpq)) = up(p, :(ρ, p, q_tot).args)
 
 # Conditions to perform microbenchmarks and JET tests:
 # note: No freezing points exist in
@@ -163,6 +167,10 @@ get_kwargs(p, ::typeof(TD.PhaseEquil_pTq)) = up(p, :(p, T, q_tot).args)
 #       so we're not testing performance of these branches.
 
 conditions(::typeof(TD.PhaseEquil_ρeq)) = (:dry, :sat_adjust)
-conditions(::typeof(TD.PhaseEquil_peq)) = (:dry, :sat_adjust)
-conditions(::typeof(TD.PhaseEquil_pθq)) = (:dry, :sat_adjust)
+conditions(::typeof(TD.PhaseEquil_ρTq)) = (:dry, :moist)
 conditions(::typeof(TD.PhaseEquil_pTq)) = (:dry, :moist) # no sat adjust exists!
+conditions(::typeof(TD.PhaseEquil_peq)) = (:dry, :sat_adjust)
+conditions(::typeof(TD.PhaseEquil_phq)) = (:dry, :sat_adjust)
+conditions(::typeof(TD.PhaseEquil_ρθq)) = (:dry, :sat_adjust)
+conditions(::typeof(TD.PhaseEquil_pθq)) = (:dry, :sat_adjust)
+conditions(::typeof(TD.PhaseEquil_ρpq)) = (:dry, :sat_adjust)
