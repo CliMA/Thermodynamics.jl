@@ -78,6 +78,15 @@ steps:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
+  - label: ":mag::rocket: JET tests"
+    command:
+      - "julia --project=perf perf/jet.jl"
+    agents:
+      config: cpu
+      queue: central
+      slurm_ntasks: 1
+    timeout_in_minutes: 60
+
   - label: "KernelAbstraction GPU tests"
     command:
       - "julia --project=gpuenv test/runtests_gpu.jl CuArray"
