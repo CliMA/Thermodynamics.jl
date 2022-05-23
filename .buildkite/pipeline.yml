@@ -49,7 +49,7 @@ steps:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
-  - label: ":rocket: Allocations analysis"
+  - label: ":scales: Allocation monitoring"
     command:
       - "julia --project=perf perf/allocs.jl"
     artifact_paths:
@@ -60,9 +60,18 @@ steps:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
-  - label: ":rocket: Constructor benchmarks"
+  - label: ":mag::rocket: Constructor benchmarks"
     command:
       - "julia --project=perf perf/benchmark.jl"
+    agents:
+      config: cpu
+      queue: central
+      slurm_ntasks: 1
+    timeout_in_minutes: 60
+
+  - label: ":mag::rocket: Constructor micro-benchmarks"
+    command:
+      - "julia --project=perf perf/microbenchmarks.jl"
     agents:
       config: cpu
       queue: central
