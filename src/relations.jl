@@ -1087,8 +1087,12 @@ function q_vap_saturation_from_pressure(
     R_v::FT = ICP.R_v(param_set)
     R_d::FT = ICP.R_d(param_set)
     p_v_sat = saturation_vapor_pressure(param_set, phase_type, T)
-    q_v_sat = R_d / R_v * (1 - q_tot) * p_v_sat / (p - p_v_sat)
-    return max(q_v_sat, 0)
+    q_v_sat = if p - p_v_sat ≥ eps(FT)
+        R_d / R_v * (1 - q_tot) * p_v_sat / (p - p_v_sat)
+    else
+        FT(1) / eps(FT)
+    end
+    return q_v_sat
 end
 
 """
