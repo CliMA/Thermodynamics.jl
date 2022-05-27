@@ -58,8 +58,6 @@ include("InternalClimaParams.jl")
 import .InternalClimaParams
 const ICP = InternalClimaParams
 
-Base.broadcastable(param_set::APS) = Ref(param_set)
-
 # Allow users to skip error on non-convergence
 # by importing:
 # ```julia
