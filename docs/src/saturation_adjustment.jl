@@ -4,14 +4,14 @@ import Plots
 
 FT = Float64;
 import Thermodynamics as TD
-const ICP = TD.InternalClimaParams
+const TP = TD.Parameters
 import CLIMAParameters as CP
 
 TD.print_warning() = false
 toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+aliases = string.(fieldnames(TP.ThermodynamicsParameters))
 param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-const param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+const param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
 
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
 (; ρ, q_tot) = profiles

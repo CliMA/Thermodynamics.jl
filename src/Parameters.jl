@@ -1,4 +1,4 @@
-module InternalClimaParams
+module Parameters
 
 """
     ThermodynamicsParameters
@@ -8,12 +8,12 @@ Parameters for Thermodynamics.jl.
 # Example
 ```
 import CLIMAParameters as CP
-import Thermodynamics.InternalClimaParams as ICP
+import Thermodynamics.Parameters as TP
 FT = Float64;
 toml_dict = CP.create_toml_dict(FT; dict_type = "alias");
-aliases = string.(fieldnames(ICP.ThermodynamicsParameters));
+aliases = string.(fieldnames(TP.ThermodynamicsParameters));
 param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics");
-param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...);
+param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...);
 ```
 """
 Base.@kwdef struct ThermodynamicsParameters{FT}

@@ -4,7 +4,7 @@ using Thermodynamics.TemperatureProfiles
 using Thermodynamics.TestedProfiles
 
 const TD = Thermodynamics
-const ICP = TD.InternalClimaParams
+const TP = TD.Parameters
 using UnPack
 using NCDatasets
 using Random
@@ -14,16 +14,16 @@ const RS = RootSolvers
 
 using LinearAlgebra
 
-const ICP = TD.InternalClimaParams
+const TP = TD.Parameters
 
 import CLIMAParameters
 const CP = CLIMAParameters
 
 function get_parameter_set(::Type{FT}) where {FT}
     toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-    aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
     param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-    param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
     logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
     CP.log_parameter_information(toml_dict, logfilepath)
     return param_set
@@ -37,7 +37,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
 
 # Tolerances for tested quantities:
 atol_temperature = 5e-1
-atol_energy = ICP.cv_d(param_set_Float64) * atol_temperature
+atol_energy = TP.cv_d(param_set_Float64) * atol_temperature
 rtol_temperature = 1e-1
 rtol_density = rtol_temperature
 rtol_pressure = 1e-1
@@ -64,30 +64,30 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
         FT = eltype(ArrayType)
         param_set = parameter_set(FT)
 
-        _R_d = FT(ICP.R_d(param_set))
-        _molmass_ratio = FT(ICP.molmass_ratio(param_set))
-        _cp_d = FT(ICP.cp_d(param_set))
-        _cp_v = FT(ICP.cp_v(param_set))
-        _cp_l = FT(ICP.cp_l(param_set))
-        _cv_d = FT(ICP.cv_d(param_set))
-        _cv_v = FT(ICP.cv_v(param_set))
-        _cv_l = FT(ICP.cv_l(param_set))
-        _cv_i = FT(ICP.cv_i(param_set))
-        _T_0 = FT(ICP.T_0(param_set))
-        _e_int_v0 = FT(ICP.e_int_v0(param_set))
-        _e_int_i0 = FT(ICP.e_int_i0(param_set))
-        _LH_v0 = FT(ICP.LH_v0(param_set))
-        _LH_s0 = FT(ICP.LH_s0(param_set))
-        _cp_i = FT(ICP.cp_i(param_set))
-        _LH_f0 = FT(ICP.LH_f0(param_set))
-        _press_triple = FT(ICP.press_triple(param_set))
-        _R_v = FT(ICP.R_v(param_set))
-        _T_triple = FT(ICP.T_triple(param_set))
-        _T_freeze = FT(ICP.T_freeze(param_set))
-        _T_min = FT(ICP.T_min(param_set))
-        _MSLP = FT(ICP.MSLP(param_set))
-        _T_max = FT(ICP.T_max(param_set))
-        _kappa_d = FT(ICP.kappa_d(param_set))
+        _R_d = FT(TP.R_d(param_set))
+        _molmass_ratio = FT(TP.molmass_ratio(param_set))
+        _cp_d = FT(TP.cp_d(param_set))
+        _cp_v = FT(TP.cp_v(param_set))
+        _cp_l = FT(TP.cp_l(param_set))
+        _cv_d = FT(TP.cv_d(param_set))
+        _cv_v = FT(TP.cv_v(param_set))
+        _cv_l = FT(TP.cv_l(param_set))
+        _cv_i = FT(TP.cv_i(param_set))
+        _T_0 = FT(TP.T_0(param_set))
+        _e_int_v0 = FT(TP.e_int_v0(param_set))
+        _e_int_i0 = FT(TP.e_int_i0(param_set))
+        _LH_v0 = FT(TP.LH_v0(param_set))
+        _LH_s0 = FT(TP.LH_s0(param_set))
+        _cp_i = FT(TP.cp_i(param_set))
+        _LH_f0 = FT(TP.LH_f0(param_set))
+        _press_triple = FT(TP.press_triple(param_set))
+        _R_v = FT(TP.R_v(param_set))
+        _T_triple = FT(TP.T_triple(param_set))
+        _T_freeze = FT(TP.T_freeze(param_set))
+        _T_min = FT(TP.T_min(param_set))
+        _MSLP = FT(TP.MSLP(param_set))
+        _T_max = FT(TP.T_max(param_set))
+        _kappa_d = FT(TP.kappa_d(param_set))
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
@@ -120,31 +120,31 @@ end
 @testset "Thermodynamics - correctness" begin
     FT = Float64
     param_set = parameter_set(FT)
-    _R_d = FT(ICP.R_d(param_set))
-    _molmass_ratio = FT(ICP.molmass_ratio(param_set))
-    _cp_d = FT(ICP.cp_d(param_set))
-    _cp_v = FT(ICP.cp_v(param_set))
-    _cp_l = FT(ICP.cp_l(param_set))
-    _cv_d = FT(ICP.cv_d(param_set))
-    _cv_v = FT(ICP.cv_v(param_set))
-    _cv_l = FT(ICP.cv_l(param_set))
-    _cv_i = FT(ICP.cv_i(param_set))
-    _T_0 = FT(ICP.T_0(param_set))
-    _e_int_v0 = FT(ICP.e_int_v0(param_set))
-    _e_int_i0 = FT(ICP.e_int_i0(param_set))
-    _LH_v0 = FT(ICP.LH_v0(param_set))
-    _LH_s0 = FT(ICP.LH_s0(param_set))
-    _cp_i = FT(ICP.cp_i(param_set))
-    _LH_f0 = FT(ICP.LH_f0(param_set))
-    _press_triple = FT(ICP.press_triple(param_set))
-    _R_v = FT(ICP.R_v(param_set))
-    _T_triple = FT(ICP.T_triple(param_set))
-    _T_freeze = FT(ICP.T_freeze(param_set))
-    _T_min = FT(ICP.T_min(param_set))
-    _MSLP = FT(ICP.MSLP(param_set))
-    _T_max = FT(ICP.T_max(param_set))
-    _kappa_d = FT(ICP.kappa_d(param_set))
-    _T_icenuc = FT(ICP.T_icenuc(param_set))
+    _R_d = FT(TP.R_d(param_set))
+    _molmass_ratio = FT(TP.molmass_ratio(param_set))
+    _cp_d = FT(TP.cp_d(param_set))
+    _cp_v = FT(TP.cp_v(param_set))
+    _cp_l = FT(TP.cp_l(param_set))
+    _cv_d = FT(TP.cv_d(param_set))
+    _cv_v = FT(TP.cv_v(param_set))
+    _cv_l = FT(TP.cv_l(param_set))
+    _cv_i = FT(TP.cv_i(param_set))
+    _T_0 = FT(TP.T_0(param_set))
+    _e_int_v0 = FT(TP.e_int_v0(param_set))
+    _e_int_i0 = FT(TP.e_int_i0(param_set))
+    _LH_v0 = FT(TP.LH_v0(param_set))
+    _LH_s0 = FT(TP.LH_s0(param_set))
+    _cp_i = FT(TP.cp_i(param_set))
+    _LH_f0 = FT(TP.LH_f0(param_set))
+    _press_triple = FT(TP.press_triple(param_set))
+    _R_v = FT(TP.R_v(param_set))
+    _T_triple = FT(TP.T_triple(param_set))
+    _T_freeze = FT(TP.T_freeze(param_set))
+    _T_min = FT(TP.T_min(param_set))
+    _MSLP = FT(TP.MSLP(param_set))
+    _T_max = FT(TP.T_max(param_set))
+    _kappa_d = FT(TP.kappa_d(param_set))
+    _T_icenuc = FT(TP.T_icenuc(param_set))
 
     # ideal gas law
     @test air_pressure(param_set, FT(1), FT(1), PhasePartition(FT(1))) === _R_v
@@ -517,7 +517,7 @@ end
         @test !any(saturated.(param_set, ts[RH_unsat_mask]))
 
         # PhaseEquil (freezing)
-        _T_freeze = FT(ICP.T_freeze(param_set))
+        _T_freeze = FT(TP.T_freeze(param_set))
         e_int_upper =
             internal_energy_sat.(
                 param_set,
@@ -738,7 +738,7 @@ end
         )
 
         # PhaseEquil_pθq (freezing)
-        _T_freeze = FT(ICP.T_freeze(param_set))
+        _T_freeze = FT(TP.T_freeze(param_set))
 
         function θ_liq_ice_closure(T, p, q_tot)
             q_pt_closure = TD.PhasePartition_equil_given_p(
@@ -931,7 +931,7 @@ end
     for ArrayType in array_types
         FT = eltype(ArrayType)
         param_set = parameter_set(FT)
-        _MSLP = FT(ICP.MSLP(param_set))
+        _MSLP = FT(TP.MSLP(param_set))
 
         profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
         @unpack T, p, e_int, h, ρ, θ_liq_ice, phase_type = profiles
@@ -1237,7 +1237,7 @@ end
 
 
         # Test virtual temperature and inverse functions:
-        _R_d = FT(ICP.R_d(param_set))
+        _R_d = FT(TP.R_d(param_set))
         T_virt = virtual_temperature.(param_set, T, ρ, q_pt)
         @test all(T_virt ≈ gas_constant_air.(param_set, q_pt) ./ _R_d .* T)
 

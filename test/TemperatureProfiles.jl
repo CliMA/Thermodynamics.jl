@@ -1,8 +1,8 @@
 using Test
 import Thermodynamics
 const TD = Thermodynamics
-const ICP = TD.InternalClimaParams
-const TP = TD.TemperatureProfiles
+const TP = TD.Parameters
+const TDTP = TD.TemperatureProfiles
 using ForwardDiff
 
 import CLIMAParameters
@@ -10,9 +10,9 @@ const CP = CLIMAParameters
 
 function get_parameter_set(::Type{FT}) where {FT}
     toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-    aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
     param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-    param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
     logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
     CP.log_parameter_information(toml_dict, logfilepath)
     return param_set
@@ -26,9 +26,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
 @testset "TemperatureProfiles - DecayingTemperatureProfile" begin
     for FT in [Float32, Float64]
         param_set = parameter_set(FT)
-        _grav = FT(ICP.grav(param_set))
-        _R_d = FT(ICP.R_d(param_set))
-        _MSLP = FT(ICP.MSLP(param_set))
+        _grav = FT(TP.grav(param_set))
+        _R_d = FT(TP.R_d(param_set))
+        _MSLP = FT(TP.MSLP(param_set))
 
         z = collect(range(FT(0), stop = FT(25e3), length = 100))
         n = 7
@@ -40,15 +40,19 @@ parameter_set(::Type{Float32}) = param_set_Float32
         for (_T_virt_surf, _T_min_ref, _H_t) in
             zip(_T_virt_surf_range, _T_min_ref_range, _H_t_range)
             profiles = [
-                TP.DecayingTemperatureProfile{FT}(
+                TDTP.DecayingTemperatureProfile{FT}(
                     param_set,
                     _T_virt_surf,
                     _T_min_ref,
                     _H_t,
                 ),
-                TP.DryAdiabaticProfile{FT}(param_set, _T_virt_surf, _T_min_ref),
-                TP.IsothermalProfile(param_set, _T_virt_surf),
-                TP.IsothermalProfile(param_set, FT),
+                TDTP.DryAdiabaticProfile{FT}(
+                    param_set,
+                    _T_virt_surf,
+                    _T_min_ref,
+                ),
+                TDTP.IsothermalProfile(param_set, _T_virt_surf),
+                TDTP.IsothermalProfile(param_set, FT),
             ]
 
             for profile in profiles

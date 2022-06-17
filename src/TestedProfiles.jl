@@ -11,11 +11,11 @@ module TestedProfiles
 
 import ..Thermodynamics
 const TD = Thermodynamics
-const TP = TD.TemperatureProfiles
+const TDTP = TD.TemperatureProfiles
 
-import ..InternalClimaParams
-const ICP = InternalClimaParams
-const APS = ICP.ThermodynamicsParameters
+import ..Parameters
+const TP = Parameters
+const APS = TP.ThermodynamicsParameters
 
 import Random
 
@@ -140,7 +140,7 @@ function shared_profiles(
     # will not be in hydrostatic balance, but this does not
     # matter for the thermodynamic test profiles.
     profile =
-        TP.DecayingTemperatureProfile{FT}(param_set, FT(T_surface), FT(T_min))
+        TDTP.DecayingTemperatureProfile{FT}(param_set, FT(T_surface), FT(T_min))
     for i in linear_indices.indices[1]
         for j in linear_indices.indices[2]
             k = linear_indices[i, j]
@@ -169,8 +169,8 @@ function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
         shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
     T = T_virt
     FT = eltype(T)
-    R_d::FT = ICP.R_d(param_set)
-    grav::FT = ICP.grav(param_set)
+    R_d::FT = TP.R_d(param_set)
+    grav::FT = TP.grav(param_set)
     ρ = p ./ (R_d .* T)
 
     # Additional variables
@@ -235,8 +235,8 @@ function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     T = T_virt
 
     FT = eltype(T)
-    R_d::FT = ICP.R_d(param_set)
-    grav::FT = ICP.grav(param_set)
+    R_d::FT = TP.R_d(param_set)
+    grav::FT = TP.grav(param_set)
     # Compute total specific humidity from temperature, pressure
     # and relative saturation, and partition the saturation excess
     # according to temperature.

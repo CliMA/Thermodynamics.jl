@@ -1,7 +1,7 @@
 using Test
 import Thermodynamics
 const TD = Thermodynamics
-const ICP = TD.InternalClimaParams
+const TP = TD.Parameters
 
 import UnPack
 import BenchmarkTools
@@ -13,9 +13,9 @@ import CLIMAParameters
 const CP = CLIMAParameters
 const FT = Float64
 toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+aliases = string.(fieldnames(TP.ThermodynamicsParameters))
 param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-const param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+const param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
 
 ArrayType = Array{FT}
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)

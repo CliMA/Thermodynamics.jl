@@ -24,13 +24,13 @@ const RS = RootSolvers
 import CLIMAParameters
 const CP = CLIMAParameters
 
-const ICP = TD.InternalClimaParams
+const TP = TD.Parameters
 
 function get_parameter_set(::Type{FT}) where {FT}
     toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-    aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
     param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-    param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
     logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
     CP.log_parameter_information(toml_dict, logfilepath)
     return param_set

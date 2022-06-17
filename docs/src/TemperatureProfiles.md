@@ -21,12 +21,12 @@ to one of the temperature profile constructors.
 import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
-import Thermodynamics.InternalClimaParams as ICP
+import Thermodynamics.Parameters as TP
 FT = Float64;
 toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+aliases = string.(fieldnames(TP.ThermodynamicsParameters))
 param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
 isothermal = TD.TemperatureProfiles.IsothermalProfile(param_set, FT);
@@ -48,12 +48,12 @@ Plots.savefig("isothermal.svg");
 import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
-import Thermodynamics.InternalClimaParams as ICP
+import Thermodynamics.Parameters as TP
 FT = Float64;
 toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+aliases = string.(fieldnames(TP.ThermodynamicsParameters))
 param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
 decaying = TD.TemperatureProfiles.DecayingTemperatureProfile{FT}(param_set);
@@ -74,12 +74,12 @@ Plots.savefig("decaying.svg")
 import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
-import Thermodynamics.InternalClimaParams as ICP
+import Thermodynamics.Parameters as TP
 FT = Float64;
 toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(ICP.ThermodynamicsParameters))
+aliases = string.(fieldnames(TP.ThermodynamicsParameters))
 param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = ICP.ThermodynamicsParameters{FT}(; param_pairs...)
+param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
 dry_adiabatic = TD.TemperatureProfiles.DryAdiabaticProfile{FT}(param_set);
