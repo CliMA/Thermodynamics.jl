@@ -17,7 +17,7 @@ dycoms_dataset_path = get_data_folder(dycoms_dataset)
 
 @testset "Data tests" begin
     FT = Float64
-
+    param_set = parameter_set(FT)
     data = joinpath(dycoms_dataset_path, "test_data_PhaseEquil.nc")
     ds_PhaseEquil = Dataset(data, "r")
     e_int = Array{FT}(ds_PhaseEquil["e_int"][:])
@@ -29,6 +29,7 @@ dycoms_dataset_path = get_data_folder(dycoms_dataset)
 end
 
 @testset "pθq data-driven tests" begin
+    param_set = parameter_set(Float64)
     #! format: off
     pθq_broken = [
         # (; p = , θ_liq_ice = , q_tot = ),

@@ -14,9 +14,12 @@ parameters). For example, to compute the mole-mass ratio:
 
 ```julia
 import CLIMAParameters as CP
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end
-param_set = EarthParameterSet()
-_molmass_ratio = CP.Planet.molmass_ratio(param_set)
+import Thermodynamics.Parameters as TP
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(TP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+_molmass_ratio = TP.molmass_ratio(param_set)
 ```
 
 Because these parameters are widely used throughout this module,
@@ -50,13 +53,10 @@ const RS = RootSolvers
 import KernelAbstractions
 const KA = KernelAbstractions
 
-import CLIMAParameters
-const CP = CLIMAParameters
-const APS = CP.AbstractParameterSet
-
-include("InternalClimaParams.jl")
-import .InternalClimaParams
-const ICP = InternalClimaParams
+include("Parameters.jl")
+import .Parameters
+const TP = Parameters
+const APS = TP.ThermodynamicsParameters
 
 # Allow users to skip error on non-convergence
 # by importing:

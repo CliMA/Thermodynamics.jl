@@ -24,8 +24,23 @@ const RS = RootSolvers
 import CLIMAParameters
 const CP = CLIMAParameters
 
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end
-const param_set = EarthParameterSet()
+const TP = TD.Parameters
+
+function get_parameter_set(::Type{FT}) where {FT}
+    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
+    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+    logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
+    CP.log_parameter_information(toml_dict, logfilepath)
+    return param_set
+end
+
+const param_set_Float64 = get_parameter_set(Float64)
+const param_set_Float32 = get_parameter_set(Float32)
+parameter_set(::Type{Float64}) = param_set_Float64
+parameter_set(::Type{Float32}) = param_set_Float32
+
 
 if get(ARGS, 1, "Array") == "CuArray"
     import CUDA
@@ -94,6 +109,7 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
 
 @testset "Thermodynamics - kernels" begin
     FT = Float32
+    param_set = parameter_set(FT)
     dev = device(ArrayType)
     profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array)
     slice = Colon()
@@ -129,3 +145,6 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
     @test all(Array(d_dst)[2, :] .≈ TD.air_temperature.(param_set, ts_correct))
 
 end
+
+rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
+rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)

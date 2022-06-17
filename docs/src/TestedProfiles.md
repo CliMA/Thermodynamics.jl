@@ -8,10 +8,12 @@ Thermodynamics.jl is tested using a set of profiles specified in `src/TestedProf
 import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
-import Thermodynamics.InternalClimaParams as ICP
-FT = Float32;
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+import Thermodynamics.Parameters as TP
+FT = Float64;
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(TP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
 
 profiles = TD.TestedProfiles.PhaseDryProfiles(param_set, Array{FT});
 (;T, ρ, z) = profiles
@@ -28,10 +30,12 @@ Plots.savefig("tested_profiles_dry.svg");
 import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
-import Thermodynamics.InternalClimaParams as ICP
-FT = Float32;
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end;
-const param_set = EarthParameterSet();
+import Thermodynamics.Parameters as TP
+FT = Float64;
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(TP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
 
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
 (;T, ρ, q_tot, z) = profiles

@@ -3,7 +3,7 @@ import StatsBase
 import PrettyTables
 import OrderedCollections
 const TD = Thermodynamics
-const ICP = TD.InternalClimaParams
+const TP = TD.Parameters
 using JET
 using Test
 
@@ -12,16 +12,18 @@ import BenchmarkTools
 
 import CLIMAParameters
 const CP = CLIMAParameters
-
-struct EarthParameterSet <: CP.AbstractEarthParameterSet end
-const param_set = EarthParameterSet()
+const FT = Float64
+toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+aliases = string.(fieldnames(TP.ThermodynamicsParameters))
+param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+const param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
 
 #####
 ##### Finding indexes in profiles satisfying certain conditions
 #####
 
 function find_freezing_index(profiles)
-    i = findfirst(T -> T === ICP.T_freeze(param_set), profiles.T)
+    i = findfirst(T -> T === TP.T_freeze(param_set), profiles.T)
     isnothing(i) && error("Freezing index not found")
     return i
 end
