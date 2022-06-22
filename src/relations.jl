@@ -364,12 +364,8 @@ function air_temperature_from_enthalpy(
     R_d::FT = TP.R_d(param_set)
     LH_v0::FT = TP.LH_v0(param_set)
     LH_f0::FT = TP.LH_f0(param_set)
-    e_int_i0::FT = TP.e_int_i0(param_set)
     q_vap::FT = vapor_specific_humidity(q)
-    return (
-        h + cp_m_ * T_0 - q_vap * LH_v0 + q.ice * LH_f0 -
-        (1 - q.tot) * R_d * T_0
-    ) / cp_m_
+    return (h - q_vap * LH_v0 + q.ice * LH_f0 - (1 - q.tot) * R_d * T_0) / cp_m_
 end
 
 """
