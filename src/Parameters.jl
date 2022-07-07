@@ -1,5 +1,7 @@
 module Parameters
 
+export ThermodynamicsParameters
+
 """
     ThermodynamicsParameters
 

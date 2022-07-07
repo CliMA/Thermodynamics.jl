@@ -7,12 +7,19 @@ CurrentModule = Thermodynamics
 Thermodynamics
 ```
 
+## Thermodynamics Parameters
+
+```@docs
+Parameters.ThermodynamicsParameters
+```
+
 ## Thermodynamic State Constructors
 
 ```@docs
 PhasePartition
 ThermodynamicState
 PhaseDry
+PhaseDry_ρe
 PhaseDry_pT
 PhaseDry_pθ
 PhaseDry_pe
