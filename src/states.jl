@@ -2,6 +2,7 @@ export PhasePartition
 # Thermodynamic states
 export ThermodynamicState,
     PhaseDry,
+    PhaseDry_ρe,
     PhaseDry_ρT,
     PhaseDry_pT,
     PhaseDry_pe,
@@ -100,12 +101,25 @@ A dry thermodynamic state (`q_tot = 0`).
 $(DocStringExtensions.FIELDS)
 """
 struct PhaseDry{FT} <: AbstractPhaseDry{FT}
+    # TODO: swap order of variables (breaking change)
     "internal energy"
     e_int::FT
     "density of dry air"
     ρ::FT
 end
 PhaseDry(param_set::APS, e_int::FT, ρ::FT) where {FT} = PhaseDry{FT}(e_int, ρ)
+
+"""
+    PhaseDry_ρe(param_set, ρ, e_int)
+
+A dry thermodynamic state (`q_tot = 0`) from
+
+ - `param_set` an [`ThermodynamicsParameters`](@ref Parameters.ThermodynamicsParameters) for more details
+ - `ρ`
+ - `e_int` internal energy
+"""
+PhaseDry_ρe(param_set::APS, ρ::FT, e_int::FT) where {FT} =
+    PhaseDry{FT}(e_int, ρ)
 
 """
     PhaseDry_pT(param_set, p, T)

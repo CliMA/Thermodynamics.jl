@@ -949,6 +949,13 @@ end
         )
         @test all(air_density.(param_set, ts_pT) .≈ ρ)
 
+        ts_ρe = PhaseDry_ρe.(param_set, ρ, e_int)
+        @test all(
+            internal_energy.(param_set, ts_ρe) .≈
+            internal_energy.(param_set, T),
+        )
+        @test all(air_density.(param_set, ts_ρe) .≈ ρ)
+
         θ_dry = dry_pottemp.(param_set, T, ρ)
         ts_pθ = PhaseDry_pθ.(param_set, p, θ_dry)
         @test all(
