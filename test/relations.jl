@@ -613,6 +613,11 @@ end
             moist_static_energy.(param_set, ts, e_pot) .≈
             total_specific_enthalpy.(param_set, ts, e_tot) .- e_kin,
         )
+        @test all(
+            virtual_dry_static_energy.(param_set, ts, e_pot) .≈
+            cp_m.(param_set, ts) .* virtual_temperature.(param_set, ts) .+
+            e_pot,
+        )
 
         # PhaseEquil
         ts_exact =
@@ -1421,6 +1426,8 @@ end
         @test typeof.(moist_static_energy.(param_set, ts, e_pot)) ==
               typeof.(e_int)
         @test typeof.(getproperty.(PhasePartition.(param_set, ts), :tot)) ==
+              typeof.(e_int)
+        @test typeof.(virtual_dry_static_energy.(param_set, ts, e_pot)) ==
               typeof.(e_int)
     end
 
