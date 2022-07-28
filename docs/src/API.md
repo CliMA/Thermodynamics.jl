@@ -85,6 +85,7 @@ liquid_specific_humidity
 mixing_ratios
 vol_vapor_mixing_ratio
 moist_static_energy
+virtual_dry_static_energy
 q_vap_saturation
 q_vap_saturation_liquid
 q_vap_saturation_ice

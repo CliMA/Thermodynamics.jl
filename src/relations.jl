@@ -44,6 +44,7 @@ export liquid_fraction, PhasePartition_equil
 # Auxiliary functions, e.g., for diagnostic purposes
 export dry_pottemp
 export virtual_pottemp
+export virtual_dry_static_energy
 export exner
 export shum_to_mixing_ratio
 export mixing_ratios
@@ -2712,6 +2713,24 @@ function moist_static_energy(
     e_pot::FT,
 ) where {FT <: Real}
     return specific_enthalpy(param_set, ts) + e_pot
+end
+
+"""
+    virtual_dry_static_energy(param_set, ts, e_pot)
+
+Virtual dry static energy, given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `ts` a thermodynamic state
+ - `e_pot` gravitational potential energy per unit mass
+"""
+function virtual_dry_static_energy(
+    param_set::APS,
+    ts::ThermodynamicState{FT},
+    e_pot::FT,
+) where {FT <: Real}
+    T_virt = virtual_temperature(param_set, ts)
+    _cp_m = cp_m(param_set, ts)
+    return _cp_m * T_virt + e_pot
 end
 
 """
