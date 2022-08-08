@@ -902,16 +902,25 @@ function saturation_vapor_pressure(
     param_set::APS,
     ::Type{phase_type},
     T::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    LH_s0 = FT(TP.LH_s0(param_set))
-    LH_v0 = FT(TP.LH_v0(param_set))
-    cp_v = FT(TP.cp_v(param_set))
-    cp_l = FT(TP.cp_l(param_set))
-    cp_i = FT(TP.cp_i(param_set))
-    liq_frac = liquid_fraction(param_set, T, phase_type, PhasePartition(FT(0)))
-    _LH_0 = liq_frac * LH_v0 + (1 - liq_frac) * LH_s0
-    _Δcp = cp_v - liq_frac * cp_l - (1 - liq_frac) * cp_i
-    return saturation_vapor_pressure(param_set, T, _LH_0, _Δcp)
+
+    LH_v0::FT = TP.LH_v0(param_set)
+    LH_s0::FT = TP.LH_s0(param_set)
+    cp_v::FT = TP.cp_v(param_set)
+    cp_l::FT = TP.cp_l(param_set)
+    cp_i::FT = TP.cp_i(param_set)
+    # get phase partitioning
+    liquid_frac = liquid_fraction(param_set, T, phase_type, q)
+    ice_frac = 1 - liquid_frac
+
+    # effective latent heat at T_0 and effective difference in isobaric specific
+    # heats of the mixture
+    LH_0 = liquid_frac * LH_v0 + ice_frac * LH_s0
+    Δcp = liquid_frac * (cp_v - cp_l) + ice_frac * (cp_v - cp_i)
+
+    # saturation vapor pressure over possible mixture of liquid and ice
+    return saturation_vapor_pressure(param_set, T, LH_0, Δcp)
 end
 
 function saturation_vapor_pressure(
@@ -985,26 +994,8 @@ function q_vap_saturation(
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-
-    LH_v0::FT = TP.LH_v0(param_set)
-    LH_s0::FT = TP.LH_s0(param_set)
-    cp_v::FT = TP.cp_v(param_set)
-    cp_l::FT = TP.cp_l(param_set)
-    cp_i::FT = TP.cp_i(param_set)
-    # get phase partitioning
-    _liquid_frac = liquid_fraction(param_set, T, phase_type, q)
-    _ice_frac = 1 - _liquid_frac
-
-    # effective latent heat at T_0 and effective difference in isobaric specific
-    # heats of the mixture
-    LH_0 = _liquid_frac * LH_v0 + _ice_frac * LH_s0
-    Δcp = _liquid_frac * (cp_v - cp_l) + _ice_frac * (cp_v - cp_i)
-
-    # saturation vapor pressure over possible mixture of liquid and ice
-    p_v_sat = saturation_vapor_pressure(param_set, T, LH_0, Δcp)
-
+    p_v_sat = saturation_vapor_pressure(param_set, phase_type, T, q)
     return q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
-
 end
 
 """
