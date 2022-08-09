@@ -1003,13 +1003,13 @@ end
 
 Compute the saturation specific humidity, given a thermodynamic state `ts`.
 """
-q_vap_saturation(param_set::APS, ts::ThermodynamicState) = q_vap_saturation(
-    param_set,
-    air_temperature(param_set, ts),
-    air_density(param_set, ts),
-    typeof(ts),
-    PhasePartition(param_set, ts),
-)
+function q_vap_saturation(param_set::APS, ts::ThermodynamicState)
+    T = air_temperature(param_set, ts)
+    ρ = air_density(param_set, ts)
+    q = PhasePartition(param_set, ts)
+    p_v_sat = saturation_vapor_pressure(param_set, typeof(ts), T, q)
+    return q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
+end
 
 """
     q_vap_saturation_liquid(param_set::APS, ts::ThermodynamicState)
@@ -1017,13 +1017,12 @@ q_vap_saturation(param_set::APS, ts::ThermodynamicState) = q_vap_saturation(
 Compute the saturation specific humidity over liquid,
 given a thermodynamic state `ts`.
 """
-q_vap_saturation_liquid(param_set::APS, ts::ThermodynamicState) =
-    q_vap_saturation_generic(
-        param_set,
-        air_temperature(param_set, ts),
-        air_density(param_set, ts),
-        Liquid(),
-    )
+function q_vap_saturation_liquid(param_set::APS, ts::ThermodynamicState)
+    T = air_temperature(param_set, ts)
+    ρ = air_density(param_set, ts)
+    p_v_sat = saturation_vapor_pressure(param_set, T, Liquid())
+    return q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
+end
 
 """
     q_vap_saturation_ice(param_set::APS, ts::ThermodynamicState)
@@ -1031,13 +1030,12 @@ q_vap_saturation_liquid(param_set::APS, ts::ThermodynamicState) =
 Compute the saturation specific humidity over ice,
 given a thermodynamic state `ts`.
 """
-q_vap_saturation_ice(param_set::APS, ts::ThermodynamicState) =
-    q_vap_saturation_generic(
-        param_set,
-        air_temperature(param_set, ts),
-        air_density(param_set, ts),
-        Ice(),
-    )
+function q_vap_saturation_ice(param_set::APS, ts::ThermodynamicState)
+    T = air_temperature(param_set, ts)
+    ρ = air_density(param_set, ts)
+    p_v_sat = saturation_vapor_pressure(param_set, T, Ice())
+    return q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
+end
 
 """
     q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
@@ -1156,10 +1154,22 @@ function saturation_excess(
     param_set::APS,
     T::FT,
     ρ::FT,
+    p_vap_sat::FT,
+    q::PhasePartition{FT},
+) where {FT <: Real}
+    q_vap_sat = q_vap_saturation_from_density(param_set, T, ρ, p_vap_sat)
+    return max(0, q.tot - q_vap_sat)
+end
+
+function saturation_excess(
+    param_set::APS,
+    T::FT,
+    ρ::FT,
     ::Type{phase_type},
     q::PhasePartition{FT},
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    return max(0, q.tot - q_vap_saturation(param_set, T, ρ, phase_type, q))
+    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
+    return saturation_excess(param_set, T, ρ, p_vap_sat, q)
 end
 
 """
@@ -1262,6 +1272,7 @@ liquid_fraction(param_set::APS, ts::ThermodynamicState) = liquid_fraction(
 
 """
     PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, liquid_frac)
 
 Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object using the
 [`liquid_fraction`](@ref) function where
@@ -1271,6 +1282,8 @@ Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
+ - `p_vap_sat` saturation vapor pressure
+ - `liquid_frac` liquid fraction
 
 The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
 """
@@ -1279,14 +1292,25 @@ function PhasePartition_equil(
     T::FT,
     ρ::FT,
     q_tot::FT,
+    p_vap_sat::FT,
+    liquid_frac::FT,
+) where {FT <: Real}
+    q_c = saturation_excess(param_set, T, ρ, p_vap_sat, PhasePartition(q_tot)) # condensate specific humidity
+    q_liq = liquid_frac * q_c                                                  # liquid specific humidity
+    q_ice = (1 - liquid_frac) * q_c                                            # ice specific humidity
+    return PhasePartition(q_tot, q_liq, q_ice)
+end
+
+function PhasePartition_equil(
+    param_set::APS,
+    T::FT,
+    ρ::FT,
+    q_tot::FT,
     ::Type{phase_type},
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    _liquid_frac = liquid_fraction(param_set, T, phase_type)                    # fraction of condensate that is liquid
-    q_c = saturation_excess(param_set, T, ρ, phase_type, PhasePartition(q_tot)) # condensate specific humidity
-    q_liq = _liquid_frac * q_c                                                  # liquid specific humidity
-    q_ice = (1 - _liquid_frac) * q_c                                            # ice specific humidity
-
-    return PhasePartition(q_tot, q_liq, q_ice)
+    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
+    liquid_frac = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
+    return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, liquid_frac)
 end
 
 PhasePartition_equil(param_set::APS, ts::AbstractPhaseNonEquil) =
@@ -1328,13 +1352,16 @@ end
 
 PhasePartition(param_set::APS, ts::AbstractPhaseDry{FT}) where {FT <: Real} =
     q_pt_0(FT)
-PhasePartition(param_set::APS, ts::AbstractPhaseEquil) = PhasePartition_equil(
-    param_set,
-    air_temperature(param_set, ts),
-    air_density(param_set, ts),
-    total_specific_humidity(param_set, ts),
-    typeof(ts),
-)
+function PhasePartition(param_set::APS, ts::AbstractPhaseEquil)
+    T = air_temperature(param_set, ts)
+    ρ = air_density(param_set, ts)
+    q_tot = total_specific_humidity(param_set, ts)
+    phase_type = typeof(ts)
+    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
+    liquid_frac = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
+
+    return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, liquid_frac)
+end
 PhasePartition(param_set::APS, ts::AbstractPhaseNonEquil) = ts.q
 
 function ∂e_int_∂T(
@@ -1358,11 +1385,12 @@ function ∂e_int_∂T(
     T_i::FT = TP.T_icenuc(param_set)
     n_i::FT = TP.pow_icenuc(param_set)
 
-    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
+    λ = liquid_fraction(param_set, T, phase_type)
+    q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
     q_c = condensate(q)
     cvm = cv_m(param_set, q)
-    q_vap_sat = q_vap_saturation(param_set, T, ρ, phase_type)
-    λ = liquid_fraction(param_set, T, phase_type)
+    q_vap_sat = q_vap_saturation_from_density(param_set, T, ρ, p_vap_sat)
     L = λ * LH_v0 + (1 - λ) * LH_s0
 
     ∂λ_∂T = (T_i < T < T_f) ? (1 / (T_f - T_i))^n_i * n_i * T^(n_i - 1) : FT(0)
