@@ -923,6 +923,10 @@ function saturation_vapor_pressure(
     return saturation_vapor_pressure(param_set, T, LH_0, Δcp)
 end
 
+# we may be hitting a slow path:
+# https://stackoverflow.com/questions/14687665/very-slow-stdpow-for-bases-very-close-to-1
+pow_hack(x, y) = exp(y * log(x))
+
 function saturation_vapor_pressure(
     param_set::APS,
     T::FT,
@@ -935,7 +939,8 @@ function saturation_vapor_pressure(
     T_0::FT = TP.T_0(param_set)
 
     return press_triple *
-           (T / T_triple)^(Δcp / R_v) *
+           # (T / T_triple)^(Δcp / R_v) *
+           pow_hack(T / T_triple, Δcp / R_v) *
            exp((LH_0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T))
 
 end
