@@ -12,24 +12,31 @@ import BenchmarkTools
 
 import CLIMAParameters
 const CP = CLIMAParameters
-const FT = Float64
-toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-const param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+function get_parameter_set(::Type{FT}) where {FT}
+    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
+    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
+    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
+    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+    # logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
+    # CP.log_parameter_information(toml_dict, logfilepath)
+    return param_set
+end
 
 #####
 ##### Finding indexes in profiles satisfying certain conditions
 #####
 
-function find_freezing_index(profiles)
+function find_freezing_index(profiles, param_set)
     i = findfirst(T -> T === TP.T_freeze(param_set), profiles.T)
     isnothing(i) && error("Freezing index not found")
     return i
 end
 
 function find_dry(profiles)
-    i = findfirst(q_tot -> q_tot === 0.0, profiles.q_tot)
+    i = findfirst(
+        q_tot -> q_tot === Float64(0) || q_tot === Float32(0),
+        profiles.q_tot,
+    )
     isnothing(i) && error("Dry index not found")
     return i
 end
@@ -40,7 +47,7 @@ function find_moist_index(profiles)
     return i
 end
 
-function find_sat_adjust_index(profiles, f::TDC) where {TDC}
+function find_sat_adjust_index(profiles, param_set, f::TDC) where {TDC}
     kwargs = get_kwargs(profiles, f)
     ts = f.(param_set, values(kwargs)...) # TDC is the thermo constructor
     T_sa = TD.air_temperature.(param_set, ts)
@@ -59,13 +66,13 @@ some condition. For example, find the index that we're
 sure that saturation adjustment is performed for a given
 (profiles.p[i], profiles.θ_liq_ice[i], profiles.q_tot[i]).
 =#
-function conditions_index(profiles, sym, constructor)
+function conditions_index(profiles, param_set, sym, constructor)
     i = if sym == :dry
         find_dry(profiles)
     elseif sym == :freezing
-        find_freezing_index(profiles)
+        find_freezing_index(profiles, param_set)
     elseif sym == :sat_adjust
-        find_sat_adjust_index(profiles, constructor)
+        find_sat_adjust_index(profiles, param_set, constructor)
     elseif sym == :moist
         find_moist_index(profiles)
     else
@@ -74,8 +81,8 @@ function conditions_index(profiles, sym, constructor)
     return i
 end
 
-function sample_args(profiles, sym, constructor)
-    i = conditions_index(profiles, sym, constructor)
+function sample_args(profiles, param_set, sym, constructor)
+    i = conditions_index(profiles, param_set, sym, constructor)
     kwargs = get_kwargs(profiles, constructor)
     return getindex.(values(kwargs), i)
 end
@@ -139,7 +146,6 @@ function tabulate_summary(summary)
         ],
     )
 
-    println()
     PrettyTables.pretty_table(
         table_data;
         header,

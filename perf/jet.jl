@@ -4,8 +4,9 @@ include("common_micro_bm.jl")
 # so we disable them here.
 TD.print_warning() = false
 
-function jet_thermo_states()
-    ArrayType = Array{Float64}
+function jet_thermo_states(::Type{FT}) where {FT}
+    param_set = get_parameter_set(FT)
+    ArrayType = Array{FT}
     profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
 
     @testset "JET tests" begin
@@ -20,11 +21,11 @@ function jet_thermo_states()
             TD.PhaseEquil_ρpq,
         )
             for cond in conditions(C)
-                args = sample_args(profiles, cond, C)
+                args = sample_args(profiles, param_set, cond, C)
                 JET.@test_opt C(param_set, args...)
             end
         end
     end
 end
 
-jet_thermo_states()
+jet_thermo_states(Float32)
