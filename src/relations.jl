@@ -2488,7 +2488,8 @@ function exner_given_pressure(
     _R_m = gas_constant_air(param_set, q)
     _cp_m = cp_m(param_set, q)
 
-    return (p / MSLP)^(_R_m / _cp_m)
+    # return (p / MSLP)^(_R_m / _cp_m)
+    return pow_hack(p / MSLP, _R_m / _cp_m)
 end
 
 """
