@@ -1450,7 +1450,8 @@ end
         q_tot,
         phase_type,
         maxiter,
-        temperature_tol
+        temperature_tol,
+        T_guess,
     )
 
 Compute the temperature that is consistent with
@@ -1464,6 +1465,7 @@ Compute the temperature that is consistent with
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
  - `temperature_tol` temperature tolerance
+ - `T_guess` initial temperature guess
 
 by finding the root of
 
@@ -1482,6 +1484,7 @@ function saturation_adjustment(
     ::Type{phase_type},
     maxiter::Int,
     temperature_tol::FT,
+    T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
     cv_d::FT = TP.cv_d(param_set)
@@ -1511,6 +1514,7 @@ function saturation_adjustment(
             e_int,
             q_tot,
             phase_type,
+            T_guess,
         ),
         solution_type(),
         tol,
@@ -1522,6 +1526,7 @@ function saturation_adjustment(
             KA.@print("-----------------------------------------\n")
             KA.@print("maxiter reached in saturation_adjustment:\n")
             print_numerical_method(sat_adjust_method)
+            print_T_guess(sat_adjust_method, T_guess)
             KA.@print(", e_int=", e_int)
             KA.@print(", ρ=", ρ)
             KA.@print(", q_tot=", q_tot)
@@ -1545,7 +1550,8 @@ end
         q_tot,
         phase_type,
         maxiter,
-        temperature_tol
+        temperature_tol,
+        T_guess,
     )
 
 Compute the temperature that is consistent with
@@ -1559,6 +1565,7 @@ Compute the temperature that is consistent with
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
  - `temperature_tol` temperature tolerance
+ - `T_guess` initial temperature guess
 
 by finding the root of
 
@@ -1579,6 +1586,7 @@ function saturation_adjustment_given_peq(
     ::Type{phase_type},
     maxiter::Int,
     temperature_tol::FT,
+    T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
     cv_d = FT(TP.cv_d(param_set))
@@ -1611,6 +1619,7 @@ function saturation_adjustment_given_peq(
             e_int,
             q_tot,
             phase_type,
+            T_guess,
         ),
         RS.CompactSolution(),
         tol,
@@ -1621,6 +1630,7 @@ function saturation_adjustment_given_peq(
             KA.@print("-----------------------------------------\n")
             KA.@print("maxiter reached in saturation_adjustment_peq:\n")
             print_numerical_method(sat_adjust_method)
+            print_T_guess(sat_adjust_method, T_guess)
             KA.@print(", e_int=", e_int)
             KA.@print(", p=", p)
             KA.@print(", q_tot=", q_tot)
@@ -1646,6 +1656,7 @@ end
         phase_type,
         maxiter,
         temperature_tol
+        T_guess,
     )
 
 Compute the temperature that is consistent with
@@ -1659,6 +1670,7 @@ Compute the temperature that is consistent with
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
  - `temperature_tol` temperature tolerance
+ - `T_guess` initial temperature guess
 
 by finding the root of
 
@@ -1679,6 +1691,7 @@ function saturation_adjustment_given_phq(
     ::Type{phase_type},
     maxiter::Int,
     temperature_tol::FT,
+    T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
     cp_d::FT = TP.cp_d(param_set)
@@ -1719,6 +1732,7 @@ function saturation_adjustment_given_phq(
             h,
             q_tot,
             phase_type,
+            T_guess,
         ),
         RS.CompactSolution(),
         tol,
@@ -1729,6 +1743,7 @@ function saturation_adjustment_given_phq(
             KA.@print("-----------------------------------------\n")
             KA.@print("maxiter reached in saturation_adjustment_phq:\n")
             print_numerical_method(sat_adjust_method)
+            print_T_guess(sat_adjust_method, T_guess)
             KA.@print(", h=", h)
             KA.@print(", p=", p)
             KA.@print(", q_tot=", q_tot)
@@ -1752,7 +1767,8 @@ end
         q_tot,
         phase_type,
         maxiter,
-        temperature_tol
+        temperature_tol,
+        T_guess,
     )
 Compute the temperature that is consistent with
  - `sat_adjust_method` the numerical method to use.
@@ -1764,6 +1780,7 @@ Compute the temperature that is consistent with
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
  - `temperature_tol` temperature tolerance
+ - `T_guess` initial temperature guess
 by finding the root of
 
 ```
@@ -1786,6 +1803,7 @@ function saturation_adjustment_ρpq(
     ::Type{phase_type},
     maxiter::Int,
     temperature_tol::FT = sqrt(eps(FT)),
+    T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.SolutionTolerance(temperature_tol)
     # Use `oftype` to preserve diagonalized type signatures:
@@ -1810,6 +1828,7 @@ function saturation_adjustment_ρpq(
             p,
             q_tot,
             phase_type,
+            T_guess,
         ),
         RS.CompactSolution(),
         tol,
@@ -1820,6 +1839,7 @@ function saturation_adjustment_ρpq(
             KA.@print("-----------------------------------------\n")
             KA.@print("maxiter reached in saturation_adjustment_ρpq:\n")
             print_numerical_method(sat_adjust_method)
+            print_T_guess(sat_adjust_method, T_guess)
             KA.@print(", ρ=", ρ)
             KA.@print(", p=", p)
             KA.@print(", q_tot=", q_tot)
@@ -1867,7 +1887,8 @@ end
         q_tot,
         phase_type,
         maxiter,
-        tol
+        tol,
+        T_guess,
     )
 
 Compute the temperature `T` that is consistent with
@@ -1881,6 +1902,7 @@ Compute the temperature `T` that is consistent with
  - `tol` absolute tolerance for saturation adjustment iterations. Can be one of:
     - `SolutionTolerance()` to stop when `|x_2 - x_1| < tol`
     - `ResidualTolerance()` to stop when `|f(x)| < tol`
+ - `T_guess` initial temperature guess
 
 by finding the root of
 
@@ -1896,6 +1918,7 @@ function saturation_adjustment_given_ρθq(
     ::Type{phase_type},
     maxiter::Int,
     tol::RS.AbstractTolerance,
+    T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
     air_temp(q) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q)
@@ -1949,7 +1972,8 @@ end
         q_tot,
         phase_type,
         maxiter,
-        temperature_tol
+        temperature_tol,
+        T_guess
     )
 
 Compute the temperature `T` that is consistent with
@@ -1961,7 +1985,8 @@ Compute the temperature `T` that is consistent with
  - `phase_type` a thermodynamic state type
  - `temperature_tol` temperature tolerance
  - `maxiter` maximum iterations for non-linear equation solve
-- `sat_adjust_method` the numerical method to use.
+ - `sat_adjust_method` the numerical method to use.
+ - `T_guess` initial temperature guess
 
 by finding the root of
 
@@ -1978,6 +2003,7 @@ function saturation_adjustment_given_pθq(
     ::Type{phase_type},
     maxiter::Int,
     temperature_tol::FT,
+    T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.ResidualTolerance(temperature_tol)
     T_min::FT = TP.T_min(param_set)
@@ -2023,6 +2049,7 @@ function saturation_adjustment_given_pθq(
             θ_liq_ice,
             q_tot,
             phase_type,
+            T_guess,
         ),
         RS.CompactSolution(),
         tol,
@@ -2033,6 +2060,7 @@ function saturation_adjustment_given_pθq(
             KA.@print("-----------------------------------------\n")
             KA.@print("maxiter reached in saturation_adjustment_given_pθq:\n")
             print_numerical_method(sat_adjust_method)
+            print_T_guess(sat_adjust_method, T_guess)
             KA.@print(", p=", p)
             KA.@print(", θ_liq_ice=", θ_liq_ice)
             KA.@print(", q_tot=", q_tot)

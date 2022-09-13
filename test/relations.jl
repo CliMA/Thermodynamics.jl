@@ -1670,6 +1670,42 @@ end
     @test all(phase_type .== (nt.phase_type for nt in profiles))
 end
 
+@testset "Thermodynamics - test T_guess" begin
+    ArrayType = Array{Float64}
+    FT = eltype(ArrayType)
+    param_set = parameter_set(FT)
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
+    @unpack p, ρ, e_int, h, θ_liq_ice, q_tot, T, phase_type = profiles
+    T_guess = T .+ (FT(0.2) .* randn(FT, length(T)))
+    args = (q_tot, 40, FT(1e-1))
+    ts =
+        PhaseEquil_ρeq.(param_set, ρ, e_int, args..., RS.NewtonsMethod, T_guess)
+    ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, args..., T_guess)
+    ts = PhaseEquil_peq.(param_set, p, e_int, args..., RS.SecantMethod, T_guess)
+    ts = PhaseEquil_phq.(param_set, p, h, args..., RS.SecantMethod, T_guess)
+    ts =
+        PhaseEquil_ρpq.(
+            param_set,
+            ρ,
+            p,
+            q_tot,
+            true,
+            40,
+            FT(1e-1),
+            RS.NewtonsMethodAD,
+            T_guess,
+        )
+    ts =
+        PhaseEquil_pθq.(
+            param_set,
+            p,
+            θ_liq_ice,
+            args...,
+            RS.SecantMethod,
+            T_guess,
+        )
+end
+
 rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
 rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)
 

@@ -75,6 +75,7 @@ end
             FT(q_tot[i]),
             true,
             100,
+            FT(sqrt(eps(FT))),
             RS.RegulaFalsiMethod,
         )
         dst[2, i] = TD.air_temperature(param_set, ts_ρpq)
@@ -140,6 +141,7 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
             Array(q_tot),
             true,
             100,
+            sqrt(eps()),
             RS.RegulaFalsiMethod,
         )
     @test all(Array(d_dst)[2, :] .≈ TD.air_temperature.(param_set, ts_correct))
