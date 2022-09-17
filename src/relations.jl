@@ -1489,7 +1489,7 @@ function saturation_adjustment(
     _T_min::FT = TP.T_min(param_set)
     cv_d::FT = TP.cv_d(param_set)
     # Convert temperature tolerance to a convergence criterion on internal energy residuals
-    tol = RS.ResidualTolerance(temperature_tol * cv_d)
+    tol = RS.ResidualTolerance(temperature_tol)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
@@ -1505,8 +1505,20 @@ function saturation_adjustment(
     if e_int_lower < e_int < e_int_upper
         return _T_freeze
     end
+    function roots(T)
+        q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+        return air_temperature(
+        param_set,
+        e_int_sat(T),
+        q_pt,
+    ) - air_temperature(
+        param_set,
+        e_int,
+        q_pt,
+    )
+    end
     sol = RS.find_zero(
-        T -> e_int_sat(T) - e_int,
+        roots,
         sa_numerical_method(
             sat_adjust_method,
             param_set,
