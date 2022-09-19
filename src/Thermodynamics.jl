@@ -74,6 +74,10 @@ print_warning() = true
 
 @inline q_pt_0(::Type{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
 
+@inline solution_type() = RS.CompactSolution()
+include("DataCollection.jl")
+import .DataCollection
+
 include("states.jl")
 include("relations.jl")
 include("isentropic.jl")

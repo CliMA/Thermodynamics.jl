@@ -136,3 +136,9 @@ TemperatureProfiles.DecayingTemperatureProfile
 ```@docs
 Thermodynamics.TestedProfiles
 ```
+
+## Data collection
+
+```@docs
+Thermodynamics.DataCollection
+```

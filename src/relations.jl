@@ -1512,10 +1512,11 @@ function saturation_adjustment(
             q_tot,
             phase_type,
         ),
-        RS.CompactSolution(),
+        solution_type(),
         tol,
         maxiter,
     )
+    DataCollection.log_meta(sol)
     if !sol.converged
         if print_warning()
             KA.@print("-----------------------------------------\n")

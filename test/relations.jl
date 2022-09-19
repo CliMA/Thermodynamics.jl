@@ -1672,3 +1672,17 @@ end
 
 rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
 rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)
+
+TD.solution_type() = RS.VerboseSolution()
+@testset "Test data collection" begin
+    ArrayType = Array{Float64}
+    FT = eltype(ArrayType)
+    param_set = parameter_set(FT)
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
+    @unpack ρ, e_int, q_tot = profiles
+    ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
+    data = TD.DataCollection.get_data()
+    TD.DataCollection.print_summary(data)
+    TD.DataCollection.reset_stats()
+end
+TD.solution_type() = RS.CompactSolution()
