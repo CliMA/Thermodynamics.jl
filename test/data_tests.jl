@@ -5,7 +5,6 @@ using ArtifactWrappers
 # Get dycoms dataset folder:
 dycoms_dataset = ArtifactWrapper(
     @__DIR__,
-    isempty(get(ENV, "CI", "")),
     "dycoms",
     ArtifactFile[ArtifactFile(
         url = "https://caltech.box.com/shared/static/bxau6i46y6ikxn2sy9krgz0sw5vuptfo.nc",
