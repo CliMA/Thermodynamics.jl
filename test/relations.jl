@@ -13,6 +13,7 @@ import RootSolvers
 const RS = RootSolvers
 
 using LinearAlgebra
+import ForwardDiff
 
 const TP = TD.Parameters
 
@@ -515,6 +516,61 @@ end
         ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
         @test all(saturated.(param_set, ts[RH_sat_mask]))
         @test !any(saturated.(param_set, ts[RH_unsat_mask]))
+
+        # test Clausius Clapeyron relation
+        k = findfirst(q -> q > 0.01, q_tot) # test for one value with q_tot above some threshhold
+        ts_sol = TD.PhaseEquil_ρTq(param_set, ρ[k], T[k], q_tot[k])
+
+        function q_vap_sat(_T::FT) where {FT}
+            _ρ = TD.air_density(param_set, ts_sol)
+            _q_tot = TD.total_specific_humidity(param_set, ts_sol)
+            _phase_type = PhaseEquil{FT}
+            _q_pt = PhasePartition_equil(
+                param_set,
+                _T,
+                oftype(_T, _ρ),
+                oftype(_T, _q_tot),
+                _phase_type,
+            )
+            return TD.q_vap_saturation(
+                param_set,
+                _T,
+                oftype(_T, _ρ),
+                _phase_type,
+                _q_pt,
+            )
+        end
+
+        function ∂q_vap_sat_∂T_vs_T(_T::FT) where {FT}
+            _ρ = TD.air_density(param_set, ts_sol)
+            _q_tot = TD.total_specific_humidity(param_set, ts_sol)
+            _phase_type = PhaseEquil{FT}
+            _λ = TD.liquid_fraction(param_set, ts_sol)
+            _q_pt = TD.PhasePartition_equil(
+                param_set,
+                _T,
+                oftype(_T, _ρ),
+                oftype(_T, _q_tot),
+                _phase_type,
+            )
+            _q_vap_sat =
+                TD.q_vap_saturation(param_set, _T, _ρ, _phase_type, _q_pt)
+            return TD.∂q_vap_sat_∂T(
+                param_set,
+                oftype(_T, _λ),
+                _T,
+                oftype(_T, _q_vap_sat),
+            )
+        end
+
+        ∂q_vap_sat_∂T_fd = _T -> ForwardDiff.derivative(q_vap_sat, _T)
+        @test all(
+            isapprox.(
+                log.(∂q_vap_sat_∂T_fd.(T)),
+                log.(∂q_vap_sat_∂T_vs_T.(T));
+                rtol = 2e-2,
+            ),
+        )
 
         # PhaseEquil (freezing)
         _T_freeze = FT(TP.T_freeze(param_set))

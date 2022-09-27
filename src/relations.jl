@@ -223,6 +223,31 @@ vapor_specific_humidity(param_set::APS, ts::ThermodynamicState) =
     vapor_specific_humidity(PhasePartition(param_set, ts))
 
 """
+    ∂q_vap_sat_∂T(param_set, ts)
+
+The change in saturation vapor specific humidity with temperature given by the Clausius Clapeyron relation and the definition of specific humidity `q = p_v/(ρ R_v T)` in terms of vapor pressure `p_v`.
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `ts` ThermodynamicState
+"""
+function ∂q_vap_sat_∂T(
+    param_set::APS,
+    λ::FT,
+    T::FT,
+    q_vap_sat::FT,
+) where {FT <: Real}
+    R_v::FT = TP.R_v(param_set)
+    L = weighted_latent_heat(param_set, T, λ)
+    return q_vap_sat * (L / (R_v * T^2) - 1 / T)
+end
+
+function ∂q_vap_sat_∂T(param_set::APS, ts::ThermodynamicState)
+    λ = liquid_fraction(param_set, ts)
+    T = air_temperature(param_set, ts)
+    q_vap_sat = vapor_specific_humidity(param_set, ts)
+    return ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat)
+end
+
+"""
     cp_m(param_set, q::PhasePartition)
 
 The isobaric specific heat capacity of moist air given
@@ -781,6 +806,19 @@ function latent_heat_generic(
     return LH_0 + Δcp * (T - T_0)
 end
 
+"""
+    weighted_latent_heat(param_set, T, λ)
+
+Weighted latent heats, computed from
+ - `param_set` - a `ThermodynamicsParameters` struct
+ - `T` air temperature
+ - `λ` liquid fraction
+"""
+function weighted_latent_heat(param_set::APS, T::FT, λ::FT) where {FT <: Real}
+    L_v = latent_heat_vapor(param_set, T)
+    L_s = latent_heat_sublim(param_set, T)
+    return λ * L_v + (1 - λ) * L_s
+end
 
 """
     Phase
@@ -911,13 +949,12 @@ function saturation_vapor_pressure(
     cp_l::FT = TP.cp_l(param_set)
     cp_i::FT = TP.cp_i(param_set)
     # get phase partitioning
-    liquid_frac = liquid_fraction(param_set, T, phase_type, q)
-    ice_frac = 1 - liquid_frac
+    λ = liquid_fraction(param_set, T, phase_type, q)
 
     # effective latent heat at T_0 and effective difference in isobaric specific
     # heats of the mixture
-    LH_0 = liquid_frac * LH_v0 + ice_frac * LH_s0
-    Δcp = liquid_frac * (cp_v - cp_l) + ice_frac * (cp_v - cp_i)
+    LH_0 = λ * LH_v0 + (1 - λ) * LH_s0
+    Δcp = λ * (cp_v - cp_l) + (1 - λ) * (cp_v - cp_i)
 
     # saturation vapor pressure over possible mixture of liquid and ice
     return saturation_vapor_pressure(param_set, T, LH_0, Δcp)
@@ -1277,7 +1314,7 @@ liquid_fraction(param_set::APS, ts::ThermodynamicState) = liquid_fraction(
 
 """
     PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
-    PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, liquid_frac)
+    PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 
 Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object using the
 [`liquid_fraction`](@ref) function where
@@ -1288,7 +1325,7 @@ Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
  - `p_vap_sat` saturation vapor pressure
- - `liquid_frac` liquid fraction
+ - `λ` liquid fraction
 
 The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
 """
@@ -1298,11 +1335,11 @@ function PhasePartition_equil(
     ρ::FT,
     q_tot::FT,
     p_vap_sat::FT,
-    liquid_frac::FT,
+    λ::FT,
 ) where {FT <: Real}
     q_c = saturation_excess(param_set, T, ρ, p_vap_sat, PhasePartition(q_tot)) # condensate specific humidity
-    q_liq = liquid_frac * q_c                                                  # liquid specific humidity
-    q_ice = (1 - liquid_frac) * q_c                                            # ice specific humidity
+    q_liq = λ * q_c                                                            # liquid specific humidity
+    q_ice = (1 - λ) * q_c                                                      # ice specific humidity
     return PhasePartition(q_tot, q_liq, q_ice)
 end
 
@@ -1314,8 +1351,8 @@ function PhasePartition_equil(
     ::Type{phase_type},
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
-    liquid_frac = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
-    return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, liquid_frac)
+    λ = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
+    return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 end
 
 PhasePartition_equil(param_set::APS, ts::AbstractPhaseNonEquil) =
@@ -1363,9 +1400,9 @@ function PhasePartition(param_set::APS, ts::AbstractPhaseEquil)
     q_tot = total_specific_humidity(param_set, ts)
     phase_type = typeof(ts)
     p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
-    liquid_frac = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
+    λ = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
 
-    return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, liquid_frac)
+    return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 end
 PhasePartition(param_set::APS, ts::AbstractPhaseNonEquil) = ts.q
 
@@ -1377,9 +1414,6 @@ function ∂e_int_∂T(
     q_tot::FT,
     ::Type{phase_type},
 ) where {FT <: Real, phase_type <: PhaseEquil}
-    LH_v0::FT = TP.LH_v0(param_set)
-    LH_s0::FT = TP.LH_s0(param_set)
-    R_v::FT = TP.R_v(param_set)
     T_0::FT = TP.T_0(param_set)
     cv_v::FT = TP.cv_v(param_set)
     cv_l::FT = TP.cv_l(param_set)
@@ -1396,14 +1430,14 @@ function ∂e_int_∂T(
     q_c = condensate(q)
     cvm = cv_m(param_set, q)
     q_vap_sat = q_vap_saturation_from_density(param_set, T, ρ, p_vap_sat)
-    L = λ * LH_v0 + (1 - λ) * LH_s0
+    L = weighted_latent_heat(param_set, T, λ)
 
     ∂λ_∂T = (T_i < T < T_f) ? (1 / (T_f - T_i))^n_i * n_i * T^(n_i - 1) : FT(0)
-    ∂q_vap_sat_∂T = q_vap_sat * L / (R_v * T^2)
+    _∂q_vap_sat_∂T = ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat)
     dcvm_dq_vap = cv_v - λ * cv_l - (1 - λ) * cv_i
     return cvm +
            (e_int_v0 + (1 - λ) * e_int_i0 + (T - T_0) * dcvm_dq_vap) *
-           ∂q_vap_sat_∂T +
+           _∂q_vap_sat_∂T +
            q_c * e_int_i0 * ∂λ_∂T
 end
 
@@ -2843,7 +2877,7 @@ end
 """
     partial_pressure_dry(param_set, p, q)
 
-The specific entropy of water vapor, given
+The partial pressure of water vapor, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
@@ -2862,7 +2896,7 @@ end
 """
     partial_pressure_vapor(param_set, p, q)
 
-The specific entropy of water vapor, given
+The partial pressure of water vapor, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure

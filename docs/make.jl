@@ -14,6 +14,7 @@ pages = Any[
     "Tested profiles" => "TestedProfiles.md",
     "Temperature profiles" => "TemperatureProfiles.md",
     "Developer docs" => "DevDocs.md",
+    "Clausius Clapeyron relation" => "Clausius_Clapeyron.md",
     "Thermodynamics overview" => "Formulation.md",
     "References" => "References.md",
 ]
