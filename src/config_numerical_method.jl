@@ -21,6 +21,17 @@ function print_numerical_method(
     end
 end
 
+function print_T_guess(
+    ::Type{sat_adjust_method},
+    T_guess::TT,
+) where {sat_adjust_method, TT <: Union{Real, Nothing}}
+    if sat_adjust_method <: RS.NewtonsMethod
+        KA.@print(", T_guess=", T_guess)
+    elseif sat_adjust_method <: RS.NewtonsMethodAD
+        KA.@print(", T_guess=", T_guess)
+    end
+end
+
 #####
 ##### Thermodynamic variable inputs: ρ, e_int, q_tot
 #####
@@ -31,10 +42,14 @@ function sa_numerical_method(
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
-    T_init =
+    T_init = if T_guess isa Nothing
         max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+    else
+        T_guess
+    end
     return RS.NewtonsMethod(
         T_init,
         T_ -> ∂e_int_∂T(param_set, heavisided(T_), e_int, ρ, q_tot, phase_type),
@@ -48,10 +63,14 @@ function sa_numerical_method(
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::FT,
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
-    T_init =
+    T_init = if T_guess isa Nothing
         max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+    else
+        T_guess
+    end
     return RS.NewtonsMethodAD(T_init)
 end
 
@@ -62,6 +81,7 @@ function sa_numerical_method(
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
@@ -78,6 +98,7 @@ function sa_numerical_method(
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
@@ -98,9 +119,14 @@ function sa_numerical_method_ρpq(
     p::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     q_pt = PhasePartition(q_tot)
-    T_init = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt)
+    T_init = if T_guess isa Nothing
+        air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt)
+    else
+        T_guess
+    end
     return RS.NewtonsMethodAD(T_init)
 end
 
@@ -111,6 +137,7 @@ function sa_numerical_method_ρpq(
     p::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     q_pt = PhasePartition(q_tot)
     T_1 = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt) - 5
@@ -129,10 +156,14 @@ function sa_numerical_method_peq(
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
-    T_init =
+    T_init = if T_guess isa Nothing
         max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+    else
+        T_guess
+    end
     return RS.NewtonsMethodAD(T_init)
 end
 
@@ -143,6 +174,7 @@ function sa_numerical_method_peq(
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
@@ -163,12 +195,17 @@ function sa_numerical_method_phq(
     h::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
-    T_init = max(
-        T_min,
-        air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot)),
-    ) # Assume all vapor
+    T_init = if T_guess isa Nothing # Assume all vapor
+        max(
+            T_min,
+            air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot)),
+        )
+    else
+        T_guess
+    end
     return RS.NewtonsMethodAD(T_init)
 end
 
@@ -179,6 +216,7 @@ function sa_numerical_method_phq(
     h::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
@@ -198,6 +236,7 @@ function sa_numerical_method_phq(
     h::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
@@ -221,6 +260,7 @@ function sa_numerical_method_pθq(
     θ_liq_ice::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
     _T_max::FT = TP.T_max(param_set)
@@ -238,6 +278,7 @@ function sa_numerical_method_pθq(
     θ_liq_ice::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
@@ -254,9 +295,14 @@ function sa_numerical_method_pθq(
     θ_liq_ice::FT,
     q_tot::FT,
     ::Type{phase_type},
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
-    T_init = max(T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
+    T_init = if T_guess isa Nothing
+        max(T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
+    else
+        T_guess
+    end
     return RS.NewtonsMethodAD(T_init)
 end
