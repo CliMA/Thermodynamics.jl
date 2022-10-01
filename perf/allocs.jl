@@ -7,12 +7,8 @@ import RootSolvers
 import CLIMAParameters
 import ReportMetrics
 
-dirs_to_monitor = [
-    ".",
-    pkgdir(Thermodynamics),
-    pkgdir(RootSolvers),
-    pkgdir(CLIMAParameters),
-]
+dirs_to_monitor =
+    [".", pkgdir(Thermodynamics), pkgdir(RootSolvers), pkgdir(CLIMAParameters)]
 
 for constructor in ["ρeq", "pθq", "pTq"]
     ENV["ALLOCATION_CONSTRUCTOR"] = constructor

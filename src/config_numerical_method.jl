@@ -23,8 +23,8 @@ end
 
 function print_T_guess(
     ::Type{sat_adjust_method},
-    T_guess::Union{FT, Nothing},
-) where {sat_adjust_method, FT <: Real}
+    T_guess::TT,
+) where {sat_adjust_method, TT <: Union{Real, Nothing}}
     if sat_adjust_method <: RS.NewtonsMethod
         KA.@print(", T_guess=", T_guess)
     elseif sat_adjust_method <: RS.NewtonsMethodAD
