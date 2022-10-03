@@ -26,7 +26,7 @@ function get_parameter_set(::Type{FT}) where {FT}
     param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
     param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
     logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
-    CP.log_parameter_information(toml_dict, logfilepath)
+    # CP.log_parameter_information(toml_dict, logfilepath)
     return param_set
 end
 
@@ -1705,9 +1705,6 @@ end
             T_guess,
         )
 end
-
-rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
-rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)
 
 TD.solution_type() = RS.VerboseSolution()
 @testset "Test data collection" begin
