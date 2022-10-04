@@ -1487,9 +1487,7 @@ function saturation_adjustment(
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
-    cv_d::FT = TP.cv_d(param_set)
-    # Convert temperature tolerance to a convergence criterion on internal energy residuals
-    tol = RS.ResidualTolerance(temperature_tol * cv_d)
+    tol = RS.SolutionTolerance(temperature_tol)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
@@ -1589,9 +1587,7 @@ function saturation_adjustment_given_peq(
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
-    cv_d = FT(TP.cv_d(param_set))
-    # Convert temperature tolerance to a convergence criterion on internal energy residuals
-    tol = RS.ResidualTolerance(temperature_tol * cv_d)
+    tol = RS.SolutionTolerance(temperature_tol)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     ρ_T(T) = air_density(param_set, T, p, PhasePartition(q_tot))
@@ -1694,9 +1690,7 @@ function saturation_adjustment_given_phq(
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
-    cp_d::FT = TP.cp_d(param_set)
-    # Convert temperature tolerance to a convergence criterion on internal energy residuals
-    tol = RS.ResidualTolerance(temperature_tol * cp_d)
+    tol = RS.SolutionTolerance(temperature_tol)
 
     T_1 = max(
         _T_min,
