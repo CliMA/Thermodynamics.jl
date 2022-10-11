@@ -1450,7 +1450,7 @@ end
         q_tot,
         phase_type,
         maxiter,
-        temperature_tol,
+        relative_temperature_tol,
         T_guess,
     )
 
@@ -1464,7 +1464,7 @@ Compute the temperature that is consistent with
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
- - `temperature_tol` temperature tolerance
+ - `relative_temperature_tol` relative temperature tolerance
  - `T_guess` initial temperature guess
 
 by finding the root of
@@ -1483,11 +1483,11 @@ function saturation_adjustment(
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    temperature_tol::FT,
+    relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
-    tol = RS.SolutionTolerance(temperature_tol)
+    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
@@ -1498,6 +1498,7 @@ function saturation_adjustment(
     _T_freeze::FT = TP.T_freeze(param_set)
     e_int_sat(T) =
         internal_energy_sat(param_set, heavisided(T), ρ, q_tot, phase_type)
+    temperature_tol = _T_freeze * relative_temperature_tol
     e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     e_int_lower = e_int_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     if e_int_lower < e_int < e_int_upper
@@ -1548,7 +1549,7 @@ end
         q_tot,
         phase_type,
         maxiter,
-        temperature_tol,
+        relative_temperature_tol,
         T_guess,
     )
 
@@ -1562,7 +1563,7 @@ Compute the temperature that is consistent with
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
- - `temperature_tol` temperature tolerance
+ - `relative_temperature_tol` relative temperature tolerance
  - `T_guess` initial temperature guess
 
 by finding the root of
@@ -1583,11 +1584,11 @@ function saturation_adjustment_given_peq(
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    temperature_tol::FT,
+    relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
-    tol = RS.SolutionTolerance(temperature_tol)
+    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     ρ_T(T) = air_density(param_set, T, p, PhasePartition(q_tot))
@@ -1601,6 +1602,7 @@ function saturation_adjustment_given_peq(
     e_int_sat(T) =
         internal_energy_sat(param_set, heavisided(T), ρ_T(T), q_tot, phase_type)
 
+    temperature_tol = _T_freeze * relative_temperature_tol
     e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     e_int_lower = e_int_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     if e_int_lower < e_int < e_int_upper
@@ -1651,7 +1653,7 @@ end
         q_tot,
         phase_type,
         maxiter,
-        temperature_tol
+        relative_temperature_tol
         T_guess,
     )
 
@@ -1665,7 +1667,7 @@ Compute the temperature that is consistent with
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
- - `temperature_tol` temperature tolerance
+ - `relative_temperature_tol` relative temperature tolerance
  - `T_guess` initial temperature guess
 
 by finding the root of
@@ -1686,11 +1688,11 @@ function saturation_adjustment_given_phq(
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    temperature_tol::FT,
+    relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
-    tol = RS.SolutionTolerance(temperature_tol)
+    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
     T_1 = max(
         _T_min,
@@ -1712,6 +1714,7 @@ function saturation_adjustment_given_phq(
         phase_type,
     )
 
+    temperature_tol = _T_freeze * relative_temperature_tol
     h_upper = h_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     h_lower = h_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     if h_lower < h < h_upper
@@ -1761,7 +1764,7 @@ end
         q_tot,
         phase_type,
         maxiter,
-        temperature_tol,
+        relative_temperature_tol,
         T_guess,
     )
 Compute the temperature that is consistent with
@@ -1773,7 +1776,7 @@ Compute the temperature that is consistent with
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
- - `temperature_tol` temperature tolerance
+ - `relative_temperature_tol` relative temperature tolerance
  - `T_guess` initial temperature guess
 by finding the root of
 
@@ -1796,10 +1799,10 @@ function saturation_adjustment_ρpq(
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    temperature_tol::FT = sqrt(eps(FT)),
+    relative_temperature_tol::FT = sqrt(eps(FT)),
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
-    tol = RS.SolutionTolerance(temperature_tol)
+    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     # Use `oftype` to preserve diagonalized type signatures:
     sol = RS.find_zero(
         T ->
@@ -1894,8 +1897,9 @@ Compute the temperature `T` that is consistent with
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
  - `tol` absolute tolerance for saturation adjustment iterations. Can be one of:
-    - `SolutionTolerance()` to stop when `|x_2 - x_1| < tol`
+    - `RelativeSolutionTolerance()` to stop when `|x_2 - x_1| < tol`
     - `ResidualTolerance()` to stop when `|f(x)| < tol`
+    - `RelativeRelativeSolutionTolerance()` to stop when `|x_2 - x_1|/x_1 < tol`
  - `T_guess` initial temperature guess
 
 by finding the root of
@@ -1966,7 +1970,7 @@ end
         q_tot,
         phase_type,
         maxiter,
-        temperature_tol,
+        relative_temperature_tol,
         T_guess
     )
 
@@ -1977,7 +1981,7 @@ Compute the temperature `T` that is consistent with
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
- - `temperature_tol` temperature tolerance
+ - `relative_temperature_tol` relative temperature tolerance
  - `maxiter` maximum iterations for non-linear equation solve
  - `sat_adjust_method` the numerical method to use.
  - `T_guess` initial temperature guess
@@ -1996,10 +2000,10 @@ function saturation_adjustment_given_pθq(
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    temperature_tol::FT,
+    relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
-    tol = RS.ResidualTolerance(temperature_tol)
+    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T_min::FT = TP.T_min(param_set)
     T_freeze::FT = TP.T_freeze(param_set)
     cp_d::FT = TP.cp_d(param_set)
@@ -2028,6 +2032,7 @@ function saturation_adjustment_given_pθq(
     if unsaturated && T_1 > T_min
         return T_1
     end
+    temperature_tol = T_freeze * relative_temperature_tol
     θ_liq_ice_upper = θ_liq_ice_closure(T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     θ_liq_ice_lower = θ_liq_ice_closure(T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     if θ_liq_ice_lower < θ_liq_ice < θ_liq_ice_upper
@@ -2308,7 +2313,7 @@ Computes temperature `T` given
  - `θ_liq_ice` liquid-ice potential temperature
  - `ρ` (moist-)air density
  - `tol` absolute tolerance for non-linear equation iterations. Can be one of:
-    - `SolutionTolerance()` to stop when `|x_2 - x_1| < tol`
+    - `RelativeSolutionTolerance()` to stop when `|x_2 - x_1|/x_1 < tol`
     - `ResidualTolerance()` to stop when `|f(x)| < tol`
  - `maxiter` maximum iterations for non-linear equation solve
 and, optionally,
