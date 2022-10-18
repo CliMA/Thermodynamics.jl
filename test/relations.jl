@@ -608,7 +608,7 @@ end
         @test all(air_temperature.(param_set, ts) .== Ref(_T_freeze))
 
         # PhaseEquil
-        ts_exact = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-3))
+        ts_exact = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-6))
         ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
         @test all(
             isapprox.(
@@ -683,7 +683,7 @@ end
                 e_int,
                 q_tot,
                 100,
-                FT(1e-3),
+                FT(1e-6),
                 RS.SecantMethod,
             )
         ts =
@@ -693,7 +693,7 @@ end
                 e_int,
                 q_tot,
                 35,
-                FT(1e-1),
+                FT(1e-4),
                 RS.SecantMethod,
             ) # Needs to be in sync with default
         # Should be machine accurate (because ts contains `e_int`,`ρ`,`q_tot`):
@@ -722,7 +722,7 @@ end
         )
 
         # PhaseEquil_ρθq
-        ts_exact = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-3))
+        ts_exact = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-6))
         ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot)
         # Should be machine accurate:
         @test all(
@@ -753,7 +753,7 @@ end
         )
 
         # PhaseEquil_pθq
-        ts_exact = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-3))
+        ts_exact = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-6))
         ts = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
 
         ts =
@@ -763,7 +763,7 @@ end
                 θ_liq_ice,
                 q_tot,
                 40,
-                FT(1e-3),
+                FT(1e-4),
                 RS.RegulaFalsiMethod,
             )
         # Should be machine accurate:
@@ -844,7 +844,7 @@ end
         # @show ρ, θ_liq_ice, q_pt
         # PhaseNonEquil_ρθq
         ts_exact =
-            PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt, 40, FT(1e-3))
+            PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt, 40, FT(1e-6))
         ts = PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt)
         # Should be machine accurate:
         @test all(compare_moisture.(param_set, ts, ts_exact))
@@ -1107,7 +1107,7 @@ end
         ts_pθq = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
         @test all(air_pressure.(param_set, ts_pθq) .≈ p)
         # TODO: Run some tests to make sure that this decreses with
-        # decreasing temperature_tol (and increasing maxiter)
+        # decreasing tolerance (and increasing maxiter)
         # @show maximum(abs.(liquid_ice_pottemp.(param_set, ts_pθq) .- θ_liq_ice))
         @test all(
             isapprox.(
@@ -1373,7 +1373,7 @@ end
     @test typeof.(internal_energy.(ρ, ρ .* e_int, Ref(ρu), e_pot)) ==
           typeof.(e_int)
 
-    ts_eq = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 15, FT(1e-1))
+    ts_eq = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 15, FT(1e-4))
     e_tot = total_energy.(param_set, ts_eq, e_kin, e_pot)
 
     ts_T =
@@ -1413,9 +1413,9 @@ end
     ts_pT_neq = PhaseNonEquil_pTq.(param_set, p, T, q_pt)
 
     ts_θ_liq_ice_eq =
-        PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-3))
+        PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-4))
     ts_θ_liq_ice_eq_p =
-        PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-3))
+        PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-4))
     ts_θ_liq_ice_neq = PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt)
     ts_θ_liq_ice_neq_p = PhaseNonEquil_pθq.(param_set, p, θ_liq_ice, q_pt)
 
@@ -1691,7 +1691,7 @@ end
             q_tot,
             true,
             40,
-            FT(1e-1),
+            FT(1e-4),
             RS.NewtonsMethodAD,
             T_guess,
         )
