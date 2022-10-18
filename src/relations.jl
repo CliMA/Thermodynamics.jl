@@ -62,8 +62,10 @@ export specific_entropy
 export saturated
 
 heavisided(x) = (x > 0) * x
-freezing_temperature_tol(tol::RS.ResidualTolerance, ::Type{FT}) = tol.tol
-freezing_temperature_tol(tol::RS.AbstractTolerance, ::Type{FT}) = FT(0.1)
+freezing_temperature_tol(tol::RS.ResidualTolerance, ::Type{FT}) where {FT} =
+    tol.tol
+freezing_temperature_tol(tol::RS.AbstractTolerance, ::Type{FT}) where {FT} =
+    FT(0.1)
 
 """
     gas_constant_air(param_set, [q::PhasePartition])

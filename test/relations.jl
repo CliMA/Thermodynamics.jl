@@ -373,7 +373,7 @@ end
         q_tot,
         phase_type,
         10,
-        rtol_temperature,
+        RS.RelativeSolutionTolerance(rtol_temperature),
     ) ≈ 300.0
     @test abs(
         TD.saturation_adjustment(
@@ -384,7 +384,7 @@ end
             q_tot,
             phase_type,
             10,
-            rtol_temperature,
+            RS.RelativeSolutionTolerance(rtol_temperature),
         ) - 300.0,
     ) < rtol_temperature
 
@@ -399,7 +399,7 @@ end
             q_tot,
             phase_type,
             10,
-            rtol_temperature,
+            RS.RelativeSolutionTolerance(rtol_temperature),
         ),
         200.0,
         rtol = rtol_temperature,
@@ -413,7 +413,7 @@ end
             q_tot,
             phase_type,
             10,
-            rtol_temperature,
+            RS.RelativeSolutionTolerance(rtol_temperature),
         ) - 200.0,
     ) < rtol_temperature
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
@@ -602,13 +602,21 @@ end
                 _e_int,
                 q_tot,
                 8,
-                FT(1e-1),
+                RS.RelativeSolutionTolerance(FT(1e-1)),
                 RS.SecantMethod,
             )
         @test all(air_temperature.(param_set, ts) .== Ref(_T_freeze))
 
         # PhaseEquil
-        ts_exact = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-6))
+        ts_exact =
+            PhaseEquil_ρeq.(
+                param_set,
+                ρ,
+                e_int,
+                q_tot,
+                100,
+                RS.RelativeSolutionTolerance(FT(1e-6)),
+            )
         ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
         @test all(
             isapprox.(
@@ -683,7 +691,7 @@ end
                 e_int,
                 q_tot,
                 100,
-                FT(1e-6),
+                RS.RelativeSolutionTolerance(FT(1e-6)),
                 RS.SecantMethod,
             )
         ts =
@@ -693,7 +701,7 @@ end
                 e_int,
                 q_tot,
                 35,
-                FT(1e-4),
+                nothing,
                 RS.SecantMethod,
             ) # Needs to be in sync with default
         # Should be machine accurate (because ts contains `e_int`,`ρ`,`q_tot`):
@@ -722,7 +730,15 @@ end
         )
 
         # PhaseEquil_ρθq
-        ts_exact = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-6))
+        ts_exact =
+            PhaseEquil_ρθq.(
+                param_set,
+                ρ,
+                θ_liq_ice,
+                q_tot,
+                45,
+                RS.RelativeSolutionTolerance(FT(1e-6)),
+            )
         ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot)
         # Should be machine accurate:
         @test all(
@@ -753,7 +769,15 @@ end
         )
 
         # PhaseEquil_pθq
-        ts_exact = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-6))
+        ts_exact =
+            PhaseEquil_pθq.(
+                param_set,
+                p,
+                θ_liq_ice,
+                q_tot,
+                40,
+                RS.RelativeSolutionTolerance(FT(1e-6)),
+            )
         ts = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
 
         ts =
@@ -763,7 +787,7 @@ end
                 θ_liq_ice,
                 q_tot,
                 40,
-                FT(1e-4),
+                nothing,
                 RS.RegulaFalsiMethod,
             )
         # Should be machine accurate:
@@ -844,7 +868,14 @@ end
         # @show ρ, θ_liq_ice, q_pt
         # PhaseNonEquil_ρθq
         ts_exact =
-            PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt, 40, FT(1e-6))
+            PhaseNonEquil_ρθq.(
+                param_set,
+                ρ,
+                θ_liq_ice,
+                q_pt,
+                40,
+                RS.RelativeSolutionTolerance(FT(1e-6)),
+            )
         ts = PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt)
         # Should be machine accurate:
         @test all(compare_moisture.(param_set, ts, ts_exact))
@@ -895,7 +926,7 @@ end
         q_tot,
         Ref(phase_type),
         2,
-        FT(1e-10),
+        RS.RelativeSolutionTolerance(FT(1e-10)),
     )
 
     @test_throws ErrorException TD.saturation_adjustment.(
@@ -906,7 +937,7 @@ end
         q_tot,
         Ref(phase_type),
         2,
-        FT(1e-10),
+        RS.RelativeSolutionTolerance(FT(1e-10)),
     )
 
     @test_throws ErrorException TD.saturation_adjustment_given_peq.(
@@ -917,7 +948,7 @@ end
         q_tot,
         Ref(phase_type),
         2,
-        FT(1e-10),
+        RS.RelativeSolutionTolerance(FT(1e-10)),
     )
 
     T_virt = T # should not matter: testing for non-convergence
@@ -958,7 +989,7 @@ end
         q_tot,
         Ref(phase_type),
         2,
-        FT(1e-10),
+        RS.RelativeSolutionTolerance(FT(1e-10)),
     )
 
     @test_throws ErrorException TD.saturation_adjustment_given_pθq.(
@@ -969,7 +1000,7 @@ end
         q_tot,
         Ref(phase_type),
         2,
-        FT(1e-10),
+        RS.RelativeSolutionTolerance(FT(1e-10)),
     )
 
     @test_throws ErrorException TD.saturation_adjustment_ρpq.(
@@ -980,7 +1011,7 @@ end
         q_tot,
         Ref(phase_type),
         2,
-        FT(1e-10),
+        RS.RelativeSolutionTolerance(FT(1e-10)),
     )
 
 end
@@ -1068,7 +1099,7 @@ end
                 e_int,
                 q_tot,
                 40,
-                FT(1e-1),
+                RS.RelativeSolutionTolerance(FT(1e-1)),
                 RS.SecantMethod,
             )
         @test all(internal_energy.(param_set, ts) .≈ e_int)
@@ -1204,7 +1235,15 @@ end
         )
 
         # PhaseEquil_ρθq
-        ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-3))
+        ts =
+            PhaseEquil_ρθq.(
+                param_set,
+                ρ,
+                θ_liq_ice,
+                q_tot,
+                45,
+                RS.RelativeSolutionTolerance(FT(1e-3)),
+            )
         @test all(
             isapprox.(
                 liquid_ice_pottemp.(param_set, ts),
@@ -1223,7 +1262,15 @@ end
         # precision for the input pressure.
 
         # PhaseEquil_pθq
-        ts = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 35, FT(1e-3))
+        ts =
+            PhaseEquil_pθq.(
+                param_set,
+                p,
+                θ_liq_ice,
+                q_tot,
+                35,
+                RS.RelativeSolutionTolerance(FT(1e-3)),
+            )
         @test all(
             isapprox.(
                 liquid_ice_pottemp.(param_set, ts),
@@ -1260,7 +1307,15 @@ end
         @test all(total_energy.(param_set, ts, e_kin, e_pot) .≈ e_tot_proposed)
 
         # PhaseNonEquil_ρθq
-        ts = PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt, 5, FT(1e-3))
+        ts =
+            PhaseNonEquil_ρθq.(
+                param_set,
+                ρ,
+                θ_liq_ice,
+                q_pt,
+                5,
+                RS.RelativeSolutionTolerance(FT(1e-3)),
+            )
         @test all(
             isapprox.(
                 θ_liq_ice,
@@ -1373,7 +1428,15 @@ end
     @test typeof.(internal_energy.(ρ, ρ .* e_int, Ref(ρu), e_pot)) ==
           typeof.(e_int)
 
-    ts_eq = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 15, FT(1e-4))
+    ts_eq =
+        PhaseEquil_ρeq.(
+            param_set,
+            ρ,
+            e_int,
+            q_tot,
+            15,
+            RS.RelativeSolutionTolerance(FT(1e-4)),
+        )
     e_tot = total_energy.(param_set, ts_eq, e_kin, e_pot)
 
     ts_T =
@@ -1413,9 +1476,23 @@ end
     ts_pT_neq = PhaseNonEquil_pTq.(param_set, p, T, q_pt)
 
     ts_θ_liq_ice_eq =
-        PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-4))
+        PhaseEquil_ρθq.(
+            param_set,
+            ρ,
+            θ_liq_ice,
+            q_tot,
+            45,
+            RS.RelativeSolutionTolerance(FT(1e-4)),
+        )
     ts_θ_liq_ice_eq_p =
-        PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-4))
+        PhaseEquil_pθq.(
+            param_set,
+            p,
+            θ_liq_ice,
+            q_tot,
+            40,
+            RS.RelativeSolutionTolerance(FT(1e-4)),
+        )
     ts_θ_liq_ice_neq = PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt)
     ts_θ_liq_ice_neq_p = PhaseNonEquil_pθq.(param_set, p, θ_liq_ice, q_pt)
 
@@ -1677,7 +1754,7 @@ end
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack p, ρ, e_int, h, θ_liq_ice, q_tot, T, phase_type = profiles
     T_guess = T .+ (FT(0.2) .* randn(FT, length(T)))
-    args = (q_tot, 40, FT(1e-1))
+    args = (q_tot, 40, RS.RelativeSolutionTolerance(FT(1e-1)))
     ts =
         PhaseEquil_ρeq.(param_set, ρ, e_int, args..., RS.NewtonsMethod, T_guess)
     ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, args..., T_guess)
@@ -1691,7 +1768,7 @@ end
             q_tot,
             true,
             40,
-            FT(1e-4),
+            RS.RelativeSolutionTolerance(FT(1e-4)),
             RS.NewtonsMethodAD,
             T_guess,
         )

@@ -287,7 +287,7 @@ function PhaseEquil_ρeq(
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
     maxiter === nothing && (maxiter = 8)
-    tol === nothing && (tol = RS.RelativeSolutionTolerance(FT(1e-1)))
+    tol === nothing && (tol = RS.RelativeSolutionTolerance(FT(1e-4)))
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment(
