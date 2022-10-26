@@ -259,7 +259,7 @@ struct PhaseEquil{FT} <: AbstractPhaseEquil{FT}
 end
 
 """
-    PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Moist thermodynamic phase, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
@@ -268,7 +268,7 @@ Moist thermodynamic phase, given
  - `q_tot` total specific humidity
 and, optionally
  - `maxiter` maximum iterations for saturation adjustment
- - `temperature_tol` temperature tolerance for saturation adjustment
+ - `relative_temperature_tol` relative temperature tolerance for saturation adjustment
  - `sat_adjust_method` the numerical method to use.
     See the [`Thermodynamics`](@ref) for options.
  - `T_guess` initial guess for temperature in saturation adjustment
@@ -279,12 +279,13 @@ function PhaseEquil_ρeq(
     e_int::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    temperature_tol::FTT = nothing,
+    relative_temperature_tol::FTT = nothing,
     ::Type{sat_adjust_method} = RS.NewtonsMethod,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
     maxiter === nothing && (maxiter = 8)
-    temperature_tol === nothing && (temperature_tol = FT(1e-1))
+    relative_temperature_tol === nothing &&
+        (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment(
@@ -295,7 +296,7 @@ function PhaseEquil_ρeq(
         q_tot_safe,
         phase_type,
         maxiter,
-        temperature_tol,
+        relative_temperature_tol,
         T_guess,
     )
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot_safe, phase_type)
@@ -305,7 +306,7 @@ end
 
 # Convenience method for comparing Numerical
 # methods without having to specify maxiter
-# and temperature_tol. maxiter and temperature_tol
+# and relative_temperature_tol. maxiter and relative_temperature_tol
 # should be in sync with the PhaseEquil(...) constructor
 function PhaseEquil_dev_only(
     param_set::APS,
@@ -313,7 +314,7 @@ function PhaseEquil_dev_only(
     e_int::FT,
     q_tot::FT;
     maxiter::Int = 8,
-    temperature_tol::FT = FT(1e-1),
+    relative_temperature_tol::FT = FT(1e-4),
     sat_adjust_method::Type{NM} = RS.NewtonsMethod,
 ) where {FT <: Real, NM}
     return PhaseEquil_ρeq(
@@ -322,13 +323,13 @@ function PhaseEquil_dev_only(
         e_int,
         q_tot,
         maxiter,
-        temperature_tol,
+        relative_temperature_tol,
         sat_adjust_method,
     )
 end
 
 """
-    PhaseEquil_ρθq(param_set, ρ, θ_liq_ice, q_tot[, maxiter, temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_ρθq(param_set, ρ, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 
@@ -336,7 +337,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
  - `ρ` (moist-)air density
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
- - `temperature_tol` temperature tolerance for saturation adjustment
+ - `relative_temperature_tol` relative temperature tolerance for saturation adjustment
  - `maxiter` maximum iterations for saturation adjustment
  - `T_guess` initial guess for temperature in saturation adjustment
 """
@@ -346,13 +347,14 @@ function PhaseEquil_ρθq(
     θ_liq_ice::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    temperature_tol::FTT = nothing,
+    relative_temperature_tol::FTT = nothing,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
     maxiter === nothing && (maxiter = 36)
-    temperature_tol === nothing && (temperature_tol = FT(1e-1))
+    relative_temperature_tol === nothing &&
+        (relative_temperature_tol = FT(1e-5))
     phase_type = PhaseEquil{FT}
-    tol = RS.ResidualTolerance(temperature_tol)
+    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T = saturation_adjustment_given_ρθq(
         param_set,
         ρ,
@@ -417,7 +419,7 @@ function PhaseEquil_pTq(
 end
 
 """
-    PhaseEquil_peq(param_set, p, e_int, q_tot[, maxiter, temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_peq(param_set, p, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 
@@ -433,12 +435,13 @@ function PhaseEquil_peq(
     e_int::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    temperature_tol::FTT = nothing,
+    relative_temperature_tol::FTT = nothing,
     ::Type{sat_adjust_method} = RS.SecantMethod,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
     maxiter === nothing && (maxiter = 40)
-    temperature_tol === nothing && (temperature_tol = FT(1e-2))
+    relative_temperature_tol === nothing &&
+        (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment_given_peq(
@@ -449,7 +452,7 @@ function PhaseEquil_peq(
         q_tot_safe,
         phase_type,
         maxiter,
-        temperature_tol,
+        relative_temperature_tol,
         T_guess,
     )
     q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
@@ -459,7 +462,7 @@ end
 
 
 """
-    PhaseEquil_phq(param_set, p, h, q_tot[, maxiter, temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_phq(param_set, p, h, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 
@@ -475,12 +478,13 @@ function PhaseEquil_phq(
     h::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    temperature_tol::FTT = nothing,
+    relative_temperature_tol::FTT = nothing,
     ::Type{sat_adjust_method} = RS.SecantMethod,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
     maxiter === nothing && (maxiter = 40)
-    temperature_tol === nothing && (temperature_tol = FT(1e-2))
+    relative_temperature_tol === nothing &&
+        (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment_given_phq(
@@ -491,7 +495,7 @@ function PhaseEquil_phq(
         q_tot_safe,
         phase_type,
         maxiter,
-        temperature_tol,
+        relative_temperature_tol,
         T_guess,
     )
     q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
@@ -526,7 +530,7 @@ function PhaseEquil_ρpq(
     q_tot::FT,
     perform_sat_adjust = false,
     maxiter::Int = 5,
-    temperature_tol::FT = FT(sqrt(eps(FT))),
+    relative_temperature_tol::FT = FT(sqrt(eps(FT))),
     ::Type{sat_adjust_method} = RS.NewtonsMethodAD,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method}
@@ -541,7 +545,7 @@ function PhaseEquil_ρpq(
             q_tot,
             phase_type,
             maxiter,
-            temperature_tol,
+            relative_temperature_tol,
             T_guess,
         )
         q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
@@ -556,7 +560,7 @@ end
 
 
 """
-    PhaseEquil_pθq(param_set, θ_liq_ice, q_tot[, maxiter, temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_pθq(param_set, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 
@@ -564,7 +568,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
  - `p` air pressure
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
- - `temperature_tol` temperature tolerance for saturation adjustment
+ - `relative_temperature_tol` relative temperature tolerance for saturation adjustment
  - `maxiter` maximum iterations for saturation adjustment
  - `sat_adjust_method` the numerical method to use.
  - `T_guess` initial guess for temperature in saturation adjustment
@@ -575,12 +579,13 @@ function PhaseEquil_pθq(
     θ_liq_ice::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    temperature_tol::FTT = nothing,
+    relative_temperature_tol::FTT = nothing,
     ::Type{sat_adjust_method} = RS.SecantMethod,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, IT <: ITERTYPE, FTT <: TOLTYPE(FT), sat_adjust_method}
     maxiter === nothing && (maxiter = 50)
-    temperature_tol === nothing && (temperature_tol = FT(1e-3))
+    relative_temperature_tol === nothing &&
+        (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment_given_pθq(
@@ -591,7 +596,7 @@ function PhaseEquil_pθq(
         q_tot_safe,
         phase_type,
         maxiter,
-        temperature_tol,
+        relative_temperature_tol,
         T_guess,
     )
     q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
@@ -667,7 +672,7 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_pt` phase partition
 and, optionally
- - `potential_temperature_tol` potential temperature for non-linear equation solve
+ - `relative_temperature_tol` potential temperature for non-linear equation solve
  - `maxiter` maximum iterations for non-linear equation solve
 """
 function PhaseNonEquil_ρθq(
@@ -676,10 +681,10 @@ function PhaseNonEquil_ρθq(
     θ_liq_ice::FT,
     q_pt::PhasePartition{FT},
     maxiter::Int = 10,
-    potential_temperature_tol::FT = FT(1e-2),
+    relative_temperature_tol::FT = FT(1e-2),
 ) where {FT <: Real}
     phase_type = PhaseNonEquil{FT}
-    tol = RS.ResidualTolerance(potential_temperature_tol)
+    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T = air_temperature_given_ρθq_nonlinear(
         param_set,
         ρ,
