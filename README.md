@@ -1,5 +1,6 @@
 # Thermodynamics.jl
-A package containing a library of moist thermodynamic relations
+
+Thermodynamics.jl provides flexible and performant functions for computing various thermodynamic variables for dry and moist atmospheres.
 
 |||
 |---------------------:|:----------------------------------------------|
@@ -20,3 +21,4 @@ A package containing a library of moist thermodynamic relations
 [codecov-img]: https://codecov.io/gh/CliMA/Thermodynamics.jl/branch/main/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/CliMA/Thermodynamics.jl
 
+See our documentation [here](https://clima.github.io/Thermodynamics.jl/dev/index).
