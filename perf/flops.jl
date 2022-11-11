@@ -18,30 +18,12 @@ end
 
 function summarize_flops(flops)
     fnames = collect(keys(flops))
-    header = (["Function", keys(flops[first(fnames)])...],)
-    flops_neg = map(x -> flops[x]["neg"], fnames)
-    flops_add = map(x -> flops[x]["add"], fnames)
-    flops_sub = map(x -> flops[x]["sub"], fnames)
-    flops_muladd = map(x -> flops[x]["muladd"], fnames)
-    flops_fma = map(x -> flops[x]["fma"], fnames)
-    flops_mul = map(x -> flops[x]["mul"], fnames)
-    flops_div = map(x -> flops[x]["div"], fnames)
-    flops_rem = map(x -> flops[x]["rem"], fnames)
-    flops_sqrt = map(x -> flops[x]["sqrt"], fnames)
-    flops_abs = map(x -> flops[x]["abs"], fnames)
-    table_data = hcat(
-        fnames,
-        flops_neg,
-        flops_add,
-        flops_sub,
-        flops_muladd,
-        flops_fma,
-        flops_mul,
-        flops_div,
-        flops_rem,
-        flops_sqrt,
-        flops_abs,
-    )
+    flop_types = keys(flops[first(fnames)])
+    header = (["Function", flop_types...],)
+    flop_vals = map(collect(flop_types)) do ft
+        map(x -> flops[x][ft], fnames)
+    end
+    table_data = hcat(fnames, flop_vals...)
 
     PrettyTables.pretty_table(
         table_data;
