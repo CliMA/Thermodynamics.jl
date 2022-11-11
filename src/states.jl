@@ -75,6 +75,9 @@ struct PhasePartition{FT <: Real}
     end
 end
 
+Base.zero(::Type{PhasePartition{FT}}) where {FT} =
+    PhasePartition(FT(0), FT(0), FT(0))
+
 PhasePartition(q_tot::FT, q_liq::FT) where {FT <: Real} =
     PhasePartition(q_tot, q_liq, zero(FT))
 PhasePartition(q_tot::FT) where {FT <: Real} =
@@ -108,6 +111,8 @@ struct PhaseDry{FT} <: AbstractPhaseDry{FT}
     ρ::FT
 end
 PhaseDry(param_set::APS, e_int::FT, ρ::FT) where {FT} = PhaseDry{FT}(e_int, ρ)
+
+Base.zero(::Type{PhaseDry{FT}}) where {FT} = PhaseDry{FT}(0, 0)
 
 """
     PhaseDry_ρe(param_set, ρ, e_int)
@@ -257,6 +262,8 @@ struct PhaseEquil{FT} <: AbstractPhaseEquil{FT}
     "temperature: computed via [`saturation_adjustment`](@ref)"
     T::FT
 end
+
+Base.zero(::Type{PhaseEquil{FT}}) where {FT} = PhaseEquil{FT}(0, 0, 0, 0, 0)
 
 """
     PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
@@ -633,6 +640,9 @@ struct PhaseNonEquil{FT} <: AbstractPhaseNonEquil{FT}
     "phase partition"
     q::PhasePartition{FT}
 end
+Base.zero(::Type{PhaseNonEquil{FT}}) where {FT} =
+    PhaseNonEquil{FT}(0, 0, zero(PhasePartition{FT}))
+
 function PhaseNonEquil(
     param_set::APS,
     e_int::FT,
