@@ -1670,6 +1670,14 @@ end
     @test all(phase_type .== (nt.phase_type for nt in profiles))
 end
 
+@testset "Base.zero" begin
+    FT = Float32
+    @test zero(PhasePartition{FT}).tot == 0
+    @test zero(PhaseDry{FT}).ρ == 0
+    @test zero(PhaseEquil{FT}).ρ == 0
+    @test zero(PhaseNonEquil{FT}).ρ == 0
+end
+
 @testset "Thermodynamics - test T_guess" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
