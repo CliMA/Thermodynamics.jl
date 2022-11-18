@@ -48,6 +48,7 @@ end
 const ATP = ThermodynamicsParameters
 
 Base.broadcastable(ps::ATP) = Ref(ps)
+Base.eltype(::ThermodynamicsParameters{FT}) where {FT} = FT
 
 # wrappers
 for fn in fieldnames(ATP)
