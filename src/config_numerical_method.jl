@@ -41,9 +41,9 @@ function sa_numerical_method(
     ρ::FT,
     e_int::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.NewtonsMethod}
+) where {FT, NM <: RS.NewtonsMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     T_init = if T_guess isa Nothing
         max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
@@ -62,9 +62,9 @@ function sa_numerical_method(
     ρ::FT,
     e_int::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::FT,
-) where {FT, NM <: RS.NewtonsMethodAD}
+) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     T_init = if T_guess isa Nothing
         max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
@@ -80,9 +80,9 @@ function sa_numerical_method(
     ρ::FT,
     e_int::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.SecantMethod}
+) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature(param_set, e_int, q_pt)
@@ -97,9 +97,9 @@ function sa_numerical_method(
     ρ::FT,
     e_int::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.RegulaFalsiMethod}
+) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature(param_set, e_int, q_pt)
@@ -118,9 +118,9 @@ function sa_numerical_method_ρpq(
     ρ::FT,
     p::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.NewtonsMethodAD}
+) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     q_pt = PhasePartition(q_tot)
     T_init = if T_guess isa Nothing
         air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt)
@@ -136,9 +136,9 @@ function sa_numerical_method_ρpq(
     ρ::FT,
     p::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.RegulaFalsiMethod}
+) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     q_pt = PhasePartition(q_tot)
     T_1 = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt) - 5
     T_2 = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt) + 5
@@ -155,9 +155,9 @@ function sa_numerical_method_peq(
     p::FT,
     e_int::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.NewtonsMethodAD}
+) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     T_init = if T_guess isa Nothing
         max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
@@ -173,9 +173,9 @@ function sa_numerical_method_peq(
     p::FT,
     e_int::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.SecantMethod}
+) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature(param_set, e_int, q_pt)
@@ -194,9 +194,9 @@ function sa_numerical_method_phq(
     p::FT,
     h::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.NewtonsMethodAD}
+) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     T_init = if T_guess isa Nothing # Assume all vapor
         max(
@@ -215,9 +215,9 @@ function sa_numerical_method_phq(
     p::FT,
     h::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.SecantMethod}
+) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature_from_enthalpy(param_set, h, q_pt)
@@ -235,9 +235,9 @@ function sa_numerical_method_phq(
     p::FT,
     h::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.RegulaFalsiMethod}
+) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature_from_enthalpy(param_set, h, q_pt)
@@ -259,9 +259,9 @@ function sa_numerical_method_pθq(
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.RegulaFalsiMethod}
+) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
     _T_max::FT = TP.T_max(param_set)
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
@@ -277,9 +277,9 @@ function sa_numerical_method_pθq(
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.SecantMethod}
+) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
@@ -294,9 +294,9 @@ function sa_numerical_method_pθq(
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
-    phase_type::Type{<:ThermodynamicState},
+    ::Type{phase_type},
     T_guess::Union{FT, Nothing},
-) where {FT, NM <: RS.NewtonsMethodAD}
+) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_init = if T_guess isa Nothing
