@@ -293,7 +293,7 @@ function PhaseEquil_ρeq(
     maxiter === nothing && (maxiter = 8)
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
-    phase_type = PhaseEquil{FT}
+    phase_type = PhaseEquil
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment(
         sat_adjust_method,
@@ -360,7 +360,7 @@ function PhaseEquil_ρθq(
     maxiter === nothing && (maxiter = 36)
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-5))
-    phase_type = PhaseEquil{FT}
+    phase_type = PhaseEquil
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T = saturation_adjustment_given_ρθq(
         param_set,
@@ -394,7 +394,7 @@ function PhaseEquil_ρTq(
     T::FT,
     q_tot::FT,
 ) where {FT <: Real}
-    phase_type = PhaseEquil{FT}
+    phase_type = PhaseEquil
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     p = air_pressure(param_set, T, ρ, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
@@ -417,7 +417,7 @@ function PhaseEquil_pTq(
     T::FT,
     q_tot::FT,
 ) where {FT <: Real}
-    phase_type = PhaseEquil{FT}
+    phase_type = PhaseEquil
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
     ρ = air_density(param_set, T, p, q_pt)
@@ -449,7 +449,7 @@ function PhaseEquil_peq(
     maxiter === nothing && (maxiter = 40)
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
-    phase_type = PhaseEquil{FT}
+    phase_type = PhaseEquil
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment_given_peq(
         sat_adjust_method,
@@ -492,7 +492,7 @@ function PhaseEquil_phq(
     maxiter === nothing && (maxiter = 40)
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
-    phase_type = PhaseEquil{FT}
+    phase_type = PhaseEquil
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment_given_phq(
         sat_adjust_method,
@@ -542,7 +542,7 @@ function PhaseEquil_ρpq(
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method}
 
-    phase_type = PhaseEquil{FT}
+    phase_type = PhaseEquil
     if perform_sat_adjust
         T = saturation_adjustment_ρpq(
             sat_adjust_method,
@@ -593,7 +593,7 @@ function PhaseEquil_pθq(
     maxiter === nothing && (maxiter = 50)
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
-    phase_type = PhaseEquil{FT}
+    phase_type = PhaseEquil
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment_given_pθq(
         sat_adjust_method,

@@ -593,8 +593,8 @@ function internal_energy_sat(
     T::FT,
     ρ::FT,
     q_tot::FT,
-    ::Type{phase_type},
-) where {FT <: Real, phase_type <: ThermodynamicState}
+    phase_type::Type{<:ThermodynamicState},
+) where {FT <: Real}
     return internal_energy(
         param_set,
         T,
@@ -938,10 +938,10 @@ end
 
 function saturation_vapor_pressure(
     param_set::APS,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     T::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT <: Real}
 
     LH_v0::FT = TP.LH_v0(param_set)
     LH_s0::FT = TP.LH_s0(param_set)
@@ -1033,9 +1033,9 @@ function q_vap_saturation(
     param_set::APS,
     T::FT,
     ρ::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT <: Real}
     p_v_sat = saturation_vapor_pressure(param_set, phase_type, T, q)
     return q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
 end
@@ -1114,8 +1114,8 @@ function q_vap_saturation_from_pressure(
     q_tot::FT,
     p::FT,
     T::FT,
-    ::Type{phase_type},
-) where {FT <: Real, phase_type <: ThermodynamicState}
+    phase_type::Type,
+) where {FT <: Real}
     R_v::FT = TP.R_v(param_set)
     R_d::FT = TP.R_d(param_set)
     p_v_sat = saturation_vapor_pressure(param_set, phase_type, T)
@@ -1207,9 +1207,9 @@ function saturation_excess(
     param_set::APS,
     T::FT,
     ρ::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     q::PhasePartition{FT},
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT <: Real}
     p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
     return saturation_excess(param_set, T, ρ, p_vap_sat, q)
 end
@@ -1270,9 +1270,9 @@ is a function that is 1 above `T_freeze` and goes to zero below `T_icenuc`.
 function liquid_fraction(
     param_set::APS,
     T::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:PhaseEquil},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT <: Real}
     _T_freeze::FT = TP.T_freeze(param_set)
     _T_icenuc::FT = TP.T_icenuc(param_set)
     _pow_icenuc::FT = TP.pow_icenuc(param_set)
@@ -1289,9 +1289,9 @@ end
 function liquid_fraction(
     param_set::APS,
     T::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: PhaseNonEquil}
+) where {FT <: Real}
     q_c = condensate(q)     # condensate specific humidity
     if has_condensate(q_c)
         return q.liq / q_c
@@ -1348,8 +1348,8 @@ function PhasePartition_equil(
     T::FT,
     ρ::FT,
     q_tot::FT,
-    ::Type{phase_type},
-) where {FT <: Real, phase_type <: ThermodynamicState}
+    phase_type::Type{<:ThermodynamicState},
+) where {FT <: Real}
     p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
     λ = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
     return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
@@ -1381,8 +1381,8 @@ function PhasePartition_equil_given_p(
     T::FT,
     p::FT,
     q_tot::FT,
-    ::Type{phase_type},
-) where {FT <: Real, phase_type <: ThermodynamicState}
+    phase_type::Type{<:ThermodynamicState},
+) where {FT <: Real}
 
     q_v_sat = q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
     _liquid_frac = liquid_fraction(param_set, T, phase_type)
@@ -1412,8 +1412,8 @@ function ∂e_int_∂T(
     e_int::FT,
     ρ::FT,
     q_tot::FT,
-    ::Type{phase_type},
-) where {FT <: Real, phase_type <: PhaseEquil}
+    phase_type::Type{<:ThermodynamicState},
+) where {FT <: Real}
     T_0::FT = TP.T_0(param_set)
     cv_v::FT = TP.cv_v(param_set)
     cv_l::FT = TP.cv_l(param_set)
@@ -1481,11 +1481,11 @@ function saturation_adjustment(
     e_int::FT,
     ρ::FT,
     q_tot::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     maxiter::Int,
     relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+) where {FT <: Real, sat_adjust_method}
     _T_min::FT = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
@@ -1582,11 +1582,11 @@ function saturation_adjustment_given_peq(
     p::FT,
     e_int::FT,
     q_tot::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     maxiter::Int,
     relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+) where {FT <: Real, sat_adjust_method}
     _T_min::FT = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
@@ -1686,11 +1686,11 @@ function saturation_adjustment_given_phq(
     p::FT,
     h::FT,
     q_tot::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     maxiter::Int,
     relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+) where {FT <: Real, sat_adjust_method}
     _T_min::FT = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
@@ -1797,11 +1797,11 @@ function saturation_adjustment_ρpq(
     ρ::FT,
     p::FT,
     q_tot::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     maxiter::Int,
     relative_temperature_tol::FT = sqrt(eps(FT)),
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+) where {FT <: Real, sat_adjust_method}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     # Use `oftype` to preserve diagonalized type signatures:
     sol = RS.find_zero(
@@ -1913,11 +1913,11 @@ function saturation_adjustment_given_ρθq(
     ρ::FT,
     θ_liq_ice::FT,
     q_tot::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     maxiter::Int,
     tol::RS.AbstractTolerance,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, phase_type <: PhaseEquil}
+) where {FT <: Real}
     _T_min::FT = TP.T_min(param_set)
     air_temp(q) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q)
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
@@ -1998,11 +1998,11 @@ function saturation_adjustment_given_pθq(
     p::FT,
     θ_liq_ice::FT,
     q_tot::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     maxiter::Int,
     relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+) where {FT <: Real, sat_adjust_method}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T_min::FT = TP.T_min(param_set)
     T_freeze::FT = TP.T_freeze(param_set)
@@ -2209,8 +2209,8 @@ function virt_temp_from_RH(
     T::FT,
     ρ::FT,
     RH::FT,
-    ::Type{phase_type},
-) where {FT <: AbstractFloat, phase_type <: ThermodynamicState}
+    phase_type::Type{<:ThermodynamicState},
+) where {FT <: AbstractFloat}
     q_tot = RH * q_vap_saturation(param_set, T, ρ, phase_type)
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     return virtual_temperature(param_set, T, ρ, q_pt)
@@ -2231,10 +2231,10 @@ function temperature_and_humidity_given_TᵥρRH(
     T_virt::FT,
     ρ::FT,
     RH::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     maxiter::Int = 100,
     tol::RS.AbstractTolerance = RS.ResidualTolerance{FT}(sqrt(eps(FT))),
-) where {FT <: AbstractFloat, phase_type <: ThermodynamicState}
+) where {FT <: AbstractFloat}
 
     _T_min::FT = TP.T_min(param_set)
     _T_max = T_virt
@@ -2484,9 +2484,9 @@ function liquid_ice_pottemp_sat(
     param_set::APS,
     T::FT,
     ρ::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT <: Real}
     q_v_sat = q_vap_saturation(param_set, T, ρ, phase_type, q)
     return liquid_ice_pottemp(param_set, T, ρ, PhasePartition(q_v_sat))
 end
@@ -2506,9 +2506,9 @@ function liquid_ice_pottemp_sat(
     param_set::APS,
     T::FT,
     ρ::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     q_tot::FT,
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT <: Real}
     return liquid_ice_pottemp(
         param_set,
         T,
@@ -2654,9 +2654,9 @@ function relative_humidity(
     param_set::APS,
     T::FT,
     p::FT,
-    ::Type{phase_type},
+    phase_type::Type{<:ThermodynamicState},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT <: Real}
     R_v::FT = TP.R_v(param_set)
     q_vap = vapor_specific_humidity(q)
     p_vap = q_vap * air_density(param_set, T, p, q) * R_v * T
@@ -2776,8 +2776,8 @@ function specific_enthalpy_sat(
     T::FT,
     ρ::FT,
     q_tot::FT,
-    ::Type{phase_type},
-) where {FT <: Real, phase_type <: ThermodynamicState}
+    phase_type::Type{<:ThermodynamicState},
+) where {FT <: Real}
     return specific_enthalpy(
         param_set,
         T,
