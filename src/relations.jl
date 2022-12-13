@@ -1272,7 +1272,7 @@ function liquid_fraction(
     T::FT,
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT);
-    ramp::Bool = false
+    ramp::Bool = true # leave default true cause we dont wanna update everywhere in thermo.jl for this
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     _T_freeze::FT = TP.T_freeze(param_set)
     _T_icenuc::FT = TP.T_icenuc(param_set)
@@ -1293,7 +1293,7 @@ function liquid_fraction(
     T::FT,
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT);
-    ramp::Bool = false
+    ramp::Bool = true # leave default true cause we dont wanna update everywhere in thermo.jl for this
 ) where {FT <: Real, phase_type <: PhaseNonEquil}
     q_c = condensate(q)     # condensate specific humidity
     if has_condensate(q_c)
@@ -1308,7 +1308,7 @@ end
 
 The fraction of condensate that is liquid given a thermodynamic state `ts`.
 """
-liquid_fraction(param_set::APS, ts::ThermodynamicState; ramp::Bool = false) = liquid_fraction(
+liquid_fraction(param_set::APS, ts::ThermodynamicState; ramp::Bool = true) = liquid_fraction(
     param_set,
     air_temperature(param_set, ts),
     typeof(ts),
