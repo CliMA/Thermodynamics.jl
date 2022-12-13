@@ -1263,7 +1263,7 @@ The fraction of condensate that is liquid where
 If `q.liq` or `q.ice` are nonzero, the liquid fraction is computed from
 them.
 
-# ThermodynamicState
+## ThermodynamicState
 Otherwise, phase equilibrium is assumed so that the fraction of liquid
 is a function that is 1 above `T_freeze` and goes to zero below `T_icenuc`.
 """
@@ -1271,7 +1271,8 @@ function liquid_fraction(
     param_set::APS,
     T::FT,
     ::Type{phase_type},
-    q::PhasePartition{FT} = q_pt_0(FT),
+    q::PhasePartition{FT} = q_pt_0(FT);
+    ramp::Bool = false
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     _T_freeze::FT = TP.T_freeze(param_set)
     _T_icenuc::FT = TP.T_icenuc(param_set)
@@ -1279,24 +1280,26 @@ function liquid_fraction(
 
     if T > _T_freeze
         return FT(1)
-    elseif (T > _T_icenuc && T <= _T_freeze)
+    elseif ((T > _T_icenuc && T <= _T_freeze) && ramp) # testing this jawn here to go back to heaviside...
         return ((T - _T_icenuc) / (_T_freeze - _T_icenuc))^_pow_icenuc
     else
         return FT(0)
     end
+
 end
 
 function liquid_fraction(
     param_set::APS,
     T::FT,
     ::Type{phase_type},
-    q::PhasePartition{FT} = q_pt_0(FT),
+    q::PhasePartition{FT} = q_pt_0(FT);
+    ramp::Bool = false
 ) where {FT <: Real, phase_type <: PhaseNonEquil}
     q_c = condensate(q)     # condensate specific humidity
     if has_condensate(q_c)
         return q.liq / q_c
     else
-        return liquid_fraction(param_set, T, PhaseEquil, q)
+        return liquid_fraction(param_set, T, PhaseEquil, q; ramp=ramp)
     end
 end
 
@@ -1305,11 +1308,12 @@ end
 
 The fraction of condensate that is liquid given a thermodynamic state `ts`.
 """
-liquid_fraction(param_set::APS, ts::ThermodynamicState) = liquid_fraction(
+liquid_fraction(param_set::APS, ts::ThermodynamicState; ramp::Bool = false) = liquid_fraction(
     param_set,
     air_temperature(param_set, ts),
     typeof(ts),
-    PhasePartition(param_set, ts),
+    PhasePartition(param_set, ts);
+    ramp = ramp
 )
 
 """
