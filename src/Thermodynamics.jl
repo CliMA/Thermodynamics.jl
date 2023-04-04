@@ -85,7 +85,7 @@ include("config_numerical_method.jl")
 include("TemperatureProfiles.jl")
 include("TestedProfiles.jl")
 
-Base.broadcastable(dap::DryAdiabaticProcess) = Ref(dap)
-Base.broadcastable(phase::Phase) = Ref(phase)
+Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
+Base.broadcastable(phase::Phase) = tuple(phase)
 
 end #module Thermodynamics.jl
