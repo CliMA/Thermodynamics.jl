@@ -1245,7 +1245,7 @@ condensate(param_set::APS, ts::ThermodynamicState) =
 Bool indicating if condensate exists in the phase
 partition
 """
-has_condensate(q_c::FT) where {FT} = q_c > eps(FT)
+has_condensate(q_c::FT) where {FT <: Real} = q_c > eps(FT)
 has_condensate(q::PhasePartition) = has_condensate(condensate(q))
 has_condensate(param_set::APS, ts::ThermodynamicState) =
     has_condensate(PhasePartition(param_set, ts))
