@@ -86,7 +86,7 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
         _T_triple = FT(TP.T_triple(param_set))
         _T_freeze = FT(TP.T_freeze(param_set))
         _T_min = FT(TP.T_min(param_set))
-        _MSLP = FT(TP.MSLP(param_set))
+        _p_ref_theta = FT(TP.p_ref_theta(param_set))
         _T_max = FT(TP.T_max(param_set))
         _kappa_d = FT(TP.kappa_d(param_set))
 
@@ -105,13 +105,13 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
         # TODO: Use reasonable values for ambient temperature/pressure
         T∞, p∞ = T .* perturbation, p .* perturbation
         @test air_temperature.(param_set, p, θ_liq_ice, DryAdiabaticProcess()) ≈
-              (p ./ _MSLP) .^ (_R_d / _cp_d) .* θ_liq_ice
+              (p ./ _p_ref_theta) .^ (_R_d / _cp_d) .* θ_liq_ice
         @test TD.air_pressure_given_θ.(
             param_set,
             θ_liq_ice,
             Φ,
             DryAdiabaticProcess(),
-        ) ≈ _MSLP .* (1 .- Φ ./ (θ_liq_ice .* _cp_d)) .^ (_cp_d / _R_d)
+        ) ≈ _p_ref_theta .* (1 .- Φ ./ (θ_liq_ice .* _cp_d)) .^ (_cp_d / _R_d)
         @test air_pressure.(param_set, T, T∞, p∞, DryAdiabaticProcess()) ≈
               p∞ .* (T ./ T∞) .^ (FT(1) / _kappa_d)
     end
@@ -142,7 +142,7 @@ end
     _T_triple = FT(TP.T_triple(param_set))
     _T_freeze = FT(TP.T_freeze(param_set))
     _T_min = FT(TP.T_min(param_set))
-    _MSLP = FT(TP.MSLP(param_set))
+    _p_ref_theta = FT(TP.p_ref_theta(param_set))
     _T_max = FT(TP.T_max(param_set))
     _kappa_d = FT(TP.kappa_d(param_set))
     _T_icenuc = FT(TP.T_icenuc(param_set))
@@ -446,13 +446,16 @@ end
 
     # potential temperatures
     T = FT(300)
-    @test TD.liquid_ice_pottemp_given_pressure(param_set, T, _MSLP) === T
-    @test TD.liquid_ice_pottemp_given_pressure(param_set, T, _MSLP / 10) ≈
-          T * 10^(_R_d / _cp_d)
+    @test TD.liquid_ice_pottemp_given_pressure(param_set, T, _p_ref_theta) === T
     @test TD.liquid_ice_pottemp_given_pressure(
         param_set,
         T,
-        _MSLP / 10,
+        _p_ref_theta / 10,
+    ) ≈ T * 10^(_R_d / _cp_d)
+    @test TD.liquid_ice_pottemp_given_pressure(
+        param_set,
+        T,
+        _p_ref_theta / 10,
         PhasePartition(FT(1)),
     ) ≈ T * 10^(_R_v / _cp_v)
 
@@ -833,7 +836,7 @@ end
         @test count(air_temperature.(param_set, ts_upper) .== Ref(_T_freeze)) ≥
               217
         @test count(air_temperature.(param_set, ts_mid) .== Ref(_T_freeze)) ≥
-              1373
+              1296
         # we should do this instead, but we're failing because some inputs are bad
         # E.g. p ~ 110_000 Pa, q_tot ~ 0.16, which results in negative θ_liq_ice
         # This means that we should probably update our tested profiles.
@@ -992,7 +995,6 @@ end
     for ArrayType in array_types
         FT = eltype(ArrayType)
         param_set = parameter_set(FT)
-        _MSLP = FT(TP.MSLP(param_set))
 
         profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
         @unpack T, p, e_int, h, ρ, θ_liq_ice, phase_type = profiles

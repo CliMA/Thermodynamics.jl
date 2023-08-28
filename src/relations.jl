@@ -2293,12 +2293,12 @@ function air_temperature_given_ρθq(
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
 
-    MSLP::FT = TP.MSLP(param_set)
+    p0::FT = TP.p_ref_theta(param_set)
     cvm = cv_m(param_set, q)
     cpm = cp_m(param_set, q)
     R_m = gas_constant_air(param_set, q)
     κ = 1 - cvm / cpm
-    T_u = (ρ * R_m * θ_liq_ice / MSLP)^(R_m / cvm) * θ_liq_ice
+    T_u = (ρ * R_m * θ_liq_ice / p0)^(R_m / cvm) * θ_liq_ice
     T_1 = latent_heat_liq_ice(param_set, q) / cvm
     T_2 = -κ / (2 * T_u) * (latent_heat_liq_ice(param_set, q) / cvm)^2
     return T_u + T_1 + T_2
@@ -2545,13 +2545,13 @@ function exner_given_pressure(
     p::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
-    MSLP::FT = TP.MSLP(param_set)
+    p0::FT = TP.p_ref_theta(param_set)
     # gas constant and isobaric specific heat of moist air
     _R_m = gas_constant_air(param_set, q)
     _cp_m = cp_m(param_set, q)
 
-    # return (p / MSLP)^(_R_m / _cp_m)
-    return pow_hack(p / MSLP, _R_m / _cp_m)
+    # return (p / p0)^(_R_m / _cp_m)
+    return pow_hack(p / p0, _R_m / _cp_m)
 end
 
 """

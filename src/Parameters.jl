@@ -21,6 +21,7 @@ param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...);
 Base.@kwdef struct ThermodynamicsParameters{FT}
     T_0::FT
     MSLP::FT
+    p_ref_theta::FT
     cp_v::FT
     cp_l::FT
     cp_i::FT
