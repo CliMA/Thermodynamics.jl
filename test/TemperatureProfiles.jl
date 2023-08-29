@@ -28,7 +28,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         param_set = parameter_set(FT)
         _grav = FT(TP.grav(param_set))
         _R_d = FT(TP.R_d(param_set))
-        _MSLP = FT(TP.MSLP(param_set))
+        _p_ref = FT(TP.MSLP(param_set))
 
         z = collect(range(FT(0), stop = FT(25e3), length = 100))
         n = 7
@@ -61,19 +61,19 @@ parameter_set(::Type{Float32}) = param_set_Float32
                 p = last.(args)
 
                 # Test that surface pressure is equal to the
-                # specified boundary condition (MSLP)
+                # specified boundary condition p_ref (by default set to MSLP)
                 mask_z_0 = z .≈ 0
-                @test all(p[mask_z_0] .≈ _MSLP)
+                @test all(p[mask_z_0] .≈ _p_ref)
 
-                function log_p_over_MSLP(_z)
+                function log_p_over_p_ref(_z)
                     _, _p = profile(param_set, _z)
-                    return log(_p / _MSLP)
+                    return log(_p / _p_ref)
                 end
-                ∇log_p_over_MSLP =
-                    _z -> ForwardDiff.derivative(log_p_over_MSLP, _z)
+                ∇log_p_over_p_ref =
+                    _z -> ForwardDiff.derivative(log_p_over_p_ref, _z)
                 # Uses density computed from pressure derivative
                 # and ideal gas law to reconstruct virtual temperature
-                T_virt_rec = -_grav ./ (_R_d .* ∇log_p_over_MSLP.(z))
+                T_virt_rec = -_grav ./ (_R_d .* ∇log_p_over_p_ref.(z))
                 @test all(T_virt_rec .≈ T_virt)
             end
         end
