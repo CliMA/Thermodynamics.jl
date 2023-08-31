@@ -1,4 +1,5 @@
 include("common.jl")
+include("common_micro_bm.jl")
 import GFlops
 import OrderedCollections
 import PrettyTables
@@ -42,6 +43,12 @@ end
     flops["PhasePartition"] = total_flops(GFlops.@count_ops TD.PhasePartition($param_set, $ts))
     flops["liquid_fraction"] = total_flops(GFlops.@count_ops TD.liquid_fraction($param_set, $ts))
     flops["q_vap_saturation"] = total_flops(GFlops.@count_ops TD.q_vap_saturation($param_set, $ts))
+    i = find_dry(profiles)
+    flops["PhaseDry_ρe"] = total_flops(GFlops.@count_ops TD.PhaseDry_ρe($param_set, $(ρ[i]), $(e_int[i])))
+    i = find_dry(profiles)
+    flops["PhaseEquil_ρeq_dry"] = total_flops(GFlops.@count_ops TD.PhaseEquil_ρeq($param_set, $(ρ[i]), $(e_int[i]), $(q_tot[i])))
+    i = find_sat_adjust_index(profiles, param_set, TD.PhaseEquil_ρeq)
+    flops["PhaseEquil_ρeq_moist"] = total_flops(GFlops.@count_ops TD.PhaseEquil_ρeq($param_set, $(ρ[i]), $(e_int[i]), $(q_tot[i])))
 
     summarize_flops(flops)
 end
