@@ -360,6 +360,7 @@ function air_temperature(
     param_set::APS,
     e_int::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cvm = cv_m(param_set, q),
 ) where {FT <: Real}
     T_0::FT = TP.T_0(param_set)
     e_int_v0::FT = TP.e_int_v0(param_set)
@@ -367,7 +368,7 @@ function air_temperature(
     return T_0 +
            (
         e_int - (q.tot - q.liq) * e_int_v0 + q.ice * (e_int_v0 + e_int_i0)
-    ) / cv_m(param_set, q)
+    ) / cvm
 end
 
 """
@@ -445,11 +446,12 @@ function internal_energy(
     param_set::APS,
     T::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cvm = cv_m(param_set, q),
 ) where {FT <: Real}
     T_0::FT = TP.T_0(param_set)
     e_int_v0::FT = TP.e_int_v0(param_set)
     e_int_i0::FT = TP.e_int_i0(param_set)
-    return cv_m(param_set, q) * (T - T_0) + (q.tot - q.liq) * e_int_v0 -
+    return cvm * (T - T_0) + (q.tot - q.liq) * e_int_v0 -
            q.ice * (e_int_v0 + e_int_i0)
 end
 
@@ -594,12 +596,16 @@ function internal_energy_sat(
     ρ::FT,
     q_tot::FT,
     ::Type{phase_type},
-) where {FT <: Real, phase_type <: ThermodynamicState}
-    return internal_energy(
+    q_pt::PhasePartition{FT} = PhasePartition_equil(
         param_set,
         T,
-        PhasePartition_equil(param_set, T, ρ, q_tot, phase_type),
-    )
+        ρ,
+        q_tot,
+        phase_type,
+    ),
+    cvm = cv_m(param_set, q_pt),
+) where {FT <: Real, phase_type <: ThermodynamicState}
+    return internal_energy(param_set, T, q_pt, cvm)
 end
 
 """
@@ -1290,12 +1296,16 @@ function liquid_fraction(
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     _T_freeze::FT = TP.T_freeze(param_set)
     _T_icenuc::FT = TP.T_icenuc(param_set)
-    _pow_icenuc::FT = TP.pow_icenuc(param_set)
 
     if T > _T_freeze
         return FT(1)
-    elseif (T > _T_icenuc && T <= _T_freeze)
-        return ((T - _T_icenuc) / (_T_freeze - _T_icenuc))^_pow_icenuc
+    elseif T > _T_icenuc
+        _pow_icenuc::FT = TP.pow_icenuc(param_set)
+        if _pow_icenuc == 1
+            return (T - _T_icenuc) / (_T_freeze - _T_icenuc)
+        else
+            return ((T - _T_icenuc) / (_T_freeze - _T_icenuc))^_pow_icenuc
+        end
     else
         return FT(0)
     end
@@ -1436,6 +1446,16 @@ function ∂e_int_∂T(
     ρ::FT,
     q_tot::FT,
     ::Type{phase_type},
+    λ = liquid_fraction(param_set, T, phase_type),
+    p_vap_sat = saturation_vapor_pressure(
+        param_set,
+        phase_type,
+        T,
+        PhasePartition(FT(0)),
+        λ,
+    ),
+    q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ),
+    cvm = cv_m(param_set, q),
 ) where {FT <: Real, phase_type <: PhaseEquil}
     T_0::FT = TP.T_0(param_set)
     cv_v::FT = TP.cv_v(param_set)
@@ -1447,16 +1467,20 @@ function ∂e_int_∂T(
     T_i::FT = TP.T_icenuc(param_set)
     n_i::FT = TP.pow_icenuc(param_set)
 
-    λ = liquid_fraction(param_set, T, phase_type)
-    qpt0 = PhasePartition(FT(0))
-    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T, qpt0, λ)
-    q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
     q_c = condensate(q)
-    cvm = cv_m(param_set, q)
     q_vap_sat = q_vap_saturation_from_density(param_set, T, ρ, p_vap_sat)
     L = weighted_latent_heat(param_set, T, λ)
 
-    ∂λ_∂T = (T_i < T < T_f) ? (1 / (T_f - T_i))^n_i * n_i * T^(n_i - 1) : FT(0)
+    ∂λ_∂T = if (T_i < T < T_f)
+        if n_i == 1
+            (1 / (T_f - T_i))
+        else
+            (1 / (T_f - T_i))^n_i * n_i * T^(n_i - 1)
+        end
+    else
+        FT(0)
+    end
+
     _∂q_vap_sat_∂T = ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, L)
     dcvm_dq_vap = cv_v - λ * cv_l - (1 - λ) * cv_i
     return cvm +
@@ -1514,22 +1538,60 @@ function saturation_adjustment(
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
-    q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
-    unsaturated = q_tot <= q_v_sat
-    if unsaturated && T_1 > _T_min
-        return T_1
+    if T_1 > _T_min
+        q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
+        unsaturated = q_tot <= q_v_sat
+        if unsaturated
+            return T_1
+        end
     end
     _T_freeze::FT = TP.T_freeze(param_set)
     e_int_sat(T) =
         internal_energy_sat(param_set, heavisided(T), ρ, q_tot, phase_type)
     temperature_tol = _T_freeze * relative_temperature_tol
     e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-    e_int_lower = e_int_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-    if e_int_lower < e_int < e_int_upper
-        return _T_freeze
+    if e_int < e_int_upper
+        e_int_lower = e_int_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
+        if e_int_lower < e_int # < e_int_upper
+            return _T_freeze
+        end
+    end
+    function roots(_T) # ff′
+        T = heavisided(_T)
+        if sat_adjust_method <: RS.NewtonsMethod
+            λ = liquid_fraction(param_set, T, phase_type)
+            p_vap_sat = saturation_vapor_pressure(
+                param_set,
+                phase_type,
+                T,
+                PhasePartition(FT(0)),
+                λ,
+            )
+            q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
+
+            cvm = cv_m(param_set, q)
+            f′ = ∂e_int_∂T(
+                param_set,
+                T,
+                e_int,
+                ρ,
+                q_tot,
+                phase_type,
+                λ,
+                p_vap_sat,
+                q,
+                cvm,
+            )
+            _e_int_sat =
+                internal_energy_sat(param_set, T, ρ, q_tot, phase_type, q, cvm)
+            f = _e_int_sat - e_int
+            return (f, f′)
+        else
+            return e_int_sat(T) - e_int
+        end
     end
     sol = RS.find_zero(
-        T -> e_int_sat(T) - e_int,
+        roots,
         sa_numerical_method(
             sat_adjust_method,
             param_set,
@@ -1543,6 +1605,7 @@ function saturation_adjustment(
         tol,
         maxiter,
     )
+
     DataCollection.log_meta(sol)
     if !sol.converged
         if print_warning()

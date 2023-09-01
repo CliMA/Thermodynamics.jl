@@ -50,10 +50,7 @@ function sa_numerical_method(
     else
         T_guess
     end
-    return RS.NewtonsMethod(
-        T_init,
-        T_ -> ∂e_int_∂T(param_set, heavisided(T_), e_int, ρ, q_tot, phase_type),
-    )
+    return RS.NewtonsMethod(T_init)
 end
 
 function sa_numerical_method(
