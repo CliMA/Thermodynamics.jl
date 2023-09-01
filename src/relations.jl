@@ -234,9 +234,9 @@ function ∂q_vap_sat_∂T(
     λ::FT,
     T::FT,
     q_vap_sat::FT,
+    L = weighted_latent_heat(param_set, T, λ),
 ) where {FT <: Real}
     R_v::FT = TP.R_v(param_set)
-    L = weighted_latent_heat(param_set, T, λ)
     return q_vap_sat * (L / (R_v * T^2) - 1 / T)
 end
 
@@ -941,6 +941,7 @@ function saturation_vapor_pressure(
     ::Type{phase_type},
     T::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    λ = liquid_fraction(param_set, T, phase_type, q),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
 
     LH_v0::FT = TP.LH_v0(param_set)
@@ -949,7 +950,6 @@ function saturation_vapor_pressure(
     cp_l::FT = TP.cp_l(param_set)
     cp_i::FT = TP.cp_i(param_set)
     # get phase partitioning
-    λ = liquid_fraction(param_set, T, phase_type, q)
 
     # effective latent heat at T_0 and effective difference in isobaric specific
     # heats of the mixture
@@ -1035,8 +1035,9 @@ function q_vap_saturation(
     ρ::FT,
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
+    λ = liquid_fraction(param_set, T, phase_type, q),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    p_v_sat = saturation_vapor_pressure(param_set, phase_type, T, q)
+    p_v_sat = saturation_vapor_pressure(param_set, phase_type, T, q, λ)
     return q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
 end
 
@@ -1115,10 +1116,17 @@ function q_vap_saturation_from_pressure(
     p::FT,
     T::FT,
     ::Type{phase_type},
+    λ = liquid_fraction(param_set, T, phase_type),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     R_v::FT = TP.R_v(param_set)
     R_d::FT = TP.R_d(param_set)
-    p_v_sat = saturation_vapor_pressure(param_set, phase_type, T)
+    p_v_sat = saturation_vapor_pressure(
+        param_set,
+        phase_type,
+        T,
+        PhasePartition(FT(0)),
+        λ,
+    )
     q_v_sat = if p - p_v_sat ≥ eps(FT)
         R_d / R_v * (1 - q_tot) * p_v_sat / (p - p_v_sat)
     else
@@ -1209,8 +1217,15 @@ function saturation_excess(
     ρ::FT,
     ::Type{phase_type},
     q::PhasePartition{FT},
+    λ = liquid_fraction(param_set, T, phase_type, q),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
+    p_vap_sat = saturation_vapor_pressure(
+        param_set,
+        phase_type,
+        T,
+        PhasePartition(FT(0)),
+        λ,
+    )
     return saturation_excess(param_set, T, ρ, p_vap_sat, q)
 end
 
@@ -1349,9 +1364,15 @@ function PhasePartition_equil(
     ρ::FT,
     q_tot::FT,
     ::Type{phase_type},
+    λ = liquid_fraction(param_set, T, phase_type), # fraction of condensate that is liquid
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
-    λ = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
+    p_vap_sat = saturation_vapor_pressure(
+        param_set,
+        phase_type,
+        T,
+        PhasePartition(FT(0)),
+        λ,
+    )
     return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 end
 
@@ -1382,13 +1403,14 @@ function PhasePartition_equil_given_p(
     p::FT,
     q_tot::FT,
     ::Type{phase_type},
+    λ = liquid_fraction(param_set, T, phase_type),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
 
-    q_v_sat = q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
-    _liquid_frac = liquid_fraction(param_set, T, phase_type)
+    q_v_sat =
+        q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type, λ)
     q_c = q_tot - q_v_sat
-    q_liq = _liquid_frac * q_c
-    q_ice = (1 - _liquid_frac) * q_c
+    q_liq = λ * q_c
+    q_ice = (1 - λ) * q_c
     return PhasePartition(q_tot, q_liq, q_ice)
 end
 
@@ -1399,8 +1421,9 @@ function PhasePartition(param_set::APS, ts::AbstractPhaseEquil)
     ρ = air_density(param_set, ts)
     q_tot = total_specific_humidity(param_set, ts)
     phase_type = typeof(ts)
-    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
     λ = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
+    qpt0 = PhasePartition(typeof(λ)(0))
+    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T, qpt0, λ)
 
     return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 end
@@ -1424,8 +1447,9 @@ function ∂e_int_∂T(
     T_i::FT = TP.T_icenuc(param_set)
     n_i::FT = TP.pow_icenuc(param_set)
 
-    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
     λ = liquid_fraction(param_set, T, phase_type)
+    qpt0 = PhasePartition(FT(0))
+    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T, qpt0, λ)
     q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
     q_c = condensate(q)
     cvm = cv_m(param_set, q)
@@ -1433,7 +1457,7 @@ function ∂e_int_∂T(
     L = weighted_latent_heat(param_set, T, λ)
 
     ∂λ_∂T = (T_i < T < T_f) ? (1 / (T_f - T_i))^n_i * n_i * T^(n_i - 1) : FT(0)
-    _∂q_vap_sat_∂T = ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat)
+    _∂q_vap_sat_∂T = ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, L)
     dcvm_dq_vap = cv_v - λ * cv_l - (1 - λ) * cv_i
     return cvm +
            (e_int_v0 + (1 - λ) * e_int_i0 + (T - T_0) * dcvm_dq_vap) *
@@ -2010,12 +2034,15 @@ function saturation_adjustment_given_pθq(
     cp_v::FT = TP.cp_v(param_set)
     air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     function θ_liq_ice_closure(T)
+        q = PhasePartition(oftype(T, 0))
+        λ = liquid_fraction(param_set, T, phase_type, q)
         q_pt = PhasePartition_equil_given_p(
             param_set,
             T,
             oftype(T, p),
             oftype(T, q_tot),
             phase_type,
+            λ,
         )
         return liquid_ice_pottemp_given_pressure(
             param_set,
@@ -2093,7 +2120,7 @@ end
 
 
 """
-    liquid_ice_pottemp_given_pressure(param_set, T, p, q::PhasePartition)
+    liquid_ice_pottemp_given_pressure(param_set, T, p[, q::PhasePartition, cpm])
 
 The liquid-ice potential temperature where
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
@@ -2107,16 +2134,17 @@ function liquid_ice_pottemp_given_pressure(
     T::FT,
     p::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
 ) where {FT <: Real}
     # liquid-ice potential temperature, approximating latent heats
     # of phase transitions as constants
-    return dry_pottemp_given_pressure(param_set, T, p, q) *
-           (1 - latent_heat_liq_ice(param_set, q) / (cp_m(param_set, q) * T))
+    return dry_pottemp_given_pressure(param_set, T, p, q, cpm) *
+           (1 - latent_heat_liq_ice(param_set, q) / (cpm * T))
 end
 
 
 """
-    liquid_ice_pottemp(param_set, T, ρ, q::PhasePartition)
+    liquid_ice_pottemp(param_set, T, ρ[, q::PhasePartition, cpm])
 
 The liquid-ice potential temperature where
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
@@ -2130,12 +2158,14 @@ function liquid_ice_pottemp(
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
 ) where {FT <: Real}
     return liquid_ice_pottemp_given_pressure(
         param_set,
         T,
         air_pressure(param_set, T, ρ, q),
         q,
+        cpm,
     )
 end
 
@@ -2153,7 +2183,7 @@ liquid_ice_pottemp(param_set::APS, ts::ThermodynamicState) = liquid_ice_pottemp(
 )
 
 """
-    dry_pottemp(param_set, T, ρ[, q::PhasePartition])
+    dry_pottemp(param_set, T, ρ[, q::PhasePartition, cpm])
 
 The dry potential temperature where
 
@@ -2168,8 +2198,9 @@ function dry_pottemp(
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
 ) where {FT <: Real}
-    return T / exner(param_set, T, ρ, q)
+    return T / exner(param_set, T, ρ, q, cpm)
 end
 
 """
@@ -2188,8 +2219,9 @@ function dry_pottemp_given_pressure(
     T::FT,
     p::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
 ) where {FT <: Real}
-    return T / exner_given_pressure(param_set, p, q)
+    return T / exner_given_pressure(param_set, p, q, cpm)
 end
 
 """
@@ -2392,9 +2424,10 @@ function air_temperature_given_pθq(
     p::FT,
     θ_liq_ice::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
 ) where {FT <: Real}
-    return θ_liq_ice * exner_given_pressure(param_set, p, q) +
-           latent_heat_liq_ice(param_set, q) / cp_m(param_set, q)
+    return θ_liq_ice * exner_given_pressure(param_set, p, q, cpm) +
+           latent_heat_liq_ice(param_set, q) / cpm
 end
 
 """
@@ -2413,10 +2446,11 @@ function virtual_pottemp(
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
 ) where {FT <: Real}
     R_d::FT = TP.R_d(param_set)
     return gas_constant_air(param_set, q) / R_d *
-           dry_pottemp(param_set, T, ρ, q)
+           dry_pottemp(param_set, T, ρ, q, cpm)
 end
 
 """
@@ -2469,7 +2503,7 @@ virtual_temperature(param_set::APS, ts::ThermodynamicState) =
 
 
 """
-    liquid_ice_pottemp_sat(param_set, T, ρ, phase_type[, q::PhasePartition])
+    liquid_ice_pottemp_sat(param_set, T, ρ, phase_type[, q::PhasePartition, cpm])
 
 The saturated liquid ice potential temperature where
 
@@ -2486,9 +2520,10 @@ function liquid_ice_pottemp_sat(
     ρ::FT,
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     q_v_sat = q_vap_saturation(param_set, T, ρ, phase_type, q)
-    return liquid_ice_pottemp(param_set, T, ρ, PhasePartition(q_v_sat))
+    return liquid_ice_pottemp(param_set, T, ρ, PhasePartition(q_v_sat), cpm)
 end
 
 """
@@ -2509,12 +2544,9 @@ function liquid_ice_pottemp_sat(
     ::Type{phase_type},
     q_tot::FT,
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    return liquid_ice_pottemp(
-        param_set,
-        T,
-        ρ,
-        PhasePartition_equil(param_set, T, ρ, q_tot, phase_type),
-    )
+    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    cpm = cp_m(param_set, q)
+    return liquid_ice_pottemp(param_set, T, ρ, q, cpm)
 end
 
 """
@@ -2532,7 +2564,7 @@ liquid_ice_pottemp_sat(param_set::APS, ts::ThermodynamicState) =
     )
 
 """
-    exner_given_pressure(param_set, p[, q::PhasePartition])
+    exner_given_pressure(param_set, p[, q::PhasePartition, cpm])
 
 The Exner function where
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
@@ -2544,14 +2576,14 @@ function exner_given_pressure(
     param_set::APS,
     p::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
 ) where {FT <: Real}
     p0::FT = TP.p_ref_theta(param_set)
     # gas constant and isobaric specific heat of moist air
     _R_m = gas_constant_air(param_set, q)
-    _cp_m = cp_m(param_set, q)
 
-    # return (p / p0)^(_R_m / _cp_m)
-    return pow_hack(p / p0, _R_m / _cp_m)
+    # return (p / p0)^(_R_m / cpm)
+    return pow_hack(p / p0, _R_m / cpm)
 end
 
 """
@@ -2569,8 +2601,10 @@ function exner(
     T::FT,
     ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
 ) where {FT <: Real}
-    return exner_given_pressure(param_set, air_pressure(param_set, T, ρ, q), q)
+    p = air_pressure(param_set, T, ρ, q)
+    return exner_given_pressure(param_set, p, q, cpm)
 end
 
 """
