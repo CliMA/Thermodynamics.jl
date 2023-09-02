@@ -56,26 +56,14 @@ import .Parameters
 const TP = Parameters
 const APS = TP.ThermodynamicsParameters
 
-# Allow users to skip error on non-convergence
-# by importing:
-# ```julia
-# import Thermodynamics
-# Thermodynamics.error_on_non_convergence() = false
-# ```
-# Error on convergence must be the default
-# behavior because this can result in printing
-# very large logs resulting in CI to seemingly hang.
-@inline error_on_non_convergence() = true
-
-# Allow users to skip printing warnings on non-convergence
-@inline print_warning() = true
-
 @inline q_pt_0(::Type{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
 
-@inline solution_type() = RS.CompactSolution()
 include("DataCollection.jl")
 import .DataCollection
 
+include("logger.jl")
+solution_type(::AbstractThermodynamicsLogger) = RS.CompactSolution()
+solution_type(::VerboseLogger) = RS.CompactSolution()
 include("states.jl")
 include("relations.jl")
 include("isentropic.jl")

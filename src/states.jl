@@ -298,7 +298,10 @@ and, optionally
     See the [`Thermodynamics`](@ref) for options.
  - `T_guess` initial guess for temperature in saturation adjustment
 """
+@inline PhaseEquil_ρeq(param_set::APS, args...) =
+    PhaseEquil_ρeq(WarnAndErrorLogger(), param_set::APS, args...)
 @inline function PhaseEquil_ρeq(
+    logger::ATL,
     param_set::APS,
     ρ::FT,
     e_int::FT,
@@ -313,6 +316,7 @@ and, optionally
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment(
+        logger,
         sat_adjust_method,
         param_set,
         e_int,
@@ -333,6 +337,7 @@ end
 # and relative_temperature_tol. maxiter and relative_temperature_tol
 # should be in sync with the PhaseEquil(...) constructor
 @inline function PhaseEquil_dev_only(
+    logger::ATL,
     param_set::APS,
     ρ::FT,
     e_int::FT,
@@ -342,6 +347,7 @@ end
     sat_adjust_method::Type{NM} = RS.NewtonsMethod,
 ) where {FT <: Real, NM}
     return PhaseEquil_ρeq(
+        logger,
         param_set,
         ρ,
         e_int,
@@ -353,7 +359,7 @@ end
 end
 
 """
-    PhaseEquil_ρθq(param_set, ρ, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_ρθq([logger, ]param_set, ρ, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 
@@ -365,7 +371,11 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
  - `maxiter` maximum iterations for saturation adjustment
  - `T_guess` initial guess for temperature in saturation adjustment
 """
+@inline PhaseEquil_ρθq(param_set::APS, args...) =
+    PhaseEquil_ρθq(WarnAndErrorLogger(), param_set::APS, args...)
+
 @inline function PhaseEquil_ρθq(
+    logger::ATL,
     param_set::APS,
     ρ::FT,
     θ_liq_ice::FT,
@@ -380,6 +390,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
     phase_type = PhaseEquil{FT}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T = saturation_adjustment_given_ρθq(
+        logger,
         param_set,
         ρ,
         θ_liq_ice,
@@ -396,7 +407,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 end
 
 """
-    PhaseEquil_ρTq(param_set, ρ, T, q_tot)
+    PhaseEquil_ρTq([logger, ]param_set, ρ, T, q_tot)
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 
@@ -405,7 +416,11 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
  - `T` temperature
  - `q_tot` total specific humidity
 """
+@inline PhaseEquil_ρTq(param_set::APS, args...) =
+    PhaseEquil_ρTq(WarnAndErrorLogger(), param_set::APS, args...)
+
 @inline function PhaseEquil_ρTq(
+    logger::ATL,
     param_set::APS,
     ρ::FT,
     T::FT,
@@ -419,7 +434,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 end
 
 """
-    PhaseEquil_pTq(param_set, p, T, q_tot)
+    PhaseEquil_pTq([logger, ]param_set, p, T, q_tot)
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 
@@ -428,7 +443,11 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
  - `T` temperature
  - `q_tot` total specific humidity
 """
+@inline PhaseEquil_pTq(param_set::APS, args...) =
+    PhaseEquil_pTq(WarnAndErrorLogger(), param_set::APS, args...)
+
 @inline function PhaseEquil_pTq(
+    logger::ATL,
     param_set::APS,
     p::FT,
     T::FT,
@@ -443,7 +462,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 end
 
 """
-    PhaseEquil_peq(param_set, p, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_peq([logger, ]param_set, p, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 
@@ -453,7 +472,11 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
  - `q_tot` total specific humidity
  - `T_guess` initial guess for temperature in saturation adjustment
 """
+@inline PhaseEquil_peq(param_set::APS, args...) =
+    PhaseEquil_peq(WarnAndErrorLogger(), param_set::APS, args...)
+
 @inline function PhaseEquil_peq(
+    logger::ATL,
     param_set::APS,
     p::FT,
     e_int::FT,
@@ -469,6 +492,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment_given_peq(
+        logger,
         sat_adjust_method,
         param_set,
         p,
@@ -486,7 +510,7 @@ end
 
 
 """
-    PhaseEquil_phq(param_set, p, h, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_phq([logger, ]param_set, p, h, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 
@@ -496,7 +520,11 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
  - `q_tot` total specific humidity
  - `T_guess` initial guess for temperature in saturation adjustment
 """
+@inline PhaseEquil_phq(param_set::APS, args...) =
+    PhaseEquil_phq(WarnAndErrorLogger(), param_set::APS, args...)
+
 @inline function PhaseEquil_phq(
+    logger::ATL,
     param_set::APS,
     p::FT,
     h::FT,
@@ -512,6 +540,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment_given_phq(
+        logger,
         sat_adjust_method,
         param_set,
         p,
@@ -529,7 +558,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 end
 
 """
-    PhaseEquil_ρpq(param_set, ρ, p, q_tot[, perform_sat_adjust=true, maxiter, sat_adjust_method, T_guess])
+    PhaseEquil_ρpq([logger, ]param_set, ρ, p, q_tot[, perform_sat_adjust=true, maxiter, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 
@@ -547,7 +576,11 @@ TODO: change input argument order: perform_sat_adjust is
       unique to this constructor, so it should be last.
       (breaking change)
 """
+@inline PhaseEquil_ρpq(param_set::APS, args...) =
+    PhaseEquil_ρpq(WarnAndErrorLogger(), param_set::APS, args...)
+
 @inline function PhaseEquil_ρpq(
+    logger::ATL,
     param_set::APS,
     ρ::FT,
     p::FT,
@@ -562,6 +595,7 @@ TODO: change input argument order: perform_sat_adjust is
     phase_type = PhaseEquil{FT}
     if perform_sat_adjust
         T = saturation_adjustment_ρpq(
+            logger,
             sat_adjust_method,
             param_set,
             ρ,
@@ -584,7 +618,7 @@ end
 
 
 """
-    PhaseEquil_pθq(param_set, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_pθq([logger, ]param_set, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 
@@ -597,7 +631,11 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
  - `sat_adjust_method` the numerical method to use.
  - `T_guess` initial guess for temperature in saturation adjustment
 """
+PhaseEquil_pθq(param_set::APS, args...) =
+    PhaseEquil_pθq(WarningLogger(), param_set, args...)
+
 @inline function PhaseEquil_pθq(
+    logger::ATL,
     param_set::APS,
     p::FT,
     θ_liq_ice::FT,
@@ -613,6 +651,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment_given_pθq(
+        logger,
         sat_adjust_method,
         param_set,
         p,
@@ -702,7 +741,11 @@ and, optionally
  - `relative_temperature_tol` potential temperature for non-linear equation solve
  - `maxiter` maximum iterations for non-linear equation solve
 """
+PhaseNonEquil_ρθq(param_set::APS, args...) =
+    PhaseNonEquil_ρθq(WarningLogger(), param_set, args...)
+
 @inline function PhaseNonEquil_ρθq(
+    logger::ATL,
     param_set::APS,
     ρ::FT,
     θ_liq_ice::FT,
@@ -713,6 +756,7 @@ and, optionally
     phase_type = PhaseNonEquil{FT}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T = air_temperature_given_ρθq_nonlinear(
+        logger,
         param_set,
         ρ,
         θ_liq_ice,

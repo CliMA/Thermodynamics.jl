@@ -6,7 +6,6 @@ import Thermodynamics.Parameters as TP
 import CLIMAParameters as CP
 
 FT = Float64
-
 const param_set = TP.ThermodynamicsParameters(FT)
 
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
@@ -55,8 +54,8 @@ ts_no_err = Dict(
             )
 
             @inbounds for NM in numerical_methods
-                TD.error_on_non_convergence() = false
                 ts_no_err[NM][n] = TD.PhaseEquil_dev_only(
+                    TD.NullLogger(),
                     param_set,
                     ρ[i],
                     e_int,
@@ -64,10 +63,10 @@ ts_no_err = Dict(
                     sat_adjust_method = NM,
                     maxiter = 10,
                 )
-                TD.error_on_non_convergence() = true
                 # @show n / prod(dims) * 100
                 try
                     ts[NM][n] = TD.PhaseEquil_dev_only(
+                        TD.ErrorLogger(),
                         param_set,
                         ρ[i],
                         e_int,
