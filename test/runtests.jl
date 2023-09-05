@@ -3,6 +3,7 @@ if !haskey(ENV, "BUILDKITE")
     Pkg.develop(Pkg.PackageSpec(; path = dirname(@__DIR__)))
 end
 
+include("aqua.jl")
 include("TemperatureProfiles.jl")
 include("relations.jl")
 
