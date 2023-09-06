@@ -1154,34 +1154,33 @@ end
  - `Liquid()`, `Ice()` - liquid or ice phase to dispatch over.
  - `ts` thermodynamic state
 
-Returns supersaturation (qv/qv_sat -1) over water or ice.
+Returns supersaturation (pv/pv_sat -1) over water or ice.
 """
 function supersaturation(
     param_set::APS,
     q::PhasePartition{FT},
     ρ::FT,
     T::FT,
-    ::Liquid,
+    phase::Phase,
 ) where {FT <: Real}
 
-    q_sat::FT = q_vap_saturation_generic(param_set, T, ρ, Liquid())
-    q_vap::FT = vapor_specific_humidity(q)
+    p_v_sat = saturation_vapor_pressure(param_set, T, phase)
 
-    return q_vap / q_sat - FT(1)
+    return supersaturation(param_set, q, ρ, T, p_v_sat)
 end
 function supersaturation(
     param_set::APS,
     q::PhasePartition{FT},
     ρ::FT,
     T::FT,
-    ::Ice,
+    p_v_sat::FT,
 ) where {FT <: Real}
 
-    q_sat::FT = q_vap_saturation_generic(param_set, T, ρ, Ice())
-    q_vap::FT = vapor_specific_humidity(q)
+    p_v::FT = vapor_specific_humidity(q) * (ρ * TP.R_v(param_set) * T)
 
-    return q_vap / q_sat - FT(1)
+    return p_v / p_v_sat - FT(1)
 end
+
 supersaturation(param_set::APS, ts::ThermodynamicState, phase::Phase) =
     supersaturation(
         param_set,
