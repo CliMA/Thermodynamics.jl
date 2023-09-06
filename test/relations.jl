@@ -278,6 +278,13 @@ end
         _T_triple,
         Liquid(),
     ) ≈ 0.998 * q_tot / ρ_v_triple / ρ - 1
+    @test supersaturation(
+        param_set,
+        PhasePartition(q_tot, 1e-3 * q_tot, 1e-3 * q_tot),
+        ρ,
+        _T_triple,
+        saturation_vapor_pressure(param_set, _T_triple, Liquid()),
+    ) ≈ 0.998 * q_tot / ρ_v_triple / ρ - 1
 
     @test supersaturation(
         param_set,
@@ -285,6 +292,13 @@ end
         ρ,
         _T_triple,
         Ice(),
+    ) ≈ 0.998 * q_tot / ρ_v_triple / ρ - 1
+    @test supersaturation(
+        param_set,
+        PhasePartition(q_tot, 1e-3 * q_tot, 1e-3 * q_tot),
+        ρ,
+        _T_triple,
+        saturation_vapor_pressure(param_set, _T_triple, Ice()),
     ) ≈ 0.998 * q_tot / ρ_v_triple / ρ - 1
 
     # energy functions and inverse (temperature)
