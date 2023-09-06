@@ -1164,10 +1164,9 @@ function supersaturation(
     phase::Phase,
 ) where {FT <: Real}
 
-    p_v_sat::FT = saturation_vapor_pressure(param_set, T, phase)
-    p_v::FT = vapor_specific_humidity(q) * (ρ * TP.R_v(param_set) * T)
+    p_v_sat = saturation_vapor_pressure(param_set, T, phase)
 
-    return p_v / p_v_sat - FT(1)
+    return supersaturation(param_set, q, ρ, T, p_v_sat)
 end
 function supersaturation(
     param_set::APS,
