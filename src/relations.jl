@@ -1538,10 +1538,13 @@ function saturation_adjustment(
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     if T_1 > _T_min
-        q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
+        λ = liquid_fraction(param_set, T_1, phase_type, q_pt_0(FT))
+        p_v_sat =
+            saturation_vapor_pressure(param_set, phase_type, T_1, q_pt_0(FT), λ)
+        q_v_sat = q_vap_saturation_from_density(param_set, T_1, ρ, p_v_sat)
         unsaturated = q_tot <= q_v_sat
         if unsaturated
-            return T_1
+            return (T_1, p_v_sat, true)
         end
     end
     _T_freeze::FT = TP.T_freeze(param_set)
@@ -1552,7 +1555,7 @@ function saturation_adjustment(
     if e_int < e_int_upper
         e_int_lower = e_int_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
         if e_int_lower < e_int # < e_int_upper
-            return _T_freeze
+            return (_T_freeze, FT(0), false)
         end
     end
     function roots(_T) # ff′
@@ -1623,7 +1626,7 @@ function saturation_adjustment(
             error("Failed to converge with printed set of inputs.")
         end
     end
-    return sol.root
+    return (sol.root, FT(0), false)
 end
 
 """

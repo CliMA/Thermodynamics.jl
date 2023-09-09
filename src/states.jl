@@ -295,7 +295,7 @@ function PhaseEquil_ρeq(
         (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
-    T = saturation_adjustment(
+    (T, p_vap_sat, p_vap_sat_computed) = saturation_adjustment(
         sat_adjust_method,
         param_set,
         e_int,
@@ -306,7 +306,19 @@ function PhaseEquil_ρeq(
         relative_temperature_tol,
         T_guess,
     )
-    q_pt = PhasePartition_equil(param_set, T, ρ, q_tot_safe, phase_type)
+    λ = liquid_fraction(param_set, T, phase_type)
+    _p_vap_sat = if p_vap_sat_computed
+        p_vap_sat
+    else
+        saturation_vapor_pressure(
+            param_set,
+            phase_type,
+            T,
+            PhasePartition(FT(0)),
+            λ,
+        )
+    end
+    q_pt = PhasePartition_equil(param_set, T, ρ, q_tot_safe, _p_vap_sat, λ)
     p = air_pressure(param_set, T, ρ, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
