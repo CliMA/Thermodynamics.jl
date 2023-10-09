@@ -34,10 +34,9 @@ format = Documenter.HTML(
     collapselevel = 1,
 )
 
-makedocs(
-    bib,
+makedocs(;
+    plugins = [bib],
     sitename = "Thermodynamics.jl",
-    strict = true,
     format = format,
     checkdocs = :exports,
     clean = true,
