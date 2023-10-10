@@ -35,8 +35,6 @@ include("saturation_adjustment.jl")
 :-----------------:|:-----------------:|:---------------------:
 SecantMethod | ![](3DSpace_converged_SecantMethod.svg)       |  ![](3DSpace_non_converged_SecantMethod.svg)
 NewtonsMethod | ![](3DSpace_converged_NewtonsMethod.svg)      |  ![](3DSpace_non_converged_NewtonsMethod.svg)
-NewtonsMethodAD | ![](3DSpace_converged_NewtonsMethodAD.svg)    |  ![](3DSpace_non_converged_NewtonsMethodAD.svg)
-RegulaFalsiMethod | ![](3DSpace_converged_RegulaFalsiMethod.svg)  |  ![](3DSpace_non_converged_RegulaFalsiMethod.svg)
 
 ## 2D slices, binned by total specific humidity
 
@@ -44,5 +42,3 @@ RegulaFalsiMethod | ![](3DSpace_converged_RegulaFalsiMethod.svg)  |  ![](3DSpace
 :-----------------:|:-----------------:|:---------------------:
 SecantMethod | ![](2DSlice_converged_SecantMethod.svg)  |  ![](2DSlice_non_converged_SecantMethod.svg)
 NewtonsMethod | ![](2DSlice_converged_NewtonsMethod.svg)  |  ![](2DSlice_non_converged_NewtonsMethod.svg)
-NewtonsMethodAD | ![](2DSlice_converged_NewtonsMethodAD.svg)  |  ![](2DSlice_non_converged_NewtonsMethodAD.svg)
-RegulaFalsiMethod | ![](2DSlice_converged_RegulaFalsiMethod.svg)  |  ![](2DSlice_non_converged_RegulaFalsiMethod.svg)
