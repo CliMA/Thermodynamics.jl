@@ -7,7 +7,6 @@ A package containing a library of moist thermodynamic relations
 | **Documentation**    | [![dev][docs-dev-img]][docs-dev-url]          |
 | **GHA CI**           | [![gha ci][gha-ci-img]][gha-ci-url]           |
 | **Code Coverage**    | [![codecov][codecov-img]][codecov-url]        |
-| **Bors enabled**     | [![bors][bors-img]][bors-url]                 |
 
 [docs-bld-img]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml/badge.svg
 [docs-bld-url]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml
@@ -20,7 +19,4 @@ A package containing a library of moist thermodynamic relations
 
 [codecov-img]: https://codecov.io/gh/CliMA/Thermodynamics.jl/branch/main/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/CliMA/Thermodynamics.jl
-
-[bors-img]: https://bors.tech/images/badge_small.svg
-[bors-url]: https://app.bors.tech/repositories/24783
 
