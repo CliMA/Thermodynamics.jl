@@ -54,7 +54,7 @@ const KA = KernelAbstractions
 include("Parameters.jl")
 import .Parameters
 const TP = Parameters
-const APS = TP.ThermodynamicsParameters
+const APS = TP.AbstractThermodynamicsParameters
 
 # Allow users to skip error on non-convergence
 # by importing:
