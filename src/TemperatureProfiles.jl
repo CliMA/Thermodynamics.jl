@@ -8,7 +8,7 @@ export TemperatureProfile,
 
 import ..Parameters
 const TP = Parameters
-const APS = TP.ThermodynamicsParameters
+const APS = TP.AbstractThermodynamicsParameters
 
 """
     TemperatureProfile

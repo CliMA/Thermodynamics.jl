@@ -2,6 +2,9 @@ module Parameters
 
 export ThermodynamicsParameters
 
+abstract type AbstractThermodynamicsParameters{FT} end
+const ATP = AbstractThermodynamicsParameters
+
 """
     ThermodynamicsParameters
 
@@ -18,7 +21,7 @@ param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics");
 param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...);
 ```
 """
-Base.@kwdef struct ThermodynamicsParameters{FT}
+Base.@kwdef struct ThermodynamicsParameters{FT} <: AbstractThermodynamicsParameters{FT}
     T_0::FT
     MSLP::FT
     p_ref_theta::FT
@@ -46,14 +49,12 @@ Base.@kwdef struct ThermodynamicsParameters{FT}
     pow_icenuc::FT
 end
 
-const ATP = ThermodynamicsParameters
-
 Base.broadcastable(ps::ATP) = tuple(ps)
 Base.eltype(::ThermodynamicsParameters{FT}) where {FT} = FT
 
 # wrappers
-for fn in fieldnames(ATP)
-    @eval $(fn)(ps::ATP) = ps.$(fn)
+for fn in fieldnames(ThermodynamicsParameters)
+    @eval $(fn)(ps::ThermodynamicsParameters) = ps.$(fn)
 end
 
 # Derived parameters
