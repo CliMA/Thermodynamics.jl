@@ -1,7 +1,7 @@
-# Tutorial on defining parameter sets and performing thermodynamic computations.
+# # Defining a simple parameter set and using it to compute density
 #
-# This script gives a short tutorial on defining thermodynamic parameter sets,
-# and performing some basic computations.
+# This script shows how to define a simple parameter set, and then using it to
+# compute density as a function of pressure, temperature, and humidity.
 
 # # Define parameters for computing the density of air
 #
@@ -47,8 +47,8 @@ function ConstitutiveParameters(FT = Float64;
                                 water_molar_mass   = 0.018015)
 
     return ConstitutiveParameters(convert(FT, gas_constant),
-                                convert(FT, dry_air_molar_mass),
-                                convert(FT, water_molar_mass))
+                                  convert(FT, dry_air_molar_mass),
+                                  convert(FT, water_molar_mass))
 end
 
 # Next, we define functions that return:
@@ -88,13 +88,68 @@ q_dry = AtmosphericThermodynamics.PhasePartition(0.0)
 # Finally, we define the pressure and temperature, which constitute
 # the "state" of our atmosphere,
 
-p = 101325.0 # pressure in Pascals (here taken to be mean sea level pressure)
-T = 273.15   # temperature in Kelvin
+p₀ = 101325.0 # sea level pressure in Pascals (here taken to be mean sea level pressure)
+T₀ = 273.15   # temperature in Kelvin
 
 # Note that the above must be defined with the same float point precision as
 # used for the parameters and PhasePartition.
-
 # We're now ready to compute the density of dry air,
 
-ρ = air_density(parameters, T, p, q_dry)
+ρ = air_density(parameters, T₀, p₀, q_dry)
+
+@show ρ
+
+# Note that the above must be defined with the same float point precision as
+# used for the parameters and PhasePartition.
+# We're now ready to compute the density of dry air,
+
+using JLD2
+
+# Next, we load an atmospheric state correpsonding to atmospheric surface
+# variables substampled from the JRA55 dataset, from the date Jan 1, 1991:
+
+@load "JRA55_atmospheric_state_Jan_1_1991.jld2" q T p
+nothing
+
+# The variables q, T and p correspond to the total specific humidity (a mass fraction),
+# temperature (Kelvin), and sea level pressure (Pa)
+#
+# We use q to build a vector of PhasePartition,
+
+qp = PhasePartition.(q)
+
+# And then compute the density using the same parameters as before:
+
+ρ = air_density.(parameters, T, p, qp)
+
+# Finally, we plot the density as a function of temperature and specific humidity,
+
+using CairoMakie
+
+## Pressure range, centered around the mean sea level pressure defined above
+pmax = maximum(abs, p)
+dp = 3/4 * (pmax - p₀)
+prange = (p₀ - dp, p₀ + dp)
+pmap = :balance
+
+## Compute temperature range
+Tmin = minimum(T)
+Tmax = maximum(T)
+Trange = (Tmin, Tmax)
+Tmap = :viridis
+
+fig = Figure(size=(1200, 500))
+
+axρ = Axis(fig[2, 1], xlabel="Temperature (K) ", ylabel="Density (kg m⁻³)")
+axq = Axis(fig[2, 2], xlabel="Specific humidity", ylabel="Density (kg m⁻³)")
+
+scatter!(axρ, T[:], ρ[:], color=p[:], colorrange=prange, colormap=pmap, alpha=0.1)
+scatter!(axq, q[:], ρ[:], color=T[:], colorrange=Trange, colormap=Tmap, alpha=0.1)
+
+Colorbar(fig[1, 1], label="Pressure (Pa)",   vertical=false, colorrange=prange, colormap=pmap)
+Colorbar(fig[1, 2], label="Temperature (K)", vertical=false, colorrange=Trange, colormap=Tmap)
+
+save(fig, "density_versus_temperature.png")
+
+display(fig)
 
