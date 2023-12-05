@@ -376,7 +376,7 @@ A virtual potential temperature can be defined analogously:
 \end{equation}
 ```
 
-!!! note
+!!! note "Relationship between virtual temperature and 'density temperature'"
     Some texts distinguish a "(condensate-ignoring) virtual temperature" and a "density temperature", and an analogous condensate-ignoring virtual potential temperature and density potential temperature.
     In those texts, the definition of density temperature incorporates condensate mass but their "condensate-ignoring virtual temperature" does not.
     We always take the mass of any condensate into account in the thermodynamics of moist air, so this distinction is irrelevant here.
