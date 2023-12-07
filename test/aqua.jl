@@ -30,7 +30,7 @@ end
     Aqua.test_stale_deps(Thermodynamics)
     Aqua.test_deps_compat(Thermodynamics)
     Aqua.test_project_extras(Thermodynamics)
-    Aqua.test_piracy(Thermodynamics)
+    Aqua.test_piracies(Thermodynamics)
 end
 
 nothing
