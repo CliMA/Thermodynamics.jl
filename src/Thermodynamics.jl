@@ -88,4 +88,7 @@ include("TestedProfiles.jl")
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)
 
+using PrecompileTools
+include("precompile.jl")
+
 end #module Thermodynamics.jl
