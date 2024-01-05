@@ -356,24 +356,31 @@ where ``\Pi`` is known as the Exner function
 ```
 Note that the adiabatic exponent ``κ`` takes the effect of  moisture on the effective gas ``constant`` and specific heat capacity of air into account.
 
-### Virtual (Potential) Temperature
+### Virtual Temperature and Virtual Potential Temperature
 
-The virtual or density temperature ``T_v`` is the temperature dry air would need to have to have the same density as moist air at the same pressure. Using the ideal gas law ``p/ρ = R_m T``, this implies ``R_m T  = R_d T_v ``, or
+The virtual or density temperature ``T_v`` is the temperature dry air would need to have to have the same density as moist air at the same pressure.
+Using the ideal gas law ``p/ρ = R_m T``, this implies ``R_m T  = R_d T_v ``, or
 
 ```math
-\begin{equation}\label{e:virtual_temp}
+\begin{equation} \label{e:virtual_temp}
 T_v = \frac{R_m}{R_d} T.
 \end{equation}
 ```
 
 A virtual potential temperature can be defined analogously:
+
 ```math
 \begin{equation}
 θ_v = \frac{R_m}{R_d} θ.
 \label{e:virtual_pottemp}
 \end{equation}
 ```
-Some texts distinguish virtual and density (potential) temperatures, where density (potential) temperatures take the mass of condensate into account, whereas virtual (potential) temperatures do not. We always take the mass of any condensate into account in the thermodynamics of moist air and do not make this distinction here.
+
+!!! note "Relationship between virtual temperature and 'density temperature'"
+    Some texts distinguish a "(condensate-ignoring) virtual temperature" and a "density temperature", and an analogous condensate-ignoring virtual potential temperature and density potential temperature.
+    In those texts, the definition of density temperature incorporates condensate mass but their "condensate-ignoring virtual temperature" does not.
+    We always take the mass of any condensate into account in the thermodynamics of moist air, so this distinction is irrelevant here.
+    In other words, because the virtual temperature defined above incorporates the mass of condensate into ``R_m(q)`` (and virtual potential temperature is additionally defined in terms of ``c_pm(q)``) via the potential temperature exponent ``κ``), there is no distinction between our virtual temperature and a hypothetical "density temperature".
 
 ### Liquid-Ice Potential Temperature
 
