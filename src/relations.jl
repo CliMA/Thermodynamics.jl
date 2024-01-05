@@ -993,12 +993,11 @@ end
 
 Compute the saturation specific humidity over a plane surface of condensate, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
-and, optionally,
- - `Liquid()` indicating condensate is liquid
- - `Ice()` indicating condensate is ice
+    - `param_set`: an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+    - `T`: temperature
+    - `ρ`: air density
+    - (optional) `Liquid()`: indicating condensate is liquid
+    - (optional) `Ice()`: indicating condensate is ice
 """
 function q_vap_saturation_generic(
     param_set::APS,
@@ -1015,12 +1014,11 @@ end
 
 Compute the saturation specific humidity, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `phase_type` a thermodynamic state type
-and, optionally,
- - `q` [`PhasePartition`](@ref)
+    - `param_set`: an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+    - `T`: temperature
+    - `ρ`: air density
+    - `phase_type`: a thermodynamic state type
+    - (optional) `q`: [`PhasePartition`](@ref)
 
 If the `PhasePartition` `q` is given, the saturation specific humidity is that of a
 mixture of liquid and ice, computed in a thermodynamically consistent way from the
