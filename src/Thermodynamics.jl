@@ -65,10 +65,10 @@ const APS = TP.ThermodynamicsParameters
 # Error on convergence must be the default
 # behavior because this can result in printing
 # very large logs resulting in CI to seemingly hang.
-error_on_non_convergence() = true
+@inline error_on_non_convergence() = true
 
 # Allow users to skip printing warnings on non-convergence
-print_warning() = true
+@inline print_warning() = true
 
 @inline q_pt_0(::Type{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
 
