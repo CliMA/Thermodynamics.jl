@@ -25,12 +25,8 @@ using Aqua
     @test length(ambs) ≤ 0
 end
 
-@testset "Aqua tests (additional)" begin
-    Aqua.test_undefined_exports(Thermodynamics)
-    Aqua.test_stale_deps(Thermodynamics)
-    Aqua.test_deps_compat(Thermodynamics)
-    Aqua.test_project_extras(Thermodynamics)
-    Aqua.test_piracy(Thermodynamics)
+@testset "Aqua tests - remaining" begin
+    Aqua.test_all(Thermodynamics; ambiguities = false, unbound_args = false)
 end
 
 nothing
