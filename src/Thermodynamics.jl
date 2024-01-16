@@ -15,10 +15,8 @@ parameters). For example, to compute the mole-mass ratio:
 ```julia
 import CLIMAParameters as CP
 import Thermodynamics.Parameters as TP
-toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+FT = Float64
+param_set = TP.ThermodynamicsParameters(FT)
 _molmass_ratio = TP.molmass_ratio(param_set)
 ```
 
@@ -87,5 +85,10 @@ include("TestedProfiles.jl")
 
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)
+
+# For backwards compatibility with package extensions
+if !isdefined(Base, :get_extension)
+    include(joinpath("..", "ext", "CreateParametersExt.jl"))
+end
 
 end #module Thermodynamics.jl

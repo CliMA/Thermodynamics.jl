@@ -9,11 +9,8 @@ import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
 import Thermodynamics.Parameters as TP
-FT = Float64;
-toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+FT = Float64
+param_set = TP.ThermodynamicsParameters(FT)
 
 profiles = TD.TestedProfiles.PhaseDryProfiles(param_set, Array{FT});
 (;T, ρ, z) = profiles
@@ -31,11 +28,8 @@ import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
 import Thermodynamics.Parameters as TP
-FT = Float64;
-toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+FT = Float64
+param_set = TP.ThermodynamicsParameters(FT)
 
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
 (;T, ρ, q_tot, z) = profiles

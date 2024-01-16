@@ -1,42 +1,21 @@
 using Test
-using Thermodynamics
-using Thermodynamics.TemperatureProfiles
-using Thermodynamics.TestedProfiles
 
-const TD = Thermodynamics
-const TP = TD.Parameters
 using UnPack
 using NCDatasets
 using Random
-
-import RootSolvers
-const RS = RootSolvers
-
+import RootSolvers as RS
 using LinearAlgebra
 import ForwardDiff
 
-const TP = TD.Parameters
-
-import CLIMAParameters
-const CP = CLIMAParameters
-
-function get_parameter_set(::Type{FT}) where {FT}
-    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
-    logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
-    # CP.log_parameter_information(toml_dict, logfilepath)
-    return param_set
-end
-
-const param_set_Float64 = get_parameter_set(Float64)
-const param_set_Float32 = get_parameter_set(Float32)
-parameter_set(::Type{Float64}) = param_set_Float64
-parameter_set(::Type{Float32}) = param_set_Float32
-
+using Thermodynamics
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+using Thermodynamics.TemperatureProfiles
+using Thermodynamics.TestedProfiles
+import CLIMAParameters as CP
 
 # Tolerances for tested quantities:
+param_set_Float64 = TP.ThermodynamicsParameters(Float64)
 atol_temperature = 5e-1
 atol_energy = TP.cv_d(param_set_Float64) * atol_temperature
 rtol_temperature = 1e-1
@@ -63,7 +42,7 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
 @testset "Thermodynamics - isentropic processes" begin
     for ArrayType in array_types
         FT = eltype(ArrayType)
-        param_set = parameter_set(FT)
+        param_set = TP.ThermodynamicsParameters(FT)
 
         _R_d = FT(TP.R_d(param_set))
         _molmass_ratio = FT(TP.molmass_ratio(param_set))
@@ -120,7 +99,7 @@ end
 
 @testset "Thermodynamics - correctness" begin
     FT = Float64
-    param_set = parameter_set(FT)
+    param_set = TP.ThermodynamicsParameters(FT)
     _R_d = FT(TP.R_d(param_set))
     _molmass_ratio = FT(TP.molmass_ratio(param_set))
     _cp_d = FT(TP.cp_d(param_set))
@@ -523,7 +502,7 @@ end
     or(a, b) = a || b
     for ArrayType in array_types
         FT = eltype(ArrayType)
-        param_set = parameter_set(FT)
+        param_set = TP.ThermodynamicsParameters(FT)
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
         @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
@@ -899,7 +878,7 @@ end
 
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    param_set = parameter_set(FT)
+    param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
     @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
@@ -1008,7 +987,7 @@ end
 
     for ArrayType in array_types
         FT = eltype(ArrayType)
-        param_set = parameter_set(FT)
+        param_set = TP.ThermodynamicsParameters(FT)
 
         profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
         @unpack T, p, e_int, h, ρ, θ_liq_ice, phase_type = profiles
@@ -1368,7 +1347,7 @@ end
     # with converging to the same tolerances as `Float64`, so they're relaxed here.
     ArrayType = Array{Float32}
     FT = eltype(ArrayType)
-    param_set = parameter_set(FT)
+    param_set = TP.ThermodynamicsParameters(FT)
 
     profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
     @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
@@ -1509,7 +1488,7 @@ end
 
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    param_set = parameter_set(FT)
+    param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
     @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
@@ -1677,7 +1656,7 @@ end
 @testset "Thermodynamics - ProfileSet Iterator" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    param_set = parameter_set(FT)
+    param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack T, q_pt, z, phase_type = profiles
     @test all(z .≈ (nt.z for nt in profiles))
@@ -1697,7 +1676,7 @@ end
 @testset "Thermodynamics - test T_guess" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    param_set = parameter_set(FT)
+    param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack p, ρ, e_int, h, θ_liq_ice, q_tot, T, phase_type = profiles
     T_guess = T .+ (FT(0.2) .* randn(FT, length(T)))
@@ -1734,7 +1713,7 @@ TD.solution_type() = RS.VerboseSolution()
 @testset "Test data collection" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    param_set = parameter_set(FT)
+    param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     @unpack ρ, e_int, q_tot = profiles
     ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)

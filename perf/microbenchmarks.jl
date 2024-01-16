@@ -3,7 +3,7 @@ include("common_micro_bm.jl")
 function benchmark_thermo_states(::Type{FT}) where {FT}
     summary = OrderedCollections.OrderedDict()
     ArrayType = Array{FT}
-    param_set = get_parameter_set(FT)
+    param_set = TP.ThermodynamicsParameters(FT)
     profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
 
     for C in (

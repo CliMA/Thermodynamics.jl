@@ -4,23 +4,10 @@ import CLIMAParameters as CP
 using Thermodynamics.TestedProfiles
 import Thermodynamics.Parameters as TP
 
-function get_parameter_set(::Type{FT}) where {FT}
-    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
-    logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
-    CP.log_parameter_information(toml_dict, logfilepath)
-    return param_set
-end
-const param_set_Float64 = get_parameter_set(Float64)
-const param_set_Float32 = get_parameter_set(Float32)
-parameter_set(::Type{Float64}) = param_set_Float64
-parameter_set(::Type{Float32}) = param_set_Float32
 ArrayType = Array{Float64}
-
 FT = eltype(ArrayType)
-param_set = parameter_set(FT)
+
+param_set = TP.ThermodynamicsParameters(FT)
 profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
 (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
 (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles

@@ -1,42 +1,16 @@
 using Test
 
 using KernelAbstractions
-const KA = KernelAbstractions
-
-import CUDAKernels
-const CK = CUDAKernels
-
-import Thermodynamics
-const TD = Thermodynamics
-
+import KernelAbstractions as KA
+import CUDAKernels as CK
 import UnPack
-
 using Random
 using LinearAlgebra
+import RootSolvers as RS
 
-import RootSolvers
-const RS = RootSolvers
-
-import CLIMAParameters
-const CP = CLIMAParameters
-
-const TP = TD.Parameters
-
-function get_parameter_set(::Type{FT}) where {FT}
-    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
-    logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
-    CP.log_parameter_information(toml_dict, logfilepath)
-    return param_set
-end
-
-const param_set_Float64 = get_parameter_set(Float64)
-const param_set_Float32 = get_parameter_set(Float32)
-parameter_set(::Type{Float64}) = param_set_Float64
-parameter_set(::Type{Float32}) = param_set_Float32
-
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+import CLIMAParameters as CP
 
 if get(ARGS, 1, "Array") == "CuArray"
     import CUDA
@@ -47,6 +21,11 @@ else
     ArrayType = Array
     device(::Type{T}) where {T <: Array} = CK.CPU()
 end
+
+const param_set_Float64 = TP.ThermodynamicsParameters(Float64)
+const param_set_Float32 = TP.ThermodynamicsParameters(Float32)
+parameter_set(::Type{Float64}) = param_set_Float64
+parameter_set(::Type{Float32}) = param_set_Float32
 
 @show ArrayType
 
@@ -61,6 +40,7 @@ end
     i = @index(Group, Linear)
     @inbounds begin
 
+        param_set = parameter_set(FT)
         ts = TD.PhaseEquil_ρeq(param_set, FT(ρ[i]), FT(e_int[i]), FT(q_tot[i]))
         dst[1, i] = TD.air_temperature(param_set, ts)
 

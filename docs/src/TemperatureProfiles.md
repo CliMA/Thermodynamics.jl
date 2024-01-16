@@ -22,11 +22,8 @@ import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
 import Thermodynamics.Parameters as TP
-FT = Float64;
-toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+FT = Float64
+param_set = TP.ThermodynamicsParameters(FT)
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
 isothermal = TD.TemperatureProfiles.IsothermalProfile(param_set, FT);
@@ -49,11 +46,8 @@ import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
 import Thermodynamics.Parameters as TP
-FT = Float64;
-toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+FT = Float64
+param_set = TP.ThermodynamicsParameters(FT)
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
 decaying = TD.TemperatureProfiles.DecayingTemperatureProfile{FT}(param_set);
@@ -75,11 +69,8 @@ import Thermodynamics as TD
 import Plots
 import CLIMAParameters as CP
 import Thermodynamics.Parameters as TP
-FT = Float64;
-toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+FT = Float64
+param_set = TP.ThermodynamicsParameters(FT)
 z = range(FT(0), stop = FT(2.5e4), length = 50);
 
 dry_adiabatic = TD.TemperatureProfiles.DryAdiabaticProfile{FT}(param_set);
