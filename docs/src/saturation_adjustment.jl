@@ -1,17 +1,13 @@
-import RootSolvers
-const RS = RootSolvers
+import RootSolvers as RS
 import Plots
 
-FT = Float64;
 import Thermodynamics as TD
-const TP = TD.Parameters
+import Thermodynamics.Parameters as TP
 import CLIMAParameters as CP
 
-TD.print_warning() = false
-toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-const param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+FT = Float64
+
+const param_set = TP.ThermodynamicsParameters(FT)
 
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
 (; ρ, q_tot) = profiles

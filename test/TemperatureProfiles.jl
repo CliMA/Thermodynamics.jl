@@ -1,31 +1,14 @@
 using Test
-import Thermodynamics
-const TD = Thermodynamics
-const TP = TD.Parameters
-const TDTP = TD.TemperatureProfiles
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+import Thermodynamics.TemperatureProfiles as TDTP
 using ForwardDiff
 
-import CLIMAParameters
-const CP = CLIMAParameters
-
-function get_parameter_set(::Type{FT}) where {FT}
-    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
-    logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
-    CP.log_parameter_information(toml_dict, logfilepath)
-    return param_set
-end
-
-const param_set_Float64 = get_parameter_set(Float64)
-const param_set_Float32 = get_parameter_set(Float32)
-parameter_set(::Type{Float64}) = param_set_Float64
-parameter_set(::Type{Float32}) = param_set_Float32
+import CLIMAParameters as CP
 
 @testset "TemperatureProfiles - DecayingTemperatureProfile" begin
     for FT in [Float32, Float64]
-        param_set = parameter_set(FT)
+        param_set = TP.ThermodynamicsParameters(FT)
         _grav = FT(TP.grav(param_set))
         _R_d = FT(TP.R_d(param_set))
         _p_ref = FT(TP.MSLP(param_set))
