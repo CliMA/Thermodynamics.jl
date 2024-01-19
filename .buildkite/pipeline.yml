@@ -87,3 +87,20 @@ steps:
       slurm_ntasks: 1
       slurm_gpus: 1
     timeout_in_minutes: 60
+
+  - label: "KernelAbstraction GPU kernel benchmarks"
+    command:
+      - "julia --project=gpuenv perf/kernel_bm.jl CuArray"
+    agents:
+      slurm_ntasks: 1
+      slurm_gpus: 1
+    timeout_in_minutes: 60
+
+  - label: "KernelAbstraction CPU kernel benchmarks"
+    command:
+      - "julia --project=gpuenv perf/kernel_bm.jl"
+    agents:
+      slurm_ntasks: 1
+      slurm_gpus: 1
+    timeout_in_minutes: 60
+

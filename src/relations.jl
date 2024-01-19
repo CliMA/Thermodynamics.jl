@@ -1385,7 +1385,7 @@ function PhasePartition_equil(
     return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 end
 
-PhasePartition_equil(param_set::APS, ts::AbstractPhaseNonEquil) =
+PhasePartition_equil(param_set::APS, ts::ThermodynamicState) =
     PhasePartition_equil(
         param_set,
         air_temperature(param_set, ts),
@@ -2179,6 +2179,8 @@ function latent_heat_liq_ice(
     LH_s0::FT = TP.LH_s0(param_set)
     return LH_v0 * q.liq + LH_s0 * q.ice
 end
+latent_heat_liq_ice(param_set::APS, ts::ThermodynamicState) =
+    latent_heat_liq_ice(param_set, PhasePartition(param_set, ts))
 
 
 """
@@ -2735,6 +2737,8 @@ function vol_vapor_mixing_ratio(
     q_vap = vapor_specific_humidity(q)
     return molmass_ratio * shum_to_mixing_ratio(q_vap, q.tot)
 end
+vol_vapor_mixing_ratio(param_set, ts::ThermodynamicState) =
+    vol_vapor_mixing_ratio(param_set, PhasePartition(param_set, ts))
 
 """
     relative_humidity(param_set, T, p, phase_type, q::PhasePartition)
