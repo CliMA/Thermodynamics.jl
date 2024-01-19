@@ -1,19 +1,16 @@
 [deps]
 CLIMAParameters = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
-CUDAKernels = "72cfdca4-0801-4ab0-bf6a-d52aa10adc57"
 KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RootSolvers = "7181ea78-2dcb-4de3-ab41-2b8ab5a31e74"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
-UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
+Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 
 [compat]
 CLIMAParameters = "0.8"
-CUDA = "3.5"
-CUDAKernels = "0.3, 0.4"
-KernelAbstractions = "0.7, 0.8"
+CUDA = "3.5, 4, 5"
+KernelAbstractions = "0.9"
 RootSolvers = "0.4"
-UnPack = "1.0"
 julia = "1.7"

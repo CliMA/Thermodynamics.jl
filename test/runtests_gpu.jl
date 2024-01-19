@@ -1,9 +1,12 @@
+#=
+using Revise
+push!(ARGS, "CuArray")
+include("test/runtests_gpu.jl")
+=#
 using Test
 
 using KernelAbstractions
 import KernelAbstractions as KA
-import CUDAKernels as CK
-import UnPack
 using Random
 using LinearAlgebra
 import RootSolvers as RS
@@ -16,10 +19,8 @@ if get(ARGS, 1, "Array") == "CuArray"
     import CUDA
     ArrayType = CUDA.CuArray
     CUDA.allowscalar(false)
-    device(::Type{T}) where {T <: CUDA.CuArray} = CK.CUDADevice()
 else
     ArrayType = Array
-    device(::Type{T}) where {T <: Array} = CK.CPU()
 end
 
 const param_set_Float64 = TP.ThermodynamicsParameters(Float64)
@@ -37,7 +38,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
     p,
     q_tot,
 ) where {FT}
-    i = @index(Group, Linear)
+    i = @index(Global)
     @inbounds begin
 
         param_set = parameter_set(FT)
@@ -87,7 +88,6 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
 @testset "Thermodynamics - kernels" begin
     FT = Float32
     param_set = parameter_set(FT)
-    dev = device(ArrayType)
     profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array)
     slice = Colon()
     profiles = convert_profile_set(profiles, ArrayType, slice)
@@ -97,17 +97,22 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
     d_dst = ArrayType(Array{FT}(undef, 2, n_profiles))
     fill!(d_dst, 0)
 
-    UnPack.@unpack e_int, ρ, p, q_tot = profiles
+    (; e_int, ρ, p, q_tot) = profiles
 
-    work_groups = (1,)
     ndrange = (n_profiles,)
-    kernel! = test_thermo_kernel!(dev, work_groups)
+    backend = KA.get_backend(d_dst)
+    kernel! = test_thermo_kernel!(backend)
     event = kernel!(param_set, d_dst, e_int, ρ, p, q_tot, ndrange = ndrange)
-    wait(dev, event)
+    KA.synchronize(backend)
 
-    ts_correct =
-        TD.PhaseEquil_ρeq.(param_set, Array(ρ), Array(e_int), Array(q_tot))
-    @test all(Array(d_dst)[1, :] .≈ TD.air_temperature.(param_set, ts_correct))
+    ts_cpu =
+        TD.PhaseEquil_ρeq.(
+            param_set,
+            Array{FT}(ρ),
+            Array{FT}(e_int),
+            Array{FT}(q_tot),
+        )
+    @test all(Array(d_dst)[1, :] .≈ TD.air_temperature.(param_set, ts_cpu))
 
     ts_correct =
         TD.PhaseEquil_ρpq.(

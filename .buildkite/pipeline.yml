@@ -1,10 +1,10 @@
 agents:
   queue: central
   slurm_mem: 8G
-  modules: julia/1.9.3 cuda/12.2
+  modules: julia/1.10.0 cuda/12.2
 
 env:
-  JULIA_VERSION: "1.9.3"
+  JULIA_VERSION: "1.10.0"
   OPENBLAS_NUM_THREADS: 1
   CUDA_VERSION: "12.2"
   OMPI_MCA_opal_warn_on_missing_libcuda: 0
