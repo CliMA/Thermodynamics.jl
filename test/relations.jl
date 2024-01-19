@@ -1,6 +1,5 @@
 using Test
 
-using UnPack
 using Random
 import RootSolvers as RS
 using LinearAlgebra
@@ -69,8 +68,8 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
         _kappa_d = FT(TP.kappa_d(param_set))
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-        @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
-        @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+        (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
+        (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
         # Test state for thermodynamic consistency (with ideal gas law)
         T_idgl = TD.air_temperature_from_ideal_gas_law.(param_set, p, ρ, q_pt)
@@ -503,8 +502,8 @@ end
         FT = eltype(ArrayType)
         param_set = TP.ThermodynamicsParameters(FT)
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-        @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
-        @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+        (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
+        (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
         RH_sat_mask = or.(RH .> 1, RH .≈ 1)
         RH_unsat_mask = .!or.(RH .> 1, RH .≈ 1)
@@ -879,8 +878,8 @@ end
     FT = eltype(ArrayType)
     param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
-    @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+    (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
+    (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
     @test_throws ErrorException TD.saturation_adjustment.(
         RS.NewtonsMethod,
@@ -989,8 +988,8 @@ end
         param_set = TP.ThermodynamicsParameters(FT)
 
         profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
-        @unpack T, p, e_int, h, ρ, θ_liq_ice, phase_type = profiles
-        @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+        (; T, p, e_int, h, ρ, θ_liq_ice, phase_type) = profiles
+        (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
         # PhaseDry
         ts = PhaseDry.(param_set, e_int, ρ)
@@ -1051,8 +1050,8 @@ end
 
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-        @unpack T, p, e_int, h, ρ, θ_liq_ice, phase_type = profiles
-        @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+        (; T, p, e_int, h, ρ, θ_liq_ice, phase_type) = profiles
+        (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
         # PhaseEquil
         ts =
@@ -1266,8 +1265,8 @@ end
         @test all(compare_moisture.(param_set, ts, q_pt))
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-        @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
-        @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+        (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
+        (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
         # Test that relative humidity is 1 for saturated conditions
         q_sat = q_vap_saturation.(param_set, T, ρ, Ref(phase_type))
@@ -1349,8 +1348,8 @@ end
     param_set = TP.ThermodynamicsParameters(FT)
 
     profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
-    @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
-    @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+    (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
+    (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
     θ_dry = dry_pottemp.(param_set, T, ρ)
     ts_dry = PhaseDry.(param_set, e_int, ρ)
@@ -1360,8 +1359,8 @@ end
     ts_dry_pθ = PhaseDry_pθ.(param_set, p, θ_dry)
 
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
-    @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+    (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
+    (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
     ρu = FT[1.0, 2.0, 3.0]
     @test typeof.(internal_energy.(ρ, ρ .* e_int, Ref(ρu), e_pot)) ==
@@ -1489,8 +1488,8 @@ end
     FT = eltype(ArrayType)
     param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    @unpack T, p, e_int, ρ, θ_liq_ice, phase_type = profiles
-    @unpack q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot = profiles
+    (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
+    (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
     # PhasePartition test is noisy, so do this only once:
     ts_dry = PhaseDry(param_set, first(e_int), first(ρ))
@@ -1657,7 +1656,7 @@ end
     FT = eltype(ArrayType)
     param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    @unpack T, q_pt, z, phase_type = profiles
+    (; T, q_pt, z, phase_type) = profiles
     @test all(z .≈ (nt.z for nt in profiles))
     @test all(T .≈ (nt.T for nt in profiles))
     @test all(getproperty.(q_pt, :tot) .≈ (nt.q_pt.tot for nt in profiles))
@@ -1677,7 +1676,7 @@ end
     FT = eltype(ArrayType)
     param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    @unpack p, ρ, e_int, h, θ_liq_ice, q_tot, T, phase_type = profiles
+    (; p, ρ, e_int, h, θ_liq_ice, q_tot, T, phase_type) = profiles
     T_guess = T .+ (FT(0.2) .* randn(FT, length(T)))
     args = (q_tot, 40, FT(1e-1))
     ts =
@@ -1714,7 +1713,7 @@ TD.solution_type() = RS.VerboseSolution()
     FT = eltype(ArrayType)
     param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    @unpack ρ, e_int, q_tot = profiles
+    (; ρ, e_int, q_tot) = profiles
     ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
     data = TD.DataCollection.get_data()
     TD.DataCollection.print_summary(data)

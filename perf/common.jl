@@ -1,6 +1,5 @@
 using Test
 
-import UnPack
 import BenchmarkTools
 import RootSolvers as RS
 
@@ -13,7 +12,7 @@ const param_set = TP.ThermodynamicsParameters(FT)
 
 ArrayType = Array{FT}
 profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-UnPack.@unpack e_int, T, ρ, p, θ_liq_ice, q_tot = profiles
+(; e_int, T, ρ, p, θ_liq_ice, q_tot) = profiles
 
 function thermo_state_ρeq()
     ts = TD.PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
