@@ -102,7 +102,7 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
     ndrange = (n_profiles,)
     backend = KA.get_backend(d_dst)
     kernel! = test_thermo_kernel!(backend)
-    event = kernel!(param_set, d_dst, e_int, ρ, p, q_tot, ndrange = ndrange)
+    kernel!(param_set, d_dst, e_int, ρ, p, q_tot; ndrange = ndrange)
     KA.synchronize(backend)
 
     ts_cpu =
