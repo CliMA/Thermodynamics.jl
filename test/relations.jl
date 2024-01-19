@@ -1,7 +1,6 @@
 using Test
 
 using UnPack
-using NCDatasets
 using Random
 import RootSolvers as RS
 using LinearAlgebra
