@@ -6,7 +6,6 @@ allows us to optimize the convergence rate of the thermodynamics
 constructor for a variety of realistic input values.
 =#
 
-using NCDatasets
 using DelimitedFiles
 
 """
