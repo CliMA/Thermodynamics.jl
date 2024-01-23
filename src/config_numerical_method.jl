@@ -5,7 +5,7 @@
 
 # KA.@print only accepts literal strings, so we must
 # branch to print which method is being used.
-function print_numerical_method(
+@inline function print_numerical_method(
     ::Type{sat_adjust_method},
 ) where {sat_adjust_method}
     if sat_adjust_method <: RS.NewtonsMethod
@@ -21,7 +21,7 @@ function print_numerical_method(
     end
 end
 
-function print_T_guess(
+@inline function print_T_guess(
     ::Type{sat_adjust_method},
     T_guess::Real,
 ) where {sat_adjust_method}
@@ -32,7 +32,7 @@ function print_T_guess(
     end
 end
 
-function print_T_guess(
+@inline function print_T_guess(
     ::Type{sat_adjust_method},
     T_guess::Nothing,
 ) where {sat_adjust_method}
@@ -46,7 +46,7 @@ end
 #####
 ##### Thermodynamic variable inputs: ρ, e_int, q_tot
 #####
-function sa_numerical_method(
+@inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
     ρ::FT,
@@ -64,7 +64,7 @@ function sa_numerical_method(
     return RS.NewtonsMethod(T_init)
 end
 
-function sa_numerical_method(
+@inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
     ρ::FT,
@@ -82,7 +82,7 @@ function sa_numerical_method(
     return RS.NewtonsMethodAD(T_init)
 end
 
-function sa_numerical_method(
+@inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
     ρ::FT,
@@ -99,7 +99,7 @@ function sa_numerical_method(
     return RS.SecantMethod(T_1, T_2)
 end
 
-function sa_numerical_method(
+@inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
     ρ::FT,
@@ -120,7 +120,7 @@ end
 ##### Thermodynamic variable inputs: ρ, p, q_tot
 #####
 
-function sa_numerical_method_ρpq(
+@inline function sa_numerical_method_ρpq(
     ::Type{NM},
     param_set::APS,
     ρ::FT,
@@ -138,7 +138,7 @@ function sa_numerical_method_ρpq(
     return RS.NewtonsMethodAD(T_init)
 end
 
-function sa_numerical_method_ρpq(
+@inline function sa_numerical_method_ρpq(
     ::Type{NM},
     param_set::APS,
     ρ::FT,
@@ -157,7 +157,7 @@ end
 ##### Thermodynamic variable inputs: p, e_int, q_tot
 #####
 
-function sa_numerical_method_peq(
+@inline function sa_numerical_method_peq(
     ::Type{NM},
     param_set::APS,
     p::FT,
@@ -175,7 +175,7 @@ function sa_numerical_method_peq(
     return RS.NewtonsMethodAD(T_init)
 end
 
-function sa_numerical_method_peq(
+@inline function sa_numerical_method_peq(
     ::Type{NM},
     param_set::APS,
     p::FT,
@@ -196,7 +196,7 @@ end
 ##### Thermodynamic variable inputs: p, h, q_tot
 #####
 
-function sa_numerical_method_phq(
+@inline function sa_numerical_method_phq(
     ::Type{NM},
     param_set::APS,
     p::FT,
@@ -217,7 +217,7 @@ function sa_numerical_method_phq(
     return RS.NewtonsMethodAD(T_init)
 end
 
-function sa_numerical_method_phq(
+@inline function sa_numerical_method_phq(
     ::Type{NM},
     param_set::APS,
     p::FT,
@@ -237,7 +237,7 @@ function sa_numerical_method_phq(
     return RS.SecantMethod(T_1, T_2)
 end
 
-function sa_numerical_method_phq(
+@inline function sa_numerical_method_phq(
     ::Type{NM},
     param_set::APS,
     p::FT,
@@ -261,7 +261,7 @@ end
 ##### Thermodynamic variable inputs: p, θ_liq_ice, q_tot
 #####
 
-function sa_numerical_method_pθq(
+@inline function sa_numerical_method_pθq(
     ::Type{NM},
     param_set::APS,
     p::FT,
@@ -272,14 +272,14 @@ function sa_numerical_method_pθq(
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
     _T_max::FT = TP.T_max(param_set)
-    air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
+    @inline air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     T_2 = T_1 + 10
     T_1 = T_1 - 10
     return RS.RegulaFalsiMethod(T_1, T_2)
 end
 
-function sa_numerical_method_pθq(
+@inline function sa_numerical_method_pθq(
     ::Type{NM},
     param_set::APS,
     p::FT,
@@ -289,14 +289,14 @@ function sa_numerical_method_pθq(
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
     _T_min::FT = TP.T_min(param_set)
-    air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
+    @inline air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
     T_2 = bound_upper_temperature(T_1, T_2)
     return RS.SecantMethod(T_1, T_2)
 end
 
-function sa_numerical_method_pθq(
+@inline function sa_numerical_method_pθq(
     ::Type{NM},
     param_set::APS,
     p::FT,
@@ -306,7 +306,7 @@ function sa_numerical_method_pθq(
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_min::FT = TP.T_min(param_set)
-    air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
+    @inline air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_init = if T_guess isa Nothing
         max(T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     else

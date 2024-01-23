@@ -22,7 +22,7 @@ The air pressure for an isentropic process, where
  - `θ` potential temperature
  - `Φ` gravitational potential
 """
-function air_pressure_given_θ(
+@inline function air_pressure_given_θ(
     param_set::APS,
     θ::FT,
     Φ::FT,
@@ -44,7 +44,7 @@ The air pressure for an isentropic process, where
  - `T∞` ambient temperature
  - `p∞` ambient pressure
 """
-function air_pressure(
+@inline function air_pressure(
     param_set::APS,
     T::FT,
     T∞::FT,
@@ -64,7 +64,7 @@ The air temperature for an isentropic process, where
  - `p` pressure
  - `θ` potential temperature
 """
-function air_temperature(
+@inline function air_temperature(
     param_set::APS,
     p::FT,
     θ::FT,
