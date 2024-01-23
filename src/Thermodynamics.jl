@@ -15,10 +15,8 @@ parameters). For example, to compute the mole-mass ratio:
 ```julia
 import CLIMAParameters as CP
 import Thermodynamics.Parameters as TP
-toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
+FT = Float64
+param_set = TP.ThermodynamicsParameters(FT)
 _molmass_ratio = TP.molmass_ratio(param_set)
 ```
 
@@ -67,10 +65,10 @@ const APS = TP.AbstractThermodynamicsParameters
 # Error on convergence must be the default
 # behavior because this can result in printing
 # very large logs resulting in CI to seemingly hang.
-error_on_non_convergence() = true
+@inline error_on_non_convergence() = true
 
 # Allow users to skip printing warnings on non-convergence
-print_warning() = true
+@inline print_warning() = true
 
 @inline q_pt_0(::Type{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
 
@@ -87,5 +85,10 @@ include("TestedProfiles.jl")
 
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)
+
+# For backwards compatibility with package extensions
+if !isdefined(Base, :get_extension)
+    include(joinpath("..", "ext", "CreateParametersExt.jl"))
+end
 
 end #module Thermodynamics.jl

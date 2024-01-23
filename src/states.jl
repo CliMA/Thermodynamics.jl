@@ -67,7 +67,7 @@ struct PhasePartition{FT <: Real}
     liq::FT
     "ice specific humidity (default: `0`)"
     ice::FT
-    function PhasePartition(tot::FT, liq::FT, ice::FT) where {FT}
+    @inline function PhasePartition(tot::FT, liq::FT, ice::FT) where {FT}
         q_tot_safe = max(tot, 0)
         q_liq_safe = max(liq, 0)
         q_ice_safe = max(ice, 0)
@@ -75,12 +75,12 @@ struct PhasePartition{FT <: Real}
     end
 end
 
-Base.zero(::Type{PhasePartition{FT}}) where {FT} =
+@inline Base.zero(::Type{PhasePartition{FT}}) where {FT} =
     PhasePartition(FT(0), FT(0), FT(0))
 
-PhasePartition(q_tot::FT, q_liq::FT) where {FT <: Real} =
+@inline PhasePartition(q_tot::FT, q_liq::FT) where {FT <: Real} =
     PhasePartition(q_tot, q_liq, zero(FT))
-PhasePartition(q_tot::FT) where {FT <: Real} =
+@inline PhasePartition(q_tot::FT) where {FT <: Real} =
     PhasePartition(q_tot, zero(FT), zero(FT))
 
 const ITERTYPE = Union{Int, Nothing}
@@ -110,7 +110,8 @@ struct PhaseDry{FT} <: AbstractPhaseDry{FT}
     "density of dry air"
     ρ::FT
 end
-PhaseDry(param_set::APS, e_int::FT, ρ::FT) where {FT} = PhaseDry{FT}(e_int, ρ)
+@inline PhaseDry(param_set::APS, e_int::FT, ρ::FT) where {FT} =
+    PhaseDry{FT}(e_int, ρ)
 
 Base.zero(::Type{PhaseDry{FT}}) where {FT} = PhaseDry{FT}(0, 0)
 
@@ -135,7 +136,7 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
  - `p` pressure
  - `T` temperature
 """
-function PhaseDry_pT(param_set::APS, p::FT, T::FT) where {FT <: Real}
+@inline function PhaseDry_pT(param_set::APS, p::FT, T::FT) where {FT <: Real}
     e_int = internal_energy(param_set, T)
     ρ = air_density(param_set, T, p)
     return PhaseDry{FT}(e_int, ρ)
@@ -150,7 +151,11 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
  - `p` pressure
  - `e_int` internal energy
 """
-function PhaseDry_pe(param_set::APS, p::FT, e_int::FT) where {FT <: Real}
+@inline function PhaseDry_pe(
+    param_set::APS,
+    p::FT,
+    e_int::FT,
+) where {FT <: Real}
     T = air_temperature(param_set, e_int)
     ρ = air_density(param_set, T, p)
     return PhaseDry{FT}(e_int, ρ)
@@ -165,7 +170,7 @@ end
   - `p` pressure
   - `h` specific enthalpy
  """
-function PhaseDry_ph(param_set::APS, p::FT, h::FT) where {FT <: Real}
+@inline function PhaseDry_ph(param_set::APS, p::FT, h::FT) where {FT <: Real}
     T = air_temperature_from_enthalpy(param_set, h)
     ρ = air_density(param_set, T, p)
     e_int = internal_energy(param_set, T)
@@ -181,7 +186,11 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
  - `ρ` density
  - `θ_dry` dry potential temperature
 """
-function PhaseDry_ρθ(param_set::APS, ρ::FT, θ_dry::FT) where {FT <: Real}
+@inline function PhaseDry_ρθ(
+    param_set::APS,
+    ρ::FT,
+    θ_dry::FT,
+) where {FT <: Real}
     T = air_temperature_given_ρθq(param_set, ρ, θ_dry)
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
@@ -196,7 +205,11 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
  - `p` pressure
  - `θ_dry` dry potential temperature
 """
-function PhaseDry_pθ(param_set::APS, p::FT, θ_dry::FT) where {FT <: Real}
+@inline function PhaseDry_pθ(
+    param_set::APS,
+    p::FT,
+    θ_dry::FT,
+) where {FT <: Real}
     T = exner_given_pressure(param_set, p) * θ_dry
     e_int = internal_energy(param_set, T)
     ρ = air_density(param_set, T, p)
@@ -212,7 +225,7 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
  - `ρ` density
  - `T` temperature
 """
-function PhaseDry_ρT(param_set::APS, ρ::FT, T::FT) where {FT <: Real}
+@inline function PhaseDry_ρT(param_set::APS, ρ::FT, T::FT) where {FT <: Real}
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
 end
@@ -226,7 +239,7 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
  - `ρ` density
  - `p` pressure
 """
-function PhaseDry_ρp(param_set::APS, ρ::FT, p::FT) where {FT <: Real}
+@inline function PhaseDry_ρp(param_set::APS, ρ::FT, p::FT) where {FT <: Real}
     T = air_temperature_from_ideal_gas_law(param_set, p, ρ)
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
@@ -263,7 +276,12 @@ struct PhaseEquil{FT} <: AbstractPhaseEquil{FT}
     T::FT
 end
 
-Base.zero(::Type{PhaseEquil{FT}}) where {FT} = PhaseEquil{FT}(0, 0, 0, 0, 0)
+@inline Base.zero(::Type{PhaseEquil{FT}}) where {FT} =
+    PhaseEquil{FT}(0, 0, 0, 0, 0)
+
+
+@inline ifnothing(x, y) = x
+@inline ifnothing(x::Nothing, y) = y
 
 """
     PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
@@ -280,7 +298,7 @@ and, optionally
     See the [`Thermodynamics`](@ref) for options.
  - `T_guess` initial guess for temperature in saturation adjustment
 """
-function PhaseEquil_ρeq(
+@inline function PhaseEquil_ρeq(
     param_set::APS,
     ρ::FT,
     e_int::FT,
@@ -290,9 +308,8 @@ function PhaseEquil_ρeq(
     ::Type{sat_adjust_method} = RS.NewtonsMethod,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
-    maxiter === nothing && (maxiter = 8)
-    relative_temperature_tol === nothing &&
-        (relative_temperature_tol = FT(1e-4))
+    maxiter = ifnothing(maxiter, 8)
+    relative_temperature_tol = ifnothing(relative_temperature_tol, FT(1e-4))
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment(
@@ -315,7 +332,7 @@ end
 # methods without having to specify maxiter
 # and relative_temperature_tol. maxiter and relative_temperature_tol
 # should be in sync with the PhaseEquil(...) constructor
-function PhaseEquil_dev_only(
+@inline function PhaseEquil_dev_only(
     param_set::APS,
     ρ::FT,
     e_int::FT,
@@ -348,7 +365,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
  - `maxiter` maximum iterations for saturation adjustment
  - `T_guess` initial guess for temperature in saturation adjustment
 """
-function PhaseEquil_ρθq(
+@inline function PhaseEquil_ρθq(
     param_set::APS,
     ρ::FT,
     θ_liq_ice::FT,
@@ -388,7 +405,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
  - `T` temperature
  - `q_tot` total specific humidity
 """
-function PhaseEquil_ρTq(
+@inline function PhaseEquil_ρTq(
     param_set::APS,
     ρ::FT,
     T::FT,
@@ -411,7 +428,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
  - `T` temperature
  - `q_tot` total specific humidity
 """
-function PhaseEquil_pTq(
+@inline function PhaseEquil_pTq(
     param_set::APS,
     p::FT,
     T::FT,
@@ -436,7 +453,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
  - `q_tot` total specific humidity
  - `T_guess` initial guess for temperature in saturation adjustment
 """
-function PhaseEquil_peq(
+@inline function PhaseEquil_peq(
     param_set::APS,
     p::FT,
     e_int::FT,
@@ -479,7 +496,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
  - `q_tot` total specific humidity
  - `T_guess` initial guess for temperature in saturation adjustment
 """
-function PhaseEquil_phq(
+@inline function PhaseEquil_phq(
     param_set::APS,
     p::FT,
     h::FT,
@@ -530,7 +547,7 @@ TODO: change input argument order: perform_sat_adjust is
       unique to this constructor, so it should be last.
       (breaking change)
 """
-function PhaseEquil_ρpq(
+@inline function PhaseEquil_ρpq(
     param_set::APS,
     ρ::FT,
     p::FT,
@@ -580,7 +597,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
  - `sat_adjust_method` the numerical method to use.
  - `T_guess` initial guess for temperature in saturation adjustment
 """
-function PhaseEquil_pθq(
+@inline function PhaseEquil_pθq(
     param_set::APS,
     p::FT,
     θ_liq_ice::FT,
@@ -640,10 +657,10 @@ struct PhaseNonEquil{FT} <: AbstractPhaseNonEquil{FT}
     "phase partition"
     q::PhasePartition{FT}
 end
-Base.zero(::Type{PhaseNonEquil{FT}}) where {FT} =
+@inline Base.zero(::Type{PhaseNonEquil{FT}}) where {FT} =
     PhaseNonEquil{FT}(0, 0, zero(PhasePartition{FT}))
 
-function PhaseNonEquil(
+@inline function PhaseNonEquil(
     param_set::APS,
     e_int::FT,
     ρ::FT,
@@ -662,7 +679,7 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
  - `T` temperature
  - `q_pt` phase partition
 """
-function PhaseNonEquil_ρTq(
+@inline function PhaseNonEquil_ρTq(
     param_set::APS,
     ρ::FT,
     T::FT,
@@ -685,7 +702,7 @@ and, optionally
  - `relative_temperature_tol` potential temperature for non-linear equation solve
  - `maxiter` maximum iterations for non-linear equation solve
 """
-function PhaseNonEquil_ρθq(
+@inline function PhaseNonEquil_ρθq(
     param_set::APS,
     ρ::FT,
     θ_liq_ice::FT,
@@ -717,7 +734,7 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_pt` phase partition
 """
-function PhaseNonEquil_pθq(
+@inline function PhaseNonEquil_pθq(
     param_set::APS,
     p::FT,
     θ_liq_ice::FT,
@@ -739,7 +756,7 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
  - `T` air temperature
  - `q_pt` phase partition
 """
-function PhaseNonEquil_pTq(
+@inline function PhaseNonEquil_pTq(
     param_set::APS,
     p::FT,
     T::FT,
@@ -760,7 +777,7 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
  - `e_int` internal energy
  - `q_pt` phase partition
 """
-function PhaseNonEquil_peq(
+@inline function PhaseNonEquil_peq(
     param_set::APS,
     p::FT,
     e_int::FT,
@@ -781,7 +798,7 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
  - `h` specific enthalpy
  - `q_pt` phase partition
 """
-function PhaseNonEquil_phq(
+@inline function PhaseNonEquil_phq(
     param_set::APS,
     p::FT,
     h::FT,
@@ -803,7 +820,7 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
  - `p` pressure
  - `q_pt` phase partition
 """
-function PhaseNonEquil_ρpq(
+@inline function PhaseNonEquil_ρpq(
     param_set::APS,
     ρ::FT,
     p::FT,

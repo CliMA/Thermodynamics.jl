@@ -376,7 +376,7 @@ A virtual potential temperature can be defined analogously:
 \end{equation}
 ```
 
-!!! note
+!!! note "Relationship between virtual temperature and 'density temperature'"
     Some texts distinguish a "(condensate-ignoring) virtual temperature" and a "density temperature", and an analogous condensate-ignoring virtual potential temperature and density potential temperature.
     In those texts, the definition of density temperature incorporates condensate mass but their "condensate-ignoring virtual temperature" does not.
     We always take the mass of any condensate into account in the thermodynamics of moist air, so this distinction is irrelevant here.
@@ -420,6 +420,7 @@ TODO: there was a commented equation here, do we need it?
 This expression for temperature as a function of liquid-ice potential temperature is obtained from \eqref{e:TempFromThetaLiGivenP} by substituting for pressure in the Exner function ``\Pi`` from the ideal gas law, ``p=ρ R_m T``, solving for temperature using a second-order Taylor expansion around ``T_u`` for small condensate specific humidities, and using the relation ``1-κ = c_{vm}/c_{pm}``, which follows from ``c_{pm} - R_m = c_{vm}``. The relation for temperature \eqref{e:TempFromThetaLiGivenRho} holds to second order in condensate specific humidities ``q_l`` and ``q_i``. That is, the inversion relation \eqref{e:TempFromThetaLiGivenRho} holds to one higher order of accuracy than the definition of the liquid-ice potential temperature \eqref{e:liquid_ice_pottemp} itself, which is only first-order accurate in the condensate specific humidities ``q_l`` and ``q_i``.
 
 ### Speed of Sound
+
 The speed of sound in (moist) unstratified air is
 ```math
 \begin{equation}

@@ -5,7 +5,7 @@ include("common_micro_bm.jl")
 TD.print_warning() = false
 
 function jet_thermo_states(::Type{FT}) where {FT}
-    param_set = get_parameter_set(FT)
+    param_set = TP.ThermodynamicsParameters(FT)
     ArrayType = Array{FT}
     profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
 

@@ -1,56 +1,32 @@
-if !haskey(ENV, "BUILDKITE")
-    import Pkg
-    Pkg.develop(Pkg.PackageSpec(; path = dirname(@__DIR__)))
-end
+#=
+using Revise
+push!(ARGS, "CuArray")
+include("test/runtests_gpu.jl")
+=#
 using Test
 
 using KernelAbstractions
-const KA = KernelAbstractions
-
-import CUDAKernels
-const CK = CUDAKernels
-
-import Thermodynamics
-const TD = Thermodynamics
-
-import UnPack
-
+import KernelAbstractions as KA
 using Random
 using LinearAlgebra
+import RootSolvers as RS
 
-import RootSolvers
-const RS = RootSolvers
-
-import CLIMAParameters
-const CP = CLIMAParameters
-
-const TP = TD.Parameters
-
-function get_parameter_set(::Type{FT}) where {FT}
-    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
-    logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
-    CP.log_parameter_information(toml_dict, logfilepath)
-    return param_set
-end
-
-const param_set_Float64 = get_parameter_set(Float64)
-const param_set_Float32 = get_parameter_set(Float32)
-parameter_set(::Type{Float64}) = param_set_Float64
-parameter_set(::Type{Float32}) = param_set_Float32
-
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+import CLIMAParameters as CP
 
 if get(ARGS, 1, "Array") == "CuArray"
     import CUDA
     ArrayType = CUDA.CuArray
     CUDA.allowscalar(false)
-    device(::Type{T}) where {T <: CUDA.CuArray} = CK.CUDADevice()
 else
     ArrayType = Array
-    device(::Type{T}) where {T <: Array} = CK.CPU()
 end
+
+const param_set_Float64 = TP.ThermodynamicsParameters(Float64)
+const param_set_Float32 = TP.ThermodynamicsParameters(Float32)
+parameter_set(::Type{Float64}) = param_set_Float64
+parameter_set(::Type{Float32}) = param_set_Float32
 
 @show ArrayType
 
@@ -62,9 +38,10 @@ end
     p,
     q_tot,
 ) where {FT}
-    i = @index(Group, Linear)
+    i = @index(Global)
     @inbounds begin
 
+        param_set = parameter_set(FT)
         ts = TD.PhaseEquil_ρeq(param_set, FT(ρ[i]), FT(e_int[i]), FT(q_tot[i]))
         dst[1, i] = TD.air_temperature(param_set, ts)
 
@@ -111,7 +88,6 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
 @testset "Thermodynamics - kernels" begin
     FT = Float32
     param_set = parameter_set(FT)
-    dev = device(ArrayType)
     profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array)
     slice = Colon()
     profiles = convert_profile_set(profiles, ArrayType, slice)
@@ -121,17 +97,22 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
     d_dst = ArrayType(Array{FT}(undef, 2, n_profiles))
     fill!(d_dst, 0)
 
-    UnPack.@unpack e_int, ρ, p, q_tot = profiles
+    (; e_int, ρ, p, q_tot) = profiles
 
-    work_groups = (1,)
     ndrange = (n_profiles,)
-    kernel! = test_thermo_kernel!(dev, work_groups)
-    event = kernel!(param_set, d_dst, e_int, ρ, p, q_tot, ndrange = ndrange)
-    wait(dev, event)
+    backend = KA.get_backend(d_dst)
+    kernel! = test_thermo_kernel!(backend)
+    kernel!(param_set, d_dst, e_int, ρ, p, q_tot; ndrange = ndrange)
+    KA.synchronize(backend)
 
-    ts_correct =
-        TD.PhaseEquil_ρeq.(param_set, Array(ρ), Array(e_int), Array(q_tot))
-    @test all(Array(d_dst)[1, :] .≈ TD.air_temperature.(param_set, ts_correct))
+    ts_cpu =
+        TD.PhaseEquil_ρeq.(
+            param_set,
+            Array{FT}(ρ),
+            Array{FT}(e_int),
+            Array{FT}(q_tot),
+        )
+    @test all(Array(d_dst)[1, :] .≈ TD.air_temperature.(param_set, ts_cpu))
 
     ts_correct =
         TD.PhaseEquil_ρpq.(

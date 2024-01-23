@@ -1,34 +1,35 @@
-using Pkg.Artifacts
-
-using ArtifactWrappers
-
-# Get dycoms dataset folder:
-dycoms_dataset = ArtifactWrapper(
-    @__DIR__,
-    "dycoms",
-    ArtifactFile[ArtifactFile(
-        url = "https://caltech.box.com/shared/static/bxau6i46y6ikxn2sy9krgz0sw5vuptfo.nc",
-        filename = "test_data_PhaseEquil.nc",
-    ),],
+import Random
+function sample_range_dycoms(;
+    param_set,
+    e_int_range,
+    ρ_range,
+    q_tot_range,
+    n_samples,
 )
-dycoms_dataset_path = get_data_folder(dycoms_dataset)
-
+    for i in 1:n_samples
+        e_int = Random.rand(e_int_range)
+        ρ = Random.rand(ρ_range)
+        q_tot = Random.rand(q_tot_range)
+        ts = PhaseEquil_ρeq(param_set, ρ, e_int, q_tot, 4)
+        # ts = PhaseEquil_ρeq(param_set, ρ, e_int, q_tot, 3) # fails
+    end
+end
 
 @testset "Data tests" begin
     FT = Float64
-    param_set = parameter_set(FT)
-    data = joinpath(dycoms_dataset_path, "test_data_PhaseEquil.nc")
-    ds_PhaseEquil = Dataset(data, "r")
-    e_int = Array{FT}(ds_PhaseEquil["e_int"][:])
-    ρ = Array{FT}(ds_PhaseEquil["ρ"][:])
-    q_tot = Array{FT}(ds_PhaseEquil["q_tot"][:])
-
-    ts = PhaseEquil_ρeq.(Ref(param_set), ρ, e_int, q_tot, 4)
-    # ts = PhaseEquil_ρeq.(Ref(param_set), ρ, e_int, q_tot, 3) # Fails
+    param_set = TP.ThermodynamicsParameters(FT)
+    Random.seed!(1234)
+    sample_range_dycoms(;
+        param_set,
+        e_int_range = (28311.801716:30981.514836),
+        ρ_range = (1.124755:1.129586),
+        q_tot_range = (0.011897:0.013305),
+        n_samples = 11_000,
+    )
 end
 
 @testset "pθq data-driven tests" begin
-    param_set = parameter_set(Float64)
+    param_set = TP.ThermodynamicsParameters(Float64)
     #! format: off
     pθq_broken = [
         # (; p = , θ_liq_ice = , q_tot = ),

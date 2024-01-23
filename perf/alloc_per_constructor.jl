@@ -1,6 +1,4 @@
 # Launch with `julia --project --track-allocation=user`
-import Pkg
-Pkg.develop(path = ".")
 import Profile
 
 include("common.jl")

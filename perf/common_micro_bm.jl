@@ -1,26 +1,13 @@
-import Thermodynamics
 import StatsBase
 import PrettyTables
 import OrderedCollections
-const TD = Thermodynamics
-const TP = TD.Parameters
 using JET
 using Test
-
-import UnPack
 import BenchmarkTools
 
-import CLIMAParameters
-const CP = CLIMAParameters
-function get_parameter_set(::Type{FT}) where {FT}
-    toml_dict = CP.create_toml_dict(FT; dict_type = "alias")
-    aliases = string.(fieldnames(TP.ThermodynamicsParameters))
-    param_pairs = CP.get_parameter_values!(toml_dict, aliases, "Thermodynamics")
-    param_set = TP.ThermodynamicsParameters{FT}(; param_pairs...)
-    # logfilepath = joinpath(@__DIR__, "logfilepath_$FT.toml")
-    # CP.log_parameter_information(toml_dict, logfilepath)
-    return param_set
-end
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+import CLIMAParameters as CP
 
 #####
 ##### Finding indexes in profiles satisfying certain conditions

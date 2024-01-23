@@ -1,10 +1,10 @@
 agents:
   queue: central
   slurm_mem: 8G
-  modules: julia/1.9.3 cuda/12.2
+  modules: julia/1.10.0 cuda/12.2
 
 env:
-  JULIA_VERSION: "1.9.3"
+  JULIA_VERSION: "1.10.0"
   OPENBLAS_NUM_THREADS: 1
   CUDA_VERSION: "12.2"
   OMPI_MCA_opal_warn_on_missing_libcuda: 0
@@ -58,12 +58,12 @@ steps:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
-  - label: ":mag::rocket: Constructor flop measurements"
-    command:
-      - "julia --project=perf perf/flops.jl"
-    agents:
-      slurm_ntasks: 1
-    timeout_in_minutes: 60
+  # - label: ":mag::rocket: Constructor flop measurements"
+  #   command:
+  #     - "julia --project=perf perf/flops.jl"
+  #   agents:
+  #     slurm_ntasks: 1
+  #   timeout_in_minutes: 60
 
   - label: ":mag::rocket: JET tests"
     command:
@@ -87,3 +87,20 @@ steps:
       slurm_ntasks: 1
       slurm_gpus: 1
     timeout_in_minutes: 60
+
+  - label: "KernelAbstraction GPU kernel benchmarks"
+    command:
+      - "julia --project=gpuenv perf/kernel_bm.jl CuArray"
+    agents:
+      slurm_ntasks: 1
+      slurm_gpus: 1
+    timeout_in_minutes: 60
+
+  - label: "KernelAbstraction CPU kernel benchmarks"
+    command:
+      - "julia --project=gpuenv perf/kernel_bm.jl"
+    agents:
+      slurm_ntasks: 1
+      slurm_gpus: 1
+    timeout_in_minutes: 60
+
