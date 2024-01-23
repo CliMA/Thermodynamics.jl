@@ -1152,7 +1152,7 @@ end
  - `Liquid()`, `Ice()` - liquid or ice phase to dispatch over.
  - `ts` thermodynamic state
 
-Returns supersaturation (pv/pv_sat -1) over water or ice.
+Returns supersaturation (pv/pv_sat - 1) over water or ice.
 """
 function supersaturation(
     param_set::APS,
@@ -1166,6 +1166,7 @@ function supersaturation(
 
     return supersaturation(param_set, q, ρ, T, p_v_sat)
 end
+
 function supersaturation(
     param_set::APS,
     q::PhasePartition{FT},
@@ -1261,7 +1262,7 @@ condensate(param_set::APS, ts::ThermodynamicState) =
     has_condensate(param_set::APS, ts::ThermodynamicState)
 
 Bool indicating if condensate exists in the phase
-partition
+partition.
 """
 has_condensate(q_c::FT) where {FT <: Real} = q_c > eps(FT)
 has_condensate(q::PhasePartition) = has_condensate(condensate(q))
@@ -1278,7 +1279,7 @@ The fraction of condensate that is liquid where
  - `phase_type` a thermodynamic state type
 
 # PhaseNonEquil behavior
-If `q.liq` or `q.ice` are nonzero, the liquid fraction is computed from
+If `q.liq` or `q.ice` are non-zero, the liquid fraction is computed from
 them.
 
 # ThermodynamicState
@@ -1288,16 +1289,27 @@ is a function that is 1 above `T_freeze` and goes to zero below `T_icenuc`.
 function liquid_fraction(
     param_set::APS,
     T::FT,
-    ::Type{phase_type},
+    ::Type{State},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: ThermodynamicState}
-    _T_freeze::FT = TP.T_freeze(param_set)
-    _T_icenuc::FT = TP.T_icenuc(param_set)
+) where {FT <: Real, State <: ThermodynamicState}
 
+    Tᶠ = TP.T_freeze(param_set)
+    Tⁱ = TP.T_icenuc(param_set)
+    α = TP.pow_icenuc(param_set)
+
+    above_freezing = T > Tᶠ
+    partial_ice_nucleation = T > Tⁱ
+
+    λᵖ = ((T - Tⁱ) / (Tᶠ - Tⁱ))^α
+
+    return ifelse(above_freezing, one(FT),
+           ifelse(partial_ice_nucleation, λᵖ, zero(FT)))
+end
+
+#=
     if T > _T_freeze
         return FT(1)
     elseif T > _T_icenuc
-        _pow_icenuc::FT = TP.pow_icenuc(param_set)
         if _pow_icenuc == 1
             return (T - _T_icenuc) / (_T_freeze - _T_icenuc)
         else
@@ -1307,6 +1319,7 @@ function liquid_fraction(
         return FT(0)
     end
 end
+=#
 
 function liquid_fraction(
     param_set::APS,

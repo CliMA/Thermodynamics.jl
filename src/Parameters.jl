@@ -50,7 +50,7 @@ Base.@kwdef struct ThermodynamicsParameters{FT} <: AbstractThermodynamicsParamet
 end
 
 Base.broadcastable(ps::ATP) = tuple(ps)
-Base.eltype(::ThermodynamicsParameters{FT}) where {FT} = FT
+Base.eltype(::AbstractThermodynamicsParameters{FT}) where {FT} = FT
 
 # wrappers
 for fn in fieldnames(ThermodynamicsParameters)
@@ -70,6 +70,7 @@ cv_v(ps::ATP) = cp_v(ps) - R_v(ps)
 cv_l(ps::ATP) = cp_l(ps)
 cv_i(ps::ATP) = cp_i(ps)
 
+#=
 #####
 ##### Hierarchical parameter set
 #####
@@ -211,5 +212,7 @@ T_triple(p::HTP)       = T_triple(p.phase_transitions)
 T_icenuc(p::HTP)       = T_icenuc(p.phase_transitions)
 press_triple(p::HTP)   = press_triple(p.phase_transitions)
 T_0(p::HTP)            = T_0(p.phase_transitions)
+=#
 
 end # module
+

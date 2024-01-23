@@ -1,3 +1,5 @@
+using Printf
+
 export PhasePartition
 # Thermodynamic states
 export ThermodynamicState,
@@ -73,6 +75,18 @@ struct PhasePartition{FT <: Real}
         q_ice_safe = max(ice, 0)
         return new{FT}(q_tot_safe, q_liq_safe, q_ice_safe)
     end
+end
+
+function Base.show(io::IO, q::PhasePartition{FT}) where FT
+    qᵥ = q.tot - q.liq - q.ice
+
+    qₜ_str = @sprintf "%.6f" q.tot
+    qᵥ_str = @sprintf "%.6f" qᵥ
+    qℓ_str = @sprintf "%.6f" q.liq
+    qᵢ_str = @sprintf "%.6f" q.ice
+
+    print(io, "PhasePartition{$FT}(") 
+    print(io, "qₜ=$qₜ_str, qᵥ=$qᵥ_str, qℓ=$qℓ_str, qᵢ=$qᵢ_str)")
 end
 
 Base.zero(::Type{PhasePartition{FT}}) where {FT} =
