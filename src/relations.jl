@@ -2915,9 +2915,10 @@ function virtual_dry_static_energy(
     ts::ThermodynamicState{FT},
     e_pot::FT,
 ) where {FT <: Real}
+    T_0::FT = TP.T_0(param_set)
+    cp_d::FT = TP.cp_d(param_set)
     T_virt = virtual_temperature(param_set, ts)
-    _cp_m = cp_m(param_set, ts)
-    return _cp_m * T_virt + e_pot
+    return cp_d * (T_virt - T_0) + e_pot
 end
 
 """
