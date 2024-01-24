@@ -647,7 +647,6 @@ end
 
         e_tot = total_energy.(param_set, ts, e_kin, e_pot)
         _cp_d = FT(TP.cp_d(param_set))
-        _T_0 = FT(TP.T_0(param_set))
         @test all(
             specific_enthalpy.(param_set, ts) .≈
             e_int .+
@@ -667,7 +666,7 @@ end
         )
         @test all(
             virtual_dry_static_energy.(param_set, ts, e_pot) .≈
-            _cp_d .* (virtual_temperature.(param_set, ts) .- _T_0) .+ e_pot,
+            _cp_d .* virtual_temperature.(param_set, ts) .+ e_pot,
         )
 
         # PhaseEquil

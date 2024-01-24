@@ -2956,7 +2956,7 @@ Virtual dry static energy, given
     T_0::FT = TP.T_0(param_set)
     cp_d::FT = TP.cp_d(param_set)
     T_virt = virtual_temperature(param_set, ts)
-    return cp_d * (T_virt - T_0) + e_pot
+    return cp_d * T_virt + e_pot
 end
 
 """
