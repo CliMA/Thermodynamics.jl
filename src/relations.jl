@@ -1456,7 +1456,7 @@ end
     param_set::APS,
     ts::AbstractPhaseDry{FT},
 ) where {FT <: Real} = q_pt_0(FT)
-@inline function PhasePartition(param_set::APS, ts::AbstractPhaseEquil)
+function PhasePartition(param_set::APS, ts::AbstractPhaseEquil)
     T = air_temperature(param_set, ts)
     ρ = air_density(param_set, ts)
     q_tot = total_specific_humidity(param_set, ts)
