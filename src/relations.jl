@@ -2345,7 +2345,7 @@ The dry potential temperature, given a thermodynamic state `ts`.
 ) where {FT <: AbstractFloat, phase_type <: ThermodynamicState}
     q_tot = RH * q_vap_saturation(param_set, T, ρ, phase_type)
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
-    return virtual_temperature(param_set, T, ρ, q_pt)
+    return virtual_temperature(param_set, T, q_pt)
 end
 """
     temperature_and_humidity_given_TᵥρRH(param_set, T_virt, ρ, RH)
@@ -2568,20 +2568,18 @@ given a thermodynamic state `ts`.
     )
 
 """
-    virtual_temperature(param_set, T, ρ[, q::PhasePartition])
+    virtual_temperature(param_set, T[, q::PhasePartition])
 
 The virtual temperature where
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
- - `ρ` (moist-)air density
 and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 """
 @inline function virtual_temperature(
     param_set::APS,
     T::FT,
-    ρ::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
     R_d::FT = TP.R_d(param_set)
@@ -2598,7 +2596,6 @@ given a thermodynamic state `ts`.
     virtual_temperature(
         param_set,
         air_temperature(param_set, ts),
-        air_density(param_set, ts),
         PhasePartition(param_set, ts),
     )
 
