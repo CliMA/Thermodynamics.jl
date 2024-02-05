@@ -1320,22 +1320,27 @@ is a function that is 1 above `T_freeze` and goes to zero below `T_icenuc`.
     T::FT,
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: ThermodynamicState}
-    _T_freeze::FT = TP.T_freeze(param_set)
-    _T_icenuc::FT = TP.T_icenuc(param_set)
+) where {FT, phase_type <: ThermodynamicState}
 
-    if T > _T_freeze
-        return FT(1)
-    elseif T > _T_icenuc
-        _pow_icenuc::FT = TP.pow_icenuc(param_set)
-        if _pow_icenuc == 1
-            return (T - _T_icenuc) / (_T_freeze - _T_icenuc)
-        else
-            return ((T - _T_icenuc) / (_T_freeze - _T_icenuc))^_pow_icenuc
-        end
-    else
-        return FT(0)
-    end
+    Tᶠ = TP.T_freeze(param_set)   # freezing temperature
+    Tⁿ = TP.T_icenuc(param_set)   # temperature of homogeneous ice nucleation
+    α = TP.pow_icenuc(param_set) # power law partial ice nucleation parameter
+
+    # Model for cloud water condensate probabilty when temperature is below
+    # freezing (all liquid condensate), but above the temperature of homogeneous
+    # ice nucleation (all ice condensate). In it's simplest form, this is simply
+    # a number that varies between 0 and 1. For example, see figure 6 in 
+    # Hu et al., https://doi.org/10.1029/2009JD012384, JGR (2010).
+    λᵖ = ((T - Tⁿ) / (Tᶠ - Tⁿ))^α
+
+    above_freezing = T > Tᶠ
+    supercooled_liquid = (T ≤ Tᶠ) & (T > Tⁿ)
+
+    return ifelse(
+        above_freezing,
+        one(FT),
+        ifelse(supercooled_liquid, λᵖ, zero(FT)),
+    )
 end
 
 @inline function liquid_fraction(
