@@ -3,7 +3,7 @@ module CreateParametersExt
 import Thermodynamics.Parameters.ThermodynamicsParameters
 import CLIMAParameters as CP
 
-ThermodynamicsParameters(::Type{FT}) where {FT <: AbstractFloat} =
+ThermodynamicsParameters(::Type{FT}) where {FT <: Real} =
     ThermodynamicsParameters(CP.create_toml_dict(FT))
 
 function ThermodynamicsParameters(toml_dict::CP.AbstractTOMLDict)

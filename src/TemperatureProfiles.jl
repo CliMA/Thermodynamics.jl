@@ -25,7 +25,7 @@ abstract type TemperatureProfile{FT} end
 
 """
     IsothermalProfile(param_set, T_virt)
-    IsothermalProfile(param_set, ::Type{FT<:AbstractFloat})
+    IsothermalProfile(param_set, ::Type{FT<:Real})
 
 A uniform virtual temperature profile, which is implemented
 as a special case of [`DecayingTemperatureProfile`](@ref).
