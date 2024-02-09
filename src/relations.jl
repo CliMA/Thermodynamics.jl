@@ -1526,6 +1526,7 @@ end
 
 """
     saturation_adjustment(
+        logger::ATL,
         sat_adjust_method,
         param_set,
         e_int,
@@ -1559,6 +1560,7 @@ using the given numerical method `sat_adjust_method`.
 See also [`saturation_adjustment`](@ref).
 """
 @inline function saturation_adjustment(
+    logger::ATL,
     ::Type{sat_adjust_method},
     param_set::APS,
     e_int::FT,
@@ -1636,34 +1638,33 @@ See also [`saturation_adjustment`](@ref).
             phase_type,
             T_guess,
         ),
-        solution_type(),
+        solution_type(logger),
         tol,
         maxiter,
     )
 
     DataCollection.log_meta(sol)
-    if !sol.converged
-        if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", e_int=", e_int)
-            KA.@print(", ρ=", ρ)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
+    if warn_msg(logger) && !sol.converged
+        KA.@print("-----------------------------------------\n")
+        KA.@print("maxiter reached in saturation_adjustment:\n")
+        print_numerical_method(sat_adjust_method)
+        print_T_guess(sat_adjust_method, T_guess)
+        KA.@print(", e_int=", e_int)
+        KA.@print(", ρ=", ρ)
+        KA.@print(", q_tot=", q_tot)
+        KA.@print(", T=", sol.root)
+        KA.@print(", maxiter=", maxiter)
+        KA.@print(", tol=", tol.tol, "\n")
+    end
+    if error_msg(logger) && !sol.converged
+        error("Failed to converge with printed set of inputs.")
     end
     return sol.root
 end
 
 """
     saturation_adjustment_given_peq(
+        logger::ATL,
         sat_adjust_method,
         param_set,
         e_int,
@@ -1699,6 +1700,7 @@ using the given numerical method `sat_adjust_method`.
 See also [`saturation_adjustment`](@ref).
 """
 @inline function saturation_adjustment_given_peq(
+    logger::ATL,
     ::Type{sat_adjust_method},
     param_set::APS,
     p::FT,
@@ -1742,26 +1744,24 @@ See also [`saturation_adjustment`](@ref).
             phase_type,
             T_guess,
         ),
-        RS.CompactSolution(),
+        solution_type(logger),
         tol,
         maxiter,
     )
-    if !sol.converged
-        if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_peq:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", e_int=", e_int)
-            KA.@print(", p=", p)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
+    if warn_msg(logger) && !sol.converged
+        KA.@print("-----------------------------------------\n")
+        KA.@print("maxiter reached in saturation_adjustment_peq:\n")
+        print_numerical_method(sat_adjust_method)
+        print_T_guess(sat_adjust_method, T_guess)
+        KA.@print(", e_int=", e_int)
+        KA.@print(", p=", p)
+        KA.@print(", q_tot=", q_tot)
+        KA.@print(", T=", sol.root)
+        KA.@print(", maxiter=", maxiter)
+        KA.@print(", tol=", tol.tol, "\n")
+    end
+    if error_msg(logger) && !sol.converged
+        error("Failed to converge with printed set of inputs.")
     end
     return sol.root
 end
@@ -1769,6 +1769,7 @@ end
 
 """
     saturation_adjustment_given_phq(
+        logger::ATL,
         sat_adjust_method,
         param_set,
         h,
@@ -1804,6 +1805,7 @@ using the given numerical method `sat_adjust_method`.
 See also [`saturation_adjustment`](@ref).
 """
 @inline function saturation_adjustment_given_phq(
+    logger::ATL,
     ::Type{sat_adjust_method},
     param_set::APS,
     p::FT,
@@ -1855,32 +1857,31 @@ See also [`saturation_adjustment`](@ref).
             phase_type,
             T_guess,
         ),
-        RS.CompactSolution(),
+        solution_type(logger),
         tol,
         maxiter,
     )
-    if !sol.converged
-        if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_phq:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", h=", h)
-            KA.@print(", p=", p)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
+    if warn_msg(logger) && !sol.converged
+        KA.@print("-----------------------------------------\n")
+        KA.@print("maxiter reached in saturation_adjustment_phq:\n")
+        print_numerical_method(sat_adjust_method)
+        print_T_guess(sat_adjust_method, T_guess)
+        KA.@print(", h=", h)
+        KA.@print(", p=", p)
+        KA.@print(", q_tot=", q_tot)
+        KA.@print(", T=", sol.root)
+        KA.@print(", maxiter=", maxiter)
+        KA.@print(", tol=", tol.tol, "\n")
+    end
+    if error_msg(logger) && !sol.converged
+        error("Failed to converge with printed set of inputs.")
     end
     return sol.root
 end
 
 """
     saturation_adjustment_ρpq(
+        logger::ATL,
         sat_adjust_method,
         param_set,
         ρ,
@@ -1916,6 +1917,7 @@ using Newtons method using ForwardDiff.
 See also [`saturation_adjustment`](@ref).
 """
 @inline function saturation_adjustment_ρpq(
+    logger::ATL,
     ::Type{sat_adjust_method},
     param_set::APS,
     ρ::FT,
@@ -1952,26 +1954,24 @@ See also [`saturation_adjustment`](@ref).
             phase_type,
             T_guess,
         ),
-        RS.CompactSolution(),
+        solution_type(logger),
         tol,
         maxiter,
     )
-    if !sol.converged
-        if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_ρpq:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", ρ=", ρ)
-            KA.@print(", p=", p)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
+    if warn_msg(logger) && !sol.converged
+        KA.@print("-----------------------------------------\n")
+        KA.@print("maxiter reached in saturation_adjustment_ρpq:\n")
+        print_numerical_method(sat_adjust_method)
+        print_T_guess(sat_adjust_method, T_guess)
+        KA.@print(", ρ=", ρ)
+        KA.@print(", p=", p)
+        KA.@print(", q_tot=", q_tot)
+        KA.@print(", T=", sol.root)
+        KA.@print(", maxiter=", maxiter)
+        KA.@print(", tol=", tol.tol, "\n")
+    end
+    if error_msg(logger) && !sol.converged
+        error("Failed to converge with printed set of inputs.")
     end
     return sol.root
 end
@@ -2003,6 +2003,7 @@ end
 
 """
     saturation_adjustment_given_ρθq(
+        logger::ATL,
         param_set,
         ρ,
         θ_liq_ice,
@@ -2034,6 +2035,7 @@ by finding the root of
 See also [`saturation_adjustment`](@ref).
 """
 @inline function saturation_adjustment_given_ρθq(
+    logger::ATL,
     param_set::APS,
     ρ::FT,
     θ_liq_ice::FT,
@@ -2059,31 +2061,30 @@ See also [`saturation_adjustment`](@ref).
     sol = RS.find_zero(
         roots,
         RS.SecantMethod(T_1, T_2),
-        RS.CompactSolution(),
+        solution_type(logger),
         tol,
         maxiter,
     )
-    if !sol.converged
-        if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_given_ρθq:\n")
-            KA.@print("    Method=SecantMethod")
-            KA.@print(", ρ=", ρ)
-            KA.@print(", θ_liq_ice=", θ_liq_ice)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
+    if warn_msg(logger) && !sol.converged
+        KA.@print("-----------------------------------------\n")
+        KA.@print("maxiter reached in saturation_adjustment_given_ρθq:\n")
+        KA.@print("    Method=SecantMethod")
+        KA.@print(", ρ=", ρ)
+        KA.@print(", θ_liq_ice=", θ_liq_ice)
+        KA.@print(", q_tot=", q_tot)
+        KA.@print(", T=", sol.root)
+        KA.@print(", maxiter=", maxiter)
+        KA.@print(", tol=", tol.tol, "\n")
+    end
+    if error_msg(logger) && !sol.converged
+        error("Failed to converge with printed set of inputs.")
     end
     return sol.root
 end
 
 """
     saturation_adjustment_given_pθq(
+        logger::ATL,
         sat_adjust_method,
         param_set,
         p,
@@ -2114,6 +2115,7 @@ by finding the root of
 See also [`saturation_adjustment`](@ref).
 """
 @inline function saturation_adjustment_given_pθq(
+    logger::ATL,
     ::Type{sat_adjust_method},
     param_set::APS,
     p::FT,
@@ -2174,26 +2176,24 @@ See also [`saturation_adjustment`](@ref).
             phase_type,
             T_guess,
         ),
-        RS.CompactSolution(),
+        solution_type(logger),
         tol,
         maxiter,
     )
-    if !sol.converged
-        if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_given_pθq:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", p=", p)
-            KA.@print(", θ_liq_ice=", θ_liq_ice)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
+    if warn_msg(logger) && !sol.converged
+        KA.@print("-----------------------------------------\n")
+        KA.@print("maxiter reached in saturation_adjustment_given_pθq:\n")
+        print_numerical_method(sat_adjust_method)
+        print_T_guess(sat_adjust_method, T_guess)
+        KA.@print(", p=", p)
+        KA.@print(", θ_liq_ice=", θ_liq_ice)
+        KA.@print(", q_tot=", q_tot)
+        KA.@print(", T=", sol.root)
+        KA.@print(", maxiter=", maxiter)
+        KA.@print(", tol=", tol.tol, "\n")
+    end
+    if error_msg(logger) && !sol.converged
+        error("Failed to converge with printed set of inputs.")
     end
     return sol.root
 end
@@ -2348,7 +2348,7 @@ The dry potential temperature, given a thermodynamic state `ts`.
     return virtual_temperature(param_set, T, q_pt)
 end
 """
-    temperature_and_humidity_given_TᵥρRH(param_set, T_virt, ρ, RH)
+    temperature_and_humidity_given_TᵥρRH([logger, ]param_set, T_virt, ρ, RH)
 
 The air temperature and `q_tot` where
 
@@ -2359,6 +2359,7 @@ The air temperature and `q_tot` where
  - `phase_type` a thermodynamic state type
 """
 @inline function temperature_and_humidity_given_TᵥρRH(
+    logger::ATL,
     param_set::APS,
     T_virt::FT,
     ρ::FT,
@@ -2375,27 +2376,23 @@ The air temperature and `q_tot` where
     sol = RS.find_zero(
         roots,
         RS.SecantMethod(_T_min, _T_max),
-        RS.CompactSolution(),
+        solution_type(logger),
         tol,
         maxiter,
     )
-    if !sol.converged
-        if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print(
-                "maxiter reached in temperature_and_humidity_given_TᵥρRH:\n"
-            )
-            KA.@print("    Method=SecantMethod")
-            KA.@print(", T_virt=", T_virt)
-            KA.@print(", RH=", RH)
-            KA.@print(", ρ=", ρ)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
+    if warn_msg(logger) && !sol.converged
+        KA.@print("-----------------------------------------\n")
+        KA.@print("maxiter reached in temperature_and_humidity_given_TᵥρRH:\n")
+        KA.@print("    Method=SecantMethod")
+        KA.@print(", T_virt=", T_virt)
+        KA.@print(", RH=", RH)
+        KA.@print(", ρ=", ρ)
+        KA.@print(", T=", sol.root)
+        KA.@print(", maxiter=", maxiter)
+        KA.@print(", tol=", tol.tol, "\n")
+    end
+    if error_msg(logger) && !sol.converged
+        error("Failed to converge with printed set of inputs.")
     end
     T = sol.root
 
@@ -2436,7 +2433,7 @@ and, optionally,
 end
 
 """
-    air_temperature_given_ρθq_nonlinear(param_set, ρ, θ_liq_ice, q::PhasePartition)
+    air_temperature_given_ρθq_nonlinear([logger, ]param_set, ρ, θ_liq_ice, q::PhasePartition)
 
 Computes temperature `T` given
 
@@ -2457,6 +2454,7 @@ by finding the root of
                                q) = 0`
 """
 @inline function air_temperature_given_ρθq_nonlinear(
+    logger::ATL,
     param_set::APS,
     ρ::FT,
     θ_liq_ice::FT,
@@ -2476,29 +2474,25 @@ by finding the root of
     sol = RS.find_zero(
         roots,
         RS.SecantMethod(_T_min, _T_max),
-        RS.CompactSolution(),
+        solution_type(logger),
         tol,
         maxiter,
     )
-    if !sol.converged
-        if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print(
-                "maxiter reached in air_temperature_given_ρθq_nonlinear:\n"
-            )
-            KA.@print("    Method=SecantMethod")
-            KA.@print(", θ_liq_ice=", θ_liq_ice)
-            KA.@print(", ρ=", ρ)
-            KA.@print(", q.tot=", q.tot)
-            KA.@print(", q.liq=", q.liq)
-            KA.@print(", q.ice=", q.ice)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
+    if warn_msg(logger) && !sol.converged
+        KA.@print("-----------------------------------------\n")
+        KA.@print("maxiter reached in air_temperature_given_ρθq_nonlinear:\n")
+        KA.@print("    Method=SecantMethod")
+        KA.@print(", θ_liq_ice=", θ_liq_ice)
+        KA.@print(", ρ=", ρ)
+        KA.@print(", q.tot=", q.tot)
+        KA.@print(", q.liq=", q.liq)
+        KA.@print(", q.ice=", q.ice)
+        KA.@print(", T=", sol.root)
+        KA.@print(", maxiter=", maxiter)
+        KA.@print(", tol=", tol.tol, "\n")
+    end
+    if error_msg(logger) && !sol.converged
+        error("Failed to converge with printed set of inputs.")
     end
     return sol.root
 end

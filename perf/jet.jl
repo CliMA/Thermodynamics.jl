@@ -1,9 +1,5 @@
 include("common_micro_bm.jl")
 
-# JET does not like KernelAbstractions.@print calls,
-# so we disable them here.
-TD.print_warning() = false
-
 function jet_thermo_states(::Type{FT}) where {FT}
     param_set = TP.ThermodynamicsParameters(FT)
     ArrayType = Array{FT}
@@ -22,7 +18,7 @@ function jet_thermo_states(::Type{FT}) where {FT}
         )
             for cond in conditions(C)
                 args = sample_args(profiles, param_set, cond, C)
-                JET.@test_opt C(param_set, args...)
+                JET.@test_opt C(TD.NullLogger(), param_set, args...)
             end
         end
     end

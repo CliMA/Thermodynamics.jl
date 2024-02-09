@@ -12,10 +12,9 @@ import Thermodynamics as TD
 import RootSolvers as RS
 
 function do_work()
-    # Calls TD.PhaseEquil_ρeq()..., possibly many times
+    # Calls TD.PhaseEquil_ρeq(VerboseLogger(WarningLogger()), )..., possibly many times
 end
 
-TD.solution_type() = RS.VerboseSolution()
 do_work()
 TD.DataCollection.print_summary()
 ```

@@ -357,6 +357,7 @@ end
     ρ = FT(1)
     phase_type = PhaseEquil
     @test TD.saturation_adjustment(
+        TD.WarnAndErrorLogger(),
         RS.SecantMethod,
         param_set,
         internal_energy_sat(param_set, 300.0, ρ, q_tot, phase_type),
@@ -368,6 +369,7 @@ end
     ) ≈ 300.0
     @test abs(
         TD.saturation_adjustment(
+            TD.WarnAndErrorLogger(),
             RS.NewtonsMethod,
             param_set,
             internal_energy_sat(param_set, 300.0, ρ, q_tot, phase_type),
@@ -383,6 +385,7 @@ end
     ρ = FT(0.1)
     @test isapprox(
         TD.saturation_adjustment(
+            TD.WarnAndErrorLogger(),
             RS.SecantMethod,
             param_set,
             internal_energy_sat(param_set, 200.0, ρ, q_tot, phase_type),
@@ -397,6 +400,7 @@ end
     )
     @test abs(
         TD.saturation_adjustment(
+            TD.WarnAndErrorLogger(),
             RS.NewtonsMethod,
             param_set,
             internal_energy_sat(param_set, 200.0, ρ, q_tot, phase_type),
@@ -882,6 +886,7 @@ end
     (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
     @test_throws ErrorException TD.saturation_adjustment.(
+        TD.WarnAndErrorLogger(),
         RS.NewtonsMethod,
         param_set,
         e_int,
@@ -893,6 +898,7 @@ end
     )
 
     @test_throws ErrorException TD.saturation_adjustment.(
+        TD.WarnAndErrorLogger(),
         RS.SecantMethod,
         param_set,
         e_int,
@@ -904,6 +910,7 @@ end
     )
 
     @test_throws ErrorException TD.saturation_adjustment_given_peq.(
+        TD.WarnAndErrorLogger(),
         RS.SecantMethod,
         param_set,
         p,
@@ -916,6 +923,7 @@ end
 
     T_virt = T # should not matter: testing for non-convergence
     @test_throws ErrorException TD.temperature_and_humidity_given_TᵥρRH.(
+        TD.WarnAndErrorLogger(),
         param_set,
         T_virt,
         ρ,
@@ -926,6 +934,7 @@ end
     )
 
     @test_throws ErrorException TD.air_temperature_given_ρθq_nonlinear.(
+        TD.WarnAndErrorLogger(),
         param_set,
         ρ,
         θ_liq_ice,
@@ -935,6 +944,7 @@ end
     )
 
     @test_throws ErrorException TD.saturation_adjustment_given_ρθq.(
+        TD.WarnAndErrorLogger(),
         param_set,
         ρ,
         θ_liq_ice,
@@ -945,6 +955,7 @@ end
     )
 
     @test_throws ErrorException TD.saturation_adjustment_given_pθq.(
+        TD.WarnAndErrorLogger(),
         RS.SecantMethod,
         param_set,
         p,
@@ -956,6 +967,7 @@ end
     )
 
     @test_throws ErrorException TD.saturation_adjustment_given_pθq.(
+        TD.WarnAndErrorLogger(),
         RS.NewtonsMethodAD,
         param_set,
         p,
@@ -967,6 +979,7 @@ end
     )
 
     @test_throws ErrorException TD.saturation_adjustment_ρpq.(
+        TD.WarnAndErrorLogger(),
         RS.NewtonsMethodAD,
         param_set,
         ρ,
@@ -1175,6 +1188,7 @@ end
         # Accurate but expensive `PhaseNonEquil_ρθq` constructor (Non-linear temperature from θ_liq_ice)
         T_non_linear =
             TD.air_temperature_given_ρθq_nonlinear.(
+                TD.WarnAndErrorLogger(),
                 param_set,
                 ρ,
                 θ_liq_ice,
@@ -1304,6 +1318,7 @@ end
 
         T_rec_qpt_rec =
             TD.temperature_and_humidity_given_TᵥρRH.(
+                TD.WarnAndErrorLogger(),
                 param_set,
                 T_virt,
                 ρ,
@@ -1707,16 +1722,14 @@ end
         )
 end
 
-TD.solution_type() = RS.VerboseSolution()
 @testset "Test data collection" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
     param_set = TP.ThermodynamicsParameters(FT)
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     (; ρ, e_int, q_tot) = profiles
-    ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
+    ts = PhaseEquil_ρeq.(TD.VerboseLogger(TD.WarnAndErrorLogger()), param_set, ρ, e_int, q_tot)
     data = TD.DataCollection.get_data()
     TD.DataCollection.print_summary(data)
     TD.DataCollection.reset_stats()
 end
-TD.solution_type() = RS.CompactSolution()
