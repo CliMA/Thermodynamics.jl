@@ -1573,7 +1573,7 @@ See also [`saturation_adjustment`](@ref).
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
-    if T_1 > _T_min
+    if T_1 ≥ _T_min
         q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
         unsaturated = q_tot <= q_v_sat
         if unsaturated
@@ -1717,7 +1717,7 @@ See also [`saturation_adjustment`](@ref).
     ρ_1 = ρ_T(T_1)
     q_v_sat = q_vap_saturation(param_set, T_1, ρ_1, phase_type)
     unsaturated = q_tot <= q_v_sat
-    if unsaturated && T_1 > _T_min
+    if unsaturated && T_1 ≥ _T_min
         return T_1
     end
     _T_freeze::FT = TP.T_freeze(param_set)
@@ -1825,7 +1825,7 @@ See also [`saturation_adjustment`](@ref).
     ρ_1 = ρ_T(T_1)
     q_v_sat = q_vap_saturation(param_set, T_1, ρ_1, phase_type)
     unsaturated = q_tot <= q_v_sat
-    if unsaturated && T_1 > _T_min
+    if unsaturated && T_1 ≥ _T_min
         return T_1
     end
     _T_freeze::FT = TP.T_freeze(param_set)
@@ -2048,7 +2048,7 @@ See also [`saturation_adjustment`](@ref).
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
     unsaturated = q_tot <= q_v_sat
-    if unsaturated && T_1 > _T_min
+    if unsaturated && T_1 ≥ _T_min
         return T_1
     end
     T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
@@ -2153,7 +2153,7 @@ See also [`saturation_adjustment`](@ref).
     T_1 = max(T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     q_v_sat_1 = q_vap_sat(T_1)
     unsaturated = q_tot <= q_v_sat_1
-    if unsaturated && T_1 > T_min
+    if unsaturated && T_1 ≥ T_min
         return T_1
     end
     temperature_tol = T_freeze * relative_temperature_tol
