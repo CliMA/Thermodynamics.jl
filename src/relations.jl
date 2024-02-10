@@ -2342,7 +2342,7 @@ The dry potential temperature, given a thermodynamic state `ts`.
     ρ::FT,
     RH::FT,
     ::Type{phase_type},
-) where {FT <: AbstractFloat, phase_type <: ThermodynamicState}
+) where {FT <: Real, phase_type <: ThermodynamicState}
     q_tot = RH * q_vap_saturation(param_set, T, ρ, phase_type)
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     return virtual_temperature(param_set, T, q_pt)
@@ -2366,7 +2366,7 @@ The air temperature and `q_tot` where
     ::Type{phase_type},
     maxiter::Int = 100,
     tol::RS.AbstractTolerance = RS.ResidualTolerance{FT}(sqrt(eps(FT))),
-) where {FT <: AbstractFloat, phase_type <: ThermodynamicState}
+) where {FT <: Real, phase_type <: ThermodynamicState}
 
     _T_min::FT = TP.T_min(param_set)
     _T_max = T_virt
