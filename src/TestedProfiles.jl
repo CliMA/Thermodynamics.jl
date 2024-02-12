@@ -169,8 +169,8 @@ function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
         shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
     T = T_virt
     FT = eltype(T)
-    R_d::FT = TP.R_d(param_set)
-    grav::FT = TP.grav(param_set)
+    R_d = TP.R_d(param_set)
+    grav = TP.grav(param_set)
     ρ = p ./ (R_d .* T)
 
     # Additional variables
@@ -235,8 +235,8 @@ function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     T = T_virt
 
     FT = eltype(T)
-    R_d::FT = TP.R_d(param_set)
-    grav::FT = TP.grav(param_set)
+    R_d = TP.R_d(param_set)
+    grav = TP.grav(param_set)
     # Compute total specific humidity from temperature, pressure
     # and relative saturation, and partition the saturation excess
     # according to temperature.
