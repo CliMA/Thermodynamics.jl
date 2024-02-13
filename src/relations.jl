@@ -74,8 +74,8 @@ The specific gas constant of moist air given
     param_set::APS,
     q::PhasePartition{FT},
 ) where {FT}
-    R_d::FT = TP.R_d(param_set)
-    molmass_ratio::FT = TP.molmass_ratio(param_set)
+    R_d = TP.R_d(param_set)
+    molmass_ratio = TP.molmass_ratio(param_set)
     return R_d *
            (1 + (molmass_ratio - 1) * q.tot - molmass_ratio * (q.liq + q.ice))
 end
@@ -252,7 +252,7 @@ The change in saturation vapor specific humidity with temperature given by the C
     q_vap_sat::FT,
     L = weighted_latent_heat(param_set, T, λ),
 ) where {FT <: Real}
-    R_v::FT = TP.R_v(param_set)
+    R_v = TP.R_v(param_set)
     return q_vap_sat * (L / (R_v * T^2) - 1 / T)
 end
 
@@ -271,10 +271,10 @@ The isobaric specific heat capacity of moist air given
  - `q` [`PhasePartition`](@ref).
 """
 @inline function cp_m(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
-    cp_d::FT = TP.cp_d(param_set)
-    cp_v::FT = TP.cp_v(param_set)
-    cp_l::FT = TP.cp_l(param_set)
-    cp_i::FT = TP.cp_i(param_set)
+    cp_d = TP.cp_d(param_set)
+    cp_v = TP.cp_v(param_set)
+    cp_l = TP.cp_l(param_set)
+    cp_i = TP.cp_i(param_set)
     return cp_d +
            (cp_v - cp_d) * q.tot +
            (cp_l - cp_v) * q.liq +
@@ -302,10 +302,10 @@ The isochoric specific heat capacity of moist air given
  - `q` [`PhasePartition`](@ref).
 """
 @inline function cv_m(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
-    cv_d::FT = TP.cv_d(param_set)
-    cv_v::FT = TP.cv_v(param_set)
-    cv_l::FT = TP.cv_l(param_set)
-    cv_i::FT = TP.cv_i(param_set)
+    cv_d = TP.cv_d(param_set)
+    cv_v = TP.cv_v(param_set)
+    cv_l = TP.cv_l(param_set)
+    cv_i = TP.cv_i(param_set)
     return cv_d +
            (cv_v - cv_d) * q.tot +
            (cv_l - cv_v) * q.liq +
@@ -381,9 +381,9 @@ and, optionally,
     q::PhasePartition{FT} = q_pt_0(FT),
     cvm = cv_m(param_set, q),
 ) where {FT <: Real}
-    T_0::FT = TP.T_0(param_set)
-    e_int_v0::FT = TP.e_int_v0(param_set)
-    e_int_i0::FT = TP.e_int_i0(param_set)
+    T_0 = TP.T_0(param_set)
+    e_int_v0 = TP.e_int_v0(param_set)
+    e_int_i0 = TP.e_int_i0(param_set)
     return T_0 +
            (
         e_int - (q.tot - q.liq) * e_int_v0 + q.ice * (e_int_v0 + e_int_i0)
@@ -406,12 +406,12 @@ and, optionally,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
     cp_m_ = cp_m(param_set, q)
-    T_0::FT = TP.T_0(param_set)
-    R_d::FT = TP.R_d(param_set)
-    LH_v0::FT = TP.LH_v0(param_set)
-    LH_f0::FT = TP.LH_f0(param_set)
-    e_int_i0::FT = TP.e_int_i0(param_set)
-    q_vap::FT = vapor_specific_humidity(q)
+    T_0 = TP.T_0(param_set)
+    R_d = TP.R_d(param_set)
+    LH_v0 = TP.LH_v0(param_set)
+    LH_f0 = TP.LH_f0(param_set)
+    e_int_i0 = TP.e_int_i0(param_set)
+    q_vap = vapor_specific_humidity(q)
     return (
         h + cp_m_ * T_0 - q_vap * LH_v0 + q.ice * LH_f0 -
         (1 - q.tot) * R_d * T_0
@@ -468,9 +468,9 @@ and, optionally,
     q::PhasePartition{FT} = q_pt_0(FT),
     cvm = cv_m(param_set, q),
 ) where {FT <: Real}
-    T_0::FT = TP.T_0(param_set)
-    e_int_v0::FT = TP.e_int_v0(param_set)
-    e_int_i0::FT = TP.e_int_i0(param_set)
+    T_0 = TP.T_0(param_set)
+    e_int_v0 = TP.e_int_v0(param_set)
+    e_int_i0 = TP.e_int_i0(param_set)
     return cvm * (T - T_0) + (q.tot - q.liq) * e_int_v0 -
            q.ice * (e_int_v0 + e_int_i0)
 end
@@ -514,8 +514,8 @@ The dry air internal energy
  - `T` temperature
 """
 @inline function internal_energy_dry(param_set::APS, T::FT) where {FT <: Real}
-    T_0::FT = TP.T_0(param_set)
-    cv_d::FT = TP.cv_d(param_set)
+    T_0 = TP.T_0(param_set)
+    cv_d = TP.cv_d(param_set)
 
     return cv_d * (T - T_0)
 end
@@ -537,9 +537,9 @@ The water vapor internal energy
  - `T` temperature
 """
 @inline function internal_energy_vapor(param_set::APS, T::FT) where {FT <: Real}
-    T_0::FT = TP.T_0(param_set)
-    cv_v::FT = TP.cv_v(param_set)
-    e_int_v0::FT = TP.e_int_v0(param_set)
+    T_0 = TP.T_0(param_set)
+    cv_v = TP.cv_v(param_set)
+    e_int_v0 = TP.e_int_v0(param_set)
 
     return cv_v * (T - T_0) + e_int_v0
 end
@@ -564,8 +564,8 @@ The liquid water internal energy
     param_set::APS,
     T::FT,
 ) where {FT <: Real}
-    T_0::FT = TP.T_0(param_set)
-    cv_l::FT = TP.cv_l(param_set)
+    T_0 = TP.T_0(param_set)
+    cv_l = TP.cv_l(param_set)
 
     return cv_l * (T - T_0)
 end
@@ -587,9 +587,9 @@ The ice internal energy
  - `T` temperature
 """
 @inline function internal_energy_ice(param_set::APS, T::FT) where {FT <: Real}
-    T_0::FT = TP.T_0(param_set)
-    cv_i::FT = TP.cv_i(param_set)
-    e_int_i0::FT = TP.e_int_i0(param_set)
+    T_0 = TP.T_0(param_set)
+    cv_i = TP.cv_i(param_set)
+    e_int_i0 = TP.e_int_i0(param_set)
 
     return cv_i * (T - T_0) - e_int_i0
 end
@@ -750,9 +750,9 @@ The specific latent heat of vaporization where
  - `T` temperature
 """
 @inline function latent_heat_vapor(param_set::APS, T::FT) where {FT <: Real}
-    cp_l::FT = TP.cp_l(param_set)
-    cp_v::FT = TP.cp_v(param_set)
-    LH_v0::FT = TP.LH_v0(param_set)
+    cp_l = TP.cp_l(param_set)
+    cp_v = TP.cp_v(param_set)
+    LH_v0 = TP.LH_v0(param_set)
     return latent_heat_generic(param_set, T, LH_v0, cp_v - cp_l)
 end
 
@@ -773,9 +773,9 @@ The specific latent heat of sublimation where
  - `T` temperature
 """
 @inline function latent_heat_sublim(param_set::APS, T::FT) where {FT <: Real}
-    LH_s0::FT = TP.LH_s0(param_set)
-    cp_v::FT = TP.cp_v(param_set)
-    cp_i::FT = TP.cp_i(param_set)
+    LH_s0 = TP.LH_s0(param_set)
+    cp_v = TP.cp_v(param_set)
+    cp_i = TP.cp_i(param_set)
     return latent_heat_generic(param_set, T, LH_s0, cp_v - cp_i)
 end
 
@@ -796,9 +796,9 @@ The specific latent heat of fusion where
  - `T` temperature
 """
 @inline function latent_heat_fusion(param_set::APS, T::FT) where {FT <: Real}
-    LH_f0::FT = TP.LH_f0(param_set)
-    cp_l::FT = TP.cp_l(param_set)
-    cp_i::FT = TP.cp_i(param_set)
+    LH_f0 = TP.LH_f0(param_set)
+    cp_l = TP.cp_l(param_set)
+    cp_i = TP.cp_i(param_set)
     return latent_heat_generic(param_set, T, LH_f0, cp_l - cp_i)
 end
 
@@ -831,7 +831,7 @@ isobaric specific heat capacities of the two phases, given
     LH_0::FT,
     Δcp::FT,
 ) where {FT <: Real}
-    T_0::FT = TP.T_0(param_set)
+    T_0 = TP.T_0(param_set)
     return LH_0 + Δcp * (T - T_0)
 end
 
@@ -919,9 +919,9 @@ the triple point pressure `press_triple`.
     T::FT,
     ::Liquid,
 ) where {FT <: Real}
-    LH_v0::FT = TP.LH_v0(param_set)
-    cp_v::FT = TP.cp_v(param_set)
-    cp_l::FT = TP.cp_l(param_set)
+    LH_v0 = TP.LH_v0(param_set)
+    cp_v = TP.cp_v(param_set)
+    cp_l = TP.cp_l(param_set)
     return saturation_vapor_pressure(param_set, T, LH_v0, cp_v - cp_l)
 end
 
@@ -930,9 +930,9 @@ end
     ts::ThermodynamicState{FT},
     ::Liquid,
 ) where {FT <: Real}
-    LH_v0::FT = TP.LH_v0(param_set)
-    cp_v::FT = TP.cp_v(param_set)
-    cp_l::FT = TP.cp_l(param_set)
+    LH_v0 = TP.LH_v0(param_set)
+    cp_v = TP.cp_v(param_set)
+    cp_l = TP.cp_l(param_set)
     return saturation_vapor_pressure(
         param_set,
         air_temperature(param_set, ts),
@@ -947,9 +947,9 @@ end
     T::FT,
     ::Ice,
 ) where {FT <: Real}
-    LH_s0::FT = TP.LH_s0(param_set)
-    cp_v::FT = TP.cp_v(param_set)
-    cp_i::FT = TP.cp_i(param_set)
+    LH_s0 = TP.LH_s0(param_set)
+    cp_v = TP.cp_v(param_set)
+    cp_i = TP.cp_i(param_set)
     return saturation_vapor_pressure(param_set, T, LH_s0, cp_v - cp_i)
 end
 
@@ -958,9 +958,9 @@ end
     ts::ThermodynamicState{FT},
     ::Ice,
 ) where {FT <: Real}
-    LH_s0::FT = TP.LH_s0(param_set)
-    cp_v::FT = TP.cp_v(param_set)
-    cp_i::FT = TP.cp_i(param_set)
+    LH_s0 = TP.LH_s0(param_set)
+    cp_v = TP.cp_v(param_set)
+    cp_i = TP.cp_i(param_set)
     return saturation_vapor_pressure(
         param_set,
         air_temperature(param_set, ts),
@@ -977,11 +977,11 @@ end
     λ = liquid_fraction(param_set, T, phase_type, q),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
 
-    LH_v0::FT = TP.LH_v0(param_set)
-    LH_s0::FT = TP.LH_s0(param_set)
-    cp_v::FT = TP.cp_v(param_set)
-    cp_l::FT = TP.cp_l(param_set)
-    cp_i::FT = TP.cp_i(param_set)
+    LH_v0 = TP.LH_v0(param_set)
+    LH_s0 = TP.LH_s0(param_set)
+    cp_v = TP.cp_v(param_set)
+    cp_l = TP.cp_l(param_set)
+    cp_i = TP.cp_i(param_set)
     # get phase partitioning
 
     # effective latent heat at T_0 and effective difference in isobaric specific
@@ -1003,10 +1003,10 @@ end
     LH_0::FT,
     Δcp::FT,
 ) where {FT <: Real}
-    press_triple::FT = TP.press_triple(param_set)
-    R_v::FT = TP.R_v(param_set)
-    T_triple::FT = TP.T_triple(param_set)
-    T_0::FT = TP.T_0(param_set)
+    press_triple = TP.press_triple(param_set)
+    R_v = TP.R_v(param_set)
+    T_triple = TP.T_triple(param_set)
+    T_0 = TP.T_0(param_set)
 
     return press_triple *
            # (T / T_triple)^(Δcp / R_v) *
@@ -1129,7 +1129,7 @@ Compute the saturation specific humidity, given
     ρ::FT,
     p_v_sat::FT,
 ) where {FT <: Real}
-    R_v::FT = TP.R_v(param_set)
+    R_v = TP.R_v(param_set)
     return p_v_sat / (ρ * R_v * T)
 end
 
@@ -1151,8 +1151,8 @@ Compute the saturation specific humidity, given
     ::Type{phase_type},
     λ = liquid_fraction(param_set, T, phase_type),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    R_v::FT = TP.R_v(param_set)
-    R_d::FT = TP.R_d(param_set)
+    R_v = TP.R_v(param_set)
+    R_d = TP.R_d(param_set)
     p_v_sat = saturation_vapor_pressure(
         param_set,
         phase_type,
@@ -1203,7 +1203,7 @@ end
     p_v_sat::FT,
 ) where {FT <: Real}
 
-    p_v::FT = vapor_specific_humidity(q) * (ρ * TP.R_v(param_set) * T)
+    p_v = vapor_specific_humidity(q) * (ρ * TP.R_v(param_set) * T)
 
     return p_v / p_v_sat - FT(1)
 end
@@ -1492,15 +1492,15 @@ end
     q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ),
     cvm = cv_m(param_set, q),
 ) where {FT <: Real, phase_type <: PhaseEquil}
-    T_0::FT = TP.T_0(param_set)
-    cv_v::FT = TP.cv_v(param_set)
-    cv_l::FT = TP.cv_l(param_set)
-    cv_i::FT = TP.cv_i(param_set)
-    e_int_v0::FT = TP.e_int_v0(param_set)
-    e_int_i0::FT = TP.e_int_i0(param_set)
-    T_f::FT = TP.T_freeze(param_set)
-    T_i::FT = TP.T_icenuc(param_set)
-    n_i::FT = TP.pow_icenuc(param_set)
+    T_0 = TP.T_0(param_set)
+    cv_v = TP.cv_v(param_set)
+    cv_l = TP.cv_l(param_set)
+    cv_i = TP.cv_i(param_set)
+    e_int_v0 = TP.e_int_v0(param_set)
+    e_int_i0 = TP.e_int_i0(param_set)
+    T_f = TP.T_freeze(param_set)
+    T_i = TP.T_icenuc(param_set)
+    n_i = TP.pow_icenuc(param_set)
 
     q_c = condensate(q)
     q_vap_sat = q_vap_saturation_from_density(param_set, T, ρ, p_vap_sat)
@@ -1569,7 +1569,7 @@ See also [`saturation_adjustment`](@ref).
     relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
-    _T_min::FT = TP.T_min(param_set)
+    _T_min = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
@@ -1580,7 +1580,7 @@ See also [`saturation_adjustment`](@ref).
             return T_1
         end
     end
-    _T_freeze::FT = TP.T_freeze(param_set)
+    _T_freeze = TP.T_freeze(param_set)
     @inline e_int_sat(T) =
         internal_energy_sat(param_set, heavisided(T), ρ, q_tot, phase_type)
     temperature_tol = _T_freeze * relative_temperature_tol
@@ -1709,7 +1709,7 @@ See also [`saturation_adjustment`](@ref).
     relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
-    _T_min::FT = TP.T_min(param_set)
+    _T_min = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
     T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
@@ -1720,7 +1720,7 @@ See also [`saturation_adjustment`](@ref).
     if unsaturated && T_1 ≥ _T_min
         return T_1
     end
-    _T_freeze::FT = TP.T_freeze(param_set)
+    _T_freeze = TP.T_freeze(param_set)
     @inline e_int_sat(T) =
         internal_energy_sat(param_set, heavisided(T), ρ_T(T), q_tot, phase_type)
 
@@ -1814,7 +1814,7 @@ See also [`saturation_adjustment`](@ref).
     relative_temperature_tol::FT,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
-    _T_min::FT = TP.T_min(param_set)
+    _T_min = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
     T_1 = max(
@@ -1828,7 +1828,7 @@ See also [`saturation_adjustment`](@ref).
     if unsaturated && T_1 ≥ _T_min
         return T_1
     end
-    _T_freeze::FT = TP.T_freeze(param_set)
+    _T_freeze = TP.T_freeze(param_set)
     @inline h_sat(T) = specific_enthalpy_sat(
         param_set,
         heavisided(T),
@@ -2043,7 +2043,7 @@ See also [`saturation_adjustment`](@ref).
     tol::RS.AbstractTolerance,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, phase_type <: PhaseEquil}
-    _T_min::FT = TP.T_min(param_set)
+    _T_min = TP.T_min(param_set)
     @inline air_temp(q) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q)
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
@@ -2125,10 +2125,10 @@ See also [`saturation_adjustment`](@ref).
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
-    T_min::FT = TP.T_min(param_set)
-    T_freeze::FT = TP.T_freeze(param_set)
-    cp_d::FT = TP.cp_d(param_set)
-    cp_v::FT = TP.cp_v(param_set)
+    T_min = TP.T_min(param_set)
+    T_freeze = TP.T_freeze(param_set)
+    cp_d = TP.cp_d(param_set)
+    cp_v = TP.cp_v(param_set)
     @inline air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     @inline function θ_liq_ice_closure(T)
         q = PhasePartition(oftype(T, 0))
@@ -2210,8 +2210,8 @@ with specific latent heat evaluated at reference temperature `T_0` given
     param_set::APS,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
-    LH_v0::FT = TP.LH_v0(param_set)
-    LH_s0::FT = TP.LH_s0(param_set)
+    LH_v0 = TP.LH_v0(param_set)
+    LH_s0 = TP.LH_s0(param_set)
     return LH_v0 * q.liq + LH_s0 * q.ice
 end
 latent_heat_liq_ice(param_set::APS, ts::ThermodynamicState) =
@@ -2368,7 +2368,7 @@ The air temperature and `q_tot` where
     tol::RS.AbstractTolerance = RS.ResidualTolerance{FT}(sqrt(eps(FT))),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
 
-    _T_min::FT = TP.T_min(param_set)
+    _T_min = TP.T_min(param_set)
     _T_max = T_virt
     @inline roots(T) =
         T_virt - virt_temp_from_RH(param_set, heavisided(T), ρ, RH, phase_type)
@@ -2424,7 +2424,7 @@ and, optionally,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
 
-    p0::FT = TP.p_ref_theta(param_set)
+    p0 = TP.p_ref_theta(param_set)
     cvm = cv_m(param_set, q)
     cpm = cp_m(param_set, q)
     R_m = gas_constant_air(param_set, q)
@@ -2464,8 +2464,8 @@ by finding the root of
     tol::RS.AbstractTolerance,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
-    _T_min::FT = TP.T_min(param_set)
-    _T_max::FT = TP.T_max(param_set)
+    _T_min = TP.T_min(param_set)
+    _T_max = TP.T_max(param_set)
     @inline roots(T) =
         T - air_temperature_given_pθq(
             param_set,
@@ -2548,7 +2548,7 @@ and, optionally,
     q::PhasePartition{FT} = q_pt_0(FT),
     cpm = cp_m(param_set, q),
 ) where {FT <: Real}
-    R_d::FT = TP.R_d(param_set)
+    R_d = TP.R_d(param_set)
     return gas_constant_air(param_set, q) / R_d *
            dry_pottemp(param_set, T, ρ, q, cpm)
 end
@@ -2582,7 +2582,7 @@ and, optionally,
     T::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
-    R_d::FT = TP.R_d(param_set)
+    R_d = TP.R_d(param_set)
     return gas_constant_air(param_set, q) / R_d * T
 end
 
@@ -2676,7 +2676,7 @@ and, optionally,
     q::PhasePartition{FT} = q_pt_0(FT),
     cpm = cp_m(param_set, q),
 ) where {FT <: Real}
-    p0::FT = TP.p_ref_theta(param_set)
+    p0 = TP.p_ref_theta(param_set)
     # gas constant and isobaric specific heat of moist air
     _R_m = gas_constant_air(param_set, q)
 
@@ -2767,7 +2767,7 @@ and a phase partition, `q`.
     param_set::APS,
     q::PhasePartition{FT},
 ) where {FT <: Real}
-    molmass_ratio::FT = TP.molmass_ratio(param_set)
+    molmass_ratio = TP.molmass_ratio(param_set)
     q_vap = vapor_specific_humidity(q)
     return molmass_ratio * shum_to_mixing_ratio(q_vap, q.tot)
 end
@@ -2791,7 +2791,7 @@ and, optionally,
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    R_v::FT = TP.R_v(param_set)
+    R_v = TP.R_v(param_set)
     q_vap = vapor_specific_humidity(q)
     p_vap = q_vap * air_density(param_set, T, p, q) * R_v * T
     p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
@@ -2955,8 +2955,8 @@ Virtual dry static energy, given
     ts::ThermodynamicState{FT},
     e_pot::FT,
 ) where {FT <: Real}
-    T_0::FT = TP.T_0(param_set)
-    cp_d::FT = TP.cp_d(param_set)
+    T_0 = TP.T_0(param_set)
+    cp_d = TP.cp_d(param_set)
     T_virt = virtual_temperature(param_set, ts)
     return cp_d * T_virt + e_pot
 end
@@ -3010,11 +3010,11 @@ The dry air specific entropy, given
     T::FT,
     q::PhasePartition{FT},
 ) where {FT <: Real}
-    T_ref::FT = TP.entropy_reference_temperature(param_set)
-    p_ref::FT = TP.MSLP(param_set)
-    s_d_ref::FT = TP.entropy_dry_air(param_set)
-    R_d::FT = TP.R_d(param_set)
-    cp_d::FT = TP.cp_d(param_set)
+    T_ref = TP.entropy_reference_temperature(param_set)
+    p_ref = TP.MSLP(param_set)
+    s_d_ref = TP.entropy_dry_air(param_set)
+    R_d = TP.R_d(param_set)
+    cp_d = TP.cp_d(param_set)
     p_d = partial_pressure_dry(param_set, p, q)
     return s_d_ref + cp_d * log(T / T_ref) - R_d * log((p_d + eps(FT)) / p_ref)
 end
@@ -3035,11 +3035,11 @@ The specific entropy of water vapor, given
     T::FT,
     q::PhasePartition{FT},
 ) where {FT <: Real}
-    T_ref::FT = TP.entropy_reference_temperature(param_set)
-    p_ref::FT = TP.MSLP(param_set)
-    s_v_ref::FT = TP.entropy_water_vapor(param_set)
-    R_v::FT = TP.R_v(param_set)
-    cp_v::FT = TP.cp_v(param_set)
+    T_ref = TP.entropy_reference_temperature(param_set)
+    p_ref = TP.MSLP(param_set)
+    s_v_ref = TP.entropy_water_vapor(param_set)
+    R_v = TP.R_v(param_set)
+    cp_v = TP.cp_v(param_set)
     p_v = partial_pressure_vapor(param_set, p, q)
     return s_v_ref + cp_v * log(T / T_ref) - R_v * log((p_v + eps(FT)) / p_ref)
 end
@@ -3058,7 +3058,7 @@ The partial pressure of water vapor, given
     p::FT,
     q::PhasePartition{FT},
 ) where {FT <: Real}
-    molmass_ratio::FT = TP.molmass_ratio(param_set)
+    molmass_ratio = TP.molmass_ratio(param_set)
     return p * (1 - q.tot) /
            (1 - q.tot + vapor_specific_humidity(q) / molmass_ratio)
 end
@@ -3077,7 +3077,7 @@ The partial pressure of water vapor, given
     p::FT,
     q::PhasePartition{FT},
 ) where {FT <: Real}
-    molmass_ratio::FT = TP.molmass_ratio(param_set)
+    molmass_ratio = TP.molmass_ratio(param_set)
     return p * vapor_specific_humidity(q) / molmass_ratio /
            (1 - q.tot + vapor_specific_humidity(q) / molmass_ratio)
 end
