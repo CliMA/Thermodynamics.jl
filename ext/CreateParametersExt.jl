@@ -29,6 +29,7 @@ function ThermodynamicsParameters(toml_dict::CP.AbstractTOMLDict)
         :isobaric_specific_heat_liquid => :cp_l,
         :latent_heat_vaporization_at_reference => :LH_v0,
         :temperature_saturation_adjustment_min => :T_min,
+        :temperature_saturation_adjustment_init_min => :T_init_min,
         :gas_constant => :gas_constant,
         :temperature_mean_at_reference => :T_surf_ref,
         :gravitational_acceleration => :grav,

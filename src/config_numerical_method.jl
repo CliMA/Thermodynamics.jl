@@ -55,9 +55,9 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethod, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     T_init = if T_guess isa Nothing
-        max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+        max(T_init_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     else
         T_guess
     end
@@ -73,9 +73,9 @@ end
     ::Type{phase_type},
     T_guess::FT,
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     T_init = if T_guess isa Nothing
-        max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+        max(T_init_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     else
         T_guess
     end
@@ -91,10 +91,13 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature(param_set, e_int, q_pt)
-    T_1 = max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+    T_1 = max(
+        T_init_min,
+        air_temperature(param_set, e_int, PhasePartition(q_tot)),
+    ) # Assume all vapor
     T_2 = bound_upper_temperature(T_1, T_2)
     return RS.SecantMethod(T_1, T_2)
 end
@@ -108,10 +111,13 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature(param_set, e_int, q_pt)
-    T_1 = max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+    T_1 = max(
+        T_init_min,
+        air_temperature(param_set, e_int, PhasePartition(q_tot)),
+    ) # Assume all vapor
     T_2 = bound_upper_temperature(T_1, T_2)
     return RS.RegulaFalsiMethod(T_1, T_2)
 end
@@ -166,9 +172,9 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     T_init = if T_guess isa Nothing
-        max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+        max(T_init_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
     else
         T_guess
     end
@@ -184,10 +190,13 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature(param_set, e_int, q_pt)
-    T_1 = max(T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
+    T_1 = max(
+        T_init_min,
+        air_temperature(param_set, e_int, PhasePartition(q_tot)),
+    ) # Assume all vapor
     T_2 = bound_upper_temperature(T_1, T_2)
     return RS.SecantMethod(T_1, T_2)
 end
@@ -205,10 +214,10 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     T_init = if T_guess isa Nothing # Assume all vapor
         max(
-            T_min,
+            T_init_min,
             air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot)),
         )
     else
@@ -226,11 +235,11 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature_from_enthalpy(param_set, h, q_pt)
     T_1 = max(
-        T_min,
+        T_init_min,
         air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot)),
     ) # Assume all vapor
     T_2 = bound_upper_temperature(T_1, T_2)
@@ -246,11 +255,11 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     q_pt = PhasePartition(q_tot, FT(0), q_tot) # Assume all ice
     T_2 = air_temperature_from_enthalpy(param_set, h, q_pt)
     T_1 = max(
-        T_min,
+        T_init_min,
         air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot)),
     ) # Assume all vapor
     T_2 = bound_upper_temperature(T_1, T_2)
@@ -270,10 +279,10 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
-    _T_min = TP.T_min(param_set)
+    _T_init_min = TP.T_init_min(param_set)
     _T_max = TP.T_max(param_set)
     @inline air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
-    T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
+    T_1 = max(_T_init_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     T_2 = T_1 + 10
     T_1 = T_1 - 10
     return RS.RegulaFalsiMethod(T_1, T_2)
@@ -288,9 +297,9 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.SecantMethod, phase_type <: PhaseEquil}
-    _T_min = TP.T_min(param_set)
+    _T_init_min = TP.T_init_min(param_set)
     @inline air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
-    T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
+    T_1 = max(_T_init_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
     T_2 = bound_upper_temperature(T_1, T_2)
     return RS.SecantMethod(T_1, T_2)
@@ -305,10 +314,10 @@ end
     ::Type{phase_type},
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
-    T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     @inline air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     T_init = if T_guess isa Nothing
-        max(T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
+        max(T_init_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     else
         T_guess
     end

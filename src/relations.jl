@@ -2044,6 +2044,7 @@ See also [`saturation_adjustment`](@ref).
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, phase_type <: PhaseEquil}
     _T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     @inline air_temp(q) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q)
     T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
     q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
@@ -2058,7 +2059,7 @@ See also [`saturation_adjustment`](@ref).
         θ_liq_ice
     sol = RS.find_zero(
         roots,
-        RS.SecantMethod(T_1, T_2),
+        RS.SecantMethod(T_init_min, T_2),
         RS.CompactSolution(),
         tol,
         maxiter,
@@ -2368,13 +2369,13 @@ The air temperature and `q_tot` where
     tol::RS.AbstractTolerance = RS.ResidualTolerance{FT}(sqrt(eps(FT))),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
 
-    _T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     _T_max = T_virt
     @inline roots(T) =
         T_virt - virt_temp_from_RH(param_set, heavisided(T), ρ, RH, phase_type)
     sol = RS.find_zero(
         roots,
-        RS.SecantMethod(_T_min, _T_max),
+        RS.SecantMethod(T_init_min, _T_max),
         RS.CompactSolution(),
         tol,
         maxiter,
@@ -2464,7 +2465,7 @@ by finding the root of
     tol::RS.AbstractTolerance,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
-    _T_min = TP.T_min(param_set)
+    T_init_min = TP.T_init_min(param_set)
     _T_max = TP.T_max(param_set)
     @inline roots(T) =
         T - air_temperature_given_pθq(
@@ -2475,7 +2476,7 @@ by finding the root of
         )
     sol = RS.find_zero(
         roots,
-        RS.SecantMethod(_T_min, _T_max),
+        RS.SecantMethod(T_init_min, _T_max),
         RS.CompactSolution(),
         tol,
         maxiter,
