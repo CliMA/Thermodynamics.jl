@@ -70,7 +70,7 @@ const APS = TP.ThermodynamicsParameters
 # Allow users to skip printing warnings on non-convergence
 @inline print_warning() = true
 
-@inline q_pt_0(::Type{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
+@inline q_pt_0(::APS{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
 
 @inline solution_type() = RS.CompactSolution()
 include("DataCollection.jl")
