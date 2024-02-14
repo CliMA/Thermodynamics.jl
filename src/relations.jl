@@ -1036,6 +1036,8 @@ and, optionally,
     p_v_sat = saturation_vapor_pressure(param_set, T, phase)
     return q_vap_saturation_from_density(param_set, T, ρ, p_v_sat)
 end
+q_vap_saturation_generic(param_set::APS, T, ρ, phase::Phase) =
+    q_vap_saturation_generic(param_set, promote(T, ρ)..., phase)
 
 """
     q_vap_saturation(param_set, T, ρ, phase_type[, q::PhasePartition])
