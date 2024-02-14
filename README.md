@@ -40,6 +40,6 @@ ts = TD.PhaseEquil_ρθq(params, 1.0, 374.0, 0.01);
 T = TD.air_temperature(params, ts)
 ```
 
-And that's it. See a full list of different thermodynamic state constructors, in case you want to create a thermodynamic state with different variables, [here](https://clima.github.io/Thermodynamics.jl/dev/API/#Thermodynamic-State-Constructors).
+See a full list of different thermodynamic state constructors, in case you want to create a thermodynamic state with different variables, [here](https://clima.github.io/Thermodynamics.jl/dev/API/#Thermodynamic-State-Constructors).
 
 See a full list of quantities that you can compute from a thermodynamic state, see our thermodynamic state-compatible methods [here](https://clima.github.io/Thermodynamics.jl/dev/API/#Thermodynamic-state-methods).
