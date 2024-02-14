@@ -83,6 +83,11 @@ end
 @inline PhasePartition(q_tot::FT) where {FT <: Real} =
     PhasePartition(q_tot, zero(FT), zero(FT))
 
+function promote_phase_partition(x1, x2, q_pt::PhasePartition)
+    (x1, x2, tot, liq, ice) = promote(x1, x2, q_pt.tot, q_pt.liq, q_pt.tot)
+    return (x1, x2, PhasePartition(tot, liq, ice))
+end
+
 const ITERTYPE = Union{Int, Nothing}
 TOLTYPE(FT) = Union{FT, Nothing}
 
@@ -126,6 +131,8 @@ A dry thermodynamic state (`q_tot = 0`) from
 """
 PhaseDry_ρe(param_set::APS, ρ::FT, e_int::FT) where {FT} =
     PhaseDry{FT}(e_int, ρ)
+PhaseDry_ρe(param_set::APS, ρ, e_int) =
+    PhaseDry_ρe(param_set, promote(ρ, e_int)...)
 
 """
     PhaseDry_pT(param_set, p, T)
@@ -141,6 +148,7 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
     ρ = air_density(param_set, T, p)
     return PhaseDry{FT}(e_int, ρ)
 end
+PhaseDry_pT(param_set::APS, p, T) = PhaseDry_pT(param_set, promote(p, T)...)
 
 """
     PhaseDry_pe(param_set, p, e_int)
@@ -160,6 +168,8 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
     ρ = air_density(param_set, T, p)
     return PhaseDry{FT}(e_int, ρ)
 end
+PhaseDry_pe(param_set::APS, p, e_int) =
+    PhaseDry_pe(param_set, promote(p, e_int)...)
 
 """
      PhaseDry_ph(param_set, p, h)
@@ -176,6 +186,7 @@ end
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
 end
+PhaseDry_ph(param_set::APS, p, h) = PhaseDry_ph(param_set, promote(p, h)...)
 
 """
     PhaseDry_ρθ(param_set, ρ, θ_dry)
@@ -195,6 +206,8 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
 end
+PhaseDry_ρθ(param_set::APS, ρ, θ_dry) =
+    PhaseDry_ρθ(param_set, promote(ρ, θ_dry)...)
 
 """
     PhaseDry_pθ(param_set, p, θ_dry)
@@ -215,6 +228,8 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
     ρ = air_density(param_set, T, p)
     return PhaseDry{FT}(e_int, ρ)
 end
+PhaseDry_pθ(param_set::APS, p, θ_dry) =
+    PhaseDry_pθ(param_set, promote(p, θ_dry)...)
 
 """
     PhaseDry_ρT(param_set, ρ, T)
@@ -229,6 +244,8 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
 end
+PhaseDry_ρT(param_set::APS, ρ, θ_dry) =
+    PhaseDry_ρT(param_set, promote(ρ, θ_dry)...)
 
 """
     PhaseDry_ρp(param_set, ρ, p)
@@ -244,6 +261,7 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
 end
+PhaseDry_ρp(param_set::APS, ρ, p) = PhaseDry_ρp(param_set, promote(ρ, p)...)
 
 #####
 ##### Equilibrium states
@@ -327,6 +345,8 @@ and, optionally
     p = air_pressure(param_set, T, ρ, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
+PhaseEquil_ρeq(param_set::APS, ρ, e_int, q_tot, args...) =
+    PhaseEquil_ρeq(param_set, promote(ρ, e_int, q_tot)..., args...)
 
 # Convenience method for comparing Numerical
 # methods without having to specify maxiter
@@ -394,6 +414,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot, T)
 end
+PhaseEquil_ρθq(param_set::APS, ρ, θ_liq_ice, q_tot, args...) =
+    PhaseEquil_ρθq(param_set, promote(ρ, θ_liq_ice, q_tot)..., args...)
 
 """
     PhaseEquil_ρTq(param_set, ρ, T, q_tot)
@@ -417,6 +439,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot, T)
 end
+PhaseEquil_ρTq(param_set::APS, ρ, T, q_tot) =
+    PhaseEquil_ρTq(param_set, promote(ρ, T, q_tot)...)
 
 """
     PhaseEquil_pTq(param_set, p, T, q_tot)
@@ -441,6 +465,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
+PhaseEquil_pTq(param_set::APS, p, T, q_tot) =
+    PhaseEquil_pTq(param_set, promote(p, T, q_tot)...)
 
 """
     PhaseEquil_peq(param_set, p, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
@@ -483,6 +509,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     ρ = air_density(param_set, T, p, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
+PhaseEquil_peq(param_set::APS, p, e_int, q_tot, args...) =
+    PhaseEquil_peq(param_set, promote(p, e_int, q_tot)..., args...)
 
 
 """
@@ -527,6 +555,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
+PhaseEquil_phq(param_set::APS, p, h, q_tot, args...) =
+    PhaseEquil_phq(param_set, promote(p, h, q_tot)..., args...)
 
 """
     PhaseEquil_ρpq(param_set, ρ, p, q_tot[, perform_sat_adjust=true, maxiter, sat_adjust_method, T_guess])
@@ -581,6 +611,8 @@ TODO: change input argument order: perform_sat_adjust is
     end
     return PhaseEquil{FT}(ρ, p, e_int, q_tot, T)
 end
+PhaseEquil_ρpq(param_set::APS, ρ, p, q_tot, args...) =
+    PhaseEquil_ρpq(param_set, promote(ρ, p, q_tot)..., args...)
 
 
 """
@@ -628,6 +660,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
+PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...) =
+    PhaseEquil_pθq(param_set, promote(p, θ_liq_ice, q_tot)..., args...)
 
 
 #####
@@ -688,6 +722,8 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
+PhaseNonEquil_ρTq(param_set::APS, ρ, T, q_pt) =
+    PhaseNonEquil_ρTq(param_set, promote_phase_partition(ρ, T, q_pt)...)
 
 """
     PhaseNonEquil_ρθq(param_set, ρ, θ_liq_ice, q_pt)
@@ -723,6 +759,8 @@ and, optionally
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
+PhaseNonEquil_ρθq(param_set::APS, ρ, θ_liq_ice, q_pt) =
+    PhaseNonEquil_ρθq(param_set, promote_phase_partition(ρ, θ_liq_ice, q_pt)...)
 
 """
     PhaseNonEquil_pθq(param_set, p, θ_liq_ice, q_pt)
@@ -745,6 +783,8 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
+PhaseNonEquil_pθq(param_set::APS, p, θ_liq_ice, q_pt) =
+    PhaseNonEquil_pθq(param_set, promote_phase_partition(p, θ_liq_ice, q_pt)...)
 
 """
     PhaseNonEquil_pTq(param_set, p, T, q_pt)
@@ -766,6 +806,8 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
+PhaseNonEquil_pTq(param_set::APS, p, T, q_pt) =
+    PhaseNonEquil_pTq(param_set, promote_phase_partition(p, T, q_pt)...)
 
 """
     PhaseNonEquil_peq(param_set, p, e_int, q_pt)
@@ -787,6 +829,8 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
     ρ = air_density(param_set, T, p, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
+PhaseNonEquil_peq(param_set::APS, p, e_int, q_pt) =
+    PhaseNonEquil_peq(param_set, promote_phase_partition(p, e_int, q_pt)...)
 
 """
     PhaseNonEquil_phq(param_set, p, e_int, q_pt)
@@ -809,6 +853,8 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
+PhaseNonEquil_phq(param_set::APS, p, h, q_pt) =
+    PhaseNonEquil_phq(param_set, promote_phase_partition(p, h, q_pt)...)
 
 """
     PhaseNonEquil_ρpq(param_set, ρ, p, q_pt)
@@ -830,3 +876,5 @@ Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
+PhaseNonEquil_ρpq(param_set::APS, ρ, p, q_pt) =
+    PhaseNonEquil_ρpq(param_set, promote_phase_partition(ρ, p, q_pt)...)
