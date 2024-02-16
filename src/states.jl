@@ -83,13 +83,16 @@ end
 @inline PhasePartition(q_tot::FT) where {FT <: Real} =
     PhasePartition(q_tot, zero(FT), zero(FT))
 
+Base.convert(::Type{PhasePartition{FT}}, q_pt::PhasePartition) where {FT} =
+    PhasePartition(FT(q_pt.tot), FT(q_pt.liq), FT(q_pt.ice))
+
 function promote_phase_partition(x1, x2, q_pt::PhasePartition)
     (x1, x2, tot, liq, ice) = promote(x1, x2, q_pt.tot, q_pt.liq, q_pt.tot)
     return (x1, x2, PhasePartition(tot, liq, ice))
 end
 
 const ITERTYPE = Union{Int, Nothing}
-TOLTYPE(FT) = Union{FT, Nothing}
+const TOLTYPE = Union{Real, Nothing}
 
 #####
 ##### Dry states
@@ -119,6 +122,9 @@ end
     PhaseDry{FT}(e_int, ρ)
 
 Base.zero(::Type{PhaseDry{FT}}) where {FT} = PhaseDry{FT}(0, 0)
+
+Base.convert(::Type{PhaseDry{FT}}, ts::PhaseDry) where {FT} =
+    PhaseDry{FT}(ts.e_int, ts.ρ)
 
 """
     PhaseDry_ρe(param_set, ρ, e_int)
@@ -244,8 +250,7 @@ Constructs a [`PhaseDry`](@ref) thermodynamic state from:
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
 end
-PhaseDry_ρT(param_set::APS, ρ, θ_dry) =
-    PhaseDry_ρT(param_set, promote(ρ, θ_dry)...)
+PhaseDry_ρT(param_set::APS, ρ, T) = PhaseDry_ρT(param_set, promote(ρ, T)...)
 
 """
     PhaseDry_ρp(param_set, ρ, p)
@@ -297,6 +302,8 @@ end
 @inline Base.zero(::Type{PhaseEquil{FT}}) where {FT} =
     PhaseEquil{FT}(0, 0, 0, 0, 0)
 
+Base.convert(::Type{PhaseEquil{FT}}, ts::PhaseEquil) where {FT} =
+    PhaseEquil{FT}(ts.ρ, ts.p, ts.e_int, ts.q_tot, ts.T)
 
 @inline ifnothing(x, y) = x
 @inline ifnothing(x::Nothing, y) = y
@@ -322,10 +329,10 @@ and, optionally
     e_int::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    relative_temperature_tol::FTT = nothing,
+    relative_temperature_tol::TT = nothing,
     ::Type{sat_adjust_method} = RS.NewtonsMethod,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
+) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, TT <: TOLTYPE}
     maxiter = ifnothing(maxiter, 8)
     relative_temperature_tol = ifnothing(relative_temperature_tol, FT(1e-4))
     phase_type = PhaseEquil{FT}
@@ -391,9 +398,9 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
     θ_liq_ice::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    relative_temperature_tol::FTT = nothing,
+    relative_temperature_tol::TT = nothing,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
+) where {FT <: Real, IT <: ITERTYPE, TT <: TOLTYPE}
     maxiter === nothing && (maxiter = 36)
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-5))
@@ -485,10 +492,10 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     e_int::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    relative_temperature_tol::FTT = nothing,
+    relative_temperature_tol::TT = nothing,
     ::Type{sat_adjust_method} = RS.SecantMethod,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
+) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, TT <: TOLTYPE}
     maxiter === nothing && (maxiter = 40)
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
@@ -530,10 +537,10 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     h::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    relative_temperature_tol::FTT = nothing,
+    relative_temperature_tol::TT = nothing,
     ::Type{sat_adjust_method} = RS.SecantMethod,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, FTT <: TOLTYPE(FT)}
+) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, TT <: TOLTYPE}
     maxiter === nothing && (maxiter = 40)
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
@@ -584,7 +591,7 @@ TODO: change input argument order: perform_sat_adjust is
     q_tot::FT,
     perform_sat_adjust = false,
     maxiter::Int = 5,
-    relative_temperature_tol::FT = FT(sqrt(eps(FT))),
+    relative_temperature_tol::Real = FT(sqrt(eps(FT))),
     ::Type{sat_adjust_method} = RS.NewtonsMethodAD,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method}
@@ -635,10 +642,10 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
     θ_liq_ice::FT,
     q_tot::FT,
     maxiter::IT = nothing,
-    relative_temperature_tol::FTT = nothing,
+    relative_temperature_tol::TT = nothing,
     ::Type{sat_adjust_method} = RS.SecantMethod,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, IT <: ITERTYPE, FTT <: TOLTYPE(FT), sat_adjust_method}
+) where {FT <: Real, IT <: ITERTYPE, TT <: TOLTYPE, sat_adjust_method}
     maxiter === nothing && (maxiter = 50)
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
@@ -693,6 +700,9 @@ struct PhaseNonEquil{FT} <: AbstractPhaseNonEquil{FT}
 end
 @inline Base.zero(::Type{PhaseNonEquil{FT}}) where {FT} =
     PhaseNonEquil{FT}(0, 0, zero(PhasePartition{FT}))
+
+Base.convert(::Type{PhaseNonEquil{FT}}, ts::PhaseNonEquil) where {FT} =
+    PhaseNonEquil{FT}(ts.e_int, ts.ρ, ts.q)
 
 @inline function PhaseNonEquil(
     param_set::APS,
