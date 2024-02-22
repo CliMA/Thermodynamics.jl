@@ -834,6 +834,8 @@ isobaric specific heat capacities of the two phases, given
     T_0 = TP.T_0(param_set)
     return LH_0 + Δcp * (T - T_0)
 end
+latent_heat_generic(param_set, T, LH_0, Δcp) =
+    latent_heat_generic(param_set, promote(T, LH_0, Δcp)...)
 
 """
     weighted_latent_heat(param_set, T, λ)
@@ -1568,7 +1570,7 @@ See also [`saturation_adjustment`](@ref).
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    relative_temperature_tol::FT,
+    relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min = TP.T_min(param_set)
@@ -1708,7 +1710,7 @@ See also [`saturation_adjustment`](@ref).
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    relative_temperature_tol::FT,
+    relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min = TP.T_min(param_set)
@@ -1813,7 +1815,7 @@ See also [`saturation_adjustment`](@ref).
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    relative_temperature_tol::FT,
+    relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min = TP.T_min(param_set)
@@ -1925,7 +1927,7 @@ See also [`saturation_adjustment`](@ref).
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    relative_temperature_tol::FT = sqrt(eps(FT)),
+    relative_temperature_tol::Real = sqrt(eps(FT)),
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
@@ -2124,7 +2126,7 @@ See also [`saturation_adjustment`](@ref).
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    relative_temperature_tol::FT,
+    relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
