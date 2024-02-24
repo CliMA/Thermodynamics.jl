@@ -2941,9 +2941,9 @@ Moist static energy, given
 """
 @inline function moist_static_energy(
     param_set::APS,
-    ts::ThermodynamicState{FT},
-    e_pot::FT,
-) where {FT <: Real}
+    ts::ThermodynamicState,
+    e_pot,
+)
     return specific_enthalpy(param_set, ts) + e_pot
 end
 
@@ -2957,9 +2957,9 @@ Virtual dry static energy, given
 """
 @inline function virtual_dry_static_energy(
     param_set::APS,
-    ts::ThermodynamicState{FT},
-    e_pot::FT,
-) where {FT <: Real}
+    ts::ThermodynamicState,
+    e_pot,
+)
     T_0 = TP.T_0(param_set)
     cp_d = TP.cp_d(param_set)
     T_virt = virtual_temperature(param_set, ts)
