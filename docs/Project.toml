@@ -1,5 +1,5 @@
 [deps]
-CLIMAParameters = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
+ClimaParams = "5c42b081-d73a-476f-9059-fd94b934656c"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 DocumenterCitations = "daee34ce-89f3-4625-b898-19384cb65244"
 ExprTools = "e2ba6199-217a-4e67-a87a-7c52f15ade04"

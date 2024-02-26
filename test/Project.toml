@@ -1,7 +1,7 @@
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-CLIMAParameters = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
+ClimaParams = "5c42b081-d73a-476f-9059-fd94b934656c"
 Coverage = "a2441757-f6aa-5fb2-8edb-039e3f45d037"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 Downloads = "f43a241f-c20a-4ad4-852c-f6b1247861c6"
@@ -18,7 +18,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 
 [compat]
-CLIMAParameters = "0.9"
 KernelAbstractions = "0.9"
 RootSolvers = "0.4"
 julia = "1.7"

@@ -10,7 +10,7 @@ Several temperature profiles are available in `Thermodynamics.TemperatureProfile
 
 Using a profile involves passing two arguments:
 
- - `param_set` a parameter set, from [CLIMAParameters.jl](https://github.com/CliMA/CLIMAParameters.jl)
+ - `param_set` a parameter set, from [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)
  - `z` altitude
 
 to one of the temperature profile constructors.
@@ -20,7 +20,7 @@ to one of the temperature profile constructors.
 ```@example
 import Thermodynamics as TD
 import Plots
-import CLIMAParameters as CP
+import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)
@@ -44,7 +44,7 @@ Plots.savefig("isothermal.svg");
 ```@example
 import Thermodynamics as TD
 import Plots
-import CLIMAParameters as CP
+import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)
@@ -67,7 +67,7 @@ Plots.savefig("decaying.svg")
 ```@example
 import Thermodynamics as TD
 import Plots
-import CLIMAParameters as CP
+import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)

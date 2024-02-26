@@ -7,7 +7,7 @@ Thermodynamics.jl is tested using a set of profiles specified in `src/TestedProf
 ```@example
 import Thermodynamics as TD
 import Plots
-import CLIMAParameters as CP
+import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)
@@ -26,7 +26,7 @@ Plots.savefig("tested_profiles_dry.svg");
 ```@example
 import Thermodynamics as TD
 import Plots
-import CLIMAParameters as CP
+import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)

@@ -13,7 +13,7 @@ import RootSolvers as RS
 
 import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
-import CLIMAParameters as CP
+import ClimaParams as CP
 
 if get(ARGS, 1, "Array") == "CuArray"
     import CUDA

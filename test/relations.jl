@@ -10,7 +10,7 @@ import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
 using Thermodynamics.TemperatureProfiles
 using Thermodynamics.TestedProfiles
-import CLIMAParameters as CP
+import ClimaParams as CP
 
 # Tolerances for tested quantities:
 param_set_Float64 = TP.ThermodynamicsParameters(Float64)

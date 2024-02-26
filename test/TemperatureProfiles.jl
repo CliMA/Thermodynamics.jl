@@ -4,7 +4,7 @@ import Thermodynamics.Parameters as TP
 import Thermodynamics.TemperatureProfiles as TDTP
 using ForwardDiff
 
-import CLIMAParameters as CP
+import ClimaParams as CP
 
 @testset "TemperatureProfiles - DecayingTemperatureProfile" begin
     for FT in [Float32, Float64]

@@ -1,7 +1,7 @@
 module CreateParametersExt
 
 import Thermodynamics.Parameters.ThermodynamicsParameters
-import CLIMAParameters as CP
+import ClimaParams as CP
 
 ThermodynamicsParameters(::Type{FT}) where {FT <: Real} =
     ThermodynamicsParameters(CP.create_toml_dict(FT))

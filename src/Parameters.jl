@@ -9,7 +9,7 @@ Parameters for Thermodynamics.jl.
 
 # Example
 ```
-import CLIMAParameters as CP
+import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 
 FT = Float64;
