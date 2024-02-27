@@ -58,12 +58,12 @@ steps:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
-  # - label: ":mag::rocket: Constructor flop measurements"
-  #   command:
-  #     - "julia --project=perf perf/flops.jl"
-  #   agents:
-  #     slurm_ntasks: 1
-  #   timeout_in_minutes: 60
+  - label: ":mag::rocket: Constructor flop measurements"
+    command:
+      - "julia --project=perf perf/flops.jl"
+    agents:
+      slurm_ntasks: 1
+    timeout_in_minutes: 60
 
   - label: ":mag::rocket: JET tests"
     command:

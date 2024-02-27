@@ -1,6 +1,7 @@
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CLIMAParameters = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
+CountFlops = "1db9610d-79e1-487a-8d40-77f3295c7593"
 JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
 OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
