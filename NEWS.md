@@ -1,9 +1,22 @@
 Thermodynamics.jl Release Notes
 ========================
 
+v0.12.4
+-------
+- Upgraded to use ClimaParams.jl
+
+v0.12.3
+-------
+- [badge-✨feature/enhancement] Additional Dual number support
+
+v0.12.2
+-------
+- [badge-✨feature/enhancement] Additional Dual number support
+
 v0.12.1
 -------
 - Started changelog
+- [badge-✨feature/enhancement] Added support for Dual numbers
 
 <!--
 Contributors are welcome to begin the description of changelog items with badge(s) below. Here is a brief description of when to use badges for a particular pull request / set of changes:
