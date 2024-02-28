@@ -3,7 +3,7 @@ import Plots
 
 import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
-import CLIMAParameters as CP
+import ClimaParams as CP
 
 FT = Float64
 

@@ -5,7 +5,7 @@ import RootSolvers as RS
 
 import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
-import CLIMAParameters as CP
+import ClimaParams as CP
 
 const FT = Float64
 const param_set = TP.ThermodynamicsParameters(FT)
