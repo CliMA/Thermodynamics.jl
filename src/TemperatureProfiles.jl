@@ -25,7 +25,7 @@ abstract type TemperatureProfile{FT} end
 
 """
     IsothermalProfile(param_set, T_virt)
-    IsothermalProfile(param_set, ::Type{FT<:AbstractFloat})
+    IsothermalProfile(param_set, ::Type{FT<:Real})
 
 A uniform virtual temperature profile, which is implemented
 as a special case of [`DecayingTemperatureProfile`](@ref).
@@ -74,10 +74,10 @@ to be greater than or equal to `profile.T_min_ref`.
 """
 function (profile::DryAdiabaticProfile)(param_set::APS, z::FT) where {FT}
 
-    R_d::FT = TP.R_d(param_set)
-    cp_d::FT = TP.cp_d(param_set)
-    grav::FT = TP.grav(param_set)
-    MSLP::FT = TP.MSLP(param_set)
+    R_d = TP.R_d(param_set)
+    cp_d = TP.cp_d(param_set)
+    grav = TP.grav(param_set)
+    MSLP = TP.MSLP(param_set)
 
     # Temperature
     Γ = grav / cp_d
@@ -127,9 +127,9 @@ end
 
 
 function (profile::DecayingTemperatureProfile)(param_set::APS, z::FT) where {FT}
-    R_d::FT = TP.R_d(param_set)
-    grav::FT = TP.grav(param_set)
-    MSLP::FT = TP.MSLP(param_set)
+    R_d = TP.R_d(param_set)
+    grav = TP.grav(param_set)
+    MSLP = TP.MSLP(param_set)
 
     # Scale height for surface temperature
     H_sfc = R_d * profile.T_virt_surf / grav

@@ -12,7 +12,7 @@ Parameters for Thermodynamics.jl.
 
 # Example
 ```
-import CLIMAParameters as CP
+import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 
 FT = Float64;
@@ -38,6 +38,7 @@ Base.@kwdef struct ThermodynamicsParameters{FT} <: AbstractThermodynamicsParamet
     T_freeze::FT
     T_min::FT
     T_max::FT
+    T_init_min::FT
     entropy_reference_temperature::FT
     entropy_dry_air::FT
     entropy_water_vapor::FT

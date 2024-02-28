@@ -1,6 +1,6 @@
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-CLIMAParameters = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
+ClimaParams = "5c42b081-d73a-476f-9059-fd94b934656c"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
@@ -10,7 +10,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 
 [compat]
-CLIMAParameters = "0.8"
 CUDA = "3.5, 4, 5"
 KernelAbstractions = "0.9"
 RootSolvers = "0.4"

@@ -1,6 +1,7 @@
 import ForwardDiff
+import ClimaParams as CP
+
 import Thermodynamics as TD
-import CLIMAParameters as CP
 using Thermodynamics.TestedProfiles
 import Thermodynamics.Parameters as TP
 

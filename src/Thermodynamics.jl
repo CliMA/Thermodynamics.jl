@@ -8,12 +8,12 @@ saturation specific humidities.
 
 ## AbstractParameterSet's
 
-Many functions defined in this module rely on CLIMAParameters.jl.
-CLIMAParameters.jl defines several functions (e.g., many planet
+Many functions defined in this module rely on ClimaParams.jl.
+ClimaParams.jl defines several functions (e.g., many planet
 parameters). For example, to compute the mole-mass ratio:
 
 ```julia
-import CLIMAParameters as CP
+import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)

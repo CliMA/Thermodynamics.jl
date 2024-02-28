@@ -7,7 +7,7 @@ import BenchmarkTools
 
 import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
-import CLIMAParameters as CP
+import ClimaParams as CP
 
 #####
 ##### Finding indexes in profiles satisfying certain conditions

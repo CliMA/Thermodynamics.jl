@@ -27,10 +27,10 @@ The air pressure for an isentropic process, where
     θ::FT,
     Φ::FT,
     ::DryAdiabaticProcess,
-) where {FT <: AbstractFloat}
-    p0::FT = TP.p_ref_theta(param_set)
-    _R_d::FT = TP.R_d(param_set)
-    _cp_d::FT = TP.cp_d(param_set)
+) where {FT <: Real}
+    p0 = TP.p_ref_theta(param_set)
+    _R_d = TP.R_d(param_set)
+    _cp_d = TP.cp_d(param_set)
     return p0 * (1 - Φ / (θ * _cp_d))^(_cp_d / _R_d)
 end
 
@@ -50,8 +50,8 @@ The air pressure for an isentropic process, where
     T∞::FT,
     p∞::FT,
     ::DryAdiabaticProcess,
-) where {FT <: AbstractFloat}
-    _kappa_d::FT = TP.kappa_d(param_set)
+) where {FT <: Real}
+    _kappa_d = TP.kappa_d(param_set)
     return p∞ * (T / T∞)^(FT(1) / _kappa_d)
 end
 
@@ -69,9 +69,9 @@ The air temperature for an isentropic process, where
     p::FT,
     θ::FT,
     ::DryAdiabaticProcess,
-) where {FT <: AbstractFloat}
-    _R_d::FT = TP.R_d(param_set)
-    _cp_d::FT = TP.cp_d(param_set)
-    p0::FT = TP.p_ref_theta(param_set)
+) where {FT <: Real}
+    _R_d = TP.R_d(param_set)
+    _cp_d = TP.cp_d(param_set)
+    p0 = TP.p_ref_theta(param_set)
     return (p / p0)^(_R_d / _cp_d) * θ
 end

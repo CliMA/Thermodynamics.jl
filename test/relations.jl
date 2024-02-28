@@ -10,7 +10,7 @@ import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
 using Thermodynamics.TemperatureProfiles
 using Thermodynamics.TestedProfiles
-import CLIMAParameters as CP
+import ClimaParams as CP
 
 # Tolerances for tested quantities:
 param_set_Float64 = TP.ThermodynamicsParameters(Float64)
@@ -1299,7 +1299,7 @@ end
 
         # Test virtual temperature and inverse functions:
         _R_d = FT(TP.R_d(param_set))
-        T_virt = virtual_temperature.(param_set, T, ρ, q_pt)
+        T_virt = virtual_temperature.(param_set, T, q_pt)
         @test all(T_virt ≈ gas_constant_air.(param_set, q_pt) ./ _R_d .* T)
 
         T_rec_qpt_rec =
@@ -1318,7 +1318,7 @@ end
         @test all(
             isapprox.(
                 T_virt,
-                virtual_temperature.(param_set, T_rec, ρ, q_pt_rec),
+                virtual_temperature.(param_set, T_rec, q_pt_rec),
                 atol = sqrt(eps(FT)),
             ),
         )

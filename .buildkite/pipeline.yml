@@ -1,12 +1,10 @@
 agents:
-  queue: central
+  queue: new-central
   slurm_mem: 8G
-  modules: julia/1.10.0 cuda/12.2
+  modules: climacommon/2024_02_20
 
 env:
-  JULIA_VERSION: "1.10.0"
   OPENBLAS_NUM_THREADS: 1
-  CUDA_VERSION: "12.2"
   OMPI_MCA_opal_warn_on_missing_libcuda: 0
   JULIA_CPU_TARGET: 'broadwell;skylake'
 
@@ -58,12 +56,12 @@ steps:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
-  # - label: ":mag::rocket: Constructor flop measurements"
-  #   command:
-  #     - "julia --project=perf perf/flops.jl"
-  #   agents:
-  #     slurm_ntasks: 1
-  #   timeout_in_minutes: 60
+  - label: ":mag::rocket: Constructor flop measurements"
+    command:
+      - "julia --project=perf perf/flops.jl"
+    agents:
+      slurm_ntasks: 1
+    timeout_in_minutes: 60
 
   - label: ":mag::rocket: JET tests"
     command:
