@@ -13,9 +13,9 @@ using Thermodynamics
 using Thermodynamics.Parameters: AbstractThermodynamicsParameters
 
 struct ConstitutiveParameters{FT} <: AbstractThermodynamicsParameters{FT}
-    gas_constant       :: FT
-    dry_air_molar_mass :: FT
-    water_molar_mass   :: FT
+    gas_constant::FT
+    dry_air_molar_mass::FT
+    water_molar_mass::FT
 end
 
 """
@@ -41,14 +41,18 @@ where
 
 For more information see [reference docs].
 """
-function ConstitutiveParameters(FT = Float64;
-                                gas_constant       = 8.3144598,
-                                dry_air_molar_mass = 0.02897,
-                                water_molar_mass   = 0.018015)
+function ConstitutiveParameters(
+    FT = Float64;
+    gas_constant = 8.3144598,
+    dry_air_molar_mass = 0.02897,
+    water_molar_mass = 0.018015,
+)
 
-    return ConstitutiveParameters(convert(FT, gas_constant),
-                                  convert(FT, dry_air_molar_mass),
-                                  convert(FT, water_molar_mass))
+    return ConstitutiveParameters(
+        convert(FT, gas_constant),
+        convert(FT, dry_air_molar_mass),
+        convert(FT, water_molar_mass),
+    )
 end
 
 # Next, we define functions that return:
@@ -128,7 +132,7 @@ using CairoMakie
 
 ## Pressure range, centered around the mean sea level pressure defined above
 pmax = maximum(abs, p)
-dp = 3/4 * (pmax - p₀)
+dp = 3 / 4 * (pmax - p₀)
 prange = (p₀ - dp, p₀ + dp)
 pmap = :balance
 
@@ -138,18 +142,45 @@ Tmax = maximum(T)
 Trange = (Tmin, Tmax)
 Tmap = :viridis
 
-fig = Figure(size=(1200, 500))
+fig = Figure(size = (1200, 500))
 
-axρ = Axis(fig[2, 1], xlabel="Temperature (K) ", ylabel="Density (kg m⁻³)")
-axq = Axis(fig[2, 2], xlabel="Specific humidity", ylabel="Density (kg m⁻³)")
+axρ = Axis(fig[2, 1], xlabel = "Temperature (K) ", ylabel = "Density (kg m⁻³)")
+axq = Axis(fig[2, 2], xlabel = "Specific humidity", ylabel = "Density (kg m⁻³)")
 
-scatter!(axρ, T[:], ρ[:], color=p[:], colorrange=prange, colormap=pmap, alpha=0.1)
-scatter!(axq, q[:], ρ[:], color=T[:], colorrange=Trange, colormap=Tmap, alpha=0.1)
+scatter!(
+    axρ,
+    T[:],
+    ρ[:],
+    color = p[:],
+    colorrange = prange,
+    colormap = pmap,
+    alpha = 0.1,
+)
+scatter!(
+    axq,
+    q[:],
+    ρ[:],
+    color = T[:],
+    colorrange = Trange,
+    colormap = Tmap,
+    alpha = 0.1,
+)
 
-Colorbar(fig[1, 1], label="Pressure (Pa)",   vertical=false, colorrange=prange, colormap=pmap)
-Colorbar(fig[1, 2], label="Temperature (K)", vertical=false, colorrange=Trange, colormap=Tmap)
+Colorbar(
+    fig[1, 1],
+    label = "Pressure (Pa)",
+    vertical = false,
+    colorrange = prange,
+    colormap = pmap,
+)
+Colorbar(
+    fig[1, 2],
+    label = "Temperature (K)",
+    vertical = false,
+    colorrange = Trange,
+    colormap = Tmap,
+)
 
 save(fig, "density_versus_temperature.png")
 
 display(fig)
-
