@@ -1,3 +1,5 @@
+#! format: off
+
 # # Defining a simple parameter set and using it to compute density
 #
 # This script shows how to define a simple parameter set, and then using it to
@@ -147,40 +149,13 @@ fig = Figure(size = (1200, 500))
 axρ = Axis(fig[2, 1], xlabel = "Temperature (K) ", ylabel = "Density (kg m⁻³)")
 axq = Axis(fig[2, 2], xlabel = "Specific humidity", ylabel = "Density (kg m⁻³)")
 
-scatter!(
-    axρ,
-    T[:],
-    ρ[:],
-    color = p[:],
-    colorrange = prange,
-    colormap = pmap,
-    alpha = 0.1,
-)
-scatter!(
-    axq,
-    q[:],
-    ρ[:],
-    color = T[:],
-    colorrange = Trange,
-    colormap = Tmap,
-    alpha = 0.1,
-)
+scatter!(axρ, T[:], ρ[:], color = p[:], colorrange = prange, colormap = pmap, alpha = 0.1)
+scatter!(axq, q[:], ρ[:], color = T[:], colorrange = Trange, colormap = Tmap, alpha = 0.1)
 
-Colorbar(
-    fig[1, 1],
-    label = "Pressure (Pa)",
-    vertical = false,
-    colorrange = prange,
-    colormap = pmap,
-)
-Colorbar(
-    fig[1, 2],
-    label = "Temperature (K)",
-    vertical = false,
-    colorrange = Trange,
-    colormap = Tmap,
-)
+Colorbar(fig[1, 1], label = "Pressure (Pa)", vertical = false, colorrange = prange, colormap = pmap)
+Colorbar(fig[1, 2], label = "Temperature (K)", vertical = false, colorrange = Trange, colormap = Tmap)
 
 save(fig, "density_versus_temperature.png")
 
 display(fig)
+
