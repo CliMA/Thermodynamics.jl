@@ -71,7 +71,7 @@ format = Documenter.HTML(
     prettyurls = get(ENV, "CI", nothing) == "true",
     mathengine = mathengine,
     collapselevel = 1,
-    size_threshold = 2 * MiB,
+    size_threshold = 2MiB,
 )
 
 makedocs(;
