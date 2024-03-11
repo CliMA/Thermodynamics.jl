@@ -1,5 +1,3 @@
-#! format: off #src
-
 # # Defining a simple parameter set and using it to compute density
 #
 # This script shows how to define a simple parameter set, and then using it to
@@ -150,5 +148,3 @@ Colorbar(fig[1, 1], label = "Pressure (Pa)", vertical = false, colorrange = pran
 Colorbar(fig[1, 2], label = "Temperature (K)", vertical = false, colorrange = Trange, colormap = Tmap)
 
 current_figure()
-
-#! format: on #src
