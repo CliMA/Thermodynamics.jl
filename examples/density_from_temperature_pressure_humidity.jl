@@ -1,4 +1,4 @@
-#! format: off
+#! format: off #src
 
 # # Defining a simple parameter set and using it to compute density
 #
@@ -26,21 +26,16 @@ end
                                water_molar_mass   = 0.018015)
 
 Construct a set of parameters that define the density of moist air,
-
 ```math
 ρ = p / Rᵐ(q) T,
 ```
-
 where ``p`` is pressure, ``T`` is temperature, ``q`` defines the partition
 of total mass into vapor, liqiud, and ice mass fractions, and
 ``Rᵐ`` is the effective specific gas constant for the mixture,
-
 ```math
 Rᵐ(q) = 
 ```
-
 where 
-
 For more information see [reference docs].
 """
 function ConstitutiveParameters(
@@ -115,12 +110,11 @@ using JLD2
 # variables substampled from the JRA55 dataset, from the date Jan 1, 1991:
 
 @load "JRA55_atmospheric_state_Jan_1_1991.jld2" q T p
-nothing
 
-# The variables q, T and p correspond to the total specific humidity (a mass fraction),
-# temperature (Kelvin), and sea level pressure (Pa)
+# The variables `q`, `T`, and `p` correspond to the total specific humidity
+# (a mass fraction), temperature (Kelvin), and sea level pressure (Pa)
 #
-# We use q to build a vector of PhasePartition,
+# We use `q` to build a vector of PhasePartition,
 
 qp = PhasePartition.(q)
 
@@ -144,7 +138,7 @@ Tmax = maximum(T)
 Trange = (Tmin, Tmax)
 Tmap = :viridis
 
-fig = Figure(size = (1200, 500))
+fig = Figure(size = (1000, 450))
 
 axρ = Axis(fig[2, 1], xlabel = "Temperature (K) ", ylabel = "Density (kg m⁻³)")
 axq = Axis(fig[2, 2], xlabel = "Specific humidity", ylabel = "Density (kg m⁻³)")
@@ -155,8 +149,6 @@ scatter!(axq, q[:], ρ[:], color = T[:], colorrange = Trange, colormap = Tmap, a
 Colorbar(fig[1, 1], label = "Pressure (Pa)", vertical = false, colorrange = prange, colormap = pmap)
 Colorbar(fig[1, 2], label = "Temperature (K)", vertical = false, colorrange = Trange, colormap = Tmap)
 
-save(fig, "density_versus_temperature.png")
-
 current_figure()
 
-#! format: on
+#! format: on #src
