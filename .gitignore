@@ -20,6 +20,7 @@
 !docs/src/assets/*.svg
 docs/build/
 docs/site/
+docs/src/literated/
 
 # Deps
 Manifest.toml
