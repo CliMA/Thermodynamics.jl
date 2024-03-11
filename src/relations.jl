@@ -1045,11 +1045,11 @@ q_vap_saturation_generic(param_set::APS, T, ρ, phase::Phase) =
 
 Compute the saturation specific humidity, given
 
-    - `param_set`: an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
-    - `T`: temperature
-    - `ρ`: air density
-    - `phase_type`: a thermodynamic state type
-    - (optional) `q`: [`PhasePartition`](@ref)
+- `param_set`: an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+- `T`: temperature
+- `ρ`: air density
+- `phase_type`: a thermodynamic state type
+- (optional) `q`: [`PhasePartition`](@ref)
 
 If the `PhasePartition` `q` is given, the saturation specific humidity is that of a
 mixture of liquid and ice, computed in a thermodynamically consistent way from the
