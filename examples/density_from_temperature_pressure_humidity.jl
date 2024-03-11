@@ -157,5 +157,6 @@ Colorbar(fig[1, 2], label = "Temperature (K)", vertical = false, colorrange = Tr
 
 save(fig, "density_versus_temperature.png")
 
-display(fig)
+current_figure()
 
+#! format: on
