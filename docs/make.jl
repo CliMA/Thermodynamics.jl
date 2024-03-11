@@ -5,29 +5,37 @@ using Documenter, DocumenterCitations, Literate, Printf
 ENV["GKSwstype"] = "nul"
 
 const EXAMPLES_DIR = joinpath(@__DIR__, "..", "examples")
-const OUTPUT_DIR   = joinpath(@__DIR__, "src/literated")
+const OUTPUT_DIR = joinpath(@__DIR__, "src/literated")
 
 bib = CitationBibliography(joinpath(@__DIR__, "bibliography.bib"))
 
-example_scripts = [
-    "density_from_temperature_pressure_humidity.jl",
-]
+example_scripts = ["density_from_temperature_pressure_humidity.jl"]
 
 const EXAMPLES_DIR = joinpath(@__DIR__, "..", "examples")
-const OUTPUT_DIR   = joinpath(@__DIR__, "src/literated")
+const OUTPUT_DIR = joinpath(@__DIR__, "src/literated")
 
-if isdir(OUTPUT_DIR); rm(OUTPUT_DIR); end
+if isdir(OUTPUT_DIR)
+    rm(OUTPUT_DIR)
+end
+
 mkdir(OUTPUT_DIR)
-cp(joinpath(EXAMPLES_DIR, "JRA55_atmospheric_state_Jan_1_1991.jld2"), joinpath(OUTPUT_DIR, "JRA55_atmospheric_state_Jan_1_1991.jld2"))
+
+cp(
+    joinpath(EXAMPLES_DIR, "JRA55_atmospheric_state_Jan_1_1991.jld2"),
+    joinpath(OUTPUT_DIR, "JRA55_atmospheric_state_Jan_1_1991.jld2"),
+)
 
 for example in example_scripts
     example_filepath = joinpath(EXAMPLES_DIR, example)
 
     withenv("JULIA_DEBUG" => "Literate") do
         start_time = time_ns()
-        Literate.markdown(example_filepath, OUTPUT_DIR;
-                          flavor = Literate.DocumenterFlavor(),
-                          execute = true)
+        Literate.markdown(
+            example_filepath,
+            OUTPUT_DIR;
+            flavor = Literate.DocumenterFlavor(),
+            execute = true,
+        )
         elapsed = 1e-9 * (time_ns() - start_time)
         @info @sprintf("%s example took %s seconds to build.", example, elapsed)
     end
