@@ -65,7 +65,7 @@ mathengine = MathJax(
     ),
 )
 
-const MiB = 2.0^20
+const MiB = 2^20
 
 format = Documenter.HTML(
     prettyurls = get(ENV, "CI", nothing) == "true",
