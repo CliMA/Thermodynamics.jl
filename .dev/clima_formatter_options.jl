@@ -5,4 +5,5 @@ clima_formatter_options = (
     whitespace_typedefs = true,
     whitespace_ops_in_indices = true,
     remove_extra_newlines = false,
+    ignore = ["examples"],
 )
