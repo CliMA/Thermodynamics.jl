@@ -4,15 +4,12 @@ using Documenter, DocumenterCitations, Literate, Printf
 # https://github.com/jheinen/GR.jl/issues/278#issuecomment-587090846
 ENV["GKSwstype"] = "nul"
 
-const EXAMPLES_DIR = joinpath(@__DIR__, "..", "examples")
-const OUTPUT_DIR = joinpath(@__DIR__, "src/literated")
-
 bib = CitationBibliography(joinpath(@__DIR__, "bibliography.bib"))
 
-example_scripts = ["density_from_temperature_pressure_humidity.jl"]
-
 const EXAMPLES_DIR = joinpath(@__DIR__, "..", "examples")
 const OUTPUT_DIR = joinpath(@__DIR__, "src/literated")
+
+example_scripts = ["density_from_temperature_pressure_humidity.jl"]
 
 if isdir(OUTPUT_DIR)
     rm(OUTPUT_DIR)
