@@ -62,7 +62,7 @@ Users are encouraged to first establish a thermodynamic state with one of our
 a moist thermodynamic state using
 
 ```julia
-ts = PhaseEquil_ρeq(param_set, ρ, e_int, q_tot);
+ts = PhaseEquil_ρeq(param_set, ρ, e_int, q_tot)
 ```
 
 here, `ρ` is the density of the moist air, and the internal energy `e_int =
@@ -72,8 +72,8 @@ we've established a thermodynamic state, we can call [Thermodynamic state
 methods](@ref) that support thermodynamic states:
 
 ```julia
-T = air_temperature(param_set, ts);
-q = PhasePartition(param_set, ts);
+T = air_temperature(param_set, ts)
+q = PhasePartition(param_set, ts)
 ```
 
 No changes to the "right-hand sides" of the dynamical equations are needed
@@ -84,15 +84,15 @@ Schematically, the workflow in such a core would look as follows:
 ```julia
 # initialize
 geopotential = grav * z
-q_tot          = ...
+q_tot        = ...
 ρ            = ...
 
 (u, v, w)    = ...
-e_kin           = 0.5 * (u^2 + v^2 + w^2)
+e_kin        = 0.5 * (u^2 + v^2 + w^2)
 
 e_tot        = total_energy(param_set, e_kin, geopotential, T, q_tot)
 
-do timestep   # timestepping loop
+do timestep  # timestepping loop
 
   # advance dynamical variables by a timestep (temperature typically
   # appears in terms on the rhs, such as radiative transfer)
@@ -102,10 +102,10 @@ do timestep   # timestepping loop
   e_int = e_tot - 0.5 * (u^2 + v^2 + w^2) - geopotential
 
   # compute temperature, pressure and condensate specific humidities,
-  ts = PhaseEquil_ρeq(param_set, ρ, e_int, q_tot);
-  T = air_temperature(param_set, ts);
-  q = PhasePartition(param_set, ts);
-  p = air_pressure(param_set, ts);
+  ts = PhaseEquil_ρeq(param_set, ρ, e_int, q_tot)
+  T = air_temperature(param_set, ts)
+  q = PhasePartition(param_set, ts)
+  p = air_pressure(param_set, ts)
 
 end
 ```
@@ -118,7 +118,7 @@ non-equilibrium moist thermodynamic state:
 
 ```julia
 q_tot, q_liq, q_ice = ...
-ts = PhaseNonEquil(param_set, e_int, ρ, PhasePartition(q_tot, q_liq, q_ice));
-T = air_temperature(param_set, ts);
-p = air_pressure(param_set, ts);
+ts = PhaseNonEquil(param_set, e_int, ρ, PhasePartition(q_tot, q_liq, q_ice))
+T = air_temperature(param_set, ts)
+p = air_pressure(param_set, ts)
 ```
