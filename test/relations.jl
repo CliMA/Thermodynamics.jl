@@ -172,6 +172,7 @@ end
     q_tot = FT(0.23)
     ρ = FT(1.0)
     ρ_v_triple = _press_triple / _R_v / _T_triple
+    p_v_tripleminus = FT(0.99) * _press_triple
     @test saturation_vapor_pressure(param_set, _T_triple, Liquid()) ≈
           _press_triple
     @test saturation_vapor_pressure(param_set, _T_triple, Ice()) ≈ _press_triple
@@ -192,6 +193,14 @@ end
         _T_triple,
         phase_type,
     ) == _R_d / _R_v * (1 - q_tot) * _press_triple / (p - _press_triple)
+
+    @test TD.q_vap_saturation_from_pressure(
+        param_set,
+        q_tot,
+        p_v_tripleminus,
+        _T_triple,
+        phase_type,
+    ) == FT(1)
 
     phase_type = PhaseNonEquil
     @test q_vap_saturation(
