@@ -1165,7 +1165,7 @@ Compute the saturation specific humidity, given
     q_v_sat = if p - p_v_sat ≥ eps(FT)
         R_d / R_v * (1 - q_tot) * p_v_sat / (p - p_v_sat)
     else
-        FT(1) / eps(FT)
+        FT(1)
     end
     return q_v_sat
 end
