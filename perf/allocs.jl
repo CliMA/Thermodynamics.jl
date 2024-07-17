@@ -1,17 +1,44 @@
 import Thermodynamics
 import RootSolvers
 import ClimaParams
-import ReportMetrics
+import Profile, ProfileCanvas
 
-dirs_to_monitor =
-    [".", pkgdir(Thermodynamics), pkgdir(RootSolvers), pkgdir(ClimaParams)]
+include("common.jl")
+output_dir = joinpath(pkgdir(Thermodynamics), "perf", "allocations_output")
+mkpath(output_dir)
+thermo_state_ρeq(param_set, ρ, e_int, q_tot)
+@show @allocated thermo_state_ρeq(param_set, ρ, e_int, q_tot)
+Profile.Allocs.clear()
+Profile.Allocs.@profile sample_rate = 1 thermo_state_ρeq(
+    param_set,
+    ρ,
+    e_int,
+    q_tot,
+)
+results = Profile.Allocs.fetch()
+Profile.Allocs.clear()
+profile = ProfileCanvas.view_allocs(results)
+ProfileCanvas.html_file(joinpath(output_dir, "allocs_ρeq.html"), profile)
 
-for constructor in ["ρeq", "pθq", "pTq"]
-    ENV["ALLOCATION_CONSTRUCTOR"] = constructor
-    ReportMetrics.report_allocs(;
-        job_name = constructor,
-        run_cmd = `$(Base.julia_cmd()) --project=perf/ --track-allocation=all perf/alloc_per_constructor.jl`,
-        dirs_to_monitor = dirs_to_monitor,
-        process_filename = x -> last(split(x, "packages/")),
-    )
-end
+thermo_state_pθq(param_set, p, θ_liq_ice, q_tot)
+@show @allocated thermo_state_pθq(param_set, p, θ_liq_ice, q_tot)
+Profile.Allocs.clear()
+Profile.Allocs.@profile sample_rate = 1 thermo_state_pθq(
+    param_set,
+    p,
+    θ_liq_ice,
+    q_tot,
+)
+results = Profile.Allocs.fetch()
+Profile.Allocs.clear()
+profile = ProfileCanvas.view_allocs(results)
+ProfileCanvas.html_file(joinpath(output_dir, "allocs_pθq.html"), profile)
+
+thermo_state_pTq(param_set, p, T, q_tot)
+@show @allocated thermo_state_pTq(param_set, p, T, q_tot)
+Profile.Allocs.clear()
+Profile.Allocs.@profile sample_rate = 1 thermo_state_pTq(param_set, p, T, q_tot)
+results = Profile.Allocs.fetch()
+Profile.Allocs.clear()
+profile = ProfileCanvas.view_allocs(results)
+ProfileCanvas.html_file(joinpath(output_dir, "allocs_pTq.html"), profile)
