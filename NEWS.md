@@ -1,6 +1,14 @@
 Thermodynamics.jl Release Notes
 ========================
 
+main
+-------
+- ![][badge-🤖precisionΔ] Change the tolerance of PhaseEquil constructor to 1e-4
+
+v0.12.7
+-------
+- ![][badge-🔥behavioralΔ] Change the upper limit of saturation specific humidity
+
 v0.12.4
 -------
 - Upgraded to use ClimaParams.jl

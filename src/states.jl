@@ -305,9 +305,6 @@ end
 Base.convert(::Type{PhaseEquil{FT}}, ts::PhaseEquil) where {FT} =
     PhaseEquil{FT}(ts.ρ, ts.p, ts.e_int, ts.q_tot, ts.T)
 
-@inline ifnothing(x, y) = x
-@inline ifnothing(x::Nothing, y) = y
-
 """
     PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
@@ -333,8 +330,9 @@ and, optionally
     ::Type{sat_adjust_method} = RS.NewtonsMethod,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, TT <: TOLTYPE}
-    maxiter = ifnothing(maxiter, 8)
-    relative_temperature_tol = ifnothing(relative_temperature_tol, FT(1e-4))
+    maxiter === nothing && (maxiter = 8)
+    relative_temperature_tol === nothing &&
+        (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     T = saturation_adjustment(
@@ -403,7 +401,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 ) where {FT <: Real, IT <: ITERTYPE, TT <: TOLTYPE}
     maxiter === nothing && (maxiter = 36)
     relative_temperature_tol === nothing &&
-        (relative_temperature_tol = FT(1e-5))
+        (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T = saturation_adjustment_given_ρθq(
@@ -590,12 +588,14 @@ TODO: change input argument order: perform_sat_adjust is
     p::FT,
     q_tot::FT,
     perform_sat_adjust = false,
-    maxiter::Int = 5,
-    relative_temperature_tol::Real = FT(sqrt(eps(FT))),
+    maxiter::IT = nothing,
+    relative_temperature_tol::TT = nothing,
     ::Type{sat_adjust_method} = RS.NewtonsMethodAD,
     T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method}
-
+) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, TT <: TOLTYPE}
+    maxiter === nothing && (maxiter = 5)
+    relative_temperature_tol === nothing &&
+        (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
     if perform_sat_adjust
         T = saturation_adjustment_ρpq(

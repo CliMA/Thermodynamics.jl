@@ -1925,7 +1925,7 @@ See also [`saturation_adjustment`](@ref).
     q_tot::FT,
     ::Type{phase_type},
     maxiter::Int,
-    relative_temperature_tol::Real = sqrt(eps(FT)),
+    relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
