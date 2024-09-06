@@ -82,8 +82,9 @@ using the functions, e.g., for the energies in the module, and computing
 the temperature `T` and the liquid and ice specific humidities (`q.liq` and
 `q.ice`) from the internal energy `e_int` by saturation adjustment.
 
-## Usage
+## Dycore pseudo code
 
+Here, we outline how users might use Thermodynamics inside a circulation model.
 Users are encouraged to first establish a thermodynamic state with one of our
 [Thermodynamic State Constructors](@ref). For example, we would construct
 a moist thermodynamic state using
