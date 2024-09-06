@@ -1,4 +1,31 @@
-# How to guide
+# Thermodynamics
+
+## Principal design
+
+This package uses an abstraction that leverages the idea of a thermodynamic state:
+
+ - given two (or more) independent intrinsic thermodynamic properties, we can establish a thermodynamic state and
+ - given a thermodynamic state, we can compute any thermodynamic property
+
+ 
+## Simple example
+
+For our example, we first load packages, and create a set of thermodynamic parameters, using a convenience constructor, offered through [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl). Then we create a thermodynamic state using density, liquid-ice potential temperature, and total specific humidity. Finally, we compute air temperature from the thermodynamic state.
+
+```@example
+using ClimaParams # needed in environment to load convenience parameter struct wrappers
+import Thermodynamics as TD
+params = TD.Parameters.ThermodynamicsParameters(Float64);
+
+ts = TD.PhaseEquil_ρθq(params, 1.0, 374.0, 0.01);
+T = TD.air_temperature(params, ts)
+```
+
+And that's it. See a full list of different thermodynamic state constructors, in case you want to create a thermodynamic state with different variables, [here](https://clima.github.io/Thermodynamics.jl/dev/API/#Thermodynamic-State-Constructors).
+
+See a full list of quantities that you can compute from a thermodynamic state, see our thermodynamic state-compatible methods [here](https://clima.github.io/Thermodynamics.jl/dev/API/#Thermodynamic-state-methods).
+
+## How to guide
 
 Thermodynamics.jl provides all thermodynamic functions needed for the
 atmosphere and functions shared across model components. The functions are
@@ -55,8 +82,9 @@ using the functions, e.g., for the energies in the module, and computing
 the temperature `T` and the liquid and ice specific humidities (`q.liq` and
 `q.ice`) from the internal energy `e_int` by saturation adjustment.
 
-## Usage
+## Dycore pseudo code
 
+Here, we outline how users might use Thermodynamics inside a circulation model.
 Users are encouraged to first establish a thermodynamic state with one of our
 [Thermodynamic State Constructors](@ref). For example, we would construct
 a moist thermodynamic state using
