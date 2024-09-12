@@ -382,11 +382,14 @@ and, optionally,
     cvm = cv_m(param_set, q),
 ) where {FT <: Real}
     T_0 = TP.T_0(param_set)
+    R_d = TP.R_d(param_set)
     e_int_v0 = TP.e_int_v0(param_set)
     e_int_i0 = TP.e_int_i0(param_set)
     return T_0 +
            (
-        e_int - (q.tot - q.liq) * e_int_v0 + q.ice * (e_int_v0 + e_int_i0)
+        e_int - (q.tot - q.liq - q.ice) * e_int_v0 +
+        q.ice * e_int_i0 +
+        (1 - q.tot) * R_d * T_0
     ) / cvm
 end
 
@@ -407,15 +410,9 @@ and, optionally,
 ) where {FT <: Real}
     cp_m_ = cp_m(param_set, q)
     T_0 = TP.T_0(param_set)
-    R_d = TP.R_d(param_set)
     LH_v0 = TP.LH_v0(param_set)
     LH_f0 = TP.LH_f0(param_set)
-    e_int_i0 = TP.e_int_i0(param_set)
-    q_vap = vapor_specific_humidity(q)
-    return (
-        h + cp_m_ * T_0 - q_vap * LH_v0 + q.ice * LH_f0 -
-        (1 - q.tot) * R_d * T_0
-    ) / cp_m_
+    return T_0 + (h - (q.tot - q.liq - q.ice) * LH_v0 + q.ice * LH_f0) / cp_m_
 end
 
 """
@@ -469,10 +466,11 @@ and, optionally,
     cvm = cv_m(param_set, q),
 ) where {FT <: Real}
     T_0 = TP.T_0(param_set)
+    R_d = TP.R_d(param_set)
     e_int_v0 = TP.e_int_v0(param_set)
     e_int_i0 = TP.e_int_i0(param_set)
-    return cvm * (T - T_0) + (q.tot - q.liq) * e_int_v0 -
-           q.ice * (e_int_v0 + e_int_i0)
+    return cvm * (T - T_0) + (q.tot - q.liq - q.ice) * e_int_v0 -
+           q.ice * e_int_i0 - (1 - q.tot) * R_d * T_0
 end
 
 """
@@ -516,8 +514,8 @@ The dry air internal energy
 @inline function internal_energy_dry(param_set::APS, T::FT) where {FT <: Real}
     T_0 = TP.T_0(param_set)
     cv_d = TP.cv_d(param_set)
-
-    return cv_d * (T - T_0)
+    R_d = TP.R_d(param_set)
+    return cv_d * (T - T_0) - R_d * T_0
 end
 
 """
@@ -1331,7 +1329,7 @@ is a function that is 1 above `T_freeze` and goes to zero below `T_icenuc`.
     # Model for cloud water condensate probabilty when temperature is below
     # freezing (all liquid condensate), but above the temperature of homogeneous
     # ice nucleation (all ice condensate). In it's simplest form, this is simply
-    # a number that varies between 0 and 1. For example, see figure 6 in 
+    # a number that varies between 0 and 1. For example, see figure 6 in
     # Hu et al., https://doi.org/10.1029/2009JD012384, JGR (2010).
     λᵖ = ((T - Tⁿ) / (Tᶠ - Tⁿ))^α
 
