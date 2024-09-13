@@ -2,8 +2,12 @@ Thermodynamics.jl Release Notes
 ========================
 
 main
+----
+
+v0.12.8
 -------
 - ![][badge-🤖precisionΔ] Change the tolerance of PhaseEquil constructor to 1e-4
+- ![][badge-🔥behavioralΔ] Change the definition of dry air internal energy and enthalpy
 
 v0.12.7
 -------
