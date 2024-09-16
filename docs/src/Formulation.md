@@ -113,7 +113,7 @@ The specific internal energies of the constituents of moist air can be written a
 ```math
 \begin{equation}
 \begin{aligned}
-I_d(T) & = c_{vd} (T - T_0),  \\
+I_d(T) & = c_{vd} (T - T_0) - R_d T_0,  \\
 I_v(T) & = c_{vv} (T - T_0) + I_{v,0},\\
 I_l(T) & = c_{vl} (T - T_0), \\
 I_i(T) & = c_{vi} (T - T_0) - I_{i,0}.
@@ -126,7 +126,7 @@ Here, the reference specific internal energy ``I_{v,0}`` is the difference in sp
 \begin{equation}
 \begin{aligned}
      I(T, q) & = (1-q_t) I_d(T) + q_v I_v(T) + q_l I_l(T) + q_i I_i(T)\\
-          & = c_{vm}(q) (T - T_0)  + q_v I_{v,0} - q_i I_{i,0}.
+          & = c_{vm}(q) (T - T_0)  + q_v I_{v,0} - q_i I_{i,0} - (1 - q_t) R_d T_0.
 \end{aligned}
 \label{e:totalInternalEnergy}
 \end{equation}
@@ -134,7 +134,7 @@ Here, the reference specific internal energy ``I_{v,0}`` is the difference in sp
 The internal energy can be inverted to obtain the temperature given ``I`` and the specific humidities,
 ```math
 \begin{equation}
-    T = T_0 + \frac{I - (q_t - q_l) I_{v,0} + q_i (I_{i,0} + I_{v,0})}{c_{vm}(q)},
+    T = T_0 + \frac{I - (q_t - q_l - q_i) I_{v,0} + q_i I_{i,0} + (1 - q_t) R_d T_0}{c_{vm}(q)},
     \label{e:temperature}
 \end{equation}
 ```
@@ -158,7 +158,7 @@ The specific enthalpies of the constituents of moist air are obtained by adding 
 \begin{equation}
 \label{e:Enthalpies}
 \begin{aligned}
-    h_d(T) = I_d(T) + R_d T &= c_{pd}(T-T_0) + R_d T_0, \\
+    h_d(T) = I_d(T) + R_d T &= c_{pd}(T-T_0), \\
     h_v(T) = I_v(T) + R_v T &= c_{pv}(T-T_0) + L_{v,0}, \\
     h_l(T) = I_l(T) &= c_{pl}(T-T_0), \\
     h_i(T) = I_i(T) &= c_{pi}(T-T_0) - L_{f,0}.
@@ -170,7 +170,7 @@ The enthalpy of moist air is the weighted sum of the constituent enthalpies:
 \begin{equation}
 \begin{split}\label{e:enthalpy_definition}
     h(T, q)  &= (1-q_t) h_d + q_v h_v + q_l h_l + q_i h_i \\
-        &= c_{pm}(q) (T-T_0) + q_v L_{v,0} - q_i L_{f,0} + (1-q_t) R_d T_0\\
+        &= c_{pm}(q) (T-T_0) + q_v L_{v,0} - q_i L_{f,0}\\
         &= I(q, T) + R_m T,
 \end{split}
 \end{equation}
@@ -241,7 +241,7 @@ where ``λ_i`` interpolates between 0 at the temperature of homogeneous ice nucl
 
 ## Saturation Specific Humidity
 
-From the saturation vapor pressure ``p_v^*``, the saturation specific humidity can be computed using the ideal gas law \eqref{e:eos}, giving the density of water vapor at saturation ``ρ_v^* = p_v^*(T)/(R_v T)``, and hence the saturation specific humidity 
+From the saturation vapor pressure ``p_v^*``, the saturation specific humidity can be computed using the ideal gas law \eqref{e:eos}, giving the density of water vapor at saturation ``ρ_v^* = p_v^*(T)/(R_v T)``, and hence the saturation specific humidity
 ```math
 \begin{equation}
      q_v^* = \frac{ρ_v^*}{ρ} = \frac{p_v^*(T)}{ρ R_v T}.
@@ -281,7 +281,7 @@ A zeroth-order approximation of the temperature ``T`` satisfying the saturation 
     T_1 = T_0 + \frac{I - q_t I_{v,0}}{c_{vm}^*}.
 \end{equation}
 ```
-Here, the isochoric specific heat capacity in equilibrium, ``c_{vm}^* = c_{vm}(q^*)``, is the specific heat capacity under equilibrium partitioning ``q^*`` of the phases, which here, for unsaturated conditions, means ``q^*=(q_t; q_l=0, q_i=0)``. If the total specific humidity ``q_t`` is less than the saturation specific humidity at ``T_1`` (``q_t \le q_v^*(T_1, ρ)``), the air is indeed unsaturated, and ``T=T_1`` is the exact temperature consistent given ``I``, ``ρ``, and ``q_t``. 
+Here, the isochoric specific heat capacity in equilibrium, ``c_{vm}^* = c_{vm}(q^*)``, is the specific heat capacity under equilibrium partitioning ``q^*`` of the phases, which here, for unsaturated conditions, means ``q^*=(q_t; q_l=0, q_i=0)``. If the total specific humidity ``q_t`` is less than the saturation specific humidity at ``T_1`` (``q_t \le q_v^*(T_1, ρ)``), the air is indeed unsaturated, and ``T=T_1`` is the exact temperature consistent given ``I``, ``ρ``, and ``q_t``.
 
 If the air is saturated (``q_t > q_v^*(T_1, ρ)``), successively improved temperature estimates ``T_{n+1}`` can be obtained from the temperature ``T_n`` (``n=1,\dots``) by Newton's method, with analytical gradients. Linearizing the saturation internal energy ``I^*(T; ρ, q_t)`` around the temperature ``T_n`` gives
 ```math
@@ -298,7 +298,7 @@ and solving for the temperature ``T`` gives the first-order Newton update
 The derivative ``\partial I^*/\partial T|_{T_n}`` is obtained by differentiation of the internal energy \eqref{e:total_internal_energy}, \hl{[add derivatives of phase partitioning function and make that function smooth]}
 ```math
 \begin{multline}
-     \left.\frac{\partial I^*(T; ρ, q_t)}{\partial T}\right|_{T_n} 
+     \left.\frac{\partial I^*(T; ρ, q_t)}{\partial T}\right|_{T_n}
      = c_{vm}^*(q_t, T_n) \\
      +  \left( I_{v,0} + [1-λ_p(T_n)]I_{i,0} + (T_n - T_0) \left. \frac{dc_{vm}^*}{dq_v^*}\right|_{T_n} \right) \left. \frac{\partial q_v^*(T; ρ, q_t)}{\partial T}\right|_{T_n},
 \end{multline}
@@ -315,11 +315,11 @@ obtained from the definition \eqref{e:SpecificHeat} of the specific heat of mois
     \left. \frac{\partial q_v^*(T; ρ, q_t)}{\partial T}\right|_{T_n} = q_v^*(T_n) \frac{L}{R_v T_n^2} \quad \text{with} \quad L = λ_p(T_n) L_v + [1-λ_p(T_n)] L_s,
 \end{equation}
 ```
-obtained from the Clausius-Clapeyron relation \eqref{e:Clausius_Clapeyron} and the relation \eqref{e:sat_shum} between specific humidity and vapor pressure. 
+obtained from the Clausius-Clapeyron relation \eqref{e:Clausius_Clapeyron} and the relation \eqref{e:sat_shum} between specific humidity and vapor pressure.
 
-The resulting successive Newton approximations ``T_n`` generally converge quadratically. Because condensate specific humidities are usually small, ``T_1`` provides a close initial estimate, and few iterations are needed. Even the first-order approximation ``T\approx T_2`` often suffices. However, convergence may not be achieved near the phase transition at the freezing temperature ``T_{\mathrm{freeze}}`` because the derivative of ``I^*`` with respect to temperature is discontinuous there. In that case, the number of iterations needs to be limited (2--3 iterations generally suffice). 
+The resulting successive Newton approximations ``T_n`` generally converge quadratically. Because condensate specific humidities are usually small, ``T_1`` provides a close initial estimate, and few iterations are needed. Even the first-order approximation ``T\approx T_2`` often suffices. However, convergence may not be achieved near the phase transition at the freezing temperature ``T_{\mathrm{freeze}}`` because the derivative of ``I^*`` with respect to temperature is discontinuous there. In that case, the number of iterations needs to be limited (2--3 iterations generally suffice).
 
-Using saturation adjustment makes it possible to construct a moist dynamical core that has the total specific humidity ``q_t`` as the only prognostic moisture variable. The price for this simplicity is the necessity to solve a nonlinear problem iteratively (or approximately) at each time step, and being confined to an equilibrium thermodynamics framework which cannot adequately account for non-equilibrium processes. Using explicit tracers for the condensates ``q_l`` and ``q_i`` in addition to ``q_t`` avoids iterations at each time step and allows the inclusion of explicit non-equilibrium processes, such as those leading to the formation of supercooled liquid in mixed-phase clouds. 
+Using saturation adjustment makes it possible to construct a moist dynamical core that has the total specific humidity ``q_t`` as the only prognostic moisture variable. The price for this simplicity is the necessity to solve a nonlinear problem iteratively (or approximately) at each time step, and being confined to an equilibrium thermodynamics framework which cannot adequately account for non-equilibrium processes. Using explicit tracers for the condensates ``q_l`` and ``q_i`` in addition to ``q_t`` avoids iterations at each time step and allows the inclusion of explicit non-equilibrium processes, such as those leading to the formation of supercooled liquid in mixed-phase clouds.
 
 ## Auxiliary Thermodynamic Functions
 

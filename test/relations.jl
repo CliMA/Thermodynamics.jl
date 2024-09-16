@@ -221,7 +221,7 @@ end
     # test the wrapper for q_vap_saturation over liquid water and ice
     ρ = FT(1)
     ρu = FT[1, 2, 3]
-    ρe = FT(1100)
+    ρe = FT(1100) - _R_d * _T_0
     e_pot = FT(93)
     e_int = internal_energy(ρ, ρe, ρu, e_pot)
     q_pt = PhasePartition(FT(0.02), FT(0.002), FT(0.002))
@@ -291,31 +291,31 @@ end
     T = FT(300)
     e_kin = FT(11)
     e_pot = FT(13)
-    @test air_temperature(param_set, _cv_d * (T - _T_0)) === FT(T)
+    @test air_temperature(param_set, _cv_d * (T - _T_0) - _R_d * _T_0) === FT(T)
     @test air_temperature(
         param_set,
-        _cv_d * (T - _T_0),
+        _cv_d * (T - _T_0) - _R_d * _T_0,
         PhasePartition(FT(0)),
     ) === FT(T)
 
     @test air_temperature(
         param_set,
-        cv_m(param_set, PhasePartition(FT(0))) * (T - _T_0),
+        cv_m(param_set, PhasePartition(FT(0))) * (T - _T_0) - _R_d * _T_0,
         PhasePartition(FT(0)),
     ) === FT(T)
     @test air_temperature(
         param_set,
-        cv_m(param_set, PhasePartition(FT(q_tot))) * (T - _T_0) +
-        q_tot * _e_int_v0,
+        cv_m(param_set, PhasePartition(FT(q_tot))) * (T - _T_0) -
+        (1 - q_tot) * _R_d * _T_0 + q_tot * _e_int_v0,
         PhasePartition(q_tot),
     ) ≈ FT(T)
 
     @test total_energy(param_set, FT(e_kin), FT(e_pot), _T_0) ===
-          FT(e_kin) + FT(e_pot)
+          FT(e_kin) + FT(e_pot) - _R_d * _T_0
     @test total_energy(param_set, FT(e_kin), FT(e_pot), FT(T)) ≈
-          FT(e_kin) + FT(e_pot) + _cv_d * (T - _T_0)
+          FT(e_kin) + FT(e_pot) + _cv_d * (T - _T_0) - _R_d * _T_0
     @test total_energy(param_set, FT(0), FT(0), _T_0, PhasePartition(q_tot)) ≈
-          q_tot * _e_int_v0
+          q_tot * _e_int_v0 - (1 - q_tot) * _R_d * _T_0
 
     # phase partitioning in equilibrium
     q_liq = FT(0.1)
@@ -595,7 +595,13 @@ end
             )
         _e_int = (e_int_upper .+ e_int_lower) / 2
         ts = PhaseEquil_ρeq.(param_set, ρ, _e_int, q_tot)
-        @test all(air_temperature.(param_set, ts) .== Ref(_T_freeze))
+        @test all(
+            isapprox.(
+                air_temperature.(param_set, ts),
+                Ref(_T_freeze),
+                rtol = rtol_temperature,
+            ),
+        )
 
         # Args needs to be in sync with PhaseEquil:
         ts =
@@ -608,7 +614,13 @@ end
                 FT(1e-1),
                 RS.SecantMethod,
             )
-        @test all(air_temperature.(param_set, ts) .== Ref(_T_freeze))
+        @test all(
+            isapprox.(
+                air_temperature.(param_set, ts),
+                Ref(_T_freeze),
+                rtol = rtol_temperature,
+            ),
+        )
 
         # PhaseEquil
         ts_exact = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-6))
