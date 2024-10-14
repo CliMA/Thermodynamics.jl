@@ -499,6 +499,19 @@ end
     vmrs = vol_vapor_mixing_ratio(param_set, q)
     q_vap = vapor_specific_humidity(q)
     @test vmrs ≈ _molmass_ratio * shum_to_mixing_ratio(q_vap, q.tot)
+
+    # Relative humidity sanity checks
+    for phase_type in [PhaseDry, PhaseEquil, PhaseNonEquil]
+        for T in [FT(40), FT(140), FT(240), FT(340), FT(440)]
+            for p in [FT(1e3), FT(1e4), FT(1e5)]
+                for q in [FT(-1), FT(1e-45), FT(0), FT(1e-3), FT(10)]
+                    q_pt = PhasePartition(FT(q))
+                    RH = relative_humidity(param_set, T, p, phase_type, q_pt)
+                    @test RH >= FT(0) && RH <= FT(1)
+                end
+            end
+        end
+    end
 end
 
 

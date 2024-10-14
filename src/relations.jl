@@ -2778,7 +2778,7 @@ vol_vapor_mixing_ratio(param_set, ts::ThermodynamicState) =
 """
     relative_humidity(param_set, T, p, phase_type, q::PhasePartition)
 
-The relative humidity, given
+The relative humidity (clipped between 0 and 1), given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `phase_type` a thermodynamic state type
@@ -2796,7 +2796,7 @@ and, optionally,
     q_vap = vapor_specific_humidity(q)
     p_vap = q_vap * air_density(param_set, T, p, q) * R_v * T
     p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
-    return p_vap / p_vap_sat
+    return max(FT(0), min(FT(1), p_vap / (p_vap_sat + eps(FT(0)))))
 end
 
 """
