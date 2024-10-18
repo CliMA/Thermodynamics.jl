@@ -4,6 +4,12 @@ Thermodynamics.jl Release Notes
 main
 ----
 
+v0.12.9
+-------
+- ![][[badge-🐛bugfix]] Protest against zero division in relative humidity 
+  calculation and limit relative humidity between 0 and 1.
+  PR [230](https://github.com/CliMA/Thermodynamics.jl/pull/230)
+
 v0.12.8
 -------
 - ![][badge-🤖precisionΔ] Change the tolerance of PhaseEquil constructor to 1e-4
