@@ -3,19 +3,19 @@
 # saturation adjustment, for different combinations
 # of thermodynamic variable inputs.
 
-# KA.@print only accepts literal strings, so we must
+# print only accepts literal strings, so we must
 # branch to print which method is being used.
 @inline function print_numerical_method(
     ::Type{sat_adjust_method},
 ) where {sat_adjust_method}
     if sat_adjust_method <: RS.NewtonsMethod
-        KA.@print("    Method=NewtonsMethod")
+        Utils._print("    Method=NewtonsMethod")
     elseif sat_adjust_method <: RS.NewtonsMethodAD
-        KA.@print("    Method=NewtonsMethodAD")
+        Utils._print("    Method=NewtonsMethodAD")
     elseif sat_adjust_method <: RS.SecantMethod
-        KA.@print("    Method=SecantMethod")
+        Utils._print("    Method=SecantMethod")
     elseif sat_adjust_method <: RS.RegulaFalsiMethod
-        KA.@print("    Method=RegulaFalsiMethod")
+        Utils._print("    Method=RegulaFalsiMethod")
     else
         error("Unsupported numerical method")
     end
@@ -26,9 +26,9 @@ end
     T_guess::Real,
 ) where {sat_adjust_method}
     if sat_adjust_method <: RS.NewtonsMethod
-        KA.@print(", T_guess=", T_guess)
+        Utils._print(", T_guess=", T_guess)
     elseif sat_adjust_method <: RS.NewtonsMethodAD
-        KA.@print(", T_guess=", T_guess)
+        Utils._print(", T_guess=", T_guess)
     end
 end
 
@@ -37,9 +37,9 @@ end
     T_guess::Nothing,
 ) where {sat_adjust_method}
     if sat_adjust_method <: RS.NewtonsMethod
-        KA.@print(", T_guess=nothing")
+        Utils._print(", T_guess=nothing")
     elseif sat_adjust_method <: RS.NewtonsMethodAD
-        KA.@print(", T_guess=nothing")
+        Utils._print(", T_guess=nothing")
     end
 end
 

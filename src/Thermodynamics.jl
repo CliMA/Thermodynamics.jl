@@ -48,9 +48,8 @@ const DSE = DocStringExtensions
 import RootSolvers
 const RS = RootSolvers
 
-import KernelAbstractions
-const KA = KernelAbstractions
-
+include("Utils.jl")
+export Utils
 include("Parameters.jl")
 import .Parameters
 const TP = Parameters
