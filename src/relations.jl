@@ -171,15 +171,11 @@ The (moist-)air specific volume, given a thermodynamic state `ts`.
 
 """
     total_specific_humidity(param_set::APS, ts::ThermodynamicState)
-    total_specific_humidity(param_set, T, p, relative_humidity)
 
 Total specific humidity given
  - `ts` a thermodynamic state
-or
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `p` pressure
- - `relative_humidity` relative humidity (can exceed 1 when there is super saturation/condensate)
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for
+   more details
 """
 @inline total_specific_humidity(param_set::APS, ts::ThermodynamicState) =
     ts.q_tot
