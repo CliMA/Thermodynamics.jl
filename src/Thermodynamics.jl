@@ -86,6 +86,8 @@ include("TestedProfiles.jl")
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)
 
+using PrecompileTools
+include("precompile.jl")
 # For backwards compatibility with package extensions
 if !isdefined(Base, :get_extension)
     include(joinpath("..", "ext", "CreateParametersExt.jl"))

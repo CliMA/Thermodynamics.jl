@@ -4,8 +4,10 @@ authors = ["Climate Modeling Alliance"]
 version = "0.12.9"
 
 [deps]
+CLIMAParameters = "6eacf6c3-8458-43b9-ae03-caf5306d3d53"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
+PrecompileTools = "aea7be01-6a6a-4083-8856-8a6e6704d82a"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RootSolvers = "7181ea78-2dcb-4de3-ab41-2b8ab5a31e74"
 # Required for backwards compatibility with Julia <1.9
