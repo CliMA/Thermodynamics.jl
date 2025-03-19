@@ -4,6 +4,11 @@ Thermodynamics.jl Release Notes
 main
 ----
 
+v0.12.10
+-------
+- ![][[badge-🐛bugfix]] Asynchronous printing on the gpu has been fixed.
+  PR [239](https://github.com/CliMA/Thermodynamics.jl/pull/239)
+
 v0.12.9
 -------
 - ![][[badge-🐛bugfix]] Protest against zero division in relative humidity 
