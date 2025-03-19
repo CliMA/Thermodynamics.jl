@@ -56,6 +56,9 @@ import .Parameters
 const TP = Parameters
 const APS = TP.AbstractThermodynamicsParameters
 
+# For printing literal strings on the gpu
+include("printing.jl")
+
 # Allow users to skip error on non-convergence
 # by importing:
 # ```julia
