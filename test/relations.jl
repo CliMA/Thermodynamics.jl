@@ -500,6 +500,20 @@ end
     q_vap = vapor_specific_humidity(q)
     @test vmrs ≈ _molmass_ratio * shum_to_mixing_ratio(q_vap, q.tot)
 
+    # Sanity check for PhaseEquil_pTRH constructor
+    # No humidity
+    p = FT(1.e5); T=FT(300.) ; RH=FT(0.)
+    ts_pTRH = PhaseEquil_pTRH(param_set, p, T, RH)
+    q_tot_expected = FT(0)
+    @test q_tot_expected ≈ TD.total_specific_humidity(param_set, ts_pTRH)
+
+    # q at Saturation
+    p = FT(1000); T=300 ; RH=1
+    ts_pTRH = PhaseEquil_pTRH(param_set, p, T, RH)
+    saturation_vapor_pressure = saturation_vapor_pressure(param_set, T, Liquid())
+    q_tot_expected = FT(0.05559498223324131)
+    @test q_tot_expected ≈ TD.total_specific_humidity(param_set, ts_pTRH)
+    
     # Relative humidity sanity checks
     for phase_type in [PhaseDry, PhaseEquil, PhaseNonEquil]
         for T in [FT(40), FT(140), FT(240), FT(340), FT(440)]
@@ -511,7 +525,7 @@ end
                 end
             end
         end
-    end
+    end    
 end
 
 
