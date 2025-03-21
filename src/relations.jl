@@ -1640,16 +1640,15 @@ See also [`saturation_adjustment`](@ref).
     DataCollection.log_meta(sol)
     if !sol.converged
         if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", e_int=", e_int)
-            KA.@print(", ρ=", ρ)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
+            print_warning_ρeq(
+                sat_adjust_method,
+                ρ,
+                e_int,
+                q_tot,
+                sol.root,
+                maxiter,
+                tol.tol,
+            )
         end
         if error_on_non_convergence()
             error("Failed to converge with printed set of inputs.")
@@ -1744,16 +1743,15 @@ See also [`saturation_adjustment`](@ref).
     )
     if !sol.converged
         if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_peq:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", e_int=", e_int)
-            KA.@print(", p=", p)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
+            print_warning_peq(
+                sat_adjust_method,
+                p,
+                e_int,
+                q_tot,
+                sol.root,
+                maxiter,
+                tol.tol,
+            )
         end
         if error_on_non_convergence()
             error("Failed to converge with printed set of inputs.")
@@ -1857,16 +1855,17 @@ See also [`saturation_adjustment`](@ref).
     )
     if !sol.converged
         if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_phq:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", h=", h)
-            KA.@print(", p=", p)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
+            # Must match argument order!
+            print_warning_hpq(
+                sat_adjust_method,
+                h,
+                p,
+                q_tot,
+                T_guess,
+                sol.root,
+                maxiter,
+                tol.tol,
+            )
         end
         if error_on_non_convergence()
             error("Failed to converge with printed set of inputs.")
@@ -1954,16 +1953,15 @@ See also [`saturation_adjustment`](@ref).
     )
     if !sol.converged
         if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_ρpq:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", ρ=", ρ)
-            KA.@print(", p=", p)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
+            print_warning_ρpq(
+                sat_adjust_method,
+                ρ,
+                p,
+                q_tot,
+                sol.root,
+                maxiter,
+                tol.tol,
+            )
         end
         if error_on_non_convergence()
             error("Failed to converge with printed set of inputs.")
@@ -2062,15 +2060,15 @@ See also [`saturation_adjustment`](@ref).
     )
     if !sol.converged
         if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_given_ρθq:\n")
-            KA.@print("    Method=SecantMethod")
-            KA.@print(", ρ=", ρ)
-            KA.@print(", θ_liq_ice=", θ_liq_ice)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
+            print_warning_ρθq(
+                RS.SecantMethod,
+                ρ,
+                θ_liq_ice,
+                q_tot,
+                sol.root,
+                maxiter,
+                tol.tol,
+            )
         end
         if error_on_non_convergence()
             error("Failed to converge with printed set of inputs.")
@@ -2177,16 +2175,15 @@ See also [`saturation_adjustment`](@ref).
     )
     if !sol.converged
         if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print("maxiter reached in saturation_adjustment_given_pθq:\n")
-            print_numerical_method(sat_adjust_method)
-            print_T_guess(sat_adjust_method, T_guess)
-            KA.@print(", p=", p)
-            KA.@print(", θ_liq_ice=", θ_liq_ice)
-            KA.@print(", q_tot=", q_tot)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
+            print_warning_pθq(
+                sat_adjust_method,
+                p,
+                θ_liq_ice,
+                q_tot,
+                sol.root,
+                maxiter,
+                tol.tol,
+            )
         end
         if error_on_non_convergence()
             error("Failed to converge with printed set of inputs.")
@@ -2378,17 +2375,15 @@ The air temperature and `q_tot` where
     )
     if !sol.converged
         if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print(
-                "maxiter reached in temperature_and_humidity_given_TᵥρRH:\n"
+            print_warning_TᵥρRH(
+                RS.SecantMethod,
+                T_virt,
+                RH,
+                ρ,
+                sol.root,
+                maxiter,
+                tol.tol,
             )
-            KA.@print("    Method=SecantMethod")
-            KA.@print(", T_virt=", T_virt)
-            KA.@print(", RH=", RH)
-            KA.@print(", ρ=", ρ)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
         end
         if error_on_non_convergence()
             error("Failed to converge with printed set of inputs.")
@@ -2479,19 +2474,17 @@ by finding the root of
     )
     if !sol.converged
         if print_warning()
-            KA.@print("-----------------------------------------\n")
-            KA.@print(
-                "maxiter reached in air_temperature_given_ρθq_nonlinear:\n"
+            print_warning_ρθq_nonlinear(
+                RS.SecantMethod,
+                θ_liq_ice,
+                ρ,
+                q.tot,
+                q.liq,
+                q.ice,
+                sol.root,
+                maxiter,
+                tol.tol,
             )
-            KA.@print("    Method=SecantMethod")
-            KA.@print(", θ_liq_ice=", θ_liq_ice)
-            KA.@print(", ρ=", ρ)
-            KA.@print(", q.tot=", q.tot)
-            KA.@print(", q.liq=", q.liq)
-            KA.@print(", q.ice=", q.ice)
-            KA.@print(", T=", sol.root)
-            KA.@print(", maxiter=", maxiter)
-            KA.@print(", tol=", tol.tol, "\n")
         end
         if error_on_non_convergence()
             error("Failed to converge with printed set of inputs.")
