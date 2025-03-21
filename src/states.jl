@@ -687,10 +687,10 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     RH::FT,
 ) where {FT <: Real}
     phase_type = PhaseEquil{FT}
-    saturation_vapor_pressure = saturation_vapor_pressure(param_set, T, Liquid())
-    vapor_pressure = RH*saturation_vapor_pressure
-    molmass_ratio = molmass_ratio(param_set)
-    q_tot = vapor_pressure*molmass_ratio/(p-(1-molmass_ratio)*vapor_pressure)
+    p_vap_sat = saturation_vapor_pressure(param_set, T, Liquid())
+    p_vap = RH*p_vap_sat
+    mmr = TP.molmass_ratio(param_set)
+    q_tot = p_vap*mmr/(p-(1-mmr)*p_vap)
     q_tot_safe = clamp(q_tot, FT(0), FT(1))
     q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
     ρ = air_density(param_set, T, p, q_pt)

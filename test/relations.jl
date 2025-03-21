@@ -508,9 +508,9 @@ end
     @test q_tot_expected ≈ TD.total_specific_humidity(param_set, ts_pTRH)
 
     # q at Saturation
-    p = FT(1000); T=300 ; RH=1
+    p = FT(1000); T=FT(300) ; RH=FT(1)
     ts_pTRH = TD.PhaseEquil_pTRH(param_set, p, T, RH)
-    saturation_vapor_pressure = TD.saturation_vapor_pressure(param_set, T, Liquid())
+    p_vap_sat = TD.saturation_vapor_pressure(param_set, T, Liquid())
     q_tot_expected = FT(0.05559498223324131)
     @test q_tot_expected ≈ TD.total_specific_humidity(param_set, ts_pTRH)
 
