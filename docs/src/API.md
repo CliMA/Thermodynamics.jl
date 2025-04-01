@@ -31,6 +31,7 @@ PhaseEquil
 PhaseEquil_ρeq
 PhaseEquil_ρTq
 PhaseEquil_pTq
+PhaseEquil_pTRH
 PhaseEquil_pθq
 PhaseEquil_peq
 PhaseEquil_phq
