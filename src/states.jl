@@ -691,8 +691,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     p::FT,
     T::FT,
     RH::FT,
-    phase::Phase # states.jl called before relations.jl, therefore ::Phase is not defined in this scope.
-
+    phase::Phase, # states.jl called before relations.jl, therefore ::Phase is not defined in this scope.
 ) where {FT <: Real}
     phase_type = PhaseEquil{FT}
     p_vap_sat = saturation_vapor_pressure(param_set, T, phase)
@@ -720,7 +719,7 @@ over liquid surface.
     param_set::APS,
     p::FT,
     T::FT,
-    RH::FT
+    RH::FT,
 ) where {FT <: Real}
     phase_type = PhaseEquil{FT}
     p_vap_sat = saturation_vapor_pressure(param_set, T, liquid)
