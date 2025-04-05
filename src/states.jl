@@ -671,10 +671,6 @@ end
 PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...) =
     PhaseEquil_pθq(param_set, promote(p, θ_liq_ice, q_tot)..., args...)
 
-# TODO: Call these types into scope from relations.jl?
-abstract type Phase end
-struct Liquid <: Phase end
-struct Ice <: Phase end
 """
     PhaseEquil_pTRH(param_set, p, T, RH, phase)
 
@@ -691,7 +687,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     p::FT,
     T::FT,
     RH::FT,
-    phase::Phase, # states.jl called before relations.jl, therefore ::Phase is not defined in this scope.
+    phase, # states.jl called before relations.jl, therefore ::Phase is not defined in this scope.
+    # ^ unsafe
 ) where {FT <: Real}
     phase_type = PhaseEquil{FT}
     p_vap_sat = saturation_vapor_pressure(param_set, T, phase)
@@ -722,7 +719,7 @@ over liquid surface.
     RH::FT,
 ) where {FT <: Real}
     phase_type = PhaseEquil{FT}
-    p_vap_sat = saturation_vapor_pressure(param_set, T, liquid)
+    p_vap_sat = saturation_vapor_pressure(param_set, T, Liquid())
     p_vap = RH * p_vap_sat
     mmr = TP.molmass_ratio(param_set)
     q_tot = p_vap * mmr / (p - (1 - mmr) * p_vap)
