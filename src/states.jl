@@ -671,10 +671,45 @@ end
 PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...) =
     PhaseEquil_pθq(param_set, promote(p, θ_liq_ice, q_tot)..., args...)
 
+# TODO: Call these types into scope from relations.jl?
+abstract type Phase end
+struct Liquid <: Phase end
+struct Ice <: Phase end
+"""
+    PhaseEquil_pTRH(param_set, p, T, RH, phase)
+
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `T` temperature
+ - `RH` relative humidity
+ - 'phase' Liquid() or Ice() phase to dispatch over
+"""
+@inline function PhaseEquil_pTRH(
+    param_set::APS,
+    p::FT,
+    T::FT,
+    RH::FT,
+    phase::Phase # states.jl called before relations.jl, therefore ::Phase is not defined in this scope.
+
+) where {FT <: Real}
+    phase_type = PhaseEquil{FT}
+    p_vap_sat = saturation_vapor_pressure(param_set, T, phase)
+    p_vap = RH * p_vap_sat
+    mmr = TP.molmass_ratio(param_set)
+    q_tot = p_vap * mmr / (p - (1 - mmr) * p_vap)
+    q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
+    ρ = air_density(param_set, T, p, q_pt)
+    e_int = internal_energy(param_set, T, q_pt)
+    return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
+end
 """
     PhaseEquil_pTRH(param_set, p, T, RH)
 
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature assuming dispatch
+over liquid surface.
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
@@ -685,10 +720,10 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     param_set::APS,
     p::FT,
     T::FT,
-    RH::FT,
+    RH::FT
 ) where {FT <: Real}
     phase_type = PhaseEquil{FT}
-    p_vap_sat = saturation_vapor_pressure(param_set, T, Liquid())
+    p_vap_sat = saturation_vapor_pressure(param_set, T, liquid)
     p_vap = RH * p_vap_sat
     mmr = TP.molmass_ratio(param_set)
     q_tot = p_vap * mmr / (p - (1 - mmr) * p_vap)
@@ -698,8 +733,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
-PhaseEquil_pTRH(param_set::APS, p, T, RH) =
-    PhaseEquil_pTRH(param_set, promote(p, T, RH)...)
+PhaseEquil_pTRH(param_set::APS, p, T, RH, phase) =
+    PhaseEquil_pTRH(param_set, promote(p, T, RH)..., phase)
 
 #####
 ##### Non-equilibrium states
