@@ -698,8 +698,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
-PhaseEquil_pTRH(param_set::APS, p, T, q_tot) =
-    PhaseEquil_pTRH(param_set, promote(p, T, q_tot)...)
+PhaseEquil_pTRH(param_set::APS, p, T, RH) =
+    PhaseEquil_pTRH(param_set, promote(p, T, RH)...)
 
 #####
 ##### Non-equilibrium states
