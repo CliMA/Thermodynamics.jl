@@ -1440,7 +1440,7 @@ end
             param_set,
             air_pressure.(param_set, ts_eq),
             air_temperature.(param_set, ts_eq),
-            q_tot,
+            RH,
         )
     ts_ρp =
         PhaseEquil_ρpq.(
