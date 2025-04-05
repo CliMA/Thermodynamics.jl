@@ -509,6 +509,15 @@ end
     q_tot_expected = FT(0)
     @test q_tot_expected ≈ TD.total_specific_humidity(param_set, ts_pTRH)
 
+    # Sanity check for PhaseEquil_pTRH constructor
+    # No humidity
+    p = FT(1e5)
+    T = FT(300)
+    RH = FT(0)
+    ts_pTRH = TD.PhaseEquil_pTRH(param_set, p, T, RH, Liquid())
+    q_tot_expected = FT(0)
+    @test q_tot_expected ≈ TD.total_specific_humidity(param_set, ts_pTRH)
+
     # q at Saturation
     p = FT(1e5)
     T = FT(300)
@@ -1440,7 +1449,7 @@ end
             param_set,
             air_pressure.(param_set, ts_eq),
             air_temperature.(param_set, ts_eq),
-            q_tot,
+            RH,
         )
     ts_ρp =
         PhaseEquil_ρpq.(
