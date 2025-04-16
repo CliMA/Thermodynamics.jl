@@ -307,7 +307,7 @@ Base.convert(::Type{PhaseEquil{FT}}, ts::PhaseEquil) where {FT} =
     PhaseEquil{FT}(ts.ρ, ts.p, ts.e_int, ts.q_tot, ts.T)
 
 """
-    PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess], z)
 
 Moist thermodynamic phase, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
@@ -320,6 +320,7 @@ and, optionally
  - `sat_adjust_method` the numerical method to use.
     See the [`Thermodynamics`](@ref) for options.
  - `T_guess` initial guess for temperature in saturation adjustment
+ - `z` z level (only for printing)
 """
 @inline function PhaseEquil_ρeq(
     param_set::APS,
@@ -329,7 +330,8 @@ and, optionally
     maxiter::IT = nothing,
     relative_temperature_tol::TT = nothing,
     ::Type{sat_adjust_method} = RS.NewtonsMethod,
-    T_guess::Union{FT, Nothing} = nothing,
+    T_guess::Union{FT, Nothing} = nothing;
+    z = nothing,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, TT <: TOLTYPE}
     maxiter === nothing && (maxiter = 8)
     relative_temperature_tol === nothing &&
@@ -346,13 +348,14 @@ and, optionally
         maxiter,
         relative_temperature_tol,
         T_guess,
+        z,
     )
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot_safe, phase_type)
     p = air_pressure(param_set, T, ρ, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
-PhaseEquil_ρeq(param_set::APS, ρ, e_int, q_tot, args...) =
-    PhaseEquil_ρeq(param_set, promote(ρ, e_int, q_tot)..., args...)
+PhaseEquil_ρeq(param_set::APS, ρ, e_int, q_tot, args...; z = nothing) =
+    PhaseEquil_ρeq(param_set, promote(ρ, e_int, q_tot)..., args...; z)
 
 # Convenience method for comparing Numerical
 # methods without having to specify maxiter
@@ -520,7 +523,7 @@ PhaseEquil_peq(param_set::APS, p, e_int, q_tot, args...) =
 
 
 """
-    PhaseEquil_phq(param_set, p, h, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_phq(param_set, p, h, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess], z)
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
 
@@ -529,6 +532,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
  - `h` specific enthalpy
  - `q_tot` total specific humidity
  - `T_guess` initial guess for temperature in saturation adjustment
+ - `z` z level (only for plotting)
 """
 @inline function PhaseEquil_phq(
     param_set::APS,
@@ -538,7 +542,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
     maxiter::IT = nothing,
     relative_temperature_tol::TT = nothing,
     ::Type{sat_adjust_method} = RS.SecantMethod,
-    T_guess::Union{FT, Nothing} = nothing,
+    T_guess::Union{FT, Nothing} = nothing;
+    z = nothing,
 ) where {FT <: Real, sat_adjust_method, IT <: ITERTYPE, TT <: TOLTYPE}
     maxiter === nothing && (maxiter = 40)
     relative_temperature_tol === nothing &&
@@ -555,14 +560,15 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
         maxiter,
         relative_temperature_tol,
         T_guess,
+        z,
     )
     q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
     ρ = air_density(param_set, T, p, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
-PhaseEquil_phq(param_set::APS, p, h, q_tot, args...) =
-    PhaseEquil_phq(param_set, promote(p, h, q_tot)..., args...)
+PhaseEquil_phq(param_set::APS, p, h, q_tot, args...; z = nothing) =
+    PhaseEquil_phq(param_set, promote(p, h, q_tot)..., args...; z)
 
 """
     PhaseEquil_ρpq(param_set, ρ, p, q_tot[, perform_sat_adjust=true, maxiter, sat_adjust_method, T_guess])
@@ -624,7 +630,7 @@ PhaseEquil_ρpq(param_set::APS, ρ, p, q_tot, args...) =
 
 
 """
-    PhaseEquil_pθq(param_set, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_pθq(param_set, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess]; z)
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 
@@ -636,6 +642,7 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
  - `maxiter` maximum iterations for saturation adjustment
  - `sat_adjust_method` the numerical method to use.
  - `T_guess` initial guess for temperature in saturation adjustment
+ - `z` z level (only for printing)
 """
 @inline function PhaseEquil_pθq(
     param_set::APS,
@@ -645,7 +652,8 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
     maxiter::IT = nothing,
     relative_temperature_tol::TT = nothing,
     ::Type{sat_adjust_method} = RS.SecantMethod,
-    T_guess::Union{FT, Nothing} = nothing,
+    T_guess::Union{FT, Nothing} = nothing;
+    z = nothing,
 ) where {FT <: Real, IT <: ITERTYPE, TT <: TOLTYPE, sat_adjust_method}
     maxiter === nothing && (maxiter = 50)
     relative_temperature_tol === nothing &&
@@ -662,14 +670,15 @@ Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
         maxiter,
         relative_temperature_tol,
         T_guess,
+        z,
     )
     q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
     ρ = air_density(param_set, T, p, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
-PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...) =
-    PhaseEquil_pθq(param_set, promote(p, θ_liq_ice, q_tot)..., args...)
+PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...; z = nothing) =
+    PhaseEquil_pθq(param_set, promote(p, θ_liq_ice, q_tot)..., args...; z)
 
 """
     PhaseEquil_pTRH(param_set, p, T, RH)

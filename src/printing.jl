@@ -9,20 +9,20 @@ import RootSolvers:
 #####
 for rsm in (:NewtonsMethod, :NewtonsMethodAD, :SecantMethod, :RegulaFalsiMethod)
     @eval function print_warning_ρeq(::Type{<:$(rsm)}, args...)
-        (ρ, e_int, q_tot, T, maxiter, tol) = args
+        (ρ, e_int, q_tot, T, maxiter, tol, z) = args
         return KA.@print(
             "maxiter reached in saturation_adjustment(ρeq):\n",
             $(string(rsm)),
-            "(ρ=$ρ, e_int=$e_int, q_tot=$q_tot, T=$T, maxiter=$maxiter, tol=$tol)",
+            "(ρ=$ρ, e_int=$e_int, q_tot=$q_tot, T=$T, maxiter=$maxiter, tol=$tol, z = $z)",
             "\n"
         )
     end
     @eval function print_warning_hpq(::Type{<:$(rsm)}, args...)
-        (h, p, q_tot, T_guess, T, maxiter, tol) = args
+        (h, p, q_tot, T_guess, T, maxiter, tol, z) = args
         return KA.@print(
             "maxiter reached in saturation_adjustment(hpq):\n",
             $(string(rsm)),
-            "(h=$h, p=$p, q_tot=$q_tot, T_guess=$T_guess, T=$T, maxiter=$maxiter, tol=$tol) = ",
+            "(h=$h, p=$p, q_tot=$q_tot, T_guess=$T_guess, T=$T, maxiter=$maxiter, tol=$tol, z=$z) = ",
             "\n"
         )
     end
@@ -54,11 +54,11 @@ for rsm in (:NewtonsMethod, :NewtonsMethodAD, :SecantMethod, :RegulaFalsiMethod)
         )
     end
     @eval function print_warning_pθq(::Type{<:$(rsm)}, args...)
-        (p, θ_liq_ice, q_tot, T, maxiter, tol) = args
+        (p, θ_liq_ice, q_tot, T, maxiter, tol, z) = args
         return KA.@print(
             "maxiter reached in saturation_adjustment(pθq):\n",
             $(string(rsm)),
-            "(p=$p, θ_liq_ice=$θ_liq_ice, q_tot=$q_tot, T=$T, maxiter=$maxiter, tol=$tol) =",
+            "(p=$p, θ_liq_ice=$θ_liq_ice, q_tot=$q_tot, T=$T, maxiter=$maxiter, tol=$tol, z=$z) =",
             "\n"
         )
     end
