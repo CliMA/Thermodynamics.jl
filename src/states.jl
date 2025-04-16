@@ -87,9 +87,13 @@ end
 Base.convert(::Type{PhasePartition{FT}}, q_pt::PhasePartition) where {FT} =
     PhasePartition(FT(q_pt.tot), FT(q_pt.liq), FT(q_pt.ice))
 
+function promote_phase_partition(x, q_pt::PhasePartition)
+    (x′, tot, liq, ice) = promote(x, q_pt.tot, q_pt.liq, q_pt.tot)
+    return (x′, PhasePartition(tot, liq, ice))
+end
 function promote_phase_partition(x1, x2, q_pt::PhasePartition)
-    (x1, x2, tot, liq, ice) = promote(x1, x2, q_pt.tot, q_pt.liq, q_pt.tot)
-    return (x1, x2, PhasePartition(tot, liq, ice))
+    (x1′, x2′, tot, liq, ice) = promote(x1, x2, q_pt.tot, q_pt.liq, q_pt.tot)
+    return (x1′, x2′, PhasePartition(tot, liq, ice))
 end
 
 const ITERTYPE = Union{Int, Nothing}
