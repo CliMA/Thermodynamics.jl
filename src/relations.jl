@@ -117,6 +117,8 @@ and, optionally,
 ) where {FT <: Real}
     return gas_constant_air(param_set, q) * ρ * T
 end
+@inline air_pressure(param_set, T, ρ, q) =
+    air_pressure(param_set, promote_phase_partition(T, ρ, q)...)
 
 """
     air_pressure(param_set::APS, ts::ThermodynamicState)
@@ -153,6 +155,8 @@ and, optionally,
 ) where {FT <: Real}
     return p / (gas_constant_air(param_set, q) * T)
 end
+@inline air_density(param_set, T, p, q) =
+    air_density(param_set, promote_phase_partition(T, p, q)...)
 
 """
     air_density(param_set::APS, ts::ThermodynamicState)
@@ -468,6 +472,8 @@ and, optionally,
     return cvm * (T - T_0) + (q.tot - q.liq - q.ice) * e_int_v0 -
            q.ice * e_int_i0 - (1 - q.tot) * R_d * T_0
 end
+@inline internal_energy(param_set, T, q) =
+    internal_energy(param_set, promote_phase_partition(T, q)...)
 
 """
     internal_energy(param_set::APS, ts::ThermodynamicState)
@@ -624,6 +630,8 @@ The internal energy per unit mass in thermodynamic equilibrium at saturation whe
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     return internal_energy(param_set, T, q_pt, cvm)
 end
+@inline internal_energy_sat(param_set, T, ρ, q_tot, phase_type) =
+    internal_energy_sat(param_set, promote(T, ρ, q_tot)..., phase_type)
 
 """
     internal_energy_sat(param_set::APS, ts::ThermodynamicState)
@@ -1414,6 +1422,8 @@ end
     )
     return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 end
+@inline PhasePartition_equil(param_set, T, ρ, q_tot, phase_type) =
+    PhasePartition_equil(param_set, promote(T, ρ, q_tot)..., phase_type)
 
 @inline PhasePartition_equil(param_set::APS, ts::ThermodynamicState) =
     PhasePartition_equil(
@@ -1452,6 +1462,8 @@ The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
     q_ice = (1 - λ) * q_c
     return PhasePartition(q_tot, q_liq, q_ice)
 end
+@inline PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type) =
+    PhasePartition_equil_given_p(param_set, promote(T, p, q_tot)..., phase_type)
 
 @inline PhasePartition(
     param_set::APS,
