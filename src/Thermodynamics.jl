@@ -79,6 +79,33 @@ include("printing.jl")
 include("DataCollection.jl")
 import .DataCollection
 
+"""
+    Phase
+
+A condensed phase, to dispatch over
+[`saturation_vapor_pressure`](@ref) and
+[`q_vap_saturation_generic`](@ref).
+"""
+abstract type Phase end
+
+"""
+    Liquid <: Phase
+
+A liquid phase, to dispatch over
+[`saturation_vapor_pressure`](@ref) and
+[`q_vap_saturation_generic`](@ref).
+"""
+struct Liquid <: Phase end
+
+"""
+    Ice <: Phase
+
+An ice phase, to dispatch over
+[`saturation_vapor_pressure`](@ref) and
+[`q_vap_saturation_generic`](@ref).
+"""
+struct Ice <: Phase end
+
 include("states.jl")
 include("relations.jl")
 include("isentropic.jl")
