@@ -14,7 +14,7 @@ export ThermodynamicState,
     PhaseEquil_ρeq,
     PhaseEquil_ρTq,
     PhaseEquil_pTq,
-    PhaseEquil_pTRH,
+    PhaseEquil_pTRH_unsat_liquid_only,
     PhaseEquil_peq,
     PhaseEquil_phq,
     PhaseEquil_ρθq,
@@ -678,32 +678,36 @@ PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...) =
 """
     PhaseEquil_pTRH(param_set, p, T, RH)
 
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature
+pressure and relative humidity. It assumes that:
+  - the temperature is above freezing
+  - air is not saturated.
 
+Inputs:
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
  - `RH` relative humidity
 """
-@inline function PhaseEquil_pTRH(
+@inline function PhaseEquil_pTRH_unsat_liquid_only(
     param_set::APS,
     p::FT,
     T::FT,
     RH::FT,
 ) where {FT <: Real}
+    @assert RH <= FT(1)
+    @assert T >= TP.T_freeze(param_set)
     phase_type = PhaseEquil{FT}
     p_vap_sat = saturation_vapor_pressure(param_set, T, Liquid())
     p_vap = RH * p_vap_sat
     mmr = TP.molmass_ratio(param_set)
-    q_tot = p_vap * mmr / (p - (1 - mmr) * p_vap)
-    q_tot_safe = clamp(q_tot, FT(0), FT(1))
-    q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
+    q_vap = p_vap / mmr / (p - (1 - 1 / mmr) * p_vap)
+    q_vap_safe = clamp(q_vap, FT(0), FT(1))
+    q_pt = PhasePartition(q_vap, FT(0), FT(0))
     ρ = air_density(param_set, T, p, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
-    return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
+    return PhaseEquil{FT}(ρ, p, e_int, q_vap_safe, T)
 end
-PhaseEquil_pTRH(param_set::APS, p, T, q_tot) =
-    PhaseEquil_pTRH(param_set, promote(p, T, q_tot)...)
 
 #####
 ##### Non-equilibrium states
