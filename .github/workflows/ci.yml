@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        version:
+        julia-version:
           - '1.7'
           - '1.8'
           - '1.9'
@@ -30,6 +30,12 @@ jobs:
           - windows-latest
         arch:
           - x64
+        exclude:
+          - github-runner: macos-latest # Apple Silicon
+            julia-version: '1.7'
+        include:
+          - github-runner: macos-13 # Intel
+            julia-version: '1.7'
     steps:
       - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
