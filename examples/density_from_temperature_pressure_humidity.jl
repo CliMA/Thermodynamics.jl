@@ -96,8 +96,6 @@ T₀ = 273.15   # temperature in Kelvin
 
 ρ = air_density(parameters, T₀, p₀, q_dry)
 
-@show ρ
-
 # Note that the above must be defined with the same float point precision as
 # used for the parameters and PhasePartition.
 # We're now ready to compute the density of dry air,
@@ -114,11 +112,13 @@ using JLD2
 #
 # We use `q` to build a vector of PhasePartition,
 
-qp = PhasePartition.(q)
+qp = PhasePartition.(q);
+nothing #hide
 
 # And then compute the density using the same parameters as before:
 
-ρ = air_density.(parameters, T, p, qp)
+ρ = air_density.(parameters, T, p, qp);
+nothing #hide
 
 # Finally, we plot the density as a function of temperature and specific humidity,
 
