@@ -500,24 +500,6 @@ end
     q_vap = vapor_specific_humidity(q)
     @test vmrs ≈ _molmass_ratio * shum_to_mixing_ratio(q_vap, q.tot)
 
-    # Sanity check for PhaseEquil_pTRH constructor
-    # No humidity
-    p = FT(1e5)
-    T = FT(300)
-    RH = FT(0)
-    ts_pTRH = TD.PhaseEquil_pTRH(param_set, p, T, RH)
-    q_tot_expected = FT(0)
-    @test q_tot_expected ≈ TD.total_specific_humidity(param_set, ts_pTRH)
-
-    # q at Saturation
-    p = FT(1e5)
-    T = FT(300)
-    RH = FT(1)
-    ts_pTRH = TD.PhaseEquil_pTRH(param_set, p, T, RH)
-    p_vap_sat = TD.saturation_vapor_pressure(param_set, T, Liquid())
-    q_tot_expected = FT(0.05559498223324131)
-    @test q_tot_expected ≈ TD.total_specific_humidity(param_set, ts_pTRH)
-
     # Relative humidity sanity checks
     for phase_type in [PhaseDry, PhaseEquil, PhaseNonEquil]
         for T in [FT(40), FT(140), FT(240), FT(340), FT(440)]
@@ -527,6 +509,18 @@ end
                     RH = relative_humidity(param_set, T, p, phase_type, q_pt)
                     @test RH >= FT(0) && RH <= FT(1)
                 end
+            end
+        end
+    end
+
+    # q_vap from RH wrt to liquid checks
+    for T in [FT(280), FT(290), FT(300)]
+        for p in [FT(70000), FT(101300)]
+            for q_vap in [FT(1e-3), FT(1e-4), FT(0)]
+                q_pt = TD.PhasePartition(q_vap)
+                RH = relative_humidity(param_set, T, p, TD.PhaseEquil, q_pt)
+                q_vap = q_vap_from_RH_liquid(param_set, p, T, RH)
+                @test q_vap ≈ vapor_specific_humidity(q_pt)
             end
         end
     end
@@ -1435,13 +1429,6 @@ end
             air_temperature.(param_set, ts_eq),
             q_tot,
         )
-    ts_TpRH =
-        PhaseEquil_pTRH.(
-            param_set,
-            air_pressure.(param_set, ts_eq),
-            air_temperature.(param_set, ts_eq),
-            q_tot,
-        )
     ts_ρp =
         PhaseEquil_ρpq.(
             param_set,
@@ -1479,7 +1466,6 @@ end
         ts_eq,
         ts_T,
         ts_Tp,
-        ts_TpRH,
         ts_ρp,
         ts_neq,
         ts_ρT_neq,
@@ -1538,7 +1524,9 @@ end
         @test typeof.(virtual_dry_static_energy.(param_set, ts, e_pot)) ==
               typeof.(e_int)
     end
-
+    @test typeof(
+        q_vap_from_RH_liquid(param_set, FT(100000), FT(275), FT(0.8)),
+    ) == FT
 end
 
 @testset "Thermodynamics - dry limit" begin
