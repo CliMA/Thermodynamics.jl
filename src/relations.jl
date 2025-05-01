@@ -60,6 +60,7 @@ export total_specific_enthalpy
 export moist_static_energy
 export specific_entropy
 export saturated
+export q_vap_from_RH_liquid
 
 @inline heavisided(x) = (x > 0) * x
 
@@ -3093,4 +3094,31 @@ state is saturated.
 @inline function saturated(param_set::APS, ts::ThermodynamicState)
     RH = relative_humidity(param_set, ts)
     return RH ≈ 1 || RH > 1
+end
+
+
+"""
+    q_vap_from_RH_liquid(param_set, p, T, RH)
+
+Computes the water vapor specific humidity from relative humidity with
+  regard to water (i.e. saturation vapor pressure over ice is not considered
+  even in cold temperatures).
+
+Inputs:
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `T` temperature
+ - `RH` relative humidity
+"""
+@inline function q_vap_from_RH_liquid(
+    param_set::APS,
+    p::FT,
+    T::FT,
+    RH::FT,
+) where {FT <: Real}
+    @assert RH <= FT(1)
+    p_vap_sat = saturation_vapor_pressure(param_set, T, Liquid())
+    p_vap = RH * p_vap_sat
+    mmr = TP.molmass_ratio(param_set)
+    return p_vap / mmr / (p - (1 - 1 / mmr) * p_vap)
 end
