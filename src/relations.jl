@@ -997,6 +997,8 @@ end
     # saturation vapor pressure over possible mixture of liquid and ice
     return saturation_vapor_pressure(param_set, T, LH_0, Δcp)
 end
+saturation_vapor_pressure(param_set, T, LH_0, Δcp) =
+    saturation_vapor_pressure(param_set, promote(T, LH_0, Δcp)...)
 
 # we may be hitting a slow path:
 # https://stackoverflow.com/questions/14687665/very-slow-stdpow-for-bases-very-close-to-1
