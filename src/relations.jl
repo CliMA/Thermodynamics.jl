@@ -1579,6 +1579,7 @@ See also [`saturation_adjustment`](@ref).
     maxiter::Int,
     relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
+    z = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
@@ -1663,6 +1664,7 @@ See also [`saturation_adjustment`](@ref).
                 sol.root,
                 maxiter,
                 tol.tol,
+                z,
             )
         end
         if error_on_non_convergence()
@@ -1822,6 +1824,7 @@ See also [`saturation_adjustment`](@ref).
     maxiter::Int,
     relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
+    z = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     _T_min = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
@@ -1880,6 +1883,7 @@ See also [`saturation_adjustment`](@ref).
                 sol.root,
                 maxiter,
                 tol.tol,
+                z,
             )
         end
         if error_on_non_convergence()
@@ -2133,6 +2137,7 @@ See also [`saturation_adjustment`](@ref).
     maxiter::Int,
     relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
+    z = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T_min = TP.T_min(param_set)
@@ -2198,6 +2203,7 @@ See also [`saturation_adjustment`](@ref).
                 sol.root,
                 maxiter,
                 tol.tol,
+                z,
             )
         end
         if error_on_non_convergence()
