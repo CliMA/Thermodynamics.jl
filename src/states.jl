@@ -627,7 +627,7 @@ PhaseEquil_ρpq(param_set::APS, ρ, p, q_tot, args...) =
 
 
 """
-    PhaseEquil_pθq(param_set, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_pθq(param_set, p, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
 
