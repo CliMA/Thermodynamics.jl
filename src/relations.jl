@@ -269,17 +269,27 @@ end
 
 The isobaric specific heat capacity of moist air given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref).
+ - `qₜ` total specific humidity of water
+ - `qₗ` specific humidity of liquid
+ - `qᵢ` specific humidity of ice
 """
-@inline function cp_m(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
+@inline function cp_m(param_set::APS, qₜ::FT, qₗ::FT, qᵢ::FT) where {FT <: Real}
     cp_d = TP.cp_d(param_set)
     cp_v = TP.cp_v(param_set)
     cp_l = TP.cp_l(param_set)
     cp_i = TP.cp_i(param_set)
-    return cp_d +
-           (cp_v - cp_d) * q.tot +
-           (cp_l - cp_v) * q.liq +
-           (cp_i - cp_v) * q.ice
+    return cp_d + (cp_v - cp_d) * qₜ + (cp_l - cp_v) * qₗ + (cp_i - cp_v) * qᵢ
+end
+
+"""
+    cp_m(param_set, q::PhasePartition)
+
+The isobaric specific heat capacity of moist air given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `q` [`PhasePartition`](@ref).
+"""
+@inline function cp_m(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
+    return cp_m(param_set, q.tot, q.liq, q.ice)
 end
 
 @inline cp_m(param_set::APS, ::Type{FT}) where {FT <: Real} =
