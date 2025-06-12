@@ -4,6 +4,11 @@ Thermodynamics.jl Release Notes
 main
 ----
 
+v0.12.13
+-------
+- ![][[badge-✨feature/enhancement]] Allow cp_m calculation without using PhasePartition.
+  PR [254](https://github.com/CliMA/Thermodynamics.jl/pull/254)
+
 v0.12.10
 -------
 - ![][[badge-🐛bugfix]] Asynchronous printing on the gpu has been fixed.
