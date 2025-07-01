@@ -66,19 +66,25 @@ export q_vap_from_RH_liquid
 
 """
     gas_constant_air(param_set, [q::PhasePartition])
+    gas_constant_air(param_set, q_tot, q_liq, q_ice)
 
 The specific gas constant of moist air given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q_tot`, `q_liq` `q_ice` - specific liquid water contents for total water, liquid water and ice
 """
+@inline function gas_constant_air(param_set::APS, q_tot, q_liq, q_ice)
+    R_d = TP.R_d(param_set)
+    R_v = TP.R_v(param_set)
+    q_vap = q_tot - q_liq - q_ice
+    return R_d * (1 - q_tot) + R_v * q_vap
+end
+
 @inline function gas_constant_air(
     param_set::APS,
     q::PhasePartition{FT},
 ) where {FT}
-    R_d = TP.R_d(param_set)
-    molmass_ratio = TP.molmass_ratio(param_set)
-    return R_d *
-           (1 + (molmass_ratio - 1) * q.tot - molmass_ratio * (q.liq + q.ice))
+    return gas_constant_air(param_set, q.tot, q.liq, q.ice)
 end
 
 @inline gas_constant_air(param_set::APS, ::Type{FT}) where {FT} =
