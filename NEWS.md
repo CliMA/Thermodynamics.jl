@@ -4,6 +4,15 @@ Thermodynamics.jl Release Notes
 main
 ----
 
+- Thermodynamics.jl is no longer tested on Julia versions before 1.10.
+  Please do not expect compatibility with those versions.
+  PR [257](https://github.com/CliMA/Thermodynamics.jl/pull/257)
+
+v0.12.14
+--------
+- Added an option to call `cp_m` without using `PhasePartition`
+  PR [256](https://github.com/CliMA/Thermodynamics.jl/pull/256)
+
 v0.12.13
 -------
 - ![][[badge-✨feature/enhancement]] Allow cp_m calculation without using PhasePartition.
@@ -16,7 +25,7 @@ v0.12.10
 
 v0.12.9
 -------
-- ![][[badge-🐛bugfix]] Protest against zero division in relative humidity 
+- ![][[badge-🐛bugfix]] Protest against zero division in relative humidity
   calculation and limit relative humidity between 0 and 1.
   PR [230](https://github.com/CliMA/Thermodynamics.jl/pull/230)
 

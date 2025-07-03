@@ -27,3 +27,4 @@ docs/src/literated/
 Manifest.toml
 
 *.jld2
+.qodo
