@@ -3081,7 +3081,7 @@ The partial pressure of water vapor, given
 ) where {FT <: Real}
     molmass_ratio = TP.molmass_ratio(param_set)
     return p * (1 - q.tot) /
-           (1 - q.tot + vapor_specific_humidity(q) / molmass_ratio)
+           (1 - q.tot + vapor_specific_humidity(q) * molmass_ratio)
 end
 
 """
@@ -3099,8 +3099,8 @@ The partial pressure of water vapor, given
     q::PhasePartition{FT},
 ) where {FT <: Real}
     molmass_ratio = TP.molmass_ratio(param_set)
-    return p * vapor_specific_humidity(q) / molmass_ratio /
-           (1 - q.tot + vapor_specific_humidity(q) / molmass_ratio)
+    return p * vapor_specific_humidity(q) * molmass_ratio /
+           (1 - q.tot + vapor_specific_humidity(q) * molmass_ratio)
 end
 
 """
