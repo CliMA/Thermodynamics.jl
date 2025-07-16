@@ -45,7 +45,7 @@ export liquid_fraction, PhasePartition_equil
 export dry_pottemp
 export virtual_pottemp
 export virtual_dry_static_energy
-export exnesided
+export exner
 export shum_to_mixing_ratio
 export mixing_ratios
 export vol_vapor_mixing_ratio
@@ -62,7 +62,7 @@ export specific_entropy
 export saturated
 export q_vap_from_RH_liquid
 
-@inline ReLU(x) = (x > 0) * x
+@inline heavisided(x) = (x > 0) * x
 
 """
     gas_constant_air(param_set, [q::PhasePartition])
@@ -275,17 +275,16 @@ end
 
 The isobaric specific heat capacity of moist air given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total specific humidity of water
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
+ - `qₜ` total specific humidity of water
+ - `qₗ` specific humidity of liquid
+ - `qᵢ` specific humidity of ice
 """
-@inline function cp_m(param_set::APS, q_tot::FT, q_liq::FT, q_ice::FT) where {FT <: Real}
+@inline function cp_m(param_set::APS, qₜ::FT, qₗ::FT, qᵢ::FT) where {FT <: Real}
     cp_d = TP.cp_d(param_set)
     cp_v = TP.cp_v(param_set)
     cp_l = TP.cp_l(param_set)
     cp_i = TP.cp_i(param_set)
-    # rearranged formula for cp_m to avoid computation of vapor specific humidity
-    return cp_d + (cp_v - cp_d) * q_tot + (cp_l - cp_v) * q_liq + (cp_i - cp_v) * q_ice
+    return cp_d + (cp_v - cp_d) * qₜ + (cp_l - cp_v) * qₗ + (cp_i - cp_v) * qᵢ
 end
 
 """
@@ -481,14 +480,14 @@ and, optionally,
     param_set::APS,
     T::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
+    cvm = cv_m(param_set, q),
 ) where {FT <: Real}
-    q_vap = vapor_specific_humidity(q)
-    q_dry = 1 - q.tot
-
-    return q_dry * internal_energy_dry(param_set, T) +
-           q_vap * internal_energy_vapor(param_set, T) +
-           q.liq * internal_energy_liquid(param_set, T) +
-           q.ice * internal_energy_ice(param_set, T)
+    T_0 = TP.T_0(param_set)
+    R_d = TP.R_d(param_set)
+    e_int_v0 = TP.e_int_v0(param_set)
+    e_int_i0 = TP.e_int_i0(param_set)
+    return cvm * (T - T_0) + (q.tot - q.liq - q.ice) * e_int_v0 -
+           q.ice * e_int_i0 - (1 - q.tot) * R_d * T_0
 end
 @inline internal_energy(param_set, T, q) =
     internal_energy(param_set, promote_phase_partition(T, q)...)
@@ -1610,7 +1609,7 @@ See also [`saturation_adjustment`](@ref).
     end
     _T_freeze = TP.T_freeze(param_set)
     @inline e_int_sat(T) =
-        internal_energy_sat(param_set, ReLU(T), ρ, q_tot, phase_type)
+        internal_energy_sat(param_set, heavisided(T), ρ, q_tot, phase_type)
     temperature_tol = _T_freeze * relative_temperature_tol
     e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     if e_int < e_int_upper
@@ -1620,7 +1619,7 @@ See also [`saturation_adjustment`](@ref).
         end
     end
     @inline function roots(_T) # ff′
-        T = ReLU(_T)
+        T = heavisided(_T)
         if sat_adjust_method <: RS.NewtonsMethod
             λ = liquid_fraction(param_set, T, phase_type)
             p_vap_sat = saturation_vapor_pressure(
@@ -1749,7 +1748,7 @@ See also [`saturation_adjustment`](@ref).
     end
     _T_freeze = TP.T_freeze(param_set)
     @inline e_int_sat(T) =
-        internal_energy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
+        internal_energy_sat(param_set, heavisided(T), ρ_T(T), q_tot, phase_type)
 
     temperature_tol = _T_freeze * relative_temperature_tol
     e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
@@ -1857,7 +1856,7 @@ See also [`saturation_adjustment`](@ref).
     _T_freeze = TP.T_freeze(param_set)
     @inline h_sat(T) = specific_enthalpy_sat(
         param_set,
-        ReLU(T),
+        heavisided(T),
         ρ_T(T),
         q_tot,
         phase_type,
@@ -2081,7 +2080,7 @@ See also [`saturation_adjustment`](@ref).
     T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
     T_2 = bound_upper_temperature(T_1, T_2)
     @inline roots(T) =
-        liquid_ice_pottemp_sat(param_set, ReLU(T), ρ, phase_type, q_tot) -
+        liquid_ice_pottemp_sat(param_set, heavisided(T), ρ, phase_type, q_tot) -
         θ_liq_ice
     sol = RS.find_zero(
         roots,
@@ -2397,7 +2396,7 @@ The air temperature and `q_tot` where
     T_init_min = TP.T_init_min(param_set)
     _T_max = T_virt
     @inline roots(T) =
-        T_virt - virt_temp_from_RH(param_set, ReLU(T), ρ, RH, phase_type)
+        T_virt - virt_temp_from_RH(param_set, heavisided(T), ρ, RH, phase_type)
     sol = RS.find_zero(
         roots,
         RS.SecantMethod(T_init_min, _T_max),
@@ -2493,7 +2492,7 @@ by finding the root of
     @inline roots(T) =
         T - air_temperature_given_pθq(
             param_set,
-            air_pressure(param_set, ReLU(T), ρ, q),
+            air_pressure(param_set, heavisided(T), ρ, q),
             θ_liq_ice,
             q,
         )
