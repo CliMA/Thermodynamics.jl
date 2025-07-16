@@ -53,7 +53,7 @@ Ice
 Liquid
 ```
 
-## Thermodynamic state methods
+## State-Compatible Methods
 
 ```@docs
 air_density
@@ -108,7 +108,7 @@ specific_entropy
 q_vap_from_RH_liquid
 ```
 
-## Internal methods
+## Internal Methods
 
 ```@docs
 shum_to_mixing_ratio
@@ -118,7 +118,7 @@ PhasePartition_equil
 PhasePartition_equil_given_p
 ```
 
-## Dispatch types
+## Dispatch Types
 
 ```@docs
 DryAdiabaticProcess
@@ -132,13 +132,13 @@ TemperatureProfiles.DryAdiabaticProfile
 TemperatureProfiles.DecayingTemperatureProfile
 ```
 
-## Tested profiles
+## Tested Profiles
 
 ```@docs
 Thermodynamics.TestedProfiles
 ```
 
-## Data collection
+## Data Collection
 
 ```@docs
 Thermodynamics.DataCollection

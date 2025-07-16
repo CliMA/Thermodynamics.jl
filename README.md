@@ -1,6 +1,6 @@
 # Thermodynamics.jl
 
-Thermodynamics.jl provides flexible and performant functions for computing various thermodynamic variables for dry and moist atmospheres.
+Thermodynamics.jl provides flexible and performant functions for computing various thermodynamic variables for climate models.
 
 |||
 |---------------------:|:----------------------------------------------|

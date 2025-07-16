@@ -1,8 +1,3 @@
-#=
-using Revise
-push!(ARGS, "CuArray")
-include("test/runtests_gpu.jl")
-=#
 using Test
 
 using KernelAbstractions

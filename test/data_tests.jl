@@ -1,11 +1,5 @@
 import Random
-function sample_range_dycoms(;
-    param_set,
-    e_int_range,
-    ρ_range,
-    q_tot_range,
-    n_samples,
-)
+function sample_range(; param_set, e_int_range, ρ_range, q_tot_range, n_samples)
     for i in 1:n_samples
         e_int = Random.rand(e_int_range)
         ρ = Random.rand(ρ_range)
@@ -19,7 +13,7 @@ end
     FT = Float64
     param_set = TP.ThermodynamicsParameters(FT)
     Random.seed!(1234)
-    sample_range_dycoms(;
+    sample_range(;
         param_set,
         e_int_range = (28311.801716:30981.514836),
         ρ_range = (1.124755:1.129586),

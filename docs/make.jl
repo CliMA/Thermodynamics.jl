@@ -44,15 +44,14 @@ example_pages = [
 
 pages = Any[
     "Home" => "index.md",
-    "Installation" => "Installation.md",
-    "API" => "API.md",
-    "How-to-guide" => "HowToGuide.md",
+    "Mathematical Formulation" => "Formulation.md",
+    "API Reference" => "API.md",
+    "How-To Guide" => "HowToGuide.md",
     "Examples" => example_pages,
-    "Tested profiles" => "TestedProfiles.md",
-    "Temperature profiles" => "TemperatureProfiles.md",
-    "Developer docs" => "DevDocs.md",
-    "Clausius Clapeyron relation" => "Clausius_Clapeyron.md",
-    "Thermodynamics overview" => "Formulation.md",
+    "Temperature Profiles" => "TemperatureProfiles.md",
+    "Tested Profiles" => "TestedProfiles.md",
+    "Clausius-Clapeyron Validation" => "Clausius_Clapeyron.md",
+    "Saturation Adjustment Convergence" => "SaturationAdjustmentConvergence.md",
     "References" => "References.md",
 ]
 

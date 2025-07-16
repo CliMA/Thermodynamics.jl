@@ -1,0 +1,27 @@
+/* Custom CSS for Thermodynamics.jl documentation */
+
+/* Force left alignment for all table columns */
+.docstring table th,
+.docstring table td {
+    text-align: left !important;
+}
+
+/* Specifically target the second column if needed */
+.docstring table th:nth-child(2),
+.docstring table td:nth-child(2) {
+    text-align: left !important;
+}
+
+/* Ensure consistent table styling */
+.docstring table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 1em 0;
+}
+
+.docstring table th,
+.docstring table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+} 

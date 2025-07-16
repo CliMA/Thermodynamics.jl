@@ -280,9 +280,9 @@ The isobaric specific heat capacity of moist air given
  - `qᵢ` specific humidity of ice
 """
 @inline function cp_m(
-    param_set::APS, 
-    q_tot::FT, 
-    q_liq::FT, 
+    param_set::APS,
+    q_tot::FT,
+    q_liq::FT,
     q_ice::FT,
 ) where {FT <: Real}
 
@@ -1845,7 +1845,7 @@ See also [`saturation_adjustment`](@ref).
         return T_1
     end
     _T_freeze = TP.T_freeze(param_set)
-    @inline h_sat(T) = 
+    @inline h_sat(T) =
         specific_enthalpy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
 
     temperature_tol = _T_freeze * relative_temperature_tol

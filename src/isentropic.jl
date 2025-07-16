@@ -9,18 +9,22 @@ export air_pressure, air_temperature
 """
     DryAdiabaticProcess
 
-For dispatching to isentropic formulas
+A type for dispatching to isentropic (dry adiabatic) formulas.
+
 """
 struct DryAdiabaticProcess end
 
 """
-    air_pressure_given_θ(param_set, θ::FT, Φ::FT, ::DryAdiabaticProcess)
+    air_pressure_given_θ(param_set, θ, Φ, ::DryAdiabaticProcess)
 
-The air pressure for an isentropic process, where
-
+The air pressure for an isentropic process, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `θ` potential temperature
  - `Φ` gravitational potential
+
+The pressure is computed using the hydrostatic balance and the definition of potential temperature
+for an isentropic process: `p = p₀ * (1 - Φ/(θ * cₚ))^(cₚ/R)`, where `p₀` is the reference pressure,
+`cₚ` is the isobaric specific heat capacity of dry air, and `R` is the gas constant of dry air.
 """
 @inline function air_pressure_given_θ(
     param_set::APS,
@@ -35,14 +39,17 @@ The air pressure for an isentropic process, where
 end
 
 """
-    air_pressure(param_set, T::FT, T∞::FT, p∞::FT, ::DryAdiabaticProcess)
+    air_pressure(param_set, T, T∞, p∞, ::DryAdiabaticProcess)
 
-The air pressure for an isentropic process, where
-
+The air pressure for an isentropic process, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `T∞` ambient temperature
  - `p∞` ambient pressure
+
+The pressure is computed using the isentropic relation: `p = p∞ * (T/T∞)^(1/κ)`,
+where `κ = R/cₚ` is the ratio of the gas constant to the isobaric specific heat capacity
+of dry air.
 """
 @inline function air_pressure(
     param_set::APS,
@@ -56,13 +63,16 @@ The air pressure for an isentropic process, where
 end
 
 """
-    air_temperature(param_set, p::FT, θ::FT, Φ::FT, ::DryAdiabaticProcess)
+    air_temperature(param_set, p, θ, ::DryAdiabaticProcess)
 
-The air temperature for an isentropic process, where
-
+The air temperature, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `θ` potential temperature
+
+The temperature is computed using the definition of the dry potential temperature:
+`T = θ * (p/p₀)^(R/cₚ)`, where `p₀` is the reference pressure, `R` is the gas constant of dry air,
+and `cₚ` is the isobaric specific heat capacity of dry air.
 """
 @inline function air_temperature(
     param_set::APS,
