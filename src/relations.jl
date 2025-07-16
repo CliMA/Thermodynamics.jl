@@ -62,7 +62,7 @@ export specific_entropy
 export saturated
 export q_vap_from_RH_liquid
 
-@inline heavisided(x) = (x > 0) * x
+@inline ReLU(x) = (x > 0) * x
 
 """
     gas_constant_air(param_set, [q::PhasePartition])
@@ -279,12 +279,22 @@ The isobaric specific heat capacity of moist air given
  - `qₗ` specific humidity of liquid
  - `qᵢ` specific humidity of ice
 """
-@inline function cp_m(param_set::APS, qₜ::FT, qₗ::FT, qᵢ::FT) where {FT <: Real}
+@inline function cp_m(
+    param_set::APS, 
+    q_tot::FT, 
+    q_liq::FT, 
+    q_ice::FT,
+) where {FT <: Real}
+
     cp_d = TP.cp_d(param_set)
     cp_v = TP.cp_v(param_set)
     cp_l = TP.cp_l(param_set)
     cp_i = TP.cp_i(param_set)
-    return cp_d + (cp_v - cp_d) * qₜ + (cp_l - cp_v) * qₗ + (cp_i - cp_v) * qᵢ
+    # rearranged formula for cp_m to avoid computation of vapor specific humidity
+    return cp_d +
+           (cp_v - cp_d) * q_tot +
+           (cp_l - cp_v) * q_liq +
+           (cp_i - cp_v) * q_ice
 end
 
 """
@@ -480,14 +490,14 @@ and, optionally,
     param_set::APS,
     T::FT,
     q::PhasePartition{FT} = q_pt_0(FT),
-    cvm = cv_m(param_set, q),
 ) where {FT <: Real}
-    T_0 = TP.T_0(param_set)
-    R_d = TP.R_d(param_set)
-    e_int_v0 = TP.e_int_v0(param_set)
-    e_int_i0 = TP.e_int_i0(param_set)
-    return cvm * (T - T_0) + (q.tot - q.liq - q.ice) * e_int_v0 -
-           q.ice * e_int_i0 - (1 - q.tot) * R_d * T_0
+    q_vap = vapor_specific_humidity(q)
+    q_dry = 1 - q.tot
+
+    return q_dry * internal_energy_dry(param_set, T) +
+           q_vap * internal_energy_vapor(param_set, T) +
+           q.liq * internal_energy_liquid(param_set, T) +
+           q.ice * internal_energy_ice(param_set, T)
 end
 @inline internal_energy(param_set, T, q) =
     internal_energy(param_set, promote_phase_partition(T, q)...)
@@ -645,7 +655,7 @@ The internal energy per unit mass in thermodynamic equilibrium at saturation whe
     ),
     cvm = cv_m(param_set, q_pt),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
-    return internal_energy(param_set, T, q_pt, cvm)
+    return internal_energy(param_set, T, q_pt)
 end
 @inline internal_energy_sat(param_set, T, ρ, q_tot, phase_type) =
     internal_energy_sat(param_set, promote(T, ρ, q_tot)..., phase_type)
@@ -902,38 +912,22 @@ An ice phase, to dispatch over
 struct Ice <: Phase end
 
 """
-    saturation_vapor_pressure(param_set, T, Liquid())
+    saturation_vapor_pressure(param_set, T, ::Phase)
+    saturation_vapor_pressure(param_set, T, LH_0, Δcp)
 
-Return the saturation vapor pressure over a plane liquid surface given
+Return the saturation vapor pressure over a plane surface of condensate, given
  - `T` temperature
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `Phase` either `Liquid()` or `Ice()` to dispatch over the condensate type.
+ - `LH_0` latent heat at reference temperature `T_0`
+ - `Δcp` difference in isobaric specific heat capacity between the two phases
 
-    `saturation_vapor_pressure(param_set, T, Ice())`
-
-Return the saturation vapor pressure over a plane ice surface given
- - `T` temperature
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
-
-    `saturation_vapor_pressure(param_set, T, LH_0, Δcp)`
-
-Compute the saturation vapor pressure over a plane surface by integration
-of the Clausius-Clapeyron relation.
-
-The Clausius-Clapeyron relation
-
-    `dlog(p_v_sat)/dT = [LH_0 + Δcp * (T-T_0)]/(R_v*T^2)`
-
-is integrated from the triple point temperature `T_triple`, using
-Kirchhoff's relation
-
-    `L = LH_0 + Δcp * (T - T_0)`
-
-for the specific latent heat `L` with constant isobaric specific
-heats of the phases. The linear dependence of the specific latent heat
-on temperature `T` allows analytic integration of the Clausius-Clapeyron
-relation to obtain the saturation vapor pressure `p_v_sat` as a function of
-the triple point pressure `press_triple`.
-
+The saturation vapor pressure is computed by integration of the Clausius-Clapeyron
+relation, assuming constant specific heat capacities. The closed-form solution is:
+`p_v^*(T) = p_tr * (T/T_tr)^(Δc_p/R_v) * exp((L_0 - Δc_p*T_0)/R_v * (1/T_tr - 1/T))`,
+where `p_tr` is the triple point pressure, `T_tr` is the triple point temperature,
+`L_0` is the latent heat at the reference temperature `T_0`, and `Δc_p` is the
+difference in isobaric specific heat capacities between the phases.
 """
 @inline function saturation_vapor_pressure(
     param_set::APS,
@@ -960,7 +954,6 @@ end
         LH_v0,
         cp_v - cp_l,
     )
-
 end
 
 @inline function saturation_vapor_pressure(
@@ -1042,12 +1035,14 @@ end
     q_vap_saturation_generic(param_set, T, ρ[, phase=Liquid()])
 
 Compute the saturation specific humidity over a plane surface of condensate, given
-
     - `param_set`: an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
     - `T`: temperature
     - `ρ`: air density
     - (optional) `Liquid()`: indicating condensate is liquid
     - (optional) `Ice()`: indicating condensate is ice
+
+The saturation specific humidity is computed as `q_v^* = p_v^*(T) / (ρ * R_v * T)`,
+where `p_v^*` is the saturation vapor pressure.
 """
 @inline function q_vap_saturation_generic(
     param_set::APS,
@@ -1065,7 +1060,6 @@ q_vap_saturation_generic(param_set::APS, T, ρ, phase::Phase) =
     q_vap_saturation(param_set, T, ρ, phase_type[, q::PhasePartition])
 
 Compute the saturation specific humidity, given
-
 - `param_set`: an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
 - `T`: temperature
 - `ρ`: air density
@@ -1077,8 +1071,7 @@ mixture of liquid and ice, computed in a thermodynamically consistent way from t
 weighted sum of the latent heats of the respective phase transitions (Pressel et al.,
 JAMES, 2015). That is, the saturation vapor pressure and from it the saturation specific
 humidity are computed from a weighted mean of the latent heats of vaporization and
-sublimation, with the weights given by the fractions of condensates `q.liq/(q.liq + q.ice)`
-and `q.ice/(q.liq + q.ice)` that are liquid and ice, respectively.
+sublimation, with the weights given by the liquid fraction.
 
 If the `PhasePartition` `q` is not given, or has zero liquid and ice specific humidities,
 the saturation specific humidity is that over a mixture of liquid and ice, with the
@@ -1325,9 +1318,9 @@ partition
 """
     liquid_fraction(param_set, T, phase_type[, q])
 
-The fraction of condensate that is liquid where
-
+The fraction of condensate that is liquid, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
  - `phase_type` a thermodynamic state type
 
 # PhaseNonEquil behavior
@@ -1397,9 +1390,7 @@ The fraction of condensate that is liquid given a thermodynamic state `ts`.
     PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 
-Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object using the
-[`liquid_fraction`](@ref) function where
-
+Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
@@ -1609,7 +1600,7 @@ See also [`saturation_adjustment`](@ref).
     end
     _T_freeze = TP.T_freeze(param_set)
     @inline e_int_sat(T) =
-        internal_energy_sat(param_set, heavisided(T), ρ, q_tot, phase_type)
+        internal_energy_sat(param_set, ReLU(T), ρ, q_tot, phase_type)
     temperature_tol = _T_freeze * relative_temperature_tol
     e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
     if e_int < e_int_upper
@@ -1619,7 +1610,7 @@ See also [`saturation_adjustment`](@ref).
         end
     end
     @inline function roots(_T) # ff′
-        T = heavisided(_T)
+        T = ReLU(_T)
         if sat_adjust_method <: RS.NewtonsMethod
             λ = liquid_fraction(param_set, T, phase_type)
             p_vap_sat = saturation_vapor_pressure(
@@ -1748,7 +1739,7 @@ See also [`saturation_adjustment`](@ref).
     end
     _T_freeze = TP.T_freeze(param_set)
     @inline e_int_sat(T) =
-        internal_energy_sat(param_set, heavisided(T), ρ_T(T), q_tot, phase_type)
+        internal_energy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
 
     temperature_tol = _T_freeze * relative_temperature_tol
     e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
@@ -1854,13 +1845,8 @@ See also [`saturation_adjustment`](@ref).
         return T_1
     end
     _T_freeze = TP.T_freeze(param_set)
-    @inline h_sat(T) = specific_enthalpy_sat(
-        param_set,
-        heavisided(T),
-        ρ_T(T),
-        q_tot,
-        phase_type,
-    )
+    @inline h_sat(T) = 
+        specific_enthalpy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
 
     temperature_tol = _T_freeze * relative_temperature_tol
     h_upper = h_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
@@ -2080,7 +2066,7 @@ See also [`saturation_adjustment`](@ref).
     T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
     T_2 = bound_upper_temperature(T_1, T_2)
     @inline roots(T) =
-        liquid_ice_pottemp_sat(param_set, heavisided(T), ρ, phase_type, q_tot) -
+        liquid_ice_pottemp_sat(param_set, ReLU(T), ρ, phase_type, q_tot) -
         θ_liq_ice
     sol = RS.find_zero(
         roots,
@@ -2270,7 +2256,7 @@ end
 """
     liquid_ice_pottemp(param_set, T, ρ[, q::PhasePartition, cpm])
 
-The liquid-ice potential temperature where
+The liquid-ice potential temperature, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
@@ -2396,7 +2382,7 @@ The air temperature and `q_tot` where
     T_init_min = TP.T_init_min(param_set)
     _T_max = T_virt
     @inline roots(T) =
-        T_virt - virt_temp_from_RH(param_set, heavisided(T), ρ, RH, phase_type)
+        T_virt - virt_temp_from_RH(param_set, ReLU(T), ρ, RH, phase_type)
     sol = RS.find_zero(
         roots,
         RS.SecantMethod(T_init_min, _T_max),
@@ -2492,7 +2478,7 @@ by finding the root of
     @inline roots(T) =
         T - air_temperature_given_pθq(
             param_set,
-            air_pressure(param_set, heavisided(T), ρ, q),
+            air_pressure(param_set, ReLU(T), ρ, q),
             θ_liq_ice,
             q,
         )
@@ -2554,13 +2540,16 @@ end
 """
     virtual_pottemp(param_set, T, ρ[, q::PhasePartition])
 
-The virtual potential temperature where
-
+The virtual potential temperature, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
 and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+
+The virtual potential temperature is defined as `θ_v = (R_m/R_d) * θ`, where `θ` is the
+potential temperature. It is the temperature a dry air parcel would need to have to
+have the same density as the moist air parcel at the same pressure.
 """
 @inline function virtual_pottemp(
     param_set::APS,
@@ -2591,12 +2580,15 @@ given a thermodynamic state `ts`.
 """
     virtual_temperature(param_set, T[, q::PhasePartition])
 
-The virtual temperature where
-
+The virtual temperature, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+
+The virtual temperature is defined as `T_v = (R_m/R_d) * T`. It is the temperature
+a dry air parcel would need to have to have the same density as the moist air parcel
+at the same pressure.
 """
 @inline function virtual_temperature(
     param_set::APS,
@@ -2685,7 +2677,7 @@ The liquid potential temperature given a thermodynamic state `ts`.
 """
     exner_given_pressure(param_set, p[, q::PhasePartition, cpm])
 
-The Exner function where
+The Exner function, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
 and, optionally,
@@ -2708,7 +2700,7 @@ end
 """
     exner(param_set, T, ρ[, q::PhasePartition)])
 
-The Exner function where
+The Exner function, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
