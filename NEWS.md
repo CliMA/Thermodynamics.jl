@@ -4,6 +4,9 @@ Thermodynamics.jl Release Notes
 main
 ----
 
+v0.12.15
+--------
+- Fix inverse molmass bug. PR [258](https://github.com/CliMA/Thermodynamics.jl/pull/258)
 - Thermodynamics.jl is no longer tested on Julia versions before 1.10.
   Please do not expect compatibility with those versions.
   PR [257](https://github.com/CliMA/Thermodynamics.jl/pull/257)
