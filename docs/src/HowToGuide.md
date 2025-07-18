@@ -262,7 +262,7 @@ ts = TD.PhaseEquil_ρeq(params, Float32(ρ), Float32(e_int), Float32(q_tot))
 1. **Explore the [API Reference](API.md)** for complete function documentation
 2. **Read the [Mathematical Formulation](Formulation.md)** for theoretical background
 3. **Check [Saturation Adjustment Convergence](SaturationAdjustmentConvergence.md)** for numerical method testing
-4. **Run the examples** in the `examples/` directory
+4. **Explore the API Reference** for complete function documentation
 
 ---
 

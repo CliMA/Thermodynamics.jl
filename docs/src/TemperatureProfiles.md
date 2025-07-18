@@ -6,7 +6,7 @@ CurrentModule = Thermodynamics.TemperatureProfiles
 
 ## Overview
 
-The `Thermodynamics.TemperatureProfiles` module provides pre-defined atmospheric temperature profiles for testing and validation purposes. These profiles represent idealized atmospheric conditions commonly used in climate modeling and thermodynamic testing.
+The `Thermodynamics.TemperatureProfiles` module provides pre-defined atmospheric temperature profiles for testing and validation purposes, and to be used as reference states in atmosphere models. These profiles represent idealized atmospheric conditions commonly used in climate modeling and thermodynamic testing.
 
 ## Available Profiles
 
@@ -52,7 +52,7 @@ Plots.savefig("isothermal.svg");
 
 ### Decaying Temperature Profile
 
-A profile where temperature decreases with height, representing typical atmospheric conditions.
+A profile where temperature decreases smoothly with height, representing typical atmospheric conditions.
 
 ```@example
 import Thermodynamics as TD

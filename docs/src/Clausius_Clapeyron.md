@@ -51,10 +51,6 @@ The Clausius-Clapeyron relation describes the temperature dependence of saturati
 
 $$\frac{dp_{v,sat}}{dT} = \frac{L_v p_{v,sat}}{R_v T^2}$$
 
-where:
-- $p_{v,sat}$ is the saturation vapor pressure
-- $L_v$ is the latent heat of vaporization
-- $R_v$ is the specific gas constant for water vapor
-- $T$ is the temperature
+where $p_{v,sat}$ is the saturation vapor pressure, $L_v$ is the latent heat of vaporization, $R_v$ is the specific gas constant for water vapor, and $T$ is the temperature.
 
 This relation is fundamental to understanding phase transitions in atmospheric thermodynamics.

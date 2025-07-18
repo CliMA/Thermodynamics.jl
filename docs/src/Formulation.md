@@ -170,7 +170,7 @@ The difference between the isochoric and isobaric specific heat capacities is pr
 | $c_{pi} = c_{vi}$           | Isobaric specific heat capacity of ice           |
 
 !!! tip "Implementation Note"
-    The relationship `c_p = c_v + R` for ideal gases follows from the definition of enthalpy `h = u + pv` and the ideal gas law `pv = RT`. For condensed phases, we neglect the volume term, so `c_p ≈ c_v`.
+    The relationship $c_p = c_v + R$ for ideal gases follows from the definition of enthalpy $h = u + pv$ and the ideal gas law $pv = RT$. For condensed phases, we neglect the volume term, so $c_p ≈ c_v$.
 
 The corresponding specific heat capacities of moist air are the weighted sum of those of the constituents:
 
@@ -628,7 +628,7 @@ A virtual potential temperature can be defined analogously:
     Some texts distinguish a "(condensate-ignoring) virtual temperature" and a "density temperature", and an analogous condensate-ignoring virtual potential temperature and density potential temperature.
     In those texts, the definition of density temperature incorporates condensate mass but their "condensate-ignoring virtual temperature" does not.
     We always take the mass of any condensate into account in the thermodynamics of moist air, so this distinction is irrelevant here.
-    In other words, because the virtual temperature defined above incorporates the mass of condensate into ``R_m(q)`` (and virtual potential temperature is additionally defined in terms of ``c_pm(q)``) via the potential temperature exponent ``κ``), there is no distinction between our virtual temperature and a hypothetical "density temperature".
+    In other words, because the virtual temperature defined above incorporates the mass of condensate into ``R_m(q)`` (and virtual potential temperature is additionally defined in terms of ``c_{pm}(q)``) via the potential temperature exponent ``κ``), there is no distinction between our virtual temperature and a hypothetical "density temperature".
 
 ### 12.4 Liquid-Ice Potential Temperature
 
@@ -710,14 +710,14 @@ The most important equations for implementation are:
 #### **Equilibrium vs. Non-Equilibrium Approaches**
 
 1. **Equilibrium Approach** (Saturation Adjustment):
-   - Prognostic variables: $\rho$, $q_t$, $I$
-- Diagnostic variables: $T$, $q_l$, $q_i$
-   - Requires iterative solution for temperature
+    - Prognostic variables: $\rho$, $q_t$, $I$
+    - Diagnostic variables: $T$, $q_l$, $q_i$
+    - Requires iterative solution for temperature
 
 2. **Non-Equilibrium Approach**:
-   - Prognostic variables: $\rho$, $q_t$, $q_l$, $q_i$, $I$
-   - Diagnostic variable: $T$
-   - Closed-form temperature recovery
+    - Prognostic variables: $\rho$, $q_t$, $q_l$, $q_i$, $I$
+    - Diagnostic variable: $T$
+    - Closed-form temperature recovery
 
 #### **Numerical Considerations**
 

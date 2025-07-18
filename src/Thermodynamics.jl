@@ -16,7 +16,7 @@ import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)
-_molmass_ratio = TP.molmass_ratio(param_set)
+_Rv_over_Rd = TP.Rv_over_Rd(param_set)
 ```
 
 Because these parameters are widely used throughout this module,

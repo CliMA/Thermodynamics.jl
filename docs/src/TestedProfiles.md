@@ -2,7 +2,7 @@
 
 ## Overview
 
-Thermodynamics.jl is tested using a comprehensive set of thermodynamic profiles specified in `src/TestedProfiles.jl`. These profiles represent realistic atmospheric conditions and are used to validate the thermodynamic calculations across a wide range of parameter space.
+Thermodynamics.jl is tested using a comprehensive set of thermodynamic profiles specified in `src/TestedProfiles.jl`. These profiles represent a wide range of atmospheric conditions and are used to validate the thermodynamic calculations.
 
 ## Purpose
 
@@ -79,7 +79,6 @@ Plots.savefig("tested_profiles_virt_temp.svg")
 - **Moisture included**: Total specific humidity varies with height
 - **Saturation adjustment**: Phase partitioning determined by equilibrium
 - **Wide humidity range**: From subsaturated to supersaturated conditions
-- **Realistic profiles**: Based on decaying temperature profile
 
 ## Profile Generation
 
@@ -107,7 +106,6 @@ The tested profiles are automatically used in:
 - **Unit tests**: Validate individual function correctness
 - **Integration tests**: Verify end-to-end thermodynamic calculations
 - **Performance tests**: Benchmark computational efficiency
-- **Regression tests**: Ensure changes don't break existing functionality
 
 !!! tip "Development Workflow"
     When adding new thermodynamic functionality, ensure it works correctly

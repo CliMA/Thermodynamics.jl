@@ -8,6 +8,9 @@ export total_specific_humidity
 export liquid_specific_humidity
 export ice_specific_humidity
 export vapor_specific_humidity
+export partial_pressure_vapor
+export partial_pressure_dry
+export vapor_pressure_deficit_liquid
 
 # Energies
 export total_energy
@@ -2780,12 +2783,131 @@ and a phase partition, `q`.
     param_set::APS,
     q::PhasePartition{FT},
 ) where {FT <: Real}
-    molmass_ratio = TP.molmass_ratio(param_set)
+    Rv_over_Rd = TP.Rv_over_Rd(param_set)
     q_vap = vapor_specific_humidity(q)
-    return molmass_ratio * shum_to_mixing_ratio(q_vap, q.tot)
+    return Rv_over_Rd * shum_to_mixing_ratio(q_vap, q.tot)
 end
 vol_vapor_mixing_ratio(param_set, ts::ThermodynamicState) =
     vol_vapor_mixing_ratio(param_set, PhasePartition(param_set, ts))
+
+"""
+    partial_pressure_dry(param_set, p, q)
+
+The partial pressure of water vapor, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` air pressure
+ - `q` phase partition
+"""
+@inline function partial_pressure_dry(
+    param_set::APS,
+    p::FT,
+    q::PhasePartition{FT},
+) where {FT <: Real}
+    Rv_over_Rd = TP.Rv_over_Rd(param_set)
+    return p * (1 - q.tot) /
+           (1 - q.tot + vapor_specific_humidity(q) * Rv_over_Rd)
+end
+
+"""
+    partial_pressure_dry(param_set::APS, ts::ThermodynamicState)
+
+The partial pressure of dry air, given a thermodynamic state `ts`.
+"""
+@inline partial_pressure_dry(
+    param_set::APS,
+    ts::ThermodynamicState{FT},
+) where {FT <: Real} = partial_pressure_dry(
+    param_set,
+    air_pressure(param_set, ts),
+    PhasePartition(param_set, ts),
+)
+
+@inline partial_pressure_dry(
+    param_set::APS,
+    ts::AbstractPhaseDry{FT},
+) where {FT <: Real} = air_pressure(param_set, ts)
+
+"""
+    partial_pressure_vapor(param_set, p, q)
+
+The partial pressure of water vapor, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` air pressure
+ - `q` phase partition
+"""
+@inline function partial_pressure_vapor(
+    param_set::APS,
+    p::FT,
+    q::PhasePartition{FT},
+) where {FT <: Real}
+    Rv_over_Rd = TP.Rv_over_Rd(param_set)
+    return p * vapor_specific_humidity(q) * Rv_over_Rd /
+           (1 - q.tot + vapor_specific_humidity(q) * Rv_over_Rd)
+end
+
+"""
+    partial_pressure_vapor(param_set::APS, ts::ThermodynamicState)
+
+The partial pressure of water vapor, given a thermodynamic state `ts`.
+"""
+@inline partial_pressure_vapor(
+    param_set::APS,
+    ts::ThermodynamicState{FT},
+) where {FT <: Real} = partial_pressure_vapor(
+    param_set,
+    air_pressure(param_set, ts),
+    PhasePartition(param_set, ts),
+)
+
+@inline partial_pressure_vapor(
+    param_set::APS,
+    ts::AbstractPhaseDry{FT},
+) where {FT <: Real} = FT(0)
+
+
+"""
+    vapor_pressure_deficit_liquid(param_set, T, p, q::PhasePartition)
+
+The vapor pressure deficit over liquid water (saturation vapor pressure minus actual 
+vapor pressure, truncated to be non-negative), given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` air temperature
+ - `p` air pressure
+ - `q` [`PhasePartition`](@ref)
+"""
+@inline function vapor_pressure_deficit_liquid(
+    param_set::APS,
+    T::FT,
+    p::FT,
+    q::PhasePartition{FT},
+) where {FT <: Real}
+    es = saturation_vapor_pressure(param_set, T, Liquid())
+    ea = partial_pressure_vapor(param_set, p, q)
+    return ReLU(es - ea)
+end
+
+"""
+    vapor_pressure_deficit_liquid(param_set, T, p, q_vap)
+
+The vapor pressure deficit over liquid water (saturation vapor pressure minus actual 
+vapor pressure, truncated to be non-negative), given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` air temperature
+ - `p` air pressure
+ - `q_vap` vapor specific humidity
+"""
+@inline function vapor_pressure_deficit_liquid(
+    param_set::APS,
+    T::FT,
+    p::FT,
+    q_vap::FT,
+) where {FT <: Real}
+    # Create a PhasePartition with only vapor and call the existing method
+    q = PhasePartition(q_vap)
+    return vapor_pressure_deficit_liquid(param_set, T, p, q)
+end
 
 """
     relative_humidity(param_set, T, p, phase_type, q::PhasePartition)
@@ -3058,44 +3180,6 @@ The specific entropy of water vapor, given
 end
 
 """
-    partial_pressure_dry(param_set, p, q)
-
-The partial pressure of water vapor, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` air pressure
- - `q` phase partition
-"""
-@inline function partial_pressure_dry(
-    param_set::APS,
-    p::FT,
-    q::PhasePartition{FT},
-) where {FT <: Real}
-    molmass_ratio = TP.molmass_ratio(param_set)
-    return p * (1 - q.tot) /
-           (1 - q.tot + vapor_specific_humidity(q) * molmass_ratio)
-end
-
-"""
-    partial_pressure_vapor(param_set, p, q)
-
-The partial pressure of water vapor, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` air pressure
- - `q` phase partition
-"""
-@inline function partial_pressure_vapor(
-    param_set::APS,
-    p::FT,
-    q::PhasePartition{FT},
-) where {FT <: Real}
-    molmass_ratio = TP.molmass_ratio(param_set)
-    return p * vapor_specific_humidity(q) * molmass_ratio /
-           (1 - q.tot + vapor_specific_humidity(q) * molmass_ratio)
-end
-
-"""
     saturated(param_set::APS, ts::ThermodynamicState)
 
 Boolean indicating if thermodynamic
@@ -3129,6 +3213,6 @@ Inputs:
     @assert RH <= FT(1)
     p_vap_sat = saturation_vapor_pressure(param_set, T, Liquid())
     p_vap = RH * p_vap_sat
-    mmr = TP.molmass_ratio(param_set)
+    mmr = TP.Rv_over_Rd(param_set)
     return p_vap / mmr / (p - (1 - 1 / mmr) * p_vap)
 end

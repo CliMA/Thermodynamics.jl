@@ -23,7 +23,6 @@ Pkg.add("ClimaParams")
 
 ### Basic Usage
 ```julia
-using Thermodynamics 
 import Thermodynamics as TD
 using ClimaParams
 
@@ -42,6 +41,9 @@ p = TD.air_pressure(params, ts)
 q = TD.PhasePartition(params, ts)
 
 # Or compute directly from independent variables
+q_liq = 0.005
+q_ice = 0.0004
+q = TD.PhasePartition(q_tot, q_liq, q_ice)
 T = TD.air_temperature(params, e_int, q)  # From internal energy and humidity
 p = TD.air_pressure(params, ρ, T, q)      # From density, temperature, and humidity
 ```
@@ -161,15 +163,16 @@ q = PhasePartition(params, ts)
 q_tot = 0.01
 q_liq = 0.005
 q_ice = 0.0003
+q = PhasePartition(q_tot, q_liq, q_ice)
 ρ = 1.0
 e_int = -7.0e4
-ts = PhaseNonEquil(params, e_int, ρ, PhasePartition(q_tot, q_liq, q_ice))
+ts = PhaseNonEquil(params, e_int, ρ, q)
 
-# Direct temperature computation
+# Temperature computation from thermodynamic state
 T = air_temperature(params, ts)
 
-# Alternative, avoiding the thermodynamic state
-T = air_temperature(params, e_int, PhasePartition(q_tot, q_liq, q_ice))
+# Alternative direct computation, avoiding the thermodynamic state
+T = air_temperature(params, e_int, q)
 ```
 
 ### **Saturation Calculations**
@@ -190,7 +193,7 @@ RH = relative_humidity(params, T, p, typeof(ts), PhasePartition(q_tot, q_liq, q_
 ## Integration with Climate Models
 
 ### **Dynamical Core Integration**
-The package is designed for seamless integration with atmospheric dynamical cores:
+The package is designed for seamless integration with atmospheric dynamical cores, schematically as follows:
 
 ```julia
 # Initialize

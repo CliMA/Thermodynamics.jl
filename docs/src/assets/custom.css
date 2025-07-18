@@ -1,27 +1,66 @@
 /* Custom CSS for Thermodynamics.jl documentation */
 
-/* Force left alignment for all table columns */
+/* Force left alignment for ALL table columns with maximum specificity */
+table th,
+table td,
+table th:nth-child(1),
+table td:nth-child(1),
+table th:nth-child(2),
+table td:nth-child(2),
+table th:nth-child(3),
+table td:nth-child(3),
+table th:nth-child(4),
+table td:nth-child(4),
+table th:nth-child(5),
+table td:nth-child(5),
 .docstring table th,
-.docstring table td {
+.docstring table td,
+.docstring table th:nth-child(1),
+.docstring table td:nth-child(1),
+.docstring table th:nth-child(2),
+.docstring table td:nth-child(2),
+.docstring table th:nth-child(3),
+.docstring table td:nth-child(3),
+.docstring table th:nth-child(4),
+.docstring table td:nth-child(4),
+.docstring table th:nth-child(5),
+.docstring table td:nth-child(5) {
     text-align: left !important;
 }
 
-/* Specifically target the second column if needed */
-.docstring table th:nth-child(2),
-.docstring table td:nth-child(2) {
+/* Override any potential right-alignment */
+table th[style*="text-align: right"],
+table td[style*="text-align: right"],
+table th[style*="text-align: center"],
+table td[style*="text-align: center"],
+.docstring table th[style*="text-align: right"],
+.docstring table td[style*="text-align: right"],
+.docstring table th[style*="text-align: center"],
+.docstring table td[style*="text-align: center"] {
     text-align: left !important;
 }
 
 /* Ensure consistent table styling */
+table,
 .docstring table {
     border-collapse: collapse;
     width: 100%;
     margin: 1em 0;
 }
 
+table th,
+table td,
 .docstring table th,
 .docstring table td {
     border: 1px solid #ddd;
     padding: 8px;
-    text-align: left;
+    text-align: left !important;
+}
+
+/* Additional specificity for any potential conflicting styles */
+body table th,
+body table td,
+body .docstring table th,
+body .docstring table td {
+    text-align: left !important;
 } 
