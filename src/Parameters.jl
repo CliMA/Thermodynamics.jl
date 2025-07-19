@@ -65,7 +65,8 @@ end
 # Derived parameters
 @inline R_d(ps::ATP) = ps.gas_constant / ps.molmass_dryair
 @inline R_v(ps::ATP) = ps.gas_constant / ps.molmass_water
-@inline molmass_ratio(ps::ATP) = ps.molmass_dryair / ps.molmass_water
+@inline Rv_over_Rd(ps::ATP) = ps.molmass_dryair / ps.molmass_water
+@inline molmass_ratio(ps::ATP) = Rv_over_Rd(ps)  # For backward compatibility
 @inline LH_f0(ps::ATP) = ps.LH_s0 - ps.LH_v0
 @inline e_int_v0(ps::ATP) = ps.LH_v0 - R_v(ps) * ps.T_0
 @inline e_int_i0(ps::ATP) = LH_f0(ps)

@@ -43,7 +43,7 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
         param_set = TP.ThermodynamicsParameters(FT)
 
         _R_d = FT(TP.R_d(param_set))
-        _molmass_ratio = FT(TP.molmass_ratio(param_set))
+        _Rv_over_Rd = FT(TP.Rv_over_Rd(param_set))
         _cp_d = FT(TP.cp_d(param_set))
         _cp_v = FT(TP.cp_v(param_set))
         _cp_l = FT(TP.cp_l(param_set))
@@ -99,7 +99,7 @@ end
     FT = Float64
     param_set = TP.ThermodynamicsParameters(FT)
     _R_d = FT(TP.R_d(param_set))
-    _molmass_ratio = FT(TP.molmass_ratio(param_set))
+    _Rv_over_Rd = FT(TP.Rv_over_Rd(param_set))
     _cp_d = FT(TP.cp_d(param_set))
     _cp_v = FT(TP.cp_v(param_set))
     _cp_l = FT(TP.cp_l(param_set))
@@ -143,6 +143,9 @@ end
     @test gas_constant_air(param_set, PhasePartition(FT(0.5), FT(0.5))) ≈
           _R_d / 2
     @test gas_constant_air(param_set, FT) == _R_d
+
+    # Test molmass_ratio for backward compatibility
+    @test TP.molmass_ratio(param_set) === _Rv_over_Rd
 
     @test cp_m(param_set, PhasePartition(FT(0))) === _cp_d
     @test cp_m(param_set, PhasePartition(FT(1))) === _cp_v
@@ -287,8 +290,143 @@ end
         saturation_vapor_pressure(param_set, _T_triple, Ice()),
     ) ≈ 0.998 * q_tot / ρ_v_triple / ρ - 1
 
-    # energy functions and inverse (temperature)
+    # Helper function to test partial pressures
+    function test_partial_pressures(
+        T_test,
+        ρ,
+        q_partition,
+        test_name;
+        check_vapor_positive = true,
+    )
+
+        p_test = air_pressure(param_set, T_test, ρ, q_partition)
+        p_vap = partial_pressure_vapor(param_set, p_test, q_partition)
+        p_dry = partial_pressure_dry(param_set, p_test, q_partition)
+
+        # Consistency with direct computation from ideal gas law
+        q_vap = vapor_specific_humidity(q_partition)
+        @test p_vap ≈ q_vap * ρ * _R_v * T_test
+        @test p_dry ≈ (1 - q_partition.tot) * ρ * _R_d * T_test
+
+        # Vapor pressure deficit
+        vpd = vapor_pressure_deficit_liquid(
+            param_set,
+            T_test,
+            p_test,
+            q_partition,
+        )
+        es = saturation_vapor_pressure(param_set, T_test, Liquid())
+        @test vpd ≈ max(FT(0), es - p_vap)  # Account for ReLU function
+
+        # Test vapor pressure deficit with scalar q_vap (assuming all water is vapor)
+        # This test only makes sense when all water is indeed vapor
+        if q_partition.liq ≈ FT(0) && q_partition.ice ≈ FT(0)
+            q_vap_scalar = q_partition.tot
+            vpd_scalar = vapor_pressure_deficit_liquid(
+                param_set,
+                T_test,
+                p_test,
+                q_vap_scalar,
+            )
+            @test vpd_scalar ≈ vpd  # Both methods should give same result when all water is vapor
+        end
+
+        # Dalton's law
+        @test p_vap + p_dry ≈ p_test
+
+        if check_vapor_positive
+            @test p_vap > FT(0)  # Should have some vapor pressure
+        end
+    end
+
+    # Test partial pressure functions
+    ρ = FT(1)
+
+    # Test 1: Dry air (no water vapor)
     T = FT(300)
+    q_dry = PhasePartition(FT(0))
+    test_partial_pressures(T, ρ, q_dry, "dry air"; check_vapor_positive = false)
+
+    # Test 2 & 3: Saturated air over liquid water and ice
+    test_cases = [(FT(300), Liquid(), "liquid"), (FT(270), Ice(), "ice")]
+
+    for (T_test, phase_type, phase_name) in test_cases
+        q_sat = q_vap_saturation_generic(param_set, T_test, ρ, phase_type)
+        q_sat_partition = PhasePartition(q_sat)  # All vapor, no liquid/ice
+
+        test_partial_pressures(
+            T_test,
+            ρ,
+            q_sat_partition,
+            "saturated $phase_name",
+        )
+    end
+
+    # Test 4: Subsaturated air (RH < 1)
+    T = FT(300)
+    q_sub = 0.5 * q_vap_saturation_generic(param_set, T, ρ, Liquid())
+    q_sub_partition = PhasePartition(q_sub)  # Small amount of vapor
+    p_sat_liq = saturation_vapor_pressure(param_set, T, Liquid())
+    test_partial_pressures(T, ρ, q_sub_partition, "subsaturated air")
+
+    # Test 5: Mixed phase (vapor + liquid)
+    q_mixed = PhasePartition(FT(0.01), FT(0.005), FT(0))  # Some vapor, some liquid
+    test_partial_pressures(T, ρ, q_mixed, "mixed phase")
+
+    # Test 6: Partial pressure functions with thermodynamic state
+    T_test = FT(300)
+    ρ_test = FT(1.0)
+    q_test = PhasePartition(FT(0.01), FT(0.005), FT(0))
+    p_test = air_pressure(param_set, T_test, ρ_test, q_test)
+
+    # Create thermodynamic state
+    e_int = internal_energy(param_set, T_test, q_test)
+    ts = PhaseNonEquil(param_set, e_int, ρ_test, q_test)
+
+    # Test partial pressures from thermodynamic state
+    p_vap_ts = partial_pressure_vapor(param_set, ts)
+    p_dry_ts = partial_pressure_dry(param_set, ts)
+
+    # Test consistency with direct computation
+    p_vap_direct = partial_pressure_vapor(param_set, p_test, q_test)
+    p_dry_direct = partial_pressure_dry(param_set, p_test, q_test)
+
+    @test p_vap_ts ≈ p_vap_direct
+    @test p_dry_ts ≈ p_dry_direct
+    @test p_vap_ts + p_dry_ts ≈ p_test  # Dalton's law
+
+    # Test 7: Partial pressure functions with AbstractPhaseDry (using PhasePartition approach)
+    T_dry = FT(300)
+    ρ_dry = FT(1.0)
+    q_dry = PhasePartition(FT(0))  # No water vapor
+    p_dry = air_pressure(param_set, T_dry, ρ_dry, q_dry)
+
+    # Test partial pressures for dry air using PhasePartition
+    p_vap_dry = partial_pressure_vapor(param_set, p_dry, q_dry)
+    p_dry_result = partial_pressure_dry(param_set, p_dry, q_dry)
+
+    # Test that dry air has zero vapor pressure and total pressure for dry air
+    @test p_vap_dry === FT(0)  # No vapor pressure in dry air
+    @test p_dry_result ≈ p_dry  # Total pressure equals dry air pressure
+    @test p_vap_dry + p_dry_result ≈ p_dry  # Dalton's law for dry air
+
+    # Test 8: Partial pressure functions with some vapor present
+    T_moist = FT(300)
+    ρ_moist = FT(1.0)
+    q_moist = PhasePartition(FT(0.01))  # Some water vapor
+    p_moist = air_pressure(param_set, T_moist, ρ_moist, q_moist)
+
+    # Test partial pressures for moist air
+    p_vap_moist = partial_pressure_vapor(param_set, p_moist, q_moist)
+    p_dry_moist = partial_pressure_dry(param_set, p_moist, q_moist)
+
+    # Test that moist air has positive vapor pressure and reduced dry air pressure
+    @test p_vap_moist > FT(0)  # Should have some vapor pressure
+    @test p_dry_moist < p_moist  # Dry air pressure should be less than total
+    @test p_vap_moist + p_dry_moist ≈ p_moist  # Dalton's law for moist air
+    @test p_dry_moist > FT(0)  # Dry air pressure should still be positive
+
+    # Energy functions and inverse (temperature)
     e_kin = FT(11)
     e_pot = FT(13)
     @test air_temperature(param_set, _cv_d * (T - _T_0) - _R_d * _T_0) === FT(T)
@@ -303,6 +441,7 @@ end
         cv_m(param_set, PhasePartition(FT(0))) * (T - _T_0) - _R_d * _T_0,
         PhasePartition(FT(0)),
     ) === FT(T)
+    
     @test air_temperature(
         param_set,
         cv_m(param_set, PhasePartition(FT(q_tot))) * (T - _T_0) -
@@ -444,6 +583,48 @@ end
           (1 - q.tot) * Id + q_vap * Iv + q.liq * Il + q.ice * Ii
     @test internal_energy(param_set, T) ≈ Id
 
+    # Test internal_energy with different phase partitions
+    T_test = FT(280)
+    q_dry = PhasePartition(FT(0))  # Dry air
+    q_vapor_only = PhasePartition(FT(0.01))  # Only vapor
+    q_mixed = PhasePartition(FT(0.01), FT(0.005), FT(0.002))  # Mixed phases
+    
+    @test internal_energy(param_set, T_test, q_dry) ≈ internal_energy_dry(param_set, T_test)
+    @test internal_energy(param_set, T_test, q_vapor_only) ≈
+          (1 - q_vapor_only.tot) * internal_energy_dry(param_set, T_test) +
+          vapor_specific_humidity(q_vapor_only) *
+          internal_energy_vapor(param_set, T_test)
+    @test internal_energy(param_set, T_test, q_mixed) ≈
+          (1 - q_mixed.tot) * internal_energy_dry(param_set, T_test) +
+          vapor_specific_humidity(q_mixed) *
+          internal_energy_vapor(param_set, T_test) +
+          q_mixed.liq * internal_energy_liquid(param_set, T_test) +
+          q_mixed.ice * internal_energy_ice(param_set, T_test)
+
+    # Test internal_energy_sat with different conditions
+    ρ_test = FT(1.0)
+    q_tot_test = FT(0.01)
+    T_warm = FT(300)  # Above freezing
+    T_cold = FT(250)  # Below freezing
+    
+    # Test above freezing (liquid phase)
+    e_int_sat_warm =
+        internal_energy_sat(param_set, T_warm, ρ_test, q_tot_test, PhaseEquil)
+    @test e_int_sat_warm ≈ internal_energy(
+        param_set,
+        T_warm,
+        PhasePartition_equil(param_set, T_warm, ρ_test, q_tot_test, PhaseEquil),
+    )
+    
+    # Test below freezing (ice phase)
+    e_int_sat_cold =
+        internal_energy_sat(param_set, T_cold, ρ_test, q_tot_test, PhaseEquil)
+    @test e_int_sat_cold ≈ internal_energy(
+        param_set,
+        T_cold,
+        PhasePartition_equil(param_set, T_cold, ρ_test, q_tot_test, PhaseEquil),
+    )
+    
     # potential temperatures
     T = FT(300)
     @test TD.liquid_ice_pottemp_given_pressure(param_set, T, _p_ref_theta) === T
@@ -459,7 +640,7 @@ end
         PhasePartition(FT(1)),
     ) ≈ T * 10^(_R_v / _cp_v)
 
-    # dry potential temperatures. FIXME: add correctness tests
+    # dry potential temperatures
     T = FT(300)
     p = FT(1.e5)
     q_tot = FT(0.23)
@@ -482,6 +663,7 @@ end
     @test TD.exner_given_pressure(param_set, p, PhasePartition(q_tot)) isa
           typeof(p)
 
+    # Humidity relations
     q_tot = 0.1
     q_liq = 0.05
     q_ice = 0.01
@@ -498,7 +680,7 @@ end
 
     vmrs = vol_vapor_mixing_ratio(param_set, q)
     q_vap = vapor_specific_humidity(q)
-    @test vmrs ≈ _molmass_ratio * shum_to_mixing_ratio(q_vap, q.tot)
+    @test vmrs ≈ _Rv_over_Rd * shum_to_mixing_ratio(q_vap, q.tot)
 
     # Relative humidity sanity checks
     for phase_type in [PhaseDry, PhaseEquil, PhaseNonEquil]
@@ -1332,7 +1514,6 @@ end
         RH_sat =
             relative_humidity.(param_set, T, p_sat, Ref(phase_type), q_pt_sat)
 
-        # TODO: Add this test back in
         @test all(RH_sat .≈ 1)
 
         # Test that RH is zero for dry conditions
@@ -1342,8 +1523,7 @@ end
             relative_humidity.(param_set, T, p_dry, Ref(phase_type), q_pt_dry)
         @test all(RH_dry .≈ 0)
 
-
-        # Test virtual temperature and inverse functions:
+        # Test virtual temperature 
         _R_d = FT(TP.R_d(param_set))
         T_virt = virtual_temperature.(param_set, T, q_pt)
         @test all(T_virt ≈ gas_constant_air.(param_set, q_pt) ./ _R_d .* T)

@@ -31,10 +31,13 @@ export ThermodynamicState,
 """
     ThermodynamicState{FT}
 
-A thermodynamic state, which can be initialized for
-various thermodynamic formulations (via its sub-types).
-All `ThermodynamicState`'s have access to functions to
-compute all other thermodynamic properties.
+A thermodynamic state representing the complete thermodynamic properties of a moist air parcel.
+All `ThermodynamicState` subtypes provide access to functions to compute all other thermodynamic
+properties through the equation of state and thermodynamic relations.
+
+The state can be initialized using various thermodynamic formulations (via its subtypes),
+each representing different assumptions about phase equilibrium and the specific variables
+used to define the state.
 """
 abstract type ThermodynamicState{FT} end
 
@@ -47,7 +50,12 @@ Base.eltype(::ThermodynamicState{FT}) where {FT} = FT
 """
     PhasePartition
 
-Represents the mass fractions of the moist air mixture.
+Represents the mass fractions of the moist air mixture (the partitioning of water substance 
+between vapor, liquid, and ice phases).
+
+The total specific humidity `q_tot` represents the total water content, while `q_liq` and
+`q_ice` represent the liquid and ice specific humidities, respectively. The vapor specific
+humidity is computed as `q_vap = q_tot - q_liq - q_ice`.
 
 # Constructors
 
@@ -105,7 +113,8 @@ const TOLTYPE = Union{Real, Nothing}
 """
     PhaseDry{FT} <: AbstractPhaseDry
 
-A dry thermodynamic state (`q_tot = 0`).
+A dry thermodynamic state representing air with no water vapor (`q_tot = 0`).
+This state assumes the air parcel contains only dry air components.
 
 # Constructors
 
@@ -133,11 +142,13 @@ Base.convert(::Type{PhaseDry{FT}}, ts::PhaseDry) where {FT} =
 """
     PhaseDry_ρe(param_set, ρ, e_int)
 
-A dry thermodynamic state (`q_tot = 0`) from
+Constructs a [`PhaseDry`](@ref) thermodynamic state from density and internal energy, given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `ρ` air density
+ - `e_int` internal energy per unit mass
 
- - `param_set` an [`ThermodynamicsParameters`](@ref Parameters.ThermodynamicsParameters) for more details
- - `ρ`
- - `e_int` internal energy
+This constructor directly stores the provided density and internal energy without any
+additional computations, assuming the air is completely dry.
 """
 PhaseDry_ρe(param_set::APS, ρ::FT, e_int::FT) where {FT} =
     PhaseDry{FT}(e_int, ρ)
@@ -147,11 +158,13 @@ PhaseDry_ρe(param_set::APS, ρ, e_int) =
 """
     PhaseDry_pT(param_set, p, T)
 
-Constructs a [`PhaseDry`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and temperature, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
+
+The internal energy is computed from the temperature using the dry air equation of state,
+and the density is computed from the ideal gas law using the pressure and temperature.
 """
 @inline function PhaseDry_pT(param_set::APS, p::FT, T::FT) where {FT <: Real}
     e_int = internal_energy(param_set, T)
@@ -163,11 +176,13 @@ PhaseDry_pT(param_set::APS, p, T) = PhaseDry_pT(param_set, promote(p, T)...)
 """
     PhaseDry_pe(param_set, p, e_int)
 
-Constructs a [`PhaseDry`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and internal energy, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `e_int` internal energy
+ - `e_int` internal energy per unit mass
+
+The temperature is computed from the internal energy using the dry air equation of state,
+and the density is computed from the ideal gas law using the pressure and temperature.
 """
 @inline function PhaseDry_pe(
     param_set::APS,
@@ -184,11 +199,13 @@ PhaseDry_pe(param_set::APS, p, e_int) =
 """
      PhaseDry_ph(param_set, p, h)
 
- Constructs a [`PhaseDry`](@ref) thermodynamic state from:
-
+ Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and specific enthalpy, given
   - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
   - `p` pressure
-  - `h` specific enthalpy
+  - `h` specific enthalpy per unit mass
+
+ The temperature is computed from the specific enthalpy using the dry air equation of state,
+ and the density is computed from the ideal gas law using the pressure and temperature.
  """
 @inline function PhaseDry_ph(param_set::APS, p::FT, h::FT) where {FT <: Real}
     T = air_temperature_from_enthalpy(param_set, h)
@@ -201,11 +218,13 @@ PhaseDry_ph(param_set::APS, p, h) = PhaseDry_ph(param_set, promote(p, h)...)
 """
     PhaseDry_ρθ(param_set, ρ, θ_dry)
 
-Constructs a [`PhaseDry`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseDry`](@ref) thermodynamic state from density and dry potential temperature, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `θ_dry` dry potential temperature
+
+The temperature is computed from the density and potential temperature using the dry air
+equation of state, and the internal energy is computed from the temperature.
 """
 @inline function PhaseDry_ρθ(
     param_set::APS,
@@ -222,11 +241,13 @@ PhaseDry_ρθ(param_set::APS, ρ, θ_dry) =
 """
     PhaseDry_pθ(param_set, p, θ_dry)
 
-Constructs a [`PhaseDry`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and dry potential temperature, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `θ_dry` dry potential temperature
+
+The temperature is computed from the pressure and potential temperature using the Exner function,
+and the density is computed from the ideal gas law using the pressure and temperature.
 """
 @inline function PhaseDry_pθ(
     param_set::APS,
@@ -244,11 +265,12 @@ PhaseDry_pθ(param_set::APS, p, θ_dry) =
 """
     PhaseDry_ρT(param_set, ρ, T)
 
-Constructs a [`PhaseDry`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseDry`](@ref) thermodynamic state from density and temperature, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `T` temperature
+
+The internal energy is computed directly from the temperature using the dry air equation of state.
 """
 @inline function PhaseDry_ρT(param_set::APS, ρ::FT, T::FT) where {FT <: Real}
     e_int = internal_energy(param_set, T)
@@ -259,11 +281,13 @@ PhaseDry_ρT(param_set::APS, ρ, T) = PhaseDry_ρT(param_set, promote(ρ, T)...)
 """
     PhaseDry_ρp(param_set, ρ, p)
 
-Constructs a [`PhaseDry`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseDry`](@ref) thermodynamic state from density and pressure, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `p` pressure
+
+The temperature is computed from the ideal gas law using the pressure and density,
+and the internal energy is computed from the temperature.
 """
 @inline function PhaseDry_ρp(param_set::APS, ρ::FT, p::FT) where {FT <: Real}
     T = air_temperature_from_ideal_gas_law(param_set, p, ρ)
@@ -279,8 +303,12 @@ PhaseDry_ρp(param_set::APS, ρ, p) = PhaseDry_ρp(param_set, promote(ρ, p)...)
 """
     PhaseEquil{FT} <: AbstractPhaseEquil
 
-A thermodynamic state assuming thermodynamic equilibrium (therefore, saturation adjustment
-may be needed).
+A thermodynamic state assuming thermodynamic equilibrium between water phases.
+This state assumes that the water vapor is in equilibrium with liquid and/or ice,
+requiring saturation adjustment to compute the temperature and phase partitioning.
+
+The state stores the density, pressure, internal energy, total specific humidity,
+and the computed temperature from saturation adjustment.
 
 # Constructors
 
@@ -312,17 +340,20 @@ Base.convert(::Type{PhaseEquil{FT}}, ts::PhaseEquil) where {FT} =
 """
     PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
-Moist thermodynamic phase, given
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, internal energy, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
- - `e_int` internal energy
+ - `e_int` internal energy per unit mass
  - `q_tot` total specific humidity
 and, optionally
- - `maxiter` maximum iterations for saturation adjustment
- - `relative_temperature_tol` relative temperature tolerance for saturation adjustment
- - `sat_adjust_method` the numerical method to use.
+ - `maxiter` maximum iterations for saturation adjustment (default: 8)
+ - `relative_temperature_tol` relative temperature tolerance for saturation adjustment (default: 1e-4)
+ - `sat_adjust_method` the numerical method to use for saturation adjustment (default: NewtonsMethod)
     See the [`Thermodynamics`](@ref) for options.
  - `T_guess` initial guess for temperature in saturation adjustment
+
+The temperature is computed using saturation adjustment to ensure thermodynamic equilibrium,
+and the pressure is computed from the equation of state using the temperature and density.
 """
 @inline function PhaseEquil_ρeq(
     param_set::APS,
@@ -382,17 +413,20 @@ PhaseEquil_ρeq(param_set::APS, ρ, e_int, q_tot, args...) =
 end
 
 """
-    PhaseEquil_ρθq(param_set, ρ, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_ρθq(param_set, ρ, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, T_guess])
 
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, liquid-ice potential temperature, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
- - `relative_temperature_tol` relative temperature tolerance for saturation adjustment
- - `maxiter` maximum iterations for saturation adjustment
+and, optionally
+ - `maxiter` maximum iterations for saturation adjustment (default: 36)
+ - `relative_temperature_tol` relative temperature tolerance for saturation adjustment (default: 1e-4)
  - `T_guess` initial guess for temperature in saturation adjustment
+
+The temperature is computed using saturation adjustment with respect to the liquid-ice potential temperature,
+and the pressure and internal energy are computed from the equation of state.
 """
 @inline function PhaseEquil_ρθq(
     param_set::APS,
@@ -429,12 +463,14 @@ PhaseEquil_ρθq(param_set::APS, ρ, θ_liq_ice, q_tot, args...) =
 """
     PhaseEquil_ρTq(param_set, ρ, T, q_tot)
 
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
-
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, temperature, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `T` temperature
  - `q_tot` total specific humidity
+
+The phase partitioning is computed assuming thermodynamic equilibrium at the given temperature,
+and the pressure and internal energy are computed from the equation of state.
 """
 @inline function PhaseEquil_ρTq(
     param_set::APS,
@@ -454,12 +490,14 @@ PhaseEquil_ρTq(param_set::APS, ρ, T, q_tot) =
 """
     PhaseEquil_pTq(param_set, p, T, q_tot)
 
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
-
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, temperature, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
  - `q_tot` total specific humidity
+
+The phase partitioning is computed assuming thermodynamic equilibrium at the given temperature,
+and the density and internal energy are computed from the equation of state.
 """
 @inline function PhaseEquil_pTq(
     param_set::APS,
@@ -480,13 +518,20 @@ PhaseEquil_pTq(param_set::APS, p, T, q_tot) =
 """
     PhaseEquil_peq(param_set, p, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
-
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, internal energy, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `e_int` temperature
+ - `e_int` internal energy per unit mass
  - `q_tot` total specific humidity
+and, optionally
+ - `maxiter` maximum iterations for saturation adjustment (default: 40)
+ - `relative_temperature_tol` relative temperature tolerance for saturation adjustment (default: 1e-4)
+ - `sat_adjust_method` the numerical method to use for saturation adjustment (default: SecantMethod)
+    See the [`Thermodynamics`](@ref) for options.
  - `T_guess` initial guess for temperature in saturation adjustment
+
+The temperature is computed using saturation adjustment given pressure and internal energy,
+and the density is computed from the equation of state using the pressure and temperature.
 """
 @inline function PhaseEquil_peq(
     param_set::APS,
@@ -525,13 +570,20 @@ PhaseEquil_peq(param_set::APS, p, e_int, q_tot, args...) =
 """
     PhaseEquil_phq(param_set, p, h, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
-
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, specific enthalpy, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `h` specific enthalpy
+ - `h` specific enthalpy per unit mass
  - `q_tot` total specific humidity
+and, optionally
+ - `maxiter` maximum iterations for saturation adjustment (default: 40)
+ - `relative_temperature_tol` relative temperature tolerance for saturation adjustment (default: 1e-4)
+ - `sat_adjust_method` the numerical method to use for saturation adjustment (default: SecantMethod)
+    See the [`Thermodynamics`](@ref) for options.
  - `T_guess` initial guess for temperature in saturation adjustment
+
+The temperature is computed using saturation adjustment given pressure and specific enthalpy,
+and the density and internal energy are computed from the equation of state.
 """
 @inline function PhaseEquil_phq(
     param_set::APS,
@@ -570,17 +622,21 @@ PhaseEquil_phq(param_set::APS, p, h, q_tot, args...) =
 """
     PhaseEquil_ρpq(param_set, ρ, p, q_tot[, perform_sat_adjust=true, maxiter, sat_adjust_method, T_guess])
 
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from temperature.
-
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, pressure, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `p` pressure
  - `q_tot` total specific humidity
- - `perform_sat_adjust` Bool indicating to perform saturation adjustment
- - `maxiter` maximum number of iterations to perform in saturation adjustment
- - `sat_adjust_method` the numerical method to use.
+and, optionally
+ - `perform_sat_adjust` Boolean indicating whether to perform saturation adjustment (default: false)
+ - `maxiter` maximum number of iterations to perform in saturation adjustment (default: 5)
+ - `sat_adjust_method` the numerical method to use for saturation adjustment (default: NewtonsMethodAD)
     See the [`Thermodynamics`](@ref) for options.
  - `T_guess` initial guess for temperature in saturation adjustment
+
+If `perform_sat_adjust` is true, the temperature is computed using saturation adjustment.
+Otherwise, the temperature is computed directly from the ideal gas law.
+The internal energy is computed from the temperature and phase partitioning.
 
 TODO: change input argument order: perform_sat_adjust is
       unique to this constructor, so it should be last.
@@ -629,16 +685,20 @@ PhaseEquil_ρpq(param_set::APS, ρ, p, q_tot, args...) =
 """
     PhaseEquil_pθq(param_set, p, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
-Constructs a [`PhaseEquil`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, liquid-ice potential temperature, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
- - `relative_temperature_tol` relative temperature tolerance for saturation adjustment
- - `maxiter` maximum iterations for saturation adjustment
- - `sat_adjust_method` the numerical method to use.
+and, optionally
+ - `maxiter` maximum iterations for saturation adjustment (default: 50)
+ - `relative_temperature_tol` relative temperature tolerance for saturation adjustment (default: 1e-4)
+ - `sat_adjust_method` the numerical method to use for saturation adjustment (default: SecantMethod)
+    See the [`Thermodynamics`](@ref) for options.
  - `T_guess` initial guess for temperature in saturation adjustment
+
+The temperature is computed using saturation adjustment with respect to the liquid-ice potential temperature,
+and the density and internal energy are computed from the equation of state.
 """
 @inline function PhaseEquil_pθq(
     param_set::APS,
@@ -681,8 +741,12 @@ PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...) =
 """
      PhaseNonEquil{FT} <: ThermodynamicState
 
-A thermodynamic state assuming thermodynamic non-equilibrium (therefore, temperature can
-be computed directly).
+A thermodynamic state assuming thermodynamic non-equilibrium between water phases.
+This state allows for arbitrary phase partitioning without requiring saturation adjustment,
+enabling direct computation of temperature from the given thermodynamic variables.
+
+The state stores the internal energy, density, and a complete phase partition
+specifying the distribution of water substance between vapor, liquid, and ice phases.
 
 # Constructors
 
@@ -719,12 +783,13 @@ end
 """
     PhaseNonEquil_ρTq(param_set, ρ, T, q_pt)
 
-Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from density, temperature, and phase partition, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
  - `T` temperature
  - `q_pt` phase partition
+
+The internal energy is computed from the temperature and phase partition using the equation of state.
 """
 @inline function PhaseNonEquil_ρTq(
     param_set::APS,
@@ -741,15 +806,17 @@ PhaseNonEquil_ρTq(param_set::APS, ρ, T, q_pt) =
 """
     PhaseNonEquil_ρθq(param_set, ρ, θ_liq_ice, q_pt)
 
-Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from density, liquid-ice potential temperature, and phase partition, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_pt` phase partition
 and, optionally
- - `relative_temperature_tol` potential temperature for non-linear equation solve
- - `maxiter` maximum iterations for non-linear equation solve
+ - `maxiter` maximum iterations for non-linear equation solve (default: 10)
+ - `relative_temperature_tol` relative temperature tolerance for non-linear equation solve (default: 1e-2)
+
+The temperature is computed from the density and liquid-ice potential temperature using a non-linear solver,
+and the internal energy is computed from the temperature and phase partition.
 """
 @inline function PhaseNonEquil_ρθq(
     param_set::APS,
@@ -778,12 +845,14 @@ PhaseNonEquil_ρθq(param_set::APS, ρ, θ_liq_ice, q_pt) =
 """
     PhaseNonEquil_pθq(param_set, p, θ_liq_ice, q_pt)
 
-Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, liquid-ice potential temperature, and phase partition, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_pt` phase partition
+
+The temperature is computed from the pressure and liquid-ice potential temperature,
+and the density and internal energy are computed from the equation of state.
 """
 @inline function PhaseNonEquil_pθq(
     param_set::APS,
@@ -802,12 +871,14 @@ PhaseNonEquil_pθq(param_set::APS, p, θ_liq_ice, q_pt) =
 """
     PhaseNonEquil_pTq(param_set, p, T, q_pt)
 
-Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, temperature, and phase partition, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` air temperature
  - `q_pt` phase partition
+
+The density is computed from the ideal gas law using the pressure and temperature,
+and the internal energy is computed from the temperature and phase partition.
 """
 @inline function PhaseNonEquil_pTq(
     param_set::APS,
@@ -825,12 +896,14 @@ PhaseNonEquil_pTq(param_set::APS, p, T, q_pt) =
 """
     PhaseNonEquil_peq(param_set, p, e_int, q_pt)
 
-Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, internal energy, and phase partition, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `e_int` internal energy
+ - `e_int` internal energy per unit mass
  - `q_pt` phase partition
+
+The temperature is computed from the internal energy and phase partition using the equation of state,
+and the density is computed from the ideal gas law using the pressure and temperature.
 """
 @inline function PhaseNonEquil_peq(
     param_set::APS,
@@ -846,14 +919,16 @@ PhaseNonEquil_peq(param_set::APS, p, e_int, q_pt) =
     PhaseNonEquil_peq(param_set, promote_phase_partition(p, e_int, q_pt)...)
 
 """
-    PhaseNonEquil_phq(param_set, p, e_int, q_pt)
+    PhaseNonEquil_phq(param_set, p, h, q_pt)
 
-Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, specific enthalpy, and phase partition, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `h` specific enthalpy
+ - `h` specific enthalpy per unit mass
  - `q_pt` phase partition
+
+The temperature is computed from the specific enthalpy and phase partition using the equation of state,
+and the density and internal energy are computed from the equation of state.
 """
 @inline function PhaseNonEquil_phq(
     param_set::APS,
@@ -872,12 +947,14 @@ PhaseNonEquil_phq(param_set::APS, p, h, q_pt) =
 """
     PhaseNonEquil_ρpq(param_set, ρ, p, q_pt)
 
-Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from:
-
+Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from density, pressure, and phase partition, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `p` pressure
  - `q_pt` phase partition
+
+The temperature is computed from the ideal gas law using the pressure and density,
+and the internal energy is computed from the temperature and phase partition.
 """
 @inline function PhaseNonEquil_ρpq(
     param_set::APS,

@@ -53,7 +53,7 @@ Ice
 Liquid
 ```
 
-## Thermodynamic state methods
+## Thermodynamic functions
 
 ```@docs
 air_density
@@ -89,6 +89,8 @@ virtual_dry_static_energy
 q_vap_saturation
 q_vap_saturation_liquid
 q_vap_saturation_ice
+partial_pressure_vapor
+partial_pressure_dry
 relative_humidity
 saturated
 saturation_adjustment
@@ -101,6 +103,7 @@ supersaturation
 total_energy
 total_specific_enthalpy
 total_specific_humidity
+vapor_pressure_deficit_liquid
 vapor_specific_humidity
 virtual_pottemp
 virtual_temperature
@@ -108,7 +111,7 @@ specific_entropy
 q_vap_from_RH_liquid
 ```
 
-## Internal methods
+## Internal Methods
 
 ```@docs
 shum_to_mixing_ratio
@@ -118,7 +121,7 @@ PhasePartition_equil
 PhasePartition_equil_given_p
 ```
 
-## Dispatch types
+## Dispatch Types
 
 ```@docs
 DryAdiabaticProcess
@@ -132,13 +135,13 @@ TemperatureProfiles.DryAdiabaticProfile
 TemperatureProfiles.DecayingTemperatureProfile
 ```
 
-## Tested profiles
+## Tested Profiles
 
 ```@docs
 Thermodynamics.TestedProfiles
 ```
 
-## Data collection
+## Data Collection
 
 ```@docs
 Thermodynamics.DataCollection

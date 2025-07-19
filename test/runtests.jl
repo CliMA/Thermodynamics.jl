@@ -1,6 +1,29 @@
+# Thermodynamics.jl Test Suite
+# 
+# This file runs the complete test suite for the Thermodynamics package.
+# Tests are organized into the following categories:
+# 
+# 1. Aqua tests: Code quality and performance checks (disabled due to system issues)
+# 2. TemperatureProfiles: Physical consistency of temperature profiles
+# 3. Relations: Core thermodynamic functions and state constructors
+# 4. Data tests: Robustness testing with realistic atmospheric data
+# 5. GPU tests: GPU compatibility and kernel testing (run separately)
+#
+# To run GPU tests: julia --project=. test/runtests_gpu.jl CuArray
+
+# Run Aqua tests for code quality and performance
+# Temporarily disabled due to system-level precompilation issues
+# include("aqua.jl")
+
+# Run aqua tests
 include("aqua.jl")
+
+# Run temperature profile tests for physical consistency
 include("TemperatureProfiles.jl")
+
+# Run core thermodynamic function tests
 include("relations.jl")
 
+# Clean up any temporary files created during testing
 rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
 rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)

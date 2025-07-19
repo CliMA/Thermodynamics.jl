@@ -1,11 +1,8 @@
 """
     TestedProfiles
 
-Tested thermodynamic profiles
-
-This module contains functions to compute all of the
-thermodynamic _states_ that Thermodynamics is
-tested with in runtests.jl
+This module contains functions to compute all of the thermodynamic 
+_states_ that Thermodynamics is tested with in runtests.jl
 """
 module TestedProfiles
 
