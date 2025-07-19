@@ -48,7 +48,6 @@ pages = Any[
     "Mathematical Formulation" => "Formulation.md",
     "API Reference" => "API.md",
     "How-To Guide" => "HowToGuide.md",
-    # "Examples" => example_pages,  # Examples removed
     "Temperature Profiles" => "TemperatureProfiles.md",
     "Tested Profiles" => "TestedProfiles.md",
     "Clausius-Clapeyron Validation" => "Clausius_Clapeyron.md",

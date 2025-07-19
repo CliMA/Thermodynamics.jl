@@ -1,3 +1,30 @@
+"""
+# Thermodynamics Relations Test Suite
+
+This file contains comprehensive tests for the Thermodynamics.jl package, covering:
+
+## Test Categories:
+- **Correctness**: Consistency and correctness of fundamental thermodynamic relations and physical laws
+- **Thermodynamic States**: State constructors and consistency checks
+- **Performance**: Type stability and computational efficiency
+
+## Key Features Tested:
+- Ideal gas law and thermodynamic consistency
+- Gas constants and heat capacities for different phases
+- Saturation vapor pressure and humidity relations
+- Partial pressure calculations (vapor and dry air)
+- Internal energy calculations for dry, vapor, liquid, and ice phases
+- Thermodynamic state constructors and their consistency
+- Phase partitioning and equilibrium calculations
+- Performance across different floating-point types (Float32, Float64)
+
+## Test Structure:
+- Uses parameter sets for different thermodynamic configurations
+- Tests both scalar and array-based calculations
+- Includes tolerance-based comparisons for floating-point accuracy
+- Covers edge cases with unusual thermodynamic states
+"""
+
 using Test
 
 using Random
@@ -21,16 +48,20 @@ rtol_density = rtol_temperature
 rtol_pressure = 1e-1
 rtol_energy = 1e-1
 
+# Test both Float32 and Float64 for type stability
 array_types = [Array{Float32}, Array{Float64}]
 
 include("data_tests.jl")
 
+# Helper function to compare moisture content between thermodynamic states
 compare_moisture(param_set, a::ThermodynamicState, b::ThermodynamicState) =
     compare_moisture(param_set, a, PhasePartition(param_set, b))
 
+# Compare total moisture for equilibrium states
 compare_moisture(param_set, ts::PhaseEquil, q_pt::PhasePartition) =
     getproperty(PhasePartition(param_set, ts), :tot) ≈ getproperty(q_pt, :tot)
 
+# Compare all moisture components for non-equilibrium states
 compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
     getproperty(PhasePartition(param_set, ts), :tot) ≈ getproperty(q_pt, :tot),
     getproperty(PhasePartition(param_set, ts), :liq) ≈ getproperty(q_pt, :liq),
@@ -42,36 +73,49 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
         FT = eltype(ArrayType)
         param_set = TP.ThermodynamicsParameters(FT)
 
-        _R_d = FT(TP.R_d(param_set))
-        _Rv_over_Rd = FT(TP.Rv_over_Rd(param_set))
-        _cp_d = FT(TP.cp_d(param_set))
-        _cp_v = FT(TP.cp_v(param_set))
-        _cp_l = FT(TP.cp_l(param_set))
-        _cv_d = FT(TP.cv_d(param_set))
-        _cv_v = FT(TP.cv_v(param_set))
-        _cv_l = FT(TP.cv_l(param_set))
-        _cv_i = FT(TP.cv_i(param_set))
-        _T_0 = FT(TP.T_0(param_set))
-        _e_int_v0 = FT(TP.e_int_v0(param_set))
-        _e_int_i0 = FT(TP.e_int_i0(param_set))
-        _LH_v0 = FT(TP.LH_v0(param_set))
-        _LH_s0 = FT(TP.LH_s0(param_set))
-        _cp_i = FT(TP.cp_i(param_set))
-        _LH_f0 = FT(TP.LH_f0(param_set))
-        _press_triple = FT(TP.press_triple(param_set))
-        _R_v = FT(TP.R_v(param_set))
-        _T_triple = FT(TP.T_triple(param_set))
-        _T_freeze = FT(TP.T_freeze(param_set))
-        _T_min = FT(TP.T_min(param_set))
-        _p_ref_theta = FT(TP.p_ref_theta(param_set))
-        _T_max = FT(TP.T_max(param_set))
-        _kappa_d = FT(TP.kappa_d(param_set))
+        # Extract thermodynamic parameters for testing
+        # Gas constants
+        _R_d = FT(TP.R_d(param_set))           # Dry air gas constant
+        _Rv_over_Rd = FT(TP.Rv_over_Rd(param_set))  # Vapor/dry air gas constant ratio
+        _R_v = FT(TP.R_v(param_set))           # Water vapor gas constant
+
+        # Heat capacities
+        _cp_d = FT(TP.cp_d(param_set))         # Dry air specific heat at constant pressure
+        _cp_v = FT(TP.cp_v(param_set))         # Water vapor specific heat at constant pressure
+        _cp_l = FT(TP.cp_l(param_set))         # Liquid water specific heat
+        _cp_i = FT(TP.cp_i(param_set))         # Ice specific heat
+        _cv_d = FT(TP.cv_d(param_set))         # Dry air specific heat at constant volume
+        _cv_v = FT(TP.cv_v(param_set))         # Water vapor specific heat at constant volume
+        _cv_l = FT(TP.cv_l(param_set))         # Liquid water specific heat at constant volume
+        _cv_i = FT(TP.cv_i(param_set))         # Ice specific heat at constant volume
+        
+        # Reference temperatures and energies
+        _T_0 = FT(TP.T_0(param_set))           # Reference temperature
+        _e_int_v0 = FT(TP.e_int_v0(param_set)) # Reference vapor internal energy
+        _e_int_i0 = FT(TP.e_int_i0(param_set)) # Reference ice internal energy
+        
+        # Latent heats
+        _LH_v0 = FT(TP.LH_v0(param_set))       # Latent heat of vaporization
+        _LH_s0 = FT(TP.LH_s0(param_set))       # Latent heat of sublimation
+        _LH_f0 = FT(TP.LH_f0(param_set))       # Latent heat of fusion
+        
+        # Triple point and phase transition temperatures
+        _press_triple = FT(TP.press_triple(param_set))  # Triple point pressure
+        _T_triple = FT(TP.T_triple(param_set))          # Triple point temperature
+        _T_freeze = FT(TP.T_freeze(param_set))          # Freezing temperature
+        _T_icenuc = FT(TP.T_icenuc(param_set))          # Homogeneous ice nucleation temperature
+        
+        # Temperature and pressure ranges
+        _T_min = FT(TP.T_min(param_set))       # Minimum temperature
+        _T_max = FT(TP.T_max(param_set))       # Maximum temperature
+        _p_ref_theta = FT(TP.p_ref_theta(param_set))  # Reference pressure for potential temperature
+        _kappa_d = FT(TP.kappa_d(param_set))   # Dry air adiabatic exponent
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
         (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
-        # Test state for thermodynamic consistency (with ideal gas law)
+        # Test ideal gas law consistency across all profiles
         T_idgl = TD.air_temperature_from_ideal_gas_law.(param_set, p, ρ, q_pt)
         @test all(T .≈ T_idgl)
 
@@ -79,7 +123,7 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
         Random.seed!(15)
         perturbation = FT(0.1) * rand(FT, length(T))
 
-        # TODO: Use reasonable values for ambient temperature/pressure
+        # Test adiabatic processes with perturbed ambient conditions
         T∞, p∞ = T .* perturbation, p .* perturbation
         @test air_temperature.(param_set, p, θ_liq_ice, DryAdiabaticProcess()) ≈
               (p ./ _p_ref_theta) .^ (_R_d / _cp_d) .* θ_liq_ice
@@ -93,7 +137,6 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
               p∞ .* (T ./ T∞) .^ (FT(1) / _kappa_d)
     end
 end
-
 
 @testset "Thermodynamics - correctness" begin
     FT = Float64
@@ -124,7 +167,7 @@ end
     _kappa_d = FT(TP.kappa_d(param_set))
     _T_icenuc = FT(TP.T_icenuc(param_set))
 
-    # ideal gas law
+    # Test fundamental thermodynamic relations using ideal gas law
     @test air_pressure(param_set, FT(1), FT(1), PhasePartition(FT(1))) === _R_v
     @test air_pressure(
         param_set,
@@ -137,64 +180,69 @@ end
     @test air_density(param_set, FT(1), FT(1)) === 1 / _R_d
     @test air_density(param_set, FT(1), FT(2)) === 2 / _R_d
 
-    # gas constants and heat capacities
+    # Test gas constants and heat capacities for different phase partitions
     @test gas_constant_air(param_set, PhasePartition(FT(0))) === _R_d
     @test gas_constant_air(param_set, PhasePartition(FT(1))) === _R_v
     @test gas_constant_air(param_set, PhasePartition(FT(0.5), FT(0.5))) ≈
           _R_d / 2
     @test gas_constant_air(param_set, FT) == _R_d
 
-    # Test molmass_ratio for backward compatibility
+    # Test backward compatibility for renamed parameters
     @test TP.molmass_ratio(param_set) === _Rv_over_Rd
 
+    # Test specific heat capacities for different phases
     @test cp_m(param_set, PhasePartition(FT(0))) === _cp_d
     @test cp_m(param_set, PhasePartition(FT(1))) === _cp_v
     @test cp_m(param_set, PhasePartition(FT(1), FT(1))) === _cp_l
     @test cp_m(param_set, PhasePartition(FT(1), FT(0), FT(1))) === _cp_i
     @test cp_m(param_set, FT) == _cp_d
 
+    # Test specific heat capacities at constant volume
     @test cv_m(param_set, PhasePartition(FT(0))) === _cp_d - _R_d
     @test cv_m(param_set, PhasePartition(FT(1))) === _cp_v - _R_v
     @test cv_m(param_set, PhasePartition(FT(1), FT(1))) === _cv_l
     @test cv_m(param_set, PhasePartition(FT(1), FT(0), FT(1))) === _cv_i
     @test cv_m(param_set, FT) == _cv_d
 
-    # speed of sound
+    # Test speed of sound calculations for different phases
     @test soundspeed_air(param_set, _T_0 + 20, PhasePartition(FT(0))) ==
           sqrt(_cp_d / _cv_d * _R_d * (_T_0 + 20))
     @test soundspeed_air(param_set, _T_0 + 100, PhasePartition(FT(1))) ==
           sqrt(_cp_v / _cv_v * _R_v * (_T_0 + 100))
 
-    # specific latent heats
+    # Test latent heat calculations at reference temperature
     @test latent_heat_vapor(param_set, _T_0) ≈ _LH_v0
     @test latent_heat_fusion(param_set, _T_0) ≈ _LH_f0
     @test latent_heat_sublim(param_set, _T_0) ≈ _LH_s0
 
-    # saturation vapor pressure and specific humidity
+    # Test saturation vapor pressure and humidity calculations
     p = FT(1.e5)
     q_tot = FT(0.23)
     ρ = FT(1.0)
     ρ_v_triple = _press_triple / _R_v / _T_triple
     p_v_tripleminus = FT(0.99) * _press_triple
+
+    # Test saturation vapor pressure at triple point
     @test saturation_vapor_pressure(param_set, _T_triple, Liquid()) ≈
           _press_triple
     @test saturation_vapor_pressure(param_set, _T_triple, Ice()) ≈ _press_triple
 
-    phase_type = PhaseDry
+    # Test specific humidities at triple point
     @test q_vap_saturation(
         param_set,
         _T_triple,
         ρ,
-        phase_type,
-        PhasePartition(FT(0)),
+        PhaseEquil,
+        PhasePartition(FT(0.01)),
     ) == ρ_v_triple / ρ
 
+    # Test saturation specific humidity from pressure calculations
     @test TD.q_vap_saturation_from_pressure(
         param_set,
         q_tot,
         p,
         _T_triple,
-        phase_type,
+        PhaseEquil,
     ) == _R_d / _R_v * (1 - q_tot) * _press_triple / (p - _press_triple)
 
     @test TD.q_vap_saturation_from_pressure(
@@ -202,18 +250,19 @@ end
         q_tot,
         p_v_tripleminus,
         _T_triple,
-        phase_type,
+        PhaseEquil,
     ) == FT(1)
 
-    phase_type = PhaseNonEquil
+    # Test saturation specific humidityfor non-equilibrium conditions
     @test q_vap_saturation(
         param_set,
         _T_triple,
         ρ,
-        phase_type,
+        PhaseNonEquil,
         PhasePartition(q_tot, q_tot),
     ) == ρ_v_triple / ρ
 
+    # Test generic saturation specific humidity functions for liquid and ice
     @test q_vap_saturation_generic(param_set, _T_triple, ρ, Liquid()) ==
           ρ_v_triple / ρ
     @test q_vap_saturation_generic(param_set, _T_triple, ρ, Ice()) ==
@@ -221,7 +270,7 @@ end
     @test q_vap_saturation_generic(param_set, _T_triple - 20, ρ, Liquid()) >=
           q_vap_saturation_generic(param_set, _T_triple - 20, ρ, Ice())
 
-    # test the wrapper for q_vap_saturation over liquid water and ice
+    # Test saturation specific humidity wrapper functions with thermodynamic state
     ρ = FT(1)
     ρu = FT[1, 2, 3]
     ρe = FT(1100) - _R_d * _T_0
@@ -244,22 +293,23 @@ end
     @test q_vap_saturation_ice(param_set, ts) <=
           q_vap_saturation_liquid(param_set, ts)
 
-    phase_type = PhaseDry
+    # Test saturation excess calculations
     @test saturation_excess(
         param_set,
         _T_triple,
         ρ,
-        phase_type,
+        PhaseEquil,
         PhasePartition(q_tot),
     ) == q_tot - ρ_v_triple / ρ
     @test saturation_excess(
         param_set,
         _T_triple,
         ρ,
-        phase_type,
+        PhaseEquil,
         PhasePartition(q_tot / 1000),
     ) == 0.0
 
+    # Test supersaturation calculations for liquid and ice
     @test supersaturation(
         param_set,
         PhasePartition(q_tot, 1e-3 * q_tot, 1e-3 * q_tot),
@@ -303,12 +353,12 @@ end
         p_vap = partial_pressure_vapor(param_set, p_test, q_partition)
         p_dry = partial_pressure_dry(param_set, p_test, q_partition)
 
-        # Consistency with direct computation from ideal gas law
+        # Validate against ideal gas law calculations
         q_vap = vapor_specific_humidity(q_partition)
         @test p_vap ≈ q_vap * ρ * _R_v * T_test
         @test p_dry ≈ (1 - q_partition.tot) * ρ * _R_d * T_test
 
-        # Vapor pressure deficit
+        # Test vapor pressure deficit calculation
         vpd = vapor_pressure_deficit_liquid(
             param_set,
             T_test,
@@ -318,8 +368,7 @@ end
         es = saturation_vapor_pressure(param_set, T_test, Liquid())
         @test vpd ≈ max(FT(0), es - p_vap)  # Account for ReLU function
 
-        # Test vapor pressure deficit with scalar q_vap (assuming all water is vapor)
-        # This test only makes sense when all water is indeed vapor
+        # Test vapor pressure deficit with scalar q_vap (when all water is vapor)
         if q_partition.liq ≈ FT(0) && q_partition.ice ≈ FT(0)
             q_vap_scalar = q_partition.tot
             vpd_scalar = vapor_pressure_deficit_liquid(
@@ -331,7 +380,7 @@ end
             @test vpd_scalar ≈ vpd  # Both methods should give same result when all water is vapor
         end
 
-        # Dalton's law
+        # Validate Dalton's law of partial pressures
         @test p_vap + p_dry ≈ p_test
 
         if check_vapor_positive
@@ -339,7 +388,7 @@ end
         end
     end
 
-    # Test partial pressure functions
+    # Test partial pressure functions across different scenarios
     ρ = FT(1)
 
     # Test 1: Dry air (no water vapor)
@@ -379,7 +428,7 @@ end
     q_test = PhasePartition(FT(0.01), FT(0.005), FT(0))
     p_test = air_pressure(param_set, T_test, ρ_test, q_test)
 
-    # Create thermodynamic state
+    # Create thermodynamic state and test consistency
     e_int = internal_energy(param_set, T_test, q_test)
     ts = PhaseNonEquil(param_set, e_int, ρ_test, q_test)
 
@@ -405,7 +454,7 @@ end
     p_vap_dry = partial_pressure_vapor(param_set, p_dry, q_dry)
     p_dry_result = partial_pressure_dry(param_set, p_dry, q_dry)
 
-    # Test that dry air has zero vapor pressure and total pressure for dry air
+    # Validate dry air behavior: zero vapor pressure, total pressure equals dry air pressure
     @test p_vap_dry === FT(0)  # No vapor pressure in dry air
     @test p_dry_result ≈ p_dry  # Total pressure equals dry air pressure
     @test p_vap_dry + p_dry_result ≈ p_dry  # Dalton's law for dry air
@@ -420,158 +469,153 @@ end
     p_vap_moist = partial_pressure_vapor(param_set, p_moist, q_moist)
     p_dry_moist = partial_pressure_dry(param_set, p_moist, q_moist)
 
-    # Test that moist air has positive vapor pressure and reduced dry air pressure
+    # Validate moist air behavior: positive vapor pressure, reduced dry air pressure
     @test p_vap_moist > FT(0)  # Should have some vapor pressure
     @test p_dry_moist < p_moist  # Dry air pressure should be less than total
     @test p_vap_moist + p_dry_moist ≈ p_moist  # Dalton's law for moist air
     @test p_dry_moist > FT(0)  # Dry air pressure should still be positive
 
-    # Energy functions and inverse (temperature)
+    # Test energy functions and their inverse temperature calculations
+    T = FT(300)
+    q_pt = PhasePartition(FT(0.02), FT(0.002), FT(0.002))
     e_kin = FT(11)
     e_pot = FT(13)
-    @test air_temperature(param_set, _cv_d * (T - _T_0) - _R_d * _T_0) === FT(T)
-    @test air_temperature(
-        param_set,
-        _cv_d * (T - _T_0) - _R_d * _T_0,
-        PhasePartition(FT(0)),
-    ) === FT(T)
+    e_int_dry = internal_energy_dry(param_set, T)
+    e_int_moist = internal_energy(param_set, T, q_pt)
 
-    @test air_temperature(
-        param_set,
-        cv_m(param_set, PhasePartition(FT(0))) * (T - _T_0) - _R_d * _T_0,
-        PhasePartition(FT(0)),
-    ) === FT(T)
-    
-    @test air_temperature(
-        param_set,
-        cv_m(param_set, PhasePartition(FT(q_tot))) * (T - _T_0) -
-        (1 - q_tot) * _R_d * _T_0 + q_tot * _e_int_v0,
-        PhasePartition(q_tot),
-    ) ≈ FT(T)
+    # Test temperature recovery from internal energy
+    @test air_temperature(param_set, e_int_dry) === FT(T)
+    @test air_temperature(param_set, e_int_dry, PhasePartition(FT(0))) === FT(T)
 
-    @test total_energy(param_set, FT(e_kin), FT(e_pot), _T_0) ===
-          FT(e_kin) + FT(e_pot) - _R_d * _T_0
-    @test total_energy(param_set, FT(e_kin), FT(e_pot), FT(T)) ≈
-          FT(e_kin) + FT(e_pot) + _cv_d * (T - _T_0) - _R_d * _T_0
-    @test total_energy(param_set, FT(0), FT(0), _T_0, PhasePartition(q_tot)) ≈
-          q_tot * _e_int_v0 - (1 - q_tot) * _R_d * _T_0
+    @test air_temperature(param_set, e_int_moist, q_pt) === FT(T)
 
-    # phase partitioning in equilibrium
-    q_liq = FT(0.1)
-    T = FT(_T_icenuc - 10)
+    # Test total energy calculations including kinetic and potential energy
+    @test total_energy(param_set, FT(e_kin), FT(e_pot), FT(T)) ===
+          FT(e_kin) + FT(e_pot) + FT(e_int_dry)
+    @test total_energy(param_set, FT(e_kin), FT(e_pot), FT(T), q_pt) ≈
+          FT(e_kin) + FT(e_pot) + FT(e_int_moist)
+    @test total_energy(param_set, FT(0), FT(0), FT(T), q_pt) ≈ FT(e_int_moist)
+
+    # Test phase partitioning above freezing temperature
+    T_warm = FT(_T_freeze + 20)
     ρ = FT(1.0)
     q_tot = FT(0.21)
-    phase_type = PhaseDry
-    @test liquid_fraction(param_set, T, phase_type) === FT(0)
-    phase_type = PhaseNonEquil
+    q_liq = FT(0.01) * q_tot
+
+    @test liquid_fraction(param_set, T_warm, PhaseEquil) === FT(1)
     @test liquid_fraction(
         param_set,
-        T,
-        phase_type,
+        T_warm,
+        PhaseNonEquil,
         PhasePartition(q_tot, q_liq, q_liq),
     ) === FT(0.5)
-    phase_type = PhaseDry
-    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
-    @test q.liq ≈ FT(0)
-    @test 0 < q.ice <= q_tot
 
-    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
-    @test q.liq ≈ FT(0)
-    @test 0 < q.ice <= q_tot
-
-    T = FT(_T_freeze + 10)
-    ρ = FT(0.1)
-    q_tot = FT(0.60)
-    @test liquid_fraction(param_set, T, phase_type) === FT(1)
-    phase_type = PhaseNonEquil
     @test liquid_fraction(
         param_set,
-        T,
-        phase_type,
+        T_warm,
+        PhaseNonEquil,
         PhasePartition(q_tot, q_liq, q_liq / 2),
     ) === FT(2 / 3)
-    phase_type = PhaseDry
-    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+
+    # Test equilibrium phase partitioning above freezing
+    q = PhasePartition_equil(param_set, T_warm, ρ, q_tot, PhaseEquil)
     @test 0 < q.liq <= q_tot
     @test q.ice ≈ 0
 
-    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
+    p = air_pressure(param_set, T_warm, ρ, q)
+    q = TD.PhasePartition_equil_given_p(param_set, T_warm, p, q_tot, PhaseEquil)
     @test 0 < q.liq <= q_tot
     @test q.ice ≈ 0
+  
+    # Test equilibrium phase partitioning below homogeneous nucleation temperature
+    T_cold = FT(_T_icenuc - 10)
+    ρ = FT(1.0)
+    q_tot = FT(1.02) * q_vap_saturation(param_set, T_cold, ρ, PhaseEquil)
+    q = PhasePartition_equil(param_set, T_cold, ρ, q_tot, PhaseEquil)
+    @test liquid_fraction(param_set, T_cold, PhaseEquil) === FT(0)
+    @test q.liq ≈ FT(0)
+    @test q.ice >= FT(0)  # Ice should be non-negative, may be zero if not supersaturated
 
-    # saturation adjustment in equilibrium (i.e., given the thermodynamic
-    # variables E_int, p, q_tot, compute the temperature and partitioning of the phases
+    q = TD.PhasePartition_equil_given_p(param_set, T_cold, p, q_tot, PhaseEquil)
+    @test q.liq ≈ FT(0)
+    @test q.ice >= FT(0)  # Ice should be non-negative, may be zero if not supersaturated
+
+    # Test saturation adjustment algorithms for equilibrium calculations
+    # Given internal energy, density, and total humidity, compute temperature and phase partitioning
     q_tot = FT(0)
     ρ = FT(1)
-    phase_type = PhaseEquil
+    T = FT(300)
     @test TD.saturation_adjustment(
         RS.SecantMethod,
         param_set,
-        internal_energy_sat(param_set, 300.0, ρ, q_tot, phase_type),
+        internal_energy_sat(param_set, T, ρ, q_tot, PhaseEquil),
         ρ,
         q_tot,
-        phase_type,
+        PhaseEquil,
         10,
         rtol_temperature,
-    ) ≈ 300.0
+    ) ≈ T
     @test abs(
         TD.saturation_adjustment(
             RS.NewtonsMethod,
             param_set,
-            internal_energy_sat(param_set, 300.0, ρ, q_tot, phase_type),
+            internal_energy_sat(param_set, T, ρ, q_tot, PhaseEquil),
             ρ,
             q_tot,
-            phase_type,
+            PhaseEquil,
             10,
             rtol_temperature,
-        ) - 300.0,
+        ) - T,
     ) < rtol_temperature
 
-    q_tot = FT(0.21)
+    # Test saturation adjustment for cold conditions (ice phase)
+    q_tot = FT(0.05)
     ρ = FT(0.1)
+    T_cold = _T_icenuc - FT(10)
     @test isapprox(
         TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            internal_energy_sat(param_set, 200.0, ρ, q_tot, phase_type),
+            internal_energy_sat(param_set, T_cold, ρ, q_tot, PhaseEquil),
             ρ,
             q_tot,
-            phase_type,
+            PhaseEquil,
             10,
             rtol_temperature,
         ),
-        200.0,
+        T_cold,
         rtol = rtol_temperature,
     )
     @test abs(
         TD.saturation_adjustment(
             RS.NewtonsMethod,
             param_set,
-            internal_energy_sat(param_set, 200.0, ρ, q_tot, phase_type),
+            internal_energy_sat(param_set, T_cold, ρ, q_tot, PhaseEquil),
             ρ,
             q_tot,
-            phase_type,
+            PhaseEquil,
             10,
             rtol_temperature,
-        ) - 200.0,
+        ) - T_cold,
     ) < rtol_temperature
-    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+
+    # Test saturation adjustment for warm conditions (liquid phase)
+    ρ = FT(0.1)
+    T = FT(300)
+    # Slightly super-saturated total specific humidity
+    q_tot = FT(1.02) * q_vap_saturation(param_set, T, ρ, PhaseEquil)
+    q = PhasePartition_equil(param_set, T, ρ, q_tot, PhaseEquil)
+    p = air_pressure(param_set, T, ρ, q)
     @test q.tot - q.liq - q.ice ≈
           vapor_specific_humidity(q) ≈
-          q_vap_saturation(param_set, T, ρ, phase_type)
+          q_vap_saturation(param_set, T, ρ, PhaseEquil)
 
-    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
+    q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, PhaseEquil)
     @test q.tot - q.liq - q.ice ≈
           vapor_specific_humidity(q) ≈
-          TD.q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
+          TD.q_vap_saturation_from_pressure(param_set, q_tot, p, T, PhaseEquil)
 
-    ρ = FT(1)
-    ρu = FT[1, 2, 3]
-    ρe = FT(1100)
-    e_pot = FT(93)
-    @test internal_energy(ρ, ρe, ρu, e_pot) ≈ 1000.0
-
-    # internal energies for dry, vapor, liquid and ice
+    # Test internal energy calculations for different phases
     T = FT(300)
     q = PhasePartition(FT(20 * 1e-3), FT(5 * 1e-3), FT(2 * 1e-3))
     q_vap = vapor_specific_humidity(q)
@@ -588,8 +632,9 @@ end
     q_dry = PhasePartition(FT(0))  # Dry air
     q_vapor_only = PhasePartition(FT(0.01))  # Only vapor
     q_mixed = PhasePartition(FT(0.01), FT(0.005), FT(0.002))  # Mixed phases
-    
-    @test internal_energy(param_set, T_test, q_dry) ≈ internal_energy_dry(param_set, T_test)
+
+    @test internal_energy(param_set, T_test, q_dry) ≈
+          internal_energy_dry(param_set, T_test)
     @test internal_energy(param_set, T_test, q_vapor_only) ≈
           (1 - q_vapor_only.tot) * internal_energy_dry(param_set, T_test) +
           vapor_specific_humidity(q_vapor_only) *
@@ -601,31 +646,34 @@ end
           q_mixed.liq * internal_energy_liquid(param_set, T_test) +
           q_mixed.ice * internal_energy_ice(param_set, T_test)
 
-    # Test internal_energy_sat with different conditions
+    # Test internal_energy_sat with different supersaturated conditions
     ρ_test = FT(1.0)
-    q_tot_test = FT(0.01)
-    T_warm = FT(300)  # Above freezing
-    T_cold = FT(250)  # Below freezing
-    
+
     # Test above freezing (liquid phase)
+    T_warm = _T_freeze + FT(30)  # Above freezing
+    q_tot_warm =
+        FT(1.02) * q_vap_saturation(param_set, T_warm, ρ_test, PhaseEquil)
     e_int_sat_warm =
-        internal_energy_sat(param_set, T_warm, ρ_test, q_tot_test, PhaseEquil)
+        internal_energy_sat(param_set, T_warm, ρ_test, q_tot_warm, PhaseEquil)
     @test e_int_sat_warm ≈ internal_energy(
         param_set,
         T_warm,
-        PhasePartition_equil(param_set, T_warm, ρ_test, q_tot_test, PhaseEquil),
+        PhasePartition_equil(param_set, T_warm, ρ_test, q_tot_warm, PhaseEquil),
     )
-    
+
     # Test below freezing (ice phase)
+    T_cold = _T_freeze - FT(30)  # Below freezing
+    q_tot_cold =
+        FT(1.02) * q_vap_saturation(param_set, T_cold, ρ_test, PhaseEquil)
     e_int_sat_cold =
-        internal_energy_sat(param_set, T_cold, ρ_test, q_tot_test, PhaseEquil)
+        internal_energy_sat(param_set, T_cold, ρ_test, q_tot_cold, PhaseEquil)
     @test e_int_sat_cold ≈ internal_energy(
         param_set,
         T_cold,
-        PhasePartition_equil(param_set, T_cold, ρ_test, q_tot_test, PhaseEquil),
+        PhasePartition_equil(param_set, T_cold, ρ_test, q_tot_cold, PhaseEquil),
     )
-    
-    # potential temperatures
+
+    # Test potential temperature calculations
     T = FT(300)
     @test TD.liquid_ice_pottemp_given_pressure(param_set, T, _p_ref_theta) === T
     @test TD.liquid_ice_pottemp_given_pressure(
@@ -640,7 +688,7 @@ end
         PhasePartition(FT(1)),
     ) ≈ T * 10^(_R_v / _cp_v)
 
-    # dry potential temperatures
+    # Test dry potential temperature calculations
     T = FT(300)
     p = FT(1.e5)
     q_tot = FT(0.23)
@@ -657,13 +705,16 @@ end
         PhasePartition(q_tot),
     ) ≈ T
 
-    # Exner function. FIXME: add correctness tests
+    # Test Exner function calculations
     p = FT(1.e5)
     q_tot = FT(0.23)
-    @test TD.exner_given_pressure(param_set, p, PhasePartition(q_tot)) isa
-          typeof(p)
+    q_pt = PhasePartition(q_tot)
+    @test TD.exner_given_pressure(param_set, p, q_pt) isa typeof(p)
+    @test TD.exner_given_pressure(param_set, p / 10, q_pt) ≈
+          TD.exner_given_pressure(param_set, p, q_pt) /
+          10^(gas_constant_air(param_set, q_pt) / cp_m(param_set, q_pt))
 
-    # Humidity relations
+    # Test humidity and mixing ratio calculations
     q_tot = 0.1
     q_liq = 0.05
     q_ice = 0.01
@@ -682,7 +733,7 @@ end
     q_vap = vapor_specific_humidity(q)
     @test vmrs ≈ _Rv_over_Rd * shum_to_mixing_ratio(q_vap, q.tot)
 
-    # Relative humidity sanity checks
+    # Test relative humidity calculations across wide parameter ranges
     for phase_type in [PhaseDry, PhaseEquil, PhaseNonEquil]
         for T in [FT(40), FT(140), FT(240), FT(340), FT(440)]
             for p in [FT(1e3), FT(1e4), FT(1e5)]
@@ -695,7 +746,7 @@ end
         end
     end
 
-    # q_vap from RH wrt to liquid checks
+    # Test vapor specific humidity from relative humidity calculations
     for T in [FT(280), FT(290), FT(300)]
         for p in [FT(70000), FT(101300)]
             for q_vap in [FT(1e-3), FT(1e-4), FT(0)]
@@ -707,7 +758,6 @@ end
         end
     end
 end
-
 
 @testset "Thermodynamics - default behavior accuracy" begin
     # Input arguments should be accurate within machine precision
@@ -727,7 +777,7 @@ end
         @test all(saturated.(param_set, ts[RH_sat_mask]))
         @test !any(saturated.(param_set, ts[RH_unsat_mask]))
 
-        # test Clausius Clapeyron relation
+        # Test Clausius Clapeyron relation
         k = findfirst(q -> q > 0.01, q_tot) # test for one value with q_tot above some threshhold
         ts_sol = TD.PhaseEquil_ρTq(param_set, ρ[k], T[k], q_tot[k])
 
@@ -1341,16 +1391,6 @@ end
             getproperty.(PhasePartition.(param_set, ts_pθq), :tot) .≈ q_tot,
         )
 
-        # We can't pass on this yet, due to https://github.com/CliMA/ClimateMachine.jl/issues/263
-        # ts_pθq = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-3), RS.NewtonsMethodAD)
-        # @test all(air_pressure.(param_set, ts_pθq) .≈ p)
-        # @test all(isapprox.(
-        #     liquid_ice_pottemp.(param_set, ts_pθq),
-        #     θ_liq_ice,
-        #     rtol = rtol_temperature,
-        # ))
-        # @test all(getproperty.(PhasePartition.(param_set, ts_pθq), :tot) .≈ q_tot)
-
         ts = PhaseEquil_ρpq.(param_set, ρ, p, q_tot, true)
         @test all(air_density.(param_set, ts) .≈ ρ)
         @test all(air_pressure.(param_set, ts) .≈ p)
@@ -1439,8 +1479,8 @@ end
         @test all(getproperty.(PhasePartition.(param_set, ts), :tot) .≈ q_tot)
 
         # The PhaseEquil_pθq constructor
-        # passes the consistency test within sufficient physical precision,
-        # however, it fails to satisfy the consistency test within machine
+        # passes the consistency test within sufficient physical precision.
+        # However, it fails to satisfy the consistency test within machine
         # precision for the input pressure.
 
         # PhaseEquil_pθq

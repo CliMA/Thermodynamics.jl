@@ -53,7 +53,7 @@ Ice
 Liquid
 ```
 
-## Thermodynamic functions
+## Thermodynamic Functions
 
 ```@docs
 air_density

@@ -44,13 +44,3 @@ The plot shows:
     This script is currently decoupled from the test suite implementation.
     Consider unifying the validation code with the test suite to ensure
     that tests and plots remain synchronized.
-
-## Mathematical Background
-
-The Clausius-Clapeyron relation describes the temperature dependence of saturation vapor pressure:
-
-$$\frac{dp_{v,sat}}{dT} = \frac{L_v p_{v,sat}}{R_v T^2}$$
-
-where $p_{v,sat}$ is the saturation vapor pressure, $L_v$ is the latent heat of vaporization, $R_v$ is the specific gas constant for water vapor, and $T$ is the temperature.
-
-This relation is fundamental to understanding phase transitions in atmospheric thermodynamics.
