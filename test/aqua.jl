@@ -38,5 +38,3 @@ end
     # Note: We exclude ambiguities and unbound_args since they're tested above
     Aqua.test_all(Thermodynamics; ambiguities = false, unbound_args = false)
 end
-
-nothing

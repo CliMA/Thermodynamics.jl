@@ -267,7 +267,7 @@ With $L_{s,0} = L_{v,0} + L_{f,0}$, this gives $L_s(T) = L_v(T) + L_f(T)$, as it
     | $L_s$ | $2.764 \times 10^6$ J/kg |
 
 !!! tip "Implementation Note"
-    The latent heats are implemented in the `latent_heat_vapor`, `latent_heat_fusion`, and `latent_heat_sublim` functions. The weighted latent heat for mixed-phase conditions is computed in `weighted_latent_heat`.
+    The latent heats are implemented in the `latent_heat_vapor`, `latent_heat_fusion`, and `latent_heat_sublim` functions. The weighted latent heat for mixed-phase conditions is computed in `latent_heat_mixed`.
 
 ## 6. Internal Energies
 

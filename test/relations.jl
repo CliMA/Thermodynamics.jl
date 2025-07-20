@@ -389,12 +389,14 @@ end
     end
 
     # Test partial pressure functions across different scenarios
-    ρ = FT(1)
+    ρ = FT(0.9)
 
     # Test 1: Dry air (no water vapor)
     T = FT(300)
     q_dry = PhasePartition(FT(0))
     test_partial_pressures(T, ρ, q_dry, "dry air"; check_vapor_positive = false)
+    ts = PhaseDry(param_set, T, ρ)
+    @test partial_pressure_vapor(param_set, ts) === FT(0)
 
     # Test 2 & 3: Saturated air over liquid water and ice
     test_cases = [(FT(300), Liquid(), "liquid"), (FT(270), Ice(), "ice")]
@@ -1296,6 +1298,14 @@ end
         )
         @test all(air_density.(param_set, ts_pθ) .≈ ρ)
 
+        h = e_int + p ./ ρ
+        ts_ph = PhaseDry_ph.(param_set, p, h)
+        @test all(
+            internal_energy.(param_set, ts_ph) .≈
+            internal_energy.(param_set, T),
+        )
+        @test all(air_density.(param_set, ts_ph) .≈ ρ)
+
         p_dry = air_pressure.(param_set, T, ρ)
         ts_pe = PhaseDry_pe.(param_set, p, e_int)
         @test all(
@@ -1616,6 +1626,7 @@ end
     profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
     (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
     (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
+    h = e_int + p ./ ρ
 
     θ_dry = dry_pottemp.(param_set, T, ρ)
     ts_dry = PhaseDry.(param_set, e_int, ρ)
@@ -1623,6 +1634,7 @@ end
     ts_dry_pT = PhaseDry_pT.(param_set, p, T)
     ts_dry_ρθ = PhaseDry_ρθ.(param_set, ρ, θ_dry)
     ts_dry_pθ = PhaseDry_pθ.(param_set, p, θ_dry)
+    ts_dry_ph = PhaseDry_ph.(param_set, p, h)
 
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
@@ -1683,6 +1695,7 @@ end
         ts_dry_pT,
         ts_dry_ρθ,
         ts_dry_pθ,
+        ts_dry_ph,
         ts_eq,
         ts_T,
         ts_Tp,
