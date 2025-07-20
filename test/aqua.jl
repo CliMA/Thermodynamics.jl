@@ -13,7 +13,7 @@ using Aqua
     # Method ambiguities can cause compilation delays and unexpected behavior
     # See: https://github.com/SciML/OrdinaryDiffEq.jl/issues/1750
     ambs = Aqua.detect_ambiguities(Thermodynamics; recursive = true)
-    
+
     # Filter ambiguities to only include those involving Thermodynamics methods
     # This helps focus on ambiguities that are actually relevant to our package
     pkg_match(pkgname, pkdir::Nothing) = false

@@ -1342,18 +1342,17 @@ is a function that is 1 above `T_freeze` and goes to zero below `T_icenuc`.
 ) where {FT, phase_type <: ThermodynamicState}
 
     Tᶠ = TP.T_freeze(param_set)   # freezing temperature
-    Tⁿ = TP.T_icenuc(param_set)   # temperature of homogeneous ice nucleation
-    α = TP.pow_icenuc(param_set) # power law partial ice nucleation parameter
+    Tⁱ = TP.T_icenuc(param_set)   # temperature of homogeneous ice nucleation
+    n = TP.pow_icenuc(param_set)  # power law partial ice nucleation parameter
 
-    # Model for cloud water condensate probabilty when temperature is below
-    # freezing (all liquid condensate), but above the temperature of homogeneous
-    # ice nucleation (all ice condensate). In it's simplest form, this is simply
-    # a number that varies between 0 and 1. For example, see figure 6 in
-    # Hu et al., https://doi.org/10.1029/2009JD012384, JGR (2010).
-    λᵖ = ((T - Tⁿ) / (Tᶠ - Tⁿ))^α
+    # Model for liquid fraction when temperature is below freezing, but above 
+    # the temperature of homogeneous ice nucleation (all ice condensate). Fuctional 
+    # form as in Kaul et al., Mon. Weather Rev., 2015, 
+    # https://doi.org/10.1029/2009JD012384
+    λᵖ = ((T - Tⁱ) / (Tᶠ - Tⁱ))^n
 
     above_freezing = T > Tᶠ
-    supercooled_liquid = (T ≤ Tᶠ) & (T > Tⁿ)
+    supercooled_liquid = (T ≤ Tᶠ) & (T > Tⁱ)
 
     return ifelse(
         above_freezing,
@@ -1369,11 +1368,11 @@ end
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real, phase_type <: PhaseNonEquil}
     q_c = condensate(q)     # condensate specific humidity
-    if has_condensate(q_c)
-        return q.liq / q_c
-    else
-        return liquid_fraction(param_set, T, PhaseEquil, q)
-    end
+    return ifelse(
+        has_condensate(q_c),
+        q.liq / q_c,
+        liquid_fraction(param_set, T, PhaseEquil, q),
+    )
 end
 
 """
@@ -1519,23 +1518,15 @@ end
     cv_i = TP.cv_i(param_set)
     e_int_v0 = TP.e_int_v0(param_set)
     e_int_i0 = TP.e_int_i0(param_set)
-    T_f = TP.T_freeze(param_set)
-    T_i = TP.T_icenuc(param_set)
-    n_i = TP.pow_icenuc(param_set)
 
     q_c = condensate(q)
     q_vap_sat = q_vap_saturation_from_density(param_set, T, ρ, p_vap_sat)
     L = weighted_latent_heat(param_set, T, λ)
 
-    ∂λ_∂T = if (T_i < T < T_f)
-        if n_i == 1
-            (1 / (T_f - T_i))
-        else
-            (1 / (T_f - T_i))^n_i * n_i * T^(n_i - 1)
-        end
-    else
-        FT(0)
-    end
+    Tᶠ = TP.T_freeze(param_set)
+    Tⁱ = TP.T_icenuc(param_set)
+    n = TP.pow_icenuc(param_set)
+    ∂λ_∂T = ifelse(Tⁱ < T < Tᶠ, n * (1 / (Tᶠ - Tⁱ))^n * T^(n - 1), FT(0))
 
     _∂q_vap_sat_∂T = ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, L)
     dcvm_dq_vap = cv_v - λ * cv_l - (1 - λ) * cv_i
@@ -1614,37 +1605,46 @@ See also [`saturation_adjustment`](@ref).
     end
     @inline function roots(_T) # ff′
         T = ReLU(_T)
-        if sat_adjust_method <: RS.NewtonsMethod
-            λ = liquid_fraction(param_set, T, phase_type)
-            p_vap_sat = saturation_vapor_pressure(
-                param_set,
-                phase_type,
-                T,
-                PhasePartition(FT(0)),
-                λ,
-            )
-            q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
+        return ifelse(
+            sat_adjust_method <: RS.NewtonsMethod,
+            begin
+                λ = liquid_fraction(param_set, T, phase_type)
+                p_vap_sat = saturation_vapor_pressure(
+                    param_set,
+                    phase_type,
+                    T,
+                    PhasePartition(FT(0)),
+                    λ,
+                )
+                q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 
-            cvm = cv_m(param_set, q)
-            f′ = ∂e_int_∂T(
-                param_set,
-                T,
-                e_int,
-                ρ,
-                q_tot,
-                phase_type,
-                λ,
-                p_vap_sat,
-                q,
-                cvm,
-            )
-            _e_int_sat =
-                internal_energy_sat(param_set, T, ρ, q_tot, phase_type, q, cvm)
-            f = _e_int_sat - e_int
-            return (f, f′)
-        else
-            return e_int_sat(T) - e_int
-        end
+                cvm = cv_m(param_set, q)
+                f′ = ∂e_int_∂T(
+                    param_set,
+                    T,
+                    e_int,
+                    ρ,
+                    q_tot,
+                    phase_type,
+                    λ,
+                    p_vap_sat,
+                    q,
+                    cvm,
+                )
+                _e_int_sat = internal_energy_sat(
+                    param_set,
+                    T,
+                    ρ,
+                    q_tot,
+                    phase_type,
+                    q,
+                    cvm,
+                )
+                f = _e_int_sat - e_int
+                (f, f′)
+            end,
+            e_int_sat(T) - e_int,
+        )
     end
     sol = RS.find_zero(
         roots,
@@ -3018,8 +3018,7 @@ end
 """
     specific_enthalpy(param_set, T[, q::PhasePartition])
 
-The specific_enthalpy per unit mass, given a thermodynamic state `ts` or
-
+The specific_enthalpy per unit mass, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 and, optionally,
@@ -3158,7 +3157,6 @@ end
     specific_entropy_vapor(param_set, p, T, q)
 
 The specific entropy of water vapor, given
-
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
@@ -3182,8 +3180,7 @@ end
 """
     saturated(param_set::APS, ts::ThermodynamicState)
 
-Boolean indicating if thermodynamic
-state is saturated.
+Boolean indicating if thermodynamic state is saturated.
 """
 @inline function saturated(param_set::APS, ts::ThermodynamicState)
     RH = relative_humidity(param_set, ts)
@@ -3194,15 +3191,11 @@ end
 """
     q_vap_from_RH_liquid(param_set, p, T, RH)
 
-Computes the water vapor specific humidity from relative humidity with
-  regard to water (i.e. saturation vapor pressure over ice is not considered
-  even in cold temperatures).
-
-Inputs:
+The water vapor specific humidity, given 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
- - `RH` relative humidity
+ - `RH` relative humidity with respect to liquid water
 """
 @inline function q_vap_from_RH_liquid(
     param_set::APS,
@@ -3213,6 +3206,6 @@ Inputs:
     @assert RH <= FT(1)
     p_vap_sat = saturation_vapor_pressure(param_set, T, Liquid())
     p_vap = RH * p_vap_sat
-    mmr = TP.Rv_over_Rd(param_set)
-    return p_vap / mmr / (p - (1 - 1 / mmr) * p_vap)
+    _Rv_over_Rd = TP.Rv_over_Rd(param_set)
+    return p_vap / _Rv_over_Rd / (p - (1 - 1 / _Rv_over_Rd) * p_vap)
 end

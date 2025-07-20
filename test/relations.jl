@@ -88,23 +88,23 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
         _cv_v = FT(TP.cv_v(param_set))         # Water vapor specific heat at constant volume
         _cv_l = FT(TP.cv_l(param_set))         # Liquid water specific heat at constant volume
         _cv_i = FT(TP.cv_i(param_set))         # Ice specific heat at constant volume
-        
+
         # Reference temperatures and energies
         _T_0 = FT(TP.T_0(param_set))           # Reference temperature
         _e_int_v0 = FT(TP.e_int_v0(param_set)) # Reference vapor internal energy
         _e_int_i0 = FT(TP.e_int_i0(param_set)) # Reference ice internal energy
-        
+
         # Latent heats
         _LH_v0 = FT(TP.LH_v0(param_set))       # Latent heat of vaporization
         _LH_s0 = FT(TP.LH_s0(param_set))       # Latent heat of sublimation
         _LH_f0 = FT(TP.LH_f0(param_set))       # Latent heat of fusion
-        
+
         # Triple point and phase transition temperatures
         _press_triple = FT(TP.press_triple(param_set))  # Triple point pressure
         _T_triple = FT(TP.T_triple(param_set))          # Triple point temperature
         _T_freeze = FT(TP.T_freeze(param_set))          # Freezing temperature
         _T_icenuc = FT(TP.T_icenuc(param_set))          # Homogeneous ice nucleation temperature
-        
+
         # Temperature and pressure ranges
         _T_min = FT(TP.T_min(param_set))       # Minimum temperature
         _T_max = FT(TP.T_max(param_set))       # Maximum temperature
@@ -526,7 +526,7 @@ end
     q = TD.PhasePartition_equil_given_p(param_set, T_warm, p, q_tot, PhaseEquil)
     @test 0 < q.liq <= q_tot
     @test q.ice ≈ 0
-  
+
     # Test equilibrium phase partitioning below homogeneous nucleation temperature
     T_cold = FT(_T_icenuc - 10)
     ρ = FT(1.0)
