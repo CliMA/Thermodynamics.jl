@@ -145,7 +145,7 @@ Base.convert(::Type{PhaseDry{FT}}, ts::PhaseDry) where {FT} =
 Constructs a [`PhaseDry`](@ref) thermodynamic state from density and internal energy, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` air density
- - `e_int` internal energy per unit mass
+ - `e_int` specific internal energy
 
 This constructor directly stores the provided density and internal energy without any
 additional computations, assuming the air is completely dry.
@@ -179,7 +179,7 @@ PhaseDry_pT(param_set::APS, p, T) = PhaseDry_pT(param_set, promote(p, T)...)
 Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and internal energy, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `e_int` internal energy per unit mass
+ - `e_int` specific internal energy
 
 The temperature is computed from the internal energy using the dry air equation of state,
 and the density is computed from the ideal gas law using the pressure and temperature.
@@ -199,14 +199,14 @@ PhaseDry_pe(param_set::APS, p, e_int) =
 """
      PhaseDry_ph(param_set, p, h)
 
- Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and specific enthalpy, given
-  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
-  - `p` pressure
-  - `h` specific enthalpy per unit mass
+Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and specific enthalpy, given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `h` specific enthalpy
 
- The temperature is computed from the specific enthalpy using the dry air equation of state,
- and the density is computed from the ideal gas law using the pressure and temperature.
- """
+The temperature is computed from the specific enthalpy using the dry air equation of state,
+and the density is computed from the ideal gas law using the pressure and temperature.
+"""
 @inline function PhaseDry_ph(param_set::APS, p::FT, h::FT) where {FT <: Real}
     T = air_temperature_from_enthalpy(param_set, h)
     ρ = air_density(param_set, T, p)
@@ -343,7 +343,7 @@ Base.convert(::Type{PhaseEquil{FT}}, ts::PhaseEquil) where {FT} =
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, internal energy, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
- - `e_int` internal energy per unit mass
+ - `e_int` specific internal energy
  - `q_tot` total specific humidity
 and, optionally
  - `maxiter` maximum iterations for saturation adjustment (default: 8)
@@ -521,7 +521,7 @@ PhaseEquil_pTq(param_set::APS, p, T, q_tot) =
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, internal energy, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `e_int` internal energy per unit mass
+ - `e_int` specific internal energy
  - `q_tot` total specific humidity
 and, optionally
  - `maxiter` maximum iterations for saturation adjustment (default: 40)
@@ -573,7 +573,7 @@ PhaseEquil_peq(param_set::APS, p, e_int, q_tot, args...) =
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, specific enthalpy, and total specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `h` specific enthalpy per unit mass
+ - `h` specific enthalpy
  - `q_tot` total specific humidity
 and, optionally
  - `maxiter` maximum iterations for saturation adjustment (default: 40)
@@ -899,7 +899,7 @@ PhaseNonEquil_pTq(param_set::APS, p, T, q_pt) =
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, internal energy, and phase partition, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `e_int` internal energy per unit mass
+ - `e_int` specific internal energy
  - `q_pt` phase partition
 
 The temperature is computed from the internal energy and phase partition using the equation of state,
@@ -924,7 +924,7 @@ PhaseNonEquil_peq(param_set::APS, p, e_int, q_pt) =
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, specific enthalpy, and phase partition, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `h` specific enthalpy per unit mass
+ - `h` specific enthalpy
  - `q_pt` phase partition
 
 The temperature is computed from the specific enthalpy and phase partition using the equation of state,

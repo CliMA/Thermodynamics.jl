@@ -1,6 +1,6 @@
 module Parameters
 
-export ThermodynamicsParameters
+export ThermodynamicsParameters, Rv_over_Rd
 
 abstract type AbstractThermodynamicsParameters{FT} end
 const ATP = AbstractThermodynamicsParameters
