@@ -359,19 +359,31 @@ end
         @test p_dry ≈ (1 - q_partition.tot) * ρ * _R_d * T_test
 
         # Test vapor pressure deficit calculation
-        vpd = vapor_pressure_deficit_liquid(
+        vpd = vapor_pressure_deficit(
             param_set,
             T_test,
             p_test,
             q_partition,
         )
-        es = saturation_vapor_pressure(param_set, T_test, Liquid())
-        @test vpd ≈ max(FT(0), es - p_vap)  # Account for ReLU function
+        
+        # Test VPD over liquid (above freezing) and ice (below freezing) separately
+        T_freeze = TP.T_freeze(param_set)
+        if T_test > T_freeze
+            # Above freezing: should use liquid saturation vapor pressure
+            es_liquid = saturation_vapor_pressure(param_set, T_test, Liquid())
+            vpd_expected = max(FT(0), es_liquid - p_vap)
+            @test vpd ≈ vpd_expected
+        else
+            # Below freezing: should use ice saturation vapor pressure
+            es_ice = saturation_vapor_pressure(param_set, T_test, Ice())
+            vpd_expected = max(FT(0), es_ice - p_vap)
+            @test vpd ≈ vpd_expected
+        end
 
         # Test vapor pressure deficit with scalar q_vap (when all water is vapor)
         if q_partition.liq ≈ FT(0) && q_partition.ice ≈ FT(0)
             q_vap_scalar = q_partition.tot
-            vpd_scalar = vapor_pressure_deficit_liquid(
+            vpd_scalar = vapor_pressure_deficit(
                 param_set,
                 T_test,
                 p_test,

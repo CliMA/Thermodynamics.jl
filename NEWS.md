@@ -14,7 +14,7 @@ v1.xxx
   - Enhanced cross-references and internal documentation links
 
 - ![][[badge-✨feature/enhancement]] Added new thermodynamic functions for export
-  - `vapor_pressure_deficit_liquid` function for computing vapor pressure deficit over liquid water
+  - `vapor_pressure_deficit` function for computing vapor pressure deficit
   - New methods for `partial_pressure_vapor` and `partial_pressure_dry` functions
   - Added comprehensive tests and physical consistency validation for these functions
   PR [259](https://github.com/CliMA/Thermodynamics.jl/pull/259)
