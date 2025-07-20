@@ -137,57 +137,80 @@ All thermodynamic quantities are derived from a single fundamental approximation
 ```julia
 using Pkg
 Pkg.add("Thermodynamics")
+Pkg.add("ClimaParams")
 ```
 
 ## Usage Examples
 
 ### **Equilibrium Thermodynamics (Saturation Adjustment)**
 ```julia
-using Thermodynamics 
+import Thermodynamics as TD 
 using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
 
 # Create state with internal energy, density, and total humidity
 ρ = 1.0
 e_int = -7.0e4
 q_tot = 0.01
-ts = PhaseEquil_ρeq(params, ρ, e_int, q_tot)
+ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
 
 # Temperature and phase partitioning computed automatically
-T = air_temperature(params, ts)
-q = PhasePartition(params, ts)
+T = TD.air_temperature(params, ts)
+q = TD.PhasePartition(params, ts)
 ```
 
 ### **Non-Equilibrium Thermodynamics**
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
 # Explicit phase partitioning
 q_tot = 0.01
 q_liq = 0.005
 q_ice = 0.0003
-q = PhasePartition(q_tot, q_liq, q_ice)
+q = TD.PhasePartition(q_tot, q_liq, q_ice)
 ρ = 1.0
 e_int = -7.0e4
-ts = PhaseNonEquil(params, e_int, ρ, q)
+ts = TD.PhaseNonEquil(params, e_int, ρ, q)
 
 # Temperature computation from thermodynamic state
-T = air_temperature(params, ts)
+T = TD.air_temperature(params, ts)
 
 # Alternative direct computation, avoiding the thermodynamic state
-T = air_temperature(params, e_int, q)
+T = TD.air_temperature(params, e_int, q)
 ```
 
 ### **Saturation Calculations**
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# Create a thermodynamic state for testing
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
+T = TD.air_temperature(params, ts)
+p = TD.air_pressure(params, ts)
+
 # Saturation vapor pressure
-p_v_sat = saturation_vapor_pressure(params, T, TD.Liquid())
+p_v_sat = TD.saturation_vapor_pressure(params, T, TD.Liquid())
 
 # Saturation specific humidity
-q_v_sat = q_vap_saturation(params, T, ρ, typeof(ts))
+q_v_sat = TD.q_vap_saturation(params, T, ρ, typeof(ts))
 
 # Relative humidity
-RH = relative_humidity(params, ts)
+RH = TD.relative_humidity(params, ts)
 
 # Alternative, avoiding the thermodynamic state
-RH = relative_humidity(params, T, p, typeof(ts), PhasePartition(q_tot, q_liq, q_ice))
+q_liq = 0.005
+q_ice = 0.0003
+RH_alt = TD.relative_humidity(params, T, p, typeof(ts), TD.PhasePartition(q_tot, q_liq, q_ice))
 ```
 
 ## Integration with Climate Models
@@ -198,23 +221,36 @@ The package is designed for seamless integration with atmospheric dynamical core
 ```julia
 # Initialize
 import Thermodynamics as TD
+using ClimaParams
+
+FT = Float64
 params = TD.Parameters.ThermodynamicsParameters(FT)
 
+# Define physical constants and initial conditions
+grav = 9.81  # m/s²
+cv_d = 718.0  # J/(kg K)
+z = 1000.0   # m
 geopotential = grav * z
-q_tot = ...
-ρ = ...
+q_tot = 0.01
+ρ = 1.0
+T = 300.0
 
-(u, v, w) = ...
+# Initial velocity components
+u, v, w = 10.0, 5.0, 1.0
 e_kin = 0.5 * (u^2 + v^2 + w^2)
-e_tot = TD.total_energy(params, e_kin, geopotential, T, q_tot)
+e_tot = TD.total_energy(params, e_kin, geopotential, T, TD.PhasePartition(q_tot))
 
-# Timestepping loop
-for timestep in timesteps
-    # Advance dynamical variables
-    advance(u, v, w, ρ, e_tot, q_tot)
+# Timestepping loop (simplified example)
+for timestep in 1:10
+    # Advance dynamical variables (simplified)
+    u += FT(0.1)
+    v += FT(-0.1)
+    w += FT(0.01)
+    e_tot += cv_d * FT(1)
     
     # Compute internal energy
-    e_int = e_tot - 0.5 * (u^2 + v^2 + w^2) - geopotential
+    e_kin = 0.5 * (u^2 + v^2 + w^2)
+    e_int = e_tot - e_kin - geopotential
     
     # Saturation adjustment
     ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)

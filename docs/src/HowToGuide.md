@@ -18,8 +18,10 @@ This guide covers the essential aspects of using Thermodynamics.jl, from basic u
 ```julia
 using Pkg
 Pkg.add("Thermodynamics")
+Pkg.add("ClimaParams")
 
 import Thermodynamics as TD
+using ClimaParams
 ```
 
 ### Creating Parameters
@@ -44,19 +46,37 @@ Thermodynamics.jl uses a state-based approach where you create a thermodynamic s
 
 #### **Equilibrium States** (Saturation Adjustment)
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
 # From density, internal energy, and total humidity
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
 ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
 
 # From density, potential temperature, and total humidity  
+θ_liq_ice = 300.0
 ts = TD.PhaseEquil_ρθq(params, ρ, θ_liq_ice, q_tot)
 
 # From pressure, internal energy, and total humidity
+p = 1.0e5
 ts = TD.PhaseEquil_peq(params, p, e_int, q_tot)
 ```
 
 #### **Non-Equilibrium States** (Explicit Phase Partitioning)
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
 # With explicit liquid and ice partitioning
+q_tot = 0.01
+q_liq = 0.005
+q_ice = 0.0003
 ts = TD.PhaseNonEquil(params, e_int, ρ, TD.PhasePartition(q_tot, q_liq, q_ice))
 
 # Or create phase partition separately
@@ -66,13 +86,31 @@ ts = TD.PhaseNonEquil(params, e_int, ρ, q)
 
 #### **Dry Air States**
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
 # Dry air from pressure and temperature
+p = 1.0e5
+T = 300.0
 ts = TD.PhaseDry_pT(params, p, T)
 ```
 
 ### Extracting Properties from States
 
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# Create a thermodynamic state for demonstration
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
+
 # Basic thermodynamic properties
 T = TD.air_temperature(params, ts)      # Temperature
 p = TD.air_pressure(params, ts)         # Pressure
@@ -101,19 +139,30 @@ e_int = TD.internal_energy(params, ts)  # Internal energy
 Thermodynamic functions can also be used directly without creating state objects, which can be more efficient because it avoids storing the state in memory:
 
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
 # Direct phase partitioning (for non-equilibrium)
+q_tot = 0.01
+q_liq = 0.005
+q_ice = 0.0003
 q = TD.PhasePartition(q_tot, q_liq, q_ice)         # Create phase partition directly
 
 # Direct temperature calculations
+e_int = -7.0e4
 T = TD.air_temperature(params, e_int, q)           # From internal energy and humidity
+h = -6.0e4
 T = TD.air_temperature_from_enthalpy(params, h, q) # From enthalpy and humidity
 
 # Direct pressure calculations  
+ρ = 1.0
 p = TD.air_pressure(params, ρ, T, q)               # From density, temperature, humidity
 
 # Direct humidity calculations
-q_vap_sat = TD.q_vap_saturation(params, T, ρ, PhaseEquil{Float64})  # Saturation vapor humidity
-p_v_sat = TD.saturation_vapor_pressure(params, T, Liquid())         # Saturation vapor pressure over liquid
+q_vap_sat = TD.q_vap_saturation(params, T, ρ, TD.PhaseEquil{Float64})  # Saturation vapor humidity
+p_v_sat = TD.saturation_vapor_pressure(params, T, TD.Liquid())         # Saturation vapor pressure over liquid
 
 # Direct energy calculations
 e_int = TD.internal_energy(params, T, q)          # From temperature and humidity
@@ -130,8 +179,14 @@ h = TD.specific_enthalpy(params, T, q)            # From temperature and humidit
 
 ### **Type Stability**
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
 # Good: Type-stable operations
 params = TD.Parameters.ThermodynamicsParameters(Float64)
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
 ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
 T = TD.air_temperature(params, ts)
 
@@ -142,6 +197,11 @@ ts = TD.PhaseEquil_ρeq(params_f64, Float32(ρ), Float32(e_int), Float32(q_tot))
 
 ### **Vectorized Operations**
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
 # For arrays of thermodynamic states
 ρ_array = [1.0, 1.1, 1.2]
 e_int_array = [2.0e5, 2.1e5, 2.2e5]
@@ -159,11 +219,18 @@ T_array = [TD.air_temperature(params, e_int, TD.PhasePartition(q_tot))
 
 ### **GPU Compatibility**
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
 # Use Float32 for GPU computations
-params_gpu = TD.Parameters.ThermodynamicsParameters(Float32)
+FT = Float32
+params_gpu = TD.Parameters.ThermodynamicsParameters(FT)
 
 # Ensure all inputs are Float32
-ts_gpu = TD.PhaseEquil_ρeq(params_gpu, Float32(ρ), Float32(e_int), Float32(q_tot))
+ρ = FT(1.0f0)
+e_int = FT(-7.0e4f0)
+q_tot = FT(0.01f0)
+ts_gpu = TD.PhaseEquil_ρeq(params_gpu, ρ, e_int, q_tot)
 ```
 
 ## Integration with Models
@@ -171,19 +238,36 @@ ts_gpu = TD.PhaseEquil_ρeq(params_gpu, Float32(ρ), Float32(e_int), Float32(q_t
 ### **Dynamical Core Integration**
 
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+grav = 9.81  # m/s²
+cv_d = 718.0  # J/(kg K)
+
 # Initialize prognostic variables
-ρ = initial_density
-e_tot = initial_total_energy
-q_tot = initial_total_humidity
+ρ = 1.0
+e_tot = cv_d * 20.0
+q_tot = 0.01
+q_liq = q_tot / 100.0
+q_ice = q_tot / 250.0
+u, v, w = 10.0, 5.0, 1.0
 
 # Timestepping loop
-for timestep in timesteps
-    # Advance prognostic variables
-    advance_dynamics!(ρ, e_tot, q_tot)
+for timestep in 1:10
+    # Advance prognostic variables (simplified example)
+    ρ += 0.01
+    e_tot += cv_d * 0.5
+    q_tot += 0.001
+    u += FT(0.1)
+    v += FT(-0.1)
+    w += FT(0.01)
     
     # Extract internal energy
-    e_kin = compute_kinetic_energy(u, v, w)
-    e_pot = compute_potential_energy(z)
+    e_kin = 0.5 * (u^2 + v^2 + w^2)
+    z = 1000.0
+    e_pot = grav * z
     e_int = e_tot - e_kin - e_pot
     
     # Saturation adjustment (state-based approach)
@@ -191,14 +275,13 @@ for timestep in timesteps
     T = TD.air_temperature(params, ts)
     q = TD.PhasePartition(params, ts)
     
-    # Or direct function approach
-    T = TD.air_temperature(params, e_int, TD.PhasePartition(q))  # No saturation adjustment
-    ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
-    T = TD.air_temperature(params, ts)
-    q = TD.PhasePartition(params, ts)
+    # Or direct function approach (need to predict liquid and ice separately)
+    q_liq += 0.0001
+    q_ice -= 0.0001
+    T = TD.air_temperature(params, e_int, TD.PhasePartition(q_tot, q_liq, q_ice))  # No saturation adjustment, 
     
     # Use temperature in physics (radiation, etc.)
-    compute_physics!(T, q)
+    # compute_physics!(T, q)  # Placeholder for physics calculations
 end
 ```
 
@@ -209,6 +292,9 @@ end
 If Thermodynamics.jl doesn't have a constructor for your specific use case, you can implement one in `src/states.jl`. The constructor must translate your inputs into one of the fundamental state types:
 
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
 # Example: Constructor from pressure, temperature, and humidity
 function PhaseEquil_pTq(param_set::APS, p::FT, T::FT, q_tot::FT) where {FT}
     # Compute density from equation of state
@@ -239,17 +325,34 @@ end
 
 ### **Pitfall 1: Incorrect State Type**
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
 # Wrong: Using equilibrium constructor for non-equilibrium conditions
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+q_liq = 0.005
+q_ice = 0.0003
 ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)  # Assumes saturation adjustment
 
-# Right: Use non-equilibrium constructor when you have explicit partitioning
+# Right: Use non-equilibrium constructor when you have explicit partitionin
+q = TD.PhasePartition(q_tot, q_liq, q_ice)
 ts = TD.PhaseNonEquil(params, e_int, ρ, q)
 ```
 
 ### **Pitfall 2: Mixed Precision**
 ```julia
+import Thermodynamics as TD
+using ClimaParams
+
 # Wrong: Mixing Float32 and Float64
 params = TD.Parameters.ThermodynamicsParameters(Float64)
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
 ts = TD.PhaseEquil_ρeq(params, Float32(ρ), Float32(e_int), Float32(q_tot))
 
 # Right: Consistent precision

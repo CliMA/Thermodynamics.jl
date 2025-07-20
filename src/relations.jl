@@ -1822,8 +1822,8 @@ end
     saturation_adjustment_given_phq(
         sat_adjust_method,
         param_set,
-        h,
         p,
+        h,
         q_tot,
         phase_type,
         maxiter,
@@ -1836,8 +1836,8 @@ Compute the temperature that is consistent with
  - `sat_adjust_method` the numerical method to use.
     See the [`Thermodynamics`](@ref) for options.
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `h` specific_enthalpy
  - `p` air pressure
+ - `h` specific_enthalpy
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
