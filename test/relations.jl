@@ -360,7 +360,7 @@ end
 
         # Test vapor pressure deficit calculation
         vpd = vapor_pressure_deficit(param_set, T_test, p_test, q_partition)
-    
+
         # Test VPD over liquid (above freezing) and ice (below freezing) separately
         T_freeze = TP.T_freeze(param_set)
         if T_test > T_freeze
