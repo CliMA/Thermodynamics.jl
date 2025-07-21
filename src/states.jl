@@ -824,7 +824,7 @@ and the internal energy is computed from the temperature and phase partition.
     θ_liq_ice::FT,
     q_pt::PhasePartition{FT},
     maxiter::Int = 10,
-    relative_temperature_tol::FT = FT(1e-2),
+    relative_temperature_tol::FT = FT(1e-4),
 ) where {FT <: Real}
     phase_type = PhaseNonEquil{FT}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)

@@ -67,7 +67,7 @@ export specific_entropy
 export saturated
 export q_vap_from_RH_liquid
 
-@inline ReLU(x) = (x > 0) * x
+@inline ReLU(x) = max(zero(x), x)
 
 """
     gas_constant_air(param_set, [q::PhasePartition])
@@ -687,7 +687,6 @@ given
         q_tot,
         phase_type,
     ),
-    cvm = cv_m(param_set, q_pt),
 ) where {FT <: Real, phase_type <: ThermodynamicState}
     return internal_energy(param_set, T, q_pt)
 end
@@ -1685,15 +1684,8 @@ See also [`saturation_adjustment`](@ref).
                     q,
                     cvm,
                 )
-                _e_int_sat = internal_energy_sat(
-                    param_set,
-                    T,
-                    ρ,
-                    q_tot,
-                    phase_type,
-                    q,
-                    cvm,
-                )
+                _e_int_sat =
+                    internal_energy_sat(param_set, T, ρ, q_tot, phase_type, q)
                 f = _e_int_sat - e_int
                 (f, f′)
             end,
@@ -2965,9 +2957,9 @@ above freezing and over ice for temperatures below freezing, given
         saturation_vapor_pressure(param_set, T, Liquid()),
         saturation_vapor_pressure(param_set, T, Ice()),
     )
-    
+
     ea = partial_pressure_vapor(param_set, p, q)
-    return max(FT(0), es - ea)
+    return ReLU(es - ea)
 end
 
 """
