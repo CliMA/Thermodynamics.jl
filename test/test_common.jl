@@ -5,9 +5,14 @@ This file contains common thermodynamic parameter definitions and tolerances
 that are shared across multiple test files to avoid duplication.
 """
 
+using Test
 using Thermodynamics
 import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
+using Thermodynamics.TestedProfiles
+import RootSolvers as RS
+using LinearAlgebra
+import ForwardDiff
 
 # Test both Float32 and Float64 for type stability
 array_types = [Array{Float32}, Array{Float64}]
@@ -43,7 +48,7 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
 # Function to extract thermodynamic parameters for testing
 function extract_thermodynamic_parameters(param_set)
     FT = eltype(param_set)
-    
+
     # Gas constants
     _R_d = FT(TP.R_d(param_set))           # Dry air gas constant
     _Rv_over_Rd = FT(TP.Rv_over_Rd(param_set))  # Vapor/dry air gas constant ratio
@@ -82,11 +87,30 @@ function extract_thermodynamic_parameters(param_set)
     _kappa_d = FT(TP.kappa_d(param_set))   # Dry air adiabatic exponent
 
     return (
-        _R_d, _Rv_over_Rd, _R_v,
-        _cp_d, _cp_v, _cp_l, _cp_i, _cv_d, _cv_v, _cv_l, _cv_i,
-        _T_0, _e_int_v0, _e_int_i0,
-        _LH_v0, _LH_s0, _LH_f0,
-        _press_triple, _T_triple, _T_freeze, _T_icenuc,
-        _T_min, _T_max, _p_ref_theta, _kappa_d
+        _R_d,
+        _Rv_over_Rd,
+        _R_v,
+        _cp_d,
+        _cp_v,
+        _cp_l,
+        _cp_i,
+        _cv_d,
+        _cv_v,
+        _cv_l,
+        _cv_i,
+        _T_0,
+        _e_int_v0,
+        _e_int_i0,
+        _LH_v0,
+        _LH_s0,
+        _LH_f0,
+        _press_triple,
+        _T_triple,
+        _T_freeze,
+        _T_icenuc,
+        _T_min,
+        _T_max,
+        _p_ref_theta,
+        _kappa_d,
     )
-end 
+end

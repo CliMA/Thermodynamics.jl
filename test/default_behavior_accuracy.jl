@@ -4,16 +4,6 @@
 This file contains tests for saturation adjustment accuracy and convergence.
 """
 
-using Test
-import ForwardDiff
-using Thermodynamics
-import Thermodynamics as TD
-import Thermodynamics.Parameters as TP
-using Thermodynamics.TestedProfiles
-
-# Include common parameters
-include("common_parameters.jl")
-
 @testset "Thermodynamics - default behavior accuracy" begin
     # Input arguments should be accurate within machine precision
     # Temperature is approximated via saturation adjustment, and should be within a physical tolerance
@@ -420,5 +410,4 @@ include("common_parameters.jl")
         )
 
     end
-
-end 
+end

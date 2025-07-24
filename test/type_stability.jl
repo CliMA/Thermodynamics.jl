@@ -4,15 +4,6 @@
 This file contains tests for performance across different floating-point types.
 """
 
-using Test
-using Thermodynamics
-import Thermodynamics as TD
-import Thermodynamics.Parameters as TP
-using Thermodynamics.TestedProfiles
-
-# Saturation adjustment tolerance (relative change of temperature between consecutive iterations)
-rtol_temperature = 1e-4
-
 @testset "Thermodynamics - Type Stability" begin
 
     # NOTE: `Float32` saturation adjustment tends to have more difficulty
@@ -169,4 +160,4 @@ rtol_temperature = 1e-4
     @test typeof(
         q_vap_from_RH_liquid(param_set, FT(100000), FT(275), FT(0.8)),
     ) == FT
-end 
+end

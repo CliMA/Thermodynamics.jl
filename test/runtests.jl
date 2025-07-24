@@ -21,6 +21,9 @@ include("aqua.jl")
 # Run temperature profile tests for physical consistency
 include("TemperatureProfiles.jl")
 
+# Include common parameters, functions, and imports for all tests
+include("test_common.jl")
+
 # Run core thermodynamic function tests (split into functional categories)
 include("dry_adiabatic_processes.jl")
 include("correctness.jl")

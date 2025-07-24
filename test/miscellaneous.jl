@@ -4,15 +4,6 @@
 This file contains various miscellaneous tests including ProfileSet Iterator, Base.zero, T_guess, and data collection.
 """
 
-using Test
-using Thermodynamics
-import Thermodynamics as TD
-import Thermodynamics.Parameters as TP
-using Thermodynamics.TestedProfiles
-
-# Saturation adjustment tolerance (relative change of temperature between consecutive iterations)
-rtol_temperature = 1e-4
-
 @testset "Thermodynamics - ProfileSet Iterator" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
@@ -81,4 +72,4 @@ TD.solution_type() = RS.VerboseSolution()
     TD.DataCollection.print_summary(data)
     TD.DataCollection.reset_stats()
 end
-TD.solution_type() = RS.CompactSolution() 
+TD.solution_type() = RS.CompactSolution()

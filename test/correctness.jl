@@ -4,36 +4,37 @@
 This file contains tests for fundamental thermodynamic relations and physical laws.
 """
 
-using Test
-using Thermodynamics
-import Thermodynamics as TD
-import Thermodynamics.Parameters as TP
-
-# Include common parameters
-include("common_parameters.jl")
-
-# Saturation adjustment tolerance (relative change of temperature between consecutive iterations)
-rtol_temperature = 1e-4
-
-# Tolerances for tested quantities:
-atol_temperature = 0.4   # Expected absolute temperature accuracy
-atol_energy_temperature = TP.cv_d(TP.ThermodynamicsParameters(Float64)) * atol_temperature  # Expected absolute energy accuracy due to temperature accuracy
-rtol_humidity = 1e-2     # Relative accuracy of specific humidity (for energy tolerance adjustments)
-rtol_density = 1e-3      # Relative density accuracy
-rtol_pressure = 1e-3     # Relative pressure accuracy
-
 @testset "Thermodynamics - correctness" begin
     FT = Float64
     param_set = TP.ThermodynamicsParameters(FT)
-    
+
     # Extract thermodynamic parameters using the common function
     (
-        _R_d, _Rv_over_Rd, _R_v,
-        _cp_d, _cp_v, _cp_l, _cp_i, _cv_d, _cv_v, _cv_l, _cv_i,
-        _T_0, _e_int_v0, _e_int_i0,
-        _LH_v0, _LH_s0, _LH_f0,
-        _press_triple, _T_triple, _T_freeze, _T_icenuc,
-        _T_min, _T_max, _p_ref_theta, _kappa_d
+        _R_d,
+        _Rv_over_Rd,
+        _R_v,
+        _cp_d,
+        _cp_v,
+        _cp_l,
+        _cp_i,
+        _cv_d,
+        _cv_v,
+        _cv_l,
+        _cv_i,
+        _T_0,
+        _e_int_v0,
+        _e_int_i0,
+        _LH_v0,
+        _LH_s0,
+        _LH_f0,
+        _press_triple,
+        _T_triple,
+        _T_freeze,
+        _T_icenuc,
+        _T_min,
+        _T_max,
+        _p_ref_theta,
+        _kappa_d,
     ) = extract_thermodynamic_parameters(param_set)
 
     # Test fundamental thermodynamic relations using ideal gas law
@@ -629,4 +630,4 @@ rtol_pressure = 1e-3     # Relative pressure accuracy
             end
         end
     end
-end 
+end

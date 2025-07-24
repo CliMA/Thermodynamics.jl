@@ -4,12 +4,6 @@
 This file contains tests for error handling on failed convergence.
 """
 
-using Test
-using Thermodynamics
-import Thermodynamics as TD
-import Thermodynamics.Parameters as TP
-using Thermodynamics.TestedProfiles
-
 @testset "Thermodynamics - Exceptions on Failed Convergence" begin
 
     ArrayType = Array{Float64}
@@ -115,4 +109,4 @@ using Thermodynamics.TestedProfiles
         FT(1e-10),
     )
 
-end 
+end

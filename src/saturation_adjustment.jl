@@ -27,13 +27,8 @@ function _find_zero_with_convergence_check(
     warning_func,
     warning_args...,
 )
-    sol = RS.find_zero(
-        roots_func,
-        numerical_method,
-        solution_type,
-        tol,
-        maxiter,
-    )
+    sol =
+        RS.find_zero(roots_func, numerical_method, solution_type, tol, maxiter)
 
     DataCollection.log_meta(sol)
     if !sol.converged
@@ -353,7 +348,7 @@ See also [`saturation_adjustment`](@ref).
         phase_type,
         T_guess,
     )
-    
+
     return _find_zero_with_convergence_check(
         roots,
         numerical_method,

@@ -4,40 +4,6 @@
 This file contains tests for thermodynamic state constructor consistency.
 """
 
-using Test
-using Thermodynamics
-import Thermodynamics as TD
-import Thermodynamics.Parameters as TP
-using Thermodynamics.TestedProfiles
-
-# Test both Float32 and Float64 for type stability
-array_types = [Array{Float32}, Array{Float64}]
-
-# Saturation adjustment tolerance (relative change of temperature between consecutive iterations)
-rtol_temperature = 1e-4
-
-# Tolerances for tested quantities:
-atol_temperature = 0.4   # Expected absolute temperature accuracy
-atol_energy_temperature = TP.cv_d(TP.ThermodynamicsParameters(Float64)) * atol_temperature  # Expected absolute energy accuracy due to temperature accuracy
-rtol_humidity = 1e-2     # Relative accuracy of specific humidity (for energy tolerance adjustments)
-rtol_density = 1e-3      # Relative density accuracy
-rtol_pressure = 1e-3     # Relative pressure accuracy
-
-# Helper function to compare moisture content between thermodynamic states
-compare_moisture(param_set, a::ThermodynamicState, b::ThermodynamicState) =
-    compare_moisture(param_set, a, PhasePartition(param_set, b))
-
-# Compare total moisture for equilibrium states
-compare_moisture(param_set, ts::PhaseEquil, q_pt::PhasePartition) =
-    getproperty(PhasePartition(param_set, ts), :tot) ≈ getproperty(q_pt, :tot)
-
-# Compare all moisture components for non-equilibrium states
-compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
-    getproperty(PhasePartition(param_set, ts), :tot) ≈ getproperty(q_pt, :tot),
-    getproperty(PhasePartition(param_set, ts), :liq) ≈ getproperty(q_pt, :liq),
-    getproperty(PhasePartition(param_set, ts), :ice) ≈ getproperty(q_pt, :ice),
-))
-
 @testset "Thermodynamics - Constructor Consistency" begin
 
     # Make sure `ThermodynamicState` arguments are returned unchanged
@@ -422,5 +388,4 @@ compare_moisture(param_set, ts::PhaseNonEquil, q_pt::PhasePartition) = all((
             TD.air_temperature_from_ideal_gas_law.(param_set, p, ρ, q_pt_rec)
         @test all(isapprox.(T_local, T_rec, atol = 2 * sqrt(eps(FT))))
     end
-
-end 
+end
