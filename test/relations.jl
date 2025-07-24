@@ -43,7 +43,7 @@ import ClimaParams as CP
 param_set_Float64 = TP.ThermodynamicsParameters(Float64)
 
 # Saturation adjustment tolerance (relative change of temperature between consecutive iterations)
-rtol_temperature = 1e-4  # Default tolerance for saturation adjustment
+rtol_temperature = 1e-4
 
 # Tolerances for tested quantities:
 atol_temperature = 0.4   # Expected absolute temperature accuracy
@@ -555,6 +555,8 @@ end
         ρ,
         q_tot,
         PhaseEquil,
+        10,
+        rtol_temperature,
     ) ≈ T
     @test isapprox(
         TD.saturation_adjustment(
@@ -564,6 +566,8 @@ end
             ρ,
             q_tot,
             PhaseEquil,
+            10,
+            rtol_temperature,
         ),
         T,
         atol = atol_temperature,
@@ -581,6 +585,8 @@ end
             ρ,
             q_tot,
             PhaseEquil,
+            10,
+            rtol_temperature,
         ),
         T_cold,
         atol = atol_temperature,
@@ -593,6 +599,8 @@ end
             ρ,
             q_tot,
             PhaseEquil,
+            10,
+            rtol_temperature,
         ),
         T_cold,
         atol = atol_temperature,
