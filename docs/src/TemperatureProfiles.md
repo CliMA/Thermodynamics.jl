@@ -1,21 +1,33 @@
-# Atmospheric temperature profiles
+# Atmospheric Temperature Profiles
 
 ```@meta
 CurrentModule = Thermodynamics.TemperatureProfiles
 ```
 
-Several temperature profiles are available in `Thermodynamics.TemperatureProfiles`. Here, we plot each profile.
+## Overview
+
+The `Thermodynamics.TemperatureProfiles` module provides pre-defined atmospheric temperature profiles for testing and validation purposes, and to be used as reference states in atmosphere models. These profiles represent idealized atmospheric conditions commonly used in climate modeling and thermodynamic testing.
+
+## Available Profiles
+
+Three temperature profiles are currently available:
+
+1. **IsothermalProfile**: Constant temperature with height
+2. **DecayingTemperatureProfile**: Temperature decreases smoothly with height
+3. **DryAdiabaticProfile**: Temperature follows dry adiabatic lapse rate
 
 ## Usage
 
-Using a profile involves passing two arguments:
+Each profile constructor requires two arguments:
 
- - `param_set` a parameter set, from [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)
- - `z` altitude
+- `param_set`: A thermodynamic parameter set from [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)
+- `z`: Altitude (height above surface)
 
-to one of the temperature profile constructors.
+The profiles return both temperature and pressure as a function of altitude.
 
-### IsothermalProfile
+### Isothermal Profile
+
+A constant temperature profile, useful for testing thermodynamic calculations under uniform conditions.
 
 ```@example
 import Thermodynamics as TD
@@ -38,8 +50,9 @@ Plots.savefig("isothermal.svg");
 ```
 ![](isothermal.svg)
 
+### Decaying Temperature Profile
 
-### DecayingTemperatureProfile
+A profile where temperature decreases smoothly with height, representing typical atmospheric conditions.
 
 ```@example
 import Thermodynamics as TD
@@ -62,7 +75,9 @@ Plots.savefig("decaying.svg")
 ```
 ![](decaying.svg)
 
-### DryAdiabaticProfile
+### Dry Adiabatic Profile
+
+A profile following the dry adiabatic lapse rate, where potential temperature is constant with height.
 
 ```@example
 import Thermodynamics as TD
@@ -87,8 +102,54 @@ Plots.savefig("dry_adiabatic.svg")
 ```
 ![](dry_adiabatic.svg)
 
+## Applications
 
-## Extending
+These temperature profiles are useful for:
 
-Additional constructors, or additional profiles can be added to this module by adding a struct, containing parameters needed to construct the profile, and a [functor](https://discourse.julialang.org/t/how-are-functors-useful/24110) to call the profile with a parameter set and altitude.
+- **Testing thermodynamic calculations** under controlled conditions
+- **Benchmarking performance** across different atmospheric conditions
+- **Educational purposes** to understand atmospheric thermodynamics
+
+## Integration with Thermodynamic States
+
+Temperature profiles can be combined with thermodynamic state calculations:
+
+```julia
+# Example: Create thermodynamic states along a temperature profile
+z = range(0, 25e3, length=100)  # 0 to 25 km
+profile = TD.TemperatureProfiles.DryAdiabaticProfile{Float64}(param_set)
+
+# Get temperature and pressure at each altitude
+T_pairs = profile.(Ref(param_set), z)
+T = first.(T_pairs)
+p = last.(T_pairs)
+
+# Create thermodynamic states
+ts_states = [TD.PhaseDry_pT(param_set, p[i], T[i]) for i in 1:length(z)]
+```
+
+## Extending the Module
+
+Additional temperature profiles can be added by:
+
+1. **Creating a struct** containing the parameters needed for the profile
+2. **Implementing a functor** that takes `(param_set, z)` and returns `(T, p)`
+
+Example structure:
+
+```julia
+struct CustomProfile{FT} <: TemperatureProfile{FT}
+    # Profile parameters
+end
+
+function (profile::CustomProfile{FT})(param_set, z) where {FT}
+    # Calculate T and p based on z
+    return (T, p)
+end
+```
+
+!!! note "Implementation Details"
+    All profiles implement the `TemperatureProfile` interface and return
+    temperature-pressure pairs as a function of altitude. The profiles are
+    designed to be composable with other thermodynamic calculations.
 

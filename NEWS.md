@@ -4,6 +4,21 @@ Thermodynamics.jl Release Notes
 main
 ----
 
+v1.xxx  (TODO: release once refactoring is done)
+--------
+
+- ![][[badge-✨feature/enhancement]] Complete rewrite of documentation 
+  - Restructured documentation for better organization and clarity
+  - Updated all function documentation to be consistent and comprehensive
+  - Improved code examples and usage patterns throughout documentation
+  - Enhanced cross-references and internal documentation links
+
+- ![][[badge-✨feature/enhancement]] Added new thermodynamic functions for export
+  - `vapor_pressure_deficit` function for computing vapor pressure deficit
+  - New methods for `partial_pressure_vapor` and `partial_pressure_dry` functions
+  - Added comprehensive tests and physical consistency validation for these functions
+  PR [259](https://github.com/CliMA/Thermodynamics.jl/pull/259)
+
 v0.12.15
 --------
 - Fix inverse molmass bug. PR [258](https://github.com/CliMA/Thermodynamics.jl/pull/258)

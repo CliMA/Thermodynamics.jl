@@ -13,13 +13,16 @@ const APS = TP.AbstractThermodynamicsParameters
 """
     TemperatureProfile
 
-Specifies the temperature or virtual temperature profile for a reference state.
+Abstract type for temperature or virtual temperature reference profiles 
+that can be used in atmosphere models.
 
-Instances of this type are required to be callable objects with the following signature
+Instances of this type are required to be callable objects with the 
+following signature
 
     T,p = (::TemperatureProfile)(param_set::APS, z::FT) where {FT}
 
-where `T` is the temperature or virtual temperature (in K), and `p` is the pressure (in Pa).
+where `T` is the temperature or virtual temperature (K), and `p` is 
+the pressure (Pa).
 """
 abstract type TemperatureProfile{FT} end
 
@@ -27,8 +30,8 @@ abstract type TemperatureProfile{FT} end
     IsothermalProfile(param_set, T_virt)
     IsothermalProfile(param_set, ::Type{FT<:Real})
 
-A uniform virtual temperature profile, which is implemented
-as a special case of [`DecayingTemperatureProfile`](@ref).
+Uniform virtual temperature profile implemented as a special case 
+of [`DecayingTemperatureProfile`](@ref).
 """
 IsothermalProfile(param_set::APS, T_virt::FT) where {FT} =
     DecayingTemperatureProfile{FT}(param_set, T_virt, T_virt)
@@ -41,8 +44,8 @@ end
 """
     DryAdiabaticProfile{FT} <: TemperatureProfile{FT}
 
-
-A temperature profile that has uniform dry potential temperature `θ`
+Temperature profile with uniform dry potential temperature `θ` up to 
+the height where a minimum temperature is reached.
 
 # Fields
 
@@ -63,14 +66,10 @@ struct DryAdiabaticProfile{FT} <: TemperatureProfile{FT}
 end
 
 """
-    (profile::DryAdiabaticProfile)(
-        param_set::APS,
-        z::FT,
-    ) where {FT}
+    (profile::DryAdiabaticProfile)(param_set::APS, z::FT) where {FT}
 
-Returns dry adiabatic temperature and pressure profiles
-with zero relative humidity. The temperature is truncated
-to be greater than or equal to `profile.T_min_ref`.
+Returns dry adiabatic temperature and pressure profiles with zero relative humidity.
+Temperature is truncated to be ≥ `profile.T_min_ref`.
 """
 function (profile::DryAdiabaticProfile)(param_set::APS, z::FT) where {FT}
 
@@ -94,11 +93,10 @@ function (profile::DryAdiabaticProfile)(param_set::APS, z::FT) where {FT}
 end
 
 """
-    DecayingTemperatureProfile{F} <: TemperatureProfile{FT}
+    DecayingTemperatureProfile{FT} <: TemperatureProfile{FT}
 
-A virtual temperature profile that decays smoothly with height `z`, from
-`T_virt_surf` to `T_min_ref` over a height scale `H_t`. The default height
-scale `H_t` is the density scale height evaluated with `T_virt_surf`.
+Virtual temperature profile that decays smoothly with height `z` from `T_virt_surf` to `T_min_ref`
+over height scale `H_t` (default: density scale height with `T_virt_surf`).
 
 ```math
 T_{\\text{v}}(z) = \\max(T_{\\text{v, sfc}} − (T_{\\text{v, sfc}} - T_{\\text{v, min}}) \\tanh(z/H_{\\text{t}})
@@ -126,6 +124,11 @@ struct DecayingTemperatureProfile{FT} <: TemperatureProfile{FT}
 end
 
 
+"""
+    (profile::DecayingTemperatureProfile)(param_set::APS, z::FT) where {FT}
+
+Returns decaying temperature and pressure profiles using hyperbolic tangent decay.
+"""
 function (profile::DecayingTemperatureProfile)(param_set::APS, z::FT) where {FT}
     R_d = TP.R_d(param_set)
     grav = TP.grav(param_set)
