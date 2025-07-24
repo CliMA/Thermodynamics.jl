@@ -1,4 +1,7 @@
+# Constructors for thermodynamic states given various input variables
+
 export PhasePartition
+
 # Thermodynamic states
 export ThermodynamicState,
     PhaseDry,
@@ -565,7 +568,6 @@ and the density is computed from the equation of state using the pressure and te
 end
 PhaseEquil_peq(param_set::APS, p, e_int, q_tot, args...) =
     PhaseEquil_peq(param_set, promote(p, e_int, q_tot)..., args...)
-
 
 """
     PhaseEquil_phq(param_set, p, h, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])

@@ -1,6 +1,4 @@
-#####
-##### Formulas assuming dry (unsaturated) adiabatic (i.e. isentropic) processes
-#####
+# Formulas assuming dry (unsaturated) adiabatic (i.e. isentropic) processes
 
 export DryAdiabaticProcess
 

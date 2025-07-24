@@ -1,0 +1,145 @@
+export air_pressure
+export exner
+
+export air_density
+export specific_volume
+
+"""
+    air_pressure(param_set, T, ρ[, q::PhasePartition])
+
+The air pressure from the equation of state (ideal gas law), given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` air temperature
+ - `ρ` (moist-)air density
+
+and, optionally,
+
+ - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+"""
+@inline function air_pressure(
+    param_set::APS,
+    T::FT,
+    ρ::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+) where {FT <: Real}
+    return gas_constant_air(param_set, q) * ρ * T
+end
+@inline air_pressure(param_set, T, ρ, q) =
+    air_pressure(param_set, promote_phase_partition(T, ρ, q)...)
+
+"""
+    air_pressure(param_set, ts::ThermodynamicState)
+
+The air pressure from the equation of state (ideal gas law), 
+given a thermodynamic state `ts`.
+"""
+@inline air_pressure(param_set::APS, ts::ThermodynamicState) = air_pressure(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
+    PhasePartition(param_set, ts),
+)
+
+@inline air_pressure(param_set::APS, ts::PhaseEquil) = ts.p
+
+"""
+    air_density(param_set, T, p[, q::PhasePartition])
+
+The (moist-)air density from the equation of state (ideal gas law), given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` air temperature
+ - `p` pressure
+
+and, optionally,
+
+ - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+"""
+@inline function air_density(
+    param_set::APS,
+    T::FT,
+    p::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+) where {FT <: Real}
+    return p / (gas_constant_air(param_set, q) * T)
+end
+@inline air_density(param_set, T, p, q) =
+    air_density(param_set, promote_phase_partition(T, p, q)...)
+
+"""
+    air_density(param_set, ts::ThermodynamicState)
+
+The (moist-)air density, given a thermodynamic state `ts`.
+"""
+@inline air_density(param_set::APS, ts::ThermodynamicState) = ts.ρ
+
+"""
+    specific_volume(param_set, ts::ThermodynamicState)
+
+The (moist-)air specific volume, given a thermodynamic state `ts`.
+"""
+@inline specific_volume(param_set::APS, ts::ThermodynamicState) =
+    1 / air_density(param_set, ts)
+
+"""
+    exner(param_set, T, ρ[, q::PhasePartition)])
+
+The Exner function, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `ρ` (moist-)air density
+
+and, optionally,
+
+ - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+"""
+@inline function exner(
+    param_set::APS,
+    T::FT,
+    ρ::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
+) where {FT <: Real}
+    p = air_pressure(param_set, T, ρ, q)
+    return exner_given_pressure(param_set, p, q, cpm)
+end
+
+"""
+    exner(param_set, ts::ThermodynamicState)
+
+The Exner function, given a thermodynamic state `ts`.
+"""
+@inline exner(param_set::APS, ts::ThermodynamicState) = exner(
+    param_set,
+    air_temperature(param_set, ts),
+    air_density(param_set, ts),
+    PhasePartition(param_set, ts),
+)
+
+"""
+    exner_given_pressure(param_set, p[, q::PhasePartition, cpm])
+
+The Exner function, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+
+and, optionally,
+
+ - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+"""
+@inline function exner_given_pressure(
+    param_set::APS,
+    p::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
+) where {FT <: Real}
+    p0 = TP.p_ref_theta(param_set)
+    # gas constant and isobaric specific heat of moist air
+    _R_m = gas_constant_air(param_set, q)
+
+    # return (p / p0)^(_R_m / cpm)
+    return fast_power(p / p0, _R_m / cpm)
+end

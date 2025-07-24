@@ -1695,10 +1695,6 @@ end
     (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
     (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
-    ρu = FT[1.0, 2.0, 3.0]
-    @test typeof.(internal_energy.(ρ, ρ .* e_int, Ref(ρu), e_pot)) ==
-          typeof.(e_int)
-
     ts_eq =
         PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 15, FT(rtol_temperature))
     e_tot = total_energy.(param_set, ts_eq, e_kin, e_pot)
