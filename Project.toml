@@ -1,15 +1,14 @@
 name = "Thermodynamics"
 uuid = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 authors = ["Climate Modeling Alliance"]
-version = "0.12.9"
+version = "0.12.15"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 KernelAbstractions = "63c18a36-062a-441e-b654-da1e3ab1ce7c"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RootSolvers = "7181ea78-2dcb-4de3-ab41-2b8ab5a31e74"
-# Required for backwards compatibility with Julia <1.9
-ClimaParams = "5c42b081-d73a-476f-9059-fd94b934656c"
 
 [weakdeps]
 ClimaParams = "5c42b081-d73a-476f-9059-fd94b934656c"
@@ -20,6 +19,7 @@ CreateParametersExt = "ClimaParams"
 [compat]
 ClimaParams = "0.10"
 DocStringExtensions = "0.8.1, 0.9"
+ForwardDiff = "1.0.1"
 KernelAbstractions = "0.9"
 Random = "1"
 RootSolvers = "0.4"

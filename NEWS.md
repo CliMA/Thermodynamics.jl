@@ -4,9 +4,46 @@ Thermodynamics.jl Release Notes
 main
 ----
 
+v1.xxx  (TODO: release once refactoring is done)
+--------
+
+- ![][[badge-✨feature/enhancement]] Complete rewrite of documentation 
+  - Restructured documentation for better organization and clarity
+  - Updated all function documentation to be consistent and comprehensive
+  - Improved code examples and usage patterns throughout documentation
+  - Enhanced cross-references and internal documentation links
+
+- ![][[badge-✨feature/enhancement]] Added new thermodynamic functions for export
+  - `vapor_pressure_deficit` function for computing vapor pressure deficit
+  - New methods for `partial_pressure_vapor` and `partial_pressure_dry` functions
+  - Added comprehensive tests and physical consistency validation for these functions
+  PR [259](https://github.com/CliMA/Thermodynamics.jl/pull/259)
+
+v0.12.15
+--------
+- Fix inverse molmass bug. PR [258](https://github.com/CliMA/Thermodynamics.jl/pull/258)
+- Thermodynamics.jl is no longer tested on Julia versions before 1.10.
+  Please do not expect compatibility with those versions.
+  PR [257](https://github.com/CliMA/Thermodynamics.jl/pull/257)
+
+v0.12.14
+--------
+- Added an option to call `cp_m` without using `PhasePartition`
+  PR [256](https://github.com/CliMA/Thermodynamics.jl/pull/256)
+
+v0.12.13
+-------
+- ![][[badge-✨feature/enhancement]] Allow cp_m calculation without using PhasePartition.
+  PR [254](https://github.com/CliMA/Thermodynamics.jl/pull/254)
+
+v0.12.10
+-------
+- ![][[badge-🐛bugfix]] Asynchronous printing on the gpu has been fixed.
+  PR [239](https://github.com/CliMA/Thermodynamics.jl/pull/239)
+
 v0.12.9
 -------
-- ![][[badge-🐛bugfix]] Protest against zero division in relative humidity 
+- ![][[badge-🐛bugfix]] Protest against zero division in relative humidity
   calculation and limit relative humidity between 0 and 1.
   PR [230](https://github.com/CliMA/Thermodynamics.jl/pull/230)
 
