@@ -100,6 +100,7 @@ p = TD.air_pressure(params, ρ, T, q)      # From density, temperature, and humi
 ### ⚡ **High Performance**
 - **Type-stable implementations** for optimal Julia performance
 - **GPU-compatible** implementations
+- **Differentiable implementation** compatible with Julia's automatic differentiation capabilities
 - **Efficient saturation adjustment** with Newton's method and analytical derivatives for equilibrium thermodynamics formulations
 
 ### 🔧 **Flexible Design**
@@ -112,11 +113,12 @@ p = TD.air_pressure(params, ρ, T, q)      # From density, temperature, and humi
 ## Core Design Principles
 
 ### **Thermodynamic State Abstraction**
-The package leverages the fundamental principle that:
+As an option, the package leverages the fundamental principle that:
 - Given two (or more) independent intrinsic thermodynamic properties, we can establish a thermodynamic state
 - Given a thermodynamic state, we can compute any thermodynamic property
 
-This abstraction provides a clean, consistent interface for all thermodynamic calculations.
+This abstraction provides a clean, consistent interface for all thermodynamic calculations. 
+However, thermodynamic calculations are also accessible via direct functions. 
 
 ### **Working Fluid Definition**
 The working fluid includes **moist air with precipitation**, ensuring:

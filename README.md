@@ -6,8 +6,8 @@
 
 A comprehensive Julia package for Earth system thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
 
-| **Documentation**           | [![dev][docs-latest-img]][docs-latest-url]       |
 |-----------------------------|--------------------------------------------------|
+| **Documentation**           | [![dev][docs-latest-img]][docs-latest-url]       |
 | **Docs Build**              | [![docs build][docs-bld-img]][docs-bld-url]      |
 | **GHA CI**                  | [![gha ci][gha-ci-img]][gha-ci-url]              |
 | **Code Coverage**           | [![codecov][codecov-img]][codecov-url]           |
@@ -69,6 +69,7 @@ q = TD.PhasePartition(params, ts)
 ### ⚡ **High Performance**
 - **Type-stable implementations** for optimal Julia performance
 - **GPU-compatible** implementations
+- **Differentiable implementation** compatible with Julia's automatic differentiation capabilities
 - **Efficient saturation adjustment** with Newton's method and analytical derivatives
 
 ### 🔧 **Flexible Design**
@@ -79,14 +80,14 @@ q = TD.PhasePartition(params, ts)
 
 ## Core Design Principles
 
-### **Thermodynamic State Abstraction**
-Given two (or more) independent intrinsic thermodynamic properties, we can establish a thermodynamic state from which any thermodynamic property can be computed.
-
 ### **Working Fluid Definition**
 The working fluid includes **moist air with precipitation**, ensuring mass and energy conservation across all phases and thermodynamic consistency throughout the system.
 
 ### **Consistent Formulation**
 All thermodynamic quantities are derived from a single fundamental approximation of **calorically perfect gases** with constant specific heat capacities, providing accuracy within 1-3% for atmospheric conditions.
+
+### **Thermodynamic State Abstraction**
+Optionally, given two (or more) independent intrinsic thermodynamic properties, we can establish a thermodynamic state from which any thermodynamic property can be computed.
 
 ## Documentation
 
