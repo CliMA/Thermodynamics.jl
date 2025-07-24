@@ -429,10 +429,10 @@ and, optionally,
 """
 @inline function air_temperature(
     param_set::APS,
-    e_int::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    e_int,
+    q,
     cvm = cv_m(param_set, q),
-) where {FT <: Real}
+)
     T_0 = TP.T_0(param_set)
     R_d = TP.R_d(param_set)
     e_int_v0 = TP.e_int_v0(param_set)
