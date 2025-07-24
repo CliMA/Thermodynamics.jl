@@ -13,7 +13,7 @@ The `Thermodynamics.TemperatureProfiles` module provides pre-defined atmospheric
 Three temperature profiles are currently available:
 
 1. **IsothermalProfile**: Constant temperature with height
-2. **DecayingTemperatureProfile**: Temperature decreases with height
+2. **DecayingTemperatureProfile**: Temperature decreases smoothly with height
 3. **DryAdiabaticProfile**: Temperature follows dry adiabatic lapse rate
 
 ## Usage

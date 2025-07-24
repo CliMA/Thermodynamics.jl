@@ -1851,7 +1851,7 @@ Compute the temperature that is consistent with
     See the [`Thermodynamics`](@ref) for options.
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
- - `h` specific_enthalpy
+ - `h` specific enthalpy
  - `q_tot` total specific humidity
  - `phase_type` a thermodynamic state type
  - `maxiter` maximum iterations for non-linear equation solve
@@ -2613,7 +2613,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
 
 The virtual potential temperature is defined as `θ_v = (R_m/R_d) * θ`, where `θ` is the
-potential temperature. It is the temperature a dry air parcel would need to have to
+potential temperature. It is the potential temperature a dry air parcel would need to have to
 have the same density as the moist air parcel at the same pressure.
 """
 @inline function virtual_pottemp(

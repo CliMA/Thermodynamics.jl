@@ -4,7 +4,7 @@ Thermodynamics.jl Release Notes
 main
 ----
 
-v1.xxx
+v1.xxx  (TODO: release once refactoring is done)
 --------
 
 - ![][[badge-✨feature/enhancement]] Complete rewrite of documentation 

@@ -6,24 +6,28 @@
 
 A comprehensive Julia package for Earth system thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
 
-|||
-|---------------------:|:----------------------------------------------|
-| **Docs Build**       | [![docs build][docs-bld-img]][docs-bld-url]   |
-| **Documentation**    | [![dev][docs-dev-img]][docs-dev-url]          |
-| **GHA CI**           | [![gha ci][gha-ci-img]][gha-ci-url]           |
-| **Code Coverage**    | [![codecov][codecov-img]][codecov-url]        |
+| **Documentation**           | [![dev][docs-latest-img]][docs-latest-url]       |
+|-----------------------------|--------------------------------------------------|
+| **Docs Build**              | [![docs build][docs-bld-img]][docs-bld-url]      |
+| **GHA CI**                  | [![gha ci][gha-ci-img]][gha-ci-url]              |
+| **Code Coverage**           | [![codecov][codecov-img]][codecov-url]           |
+| **Downloads**               | [![Downloads][dlt-img]][dlt-url]                 |
+
 
 [docs-bld-img]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml/badge.svg
 [docs-bld-url]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml
 
-[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-dev-url]: https://CliMA.github.io/Thermodynamics.jl/dev/
+[docs-latest-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-latest-url]: https://CliMA.github.io/Thermodynamics.jl/dev/
 
 [gha-ci-img]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/ci.yml/badge.svg
 [gha-ci-url]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/ci.yml
 
 [codecov-img]: https://codecov.io/gh/CliMA/Thermodynamics.jl/branch/main/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/CliMA/Thermodynamics.jl
+
+[dlt-img]: https://img.shields.io/badge/dynamic/json?url=http%3A%2F%2Fjuliapkgstats.com%2Fapi%2Fv1%2Ftotal_downloads%2FThermodynamics&query=total_requests&label=Downloads
+[dlt-url]: https://juliapkgstats.com/pkg/Thermodynamics.c
 
 ## Quick Start
 

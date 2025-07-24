@@ -6,43 +6,6 @@ ENV["GKSwstype"] = "nul"
 
 bib = CitationBibliography(joinpath(@__DIR__, "bibliography.bib"))
 
-# Examples directory removed - commenting out example processing
-# const EXAMPLES_DIR = joinpath(@__DIR__, "..", "examples")
-# const OUTPUT_DIR = joinpath(@__DIR__, "src/literated")
-# 
-# example_scripts = ["density_from_temperature_pressure_humidity.jl"]
-# 
-# if isdir(OUTPUT_DIR)
-#     rm(OUTPUT_DIR)
-# end
-# 
-# mkdir(OUTPUT_DIR)
-# 
-# cp(
-#     joinpath(EXAMPLES_DIR, "JRA55_atmospheric_state_Jan_1_1991.jld2"),
-#     joinpath(OUTPUT_DIR, "JRA55_atmospheric_state_Jan_1_1991.jld2"),
-# )
-# 
-# for example in example_scripts
-#     example_filepath = joinpath(EXAMPLES_DIR, example)
-# 
-#     withenv("JULIA_DEBUG" => "Literate") do
-#         start_time = time_ns()
-#         Literate.markdown(
-#             example_filepath,
-#             OUTPUT_DIR;
-#             flavor = Literate.DocumenterFlavor(),
-#             execute = true,
-#         )
-#         elapsed = 1e-9 * (time_ns() - start_time)
-#         @info @sprintf("%s example took %s seconds to build.", example, elapsed)
-#     end
-# end
-# 
-# example_pages = [
-#     "Density from temperature, pressure, and humidity" => "literated/density_from_temperature_pressure_humidity.md",
-# ]
-
 pages = Any[
     "Home" => "index.md",
     "Mathematical Formulation" => "Formulation.md",
