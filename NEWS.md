@@ -12,12 +12,14 @@ v1.xxx  (TODO: release once refactoring is done)
   - Updated all function documentation to be consistent and comprehensive
   - Improved code examples and usage patterns throughout documentation
   - Enhanced cross-references and internal documentation links
+  - Split monolithic src/relations.jl and test/relations.jl into multiple files
 
 - ![][[badge-✨feature/enhancement]] Added new thermodynamic functions for export
   - `vapor_pressure_deficit` function for computing vapor pressure deficit
   - New methods for `partial_pressure_vapor` and `partial_pressure_dry` functions
   - Added comprehensive tests and physical consistency validation for these functions
   PR [259](https://github.com/CliMA/Thermodynamics.jl/pull/259)
+  PR [263](https://github.com/CliMA/Thermodynamics.jl/pull/263)
 
 v0.12.15
 --------

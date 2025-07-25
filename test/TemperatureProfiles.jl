@@ -55,7 +55,7 @@ end
 
 @testset "TemperatureProfiles - DecayingTemperatureProfile" begin
     for FT in [Float32, Float64]
-        param_set = TP.ThermodynamicsParameters(FT)
+        param_set = TD.Parameters.ThermodynamicsParameters(FT)
         _grav = FT(TP.grav(param_set))
         _R_d = FT(TP.R_d(param_set))
         _p_ref = FT(TP.MSLP(param_set))

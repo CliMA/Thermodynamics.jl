@@ -69,18 +69,32 @@ include("printing.jl")
 # Allow users to skip printing warnings on non-convergence
 @inline print_warning() = true
 
+# Default phase partition for dry air
 @inline q_pt_0(::Type{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
 
 @inline solution_type() = RS.CompactSolution()
 include("DataCollection.jl")
 import .DataCollection
 
-include("states.jl")
-include("relations.jl")
-include("isentropic.jl")
+include("aux_functions.jl")
+include("air_states.jl")
+
+include("air_properties.jl")
+include("air_phase_partition.jl")
+include("air_energies.jl")
+include("air_humidities.jl")
+include("air_temperatures.jl")
+include("air_pressure_and_density.jl")
+include("air_saturation_functions.jl")
+include("saturation_adjustment.jl")
+include("air_entropies.jl")
+include("air_dry_adiabatic.jl")
 include("config_numerical_method.jl")
 include("TemperatureProfiles.jl")
 include("TestedProfiles.jl")
+
+# State methods
+include("air_state_methods.jl")
 
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)

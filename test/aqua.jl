@@ -2,7 +2,7 @@ using Test
 using Thermodynamics
 using Aqua
 
-@testset "Aqua tests (performance)" begin
+@testset "Aqua Tests (Performance)" begin
     # Test for unbound type parameters in method signatures
     # This prevents issues like https://github.com/JuliaLang/julia/issues/29393
     # where unbound type parameters can cause compilation problems
@@ -28,7 +28,7 @@ using Aqua
     @test length(ambs) ≤ 0
 end
 
-@testset "Aqua tests - remaining" begin
+@testset "Aqua Tests - Remaining" begin
     # Run comprehensive Aqua tests for code quality
     # This includes tests for:
     # - Project structure and dependencies

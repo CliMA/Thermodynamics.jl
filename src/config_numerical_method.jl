@@ -1,3 +1,5 @@
+# Configures saturation adjustment numerical methods
+
 #####
 ##### Thermodynamic variable inputs: ρ, e_int, q_tot
 #####
@@ -92,7 +94,7 @@ end
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     q_pt = PhasePartition(q_tot)
     T_init = if T_guess isa Nothing
-        air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt)
+        air_temperature_given_ρp(param_set, p, ρ, q_pt)
     else
         T_guess
     end
@@ -109,8 +111,8 @@ end
     T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.RegulaFalsiMethod, phase_type <: PhaseEquil}
     q_pt = PhasePartition(q_tot)
-    T_1 = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt) - 5
-    T_2 = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt) + 5
+    T_1 = air_temperature_given_ρp(param_set, p, ρ, q_pt) - 5
+    T_2 = air_temperature_given_ρp(param_set, p, ρ, q_pt) + 5
     return RS.RegulaFalsiMethod(T_1, T_2)
 end
 
