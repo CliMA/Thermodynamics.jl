@@ -14,7 +14,7 @@ using Aqua
     # See: https://github.com/SciML/OrdinaryDiffEq.jl/issues/1750
     ambs = Aqua.detect_ambiguities(Thermodynamics; recursive = true)
 
-    # Filter ambiguties to only include those involving Thermodynamics methods
+    # Filter ambiguities to only include those involving Thermodynamics methods
     # This helps focus on ambiguities that are actually relevant to our package
     pkg_match(pkgname, pkdir::Nothing) = false
     pkg_match(pkgname, pkdir::AbstractString) = occursin(pkgname, pkdir)

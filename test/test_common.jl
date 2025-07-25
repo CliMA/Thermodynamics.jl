@@ -1,5 +1,5 @@
 """
-# Common Parameters for Thermodynamics Tests
+# Common Parameters, Includes, and Functions for Thermodynamics Tests
 
 This file contains common thermodynamic parameter definitions and tolerances
 that are shared across multiple test files to avoid duplication.
