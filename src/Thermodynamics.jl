@@ -92,6 +92,9 @@ include("config_numerical_method.jl")
 include("TemperatureProfiles.jl")
 include("TestedProfiles.jl")
 
+# State methods
+include("state_methods.jl")
+
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)
 

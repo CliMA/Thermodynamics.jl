@@ -29,21 +29,6 @@ end
     air_pressure(param_set, promote_phase_partition(T, ρ, q)...)
 
 """
-    air_pressure(param_set, ts::ThermodynamicState)
-
-The air pressure from the equation of state (ideal gas law), 
-given a thermodynamic state `ts`.
-"""
-@inline air_pressure(param_set::APS, ts::ThermodynamicState) = air_pressure(
-    param_set,
-    air_temperature(param_set, ts),
-    air_density(param_set, ts),
-    PhasePartition(param_set, ts),
-)
-
-@inline air_pressure(param_set::APS, ts::PhaseEquil) = ts.p
-
-"""
     air_density(param_set, T, p[, q::PhasePartition])
 
 The (moist-)air density from the equation of state (ideal gas law), given
@@ -68,21 +53,6 @@ end
     air_density(param_set, promote_phase_partition(T, p, q)...)
 
 """
-    air_density(param_set, ts::ThermodynamicState)
-
-The (moist-)air density, given a thermodynamic state `ts`.
-"""
-@inline air_density(param_set::APS, ts::ThermodynamicState) = ts.ρ
-
-"""
-    specific_volume(param_set, ts::ThermodynamicState)
-
-The (moist-)air specific volume, given a thermodynamic state `ts`.
-"""
-@inline specific_volume(param_set::APS, ts::ThermodynamicState) =
-    1 / air_density(param_set, ts)
-
-"""
     exner(param_set, T, ρ[, q::PhasePartition)])
 
 The Exner function, given
@@ -105,18 +75,6 @@ and, optionally,
     p = air_pressure(param_set, T, ρ, q)
     return exner_given_pressure(param_set, p, q, cpm)
 end
-
-"""
-    exner(param_set, ts::ThermodynamicState)
-
-The Exner function, given a thermodynamic state `ts`.
-"""
-@inline exner(param_set::APS, ts::ThermodynamicState) = exner(
-    param_set,
-    air_temperature(param_set, ts),
-    air_density(param_set, ts),
-    PhasePartition(param_set, ts),
-)
 
 """
     exner_given_pressure(param_set, p[, q::PhasePartition, cpm])

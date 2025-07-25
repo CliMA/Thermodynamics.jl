@@ -30,14 +30,6 @@ The specific entropy is computed from equations (29)-(33) of [Pressel2015](@cite
     return (1 - q.tot) * s_d + q.tot * s_v - (q.liq * L_v + q.ice * L_s) / T
 end
 
-@inline specific_entropy(param_set::APS, ts::ThermodynamicState) =
-    specific_entropy(
-        param_set,
-        air_pressure(param_set, ts),
-        air_temperature(param_set, ts),
-        PhasePartition(param_set, ts),
-    )
-
 """
     specific_entropy_dry(param_set, p, T, q)
 

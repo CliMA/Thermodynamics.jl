@@ -36,19 +36,6 @@ and, optionally,
 end
 
 """
-    air_temperature(param_set, ts::ThermodynamicState)
-
-The air temperature, given a thermodynamic state `ts`.
-"""
-@inline air_temperature(param_set::APS, ts::ThermodynamicState) =
-    air_temperature(
-        param_set,
-        internal_energy(param_set, ts),
-        PhasePartition(param_set, ts),
-    )
-@inline air_temperature(param_set::APS, ts::AbstractPhaseEquil) = ts.T
-
-"""
     air_temperature_from_enthalpy(param_set, h, q::PhasePartition)
 
 The air temperature, given
@@ -142,18 +129,6 @@ and, optionally,
 end
 
 """
-    dry_pottemp(param_set, ts::ThermodynamicState)
-
-The dry potential temperature, given a thermodynamic state `ts`.
-"""
-@inline dry_pottemp(param_set::APS, ts::ThermodynamicState) = dry_pottemp(
-    param_set,
-    air_temperature(param_set, ts),
-    air_density(param_set, ts),
-    PhasePartition(param_set, ts),
-)
-
-"""
     latent_heat_liq_ice(param_set, q::PhasePartition{FT})
 
 Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference temperature 
@@ -171,8 +146,6 @@ Specific-humidity weighted sum of latent heats of liquid and ice evaluated at re
     LH_s0 = TP.LH_s0(param_set)
     return LH_v0 * q.liq + LH_s0 * q.ice
 end
-latent_heat_liq_ice(param_set::APS, ts::ThermodynamicState) =
-    latent_heat_liq_ice(param_set, PhasePartition(param_set, ts))
 
 """
     liquid_ice_pottemp_given_pressure(param_set, T, p[, q::PhasePartition, cpm])
@@ -227,19 +200,6 @@ and, optionally,
         cpm,
     )
 end
-
-"""
-    liquid_ice_pottemp(param_set, ts::ThermodynamicState)
-
-The liquid-ice potential temperature, given a thermodynamic state `ts`.
-"""
-@inline liquid_ice_pottemp(param_set::APS, ts::ThermodynamicState) =
-    liquid_ice_pottemp(
-        param_set,
-        air_temperature(param_set, ts),
-        air_density(param_set, ts),
-        PhasePartition(param_set, ts),
-    )
 
 # Helper function for saturation adjustment when virtual temperature 
 # and relative humidity are given
@@ -303,20 +263,6 @@ The saturated liquid ice potential temperature, given
     cpm = cp_m(param_set, q)
     return liquid_ice_pottemp(param_set, T, ρ, q, cpm)
 end
-
-"""
-    liquid_ice_pottemp_sat(param_set, ts::ThermodynamicState)
-
-The liquid potential temperature, given a thermodynamic state `ts`.
-"""
-@inline liquid_ice_pottemp_sat(param_set::APS, ts::ThermodynamicState) =
-    liquid_ice_pottemp_sat(
-        param_set,
-        air_temperature(param_set, ts),
-        air_density(param_set, ts),
-        typeof(ts),
-        PhasePartition(param_set, ts),
-    )
 
 """
     temperature_and_humidity_given_TᵥρRH(param_set, T_virt, ρ, RH)
@@ -532,19 +478,6 @@ have the same density as the moist air parcel at the same pressure.
 end
 
 """
-    virtual_pottemp(param_set, ts::ThermodynamicState)
-
-The virtual potential temperature, given a thermodynamic state `ts`.
-"""
-@inline virtual_pottemp(param_set::APS, ts::ThermodynamicState) =
-    virtual_pottemp(
-        param_set,
-        air_temperature(param_set, ts),
-        air_density(param_set, ts),
-        PhasePartition(param_set, ts),
-    )
-
-"""
     virtual_temperature(param_set, T[, q::PhasePartition])
 
 The virtual temperature, given
@@ -568,15 +501,3 @@ at the same pressure.
     R_d = TP.R_d(param_set)
     return gas_constant_air(param_set, q) / R_d * T
 end
-
-"""
-    virtual_temperature(param_set, ts::ThermodynamicState)
-
-The virtual temperature, given a thermodynamic state `ts`.
-"""
-@inline virtual_temperature(param_set::APS, ts::ThermodynamicState) =
-    virtual_temperature(
-        param_set,
-        air_temperature(param_set, ts),
-        PhasePartition(param_set, ts),
-    )

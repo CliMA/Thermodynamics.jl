@@ -41,13 +41,6 @@ end
     internal_energy(param_set, promote_phase_partition(T, q)...)
 
 """
-    internal_energy(param_set, ts::ThermodynamicState)
-
-The internal energy per unit mass, given a thermodynamic state `ts`.
-"""
-@inline internal_energy(param_set::APS, ts::ThermodynamicState) = ts.e_int
-
-"""
     internal_energy_dry(param_set, T)
 
 The dry air internal energy, given
@@ -61,14 +54,6 @@ The dry air internal energy, given
     R_d = TP.R_d(param_set)
     return cv_d * (T - T_0) - R_d * T_0
 end
-
-"""
-    internal_energy_dry(param_set, ts::ThermodynamicState)
-
-The dry air internal energy, given a thermodynamic state `ts`.
-"""
-@inline internal_energy_dry(param_set::APS, ts::ThermodynamicState) =
-    internal_energy_dry(param_set, air_temperature(param_set, ts))
 
 """
     internal_energy_vapor(param_set, T)
@@ -85,14 +70,6 @@ The water vapor internal energy, given
 
     return cv_v * (T - T_0) + e_int_v0
 end
-
-"""
-    internal_energy_vapor(param_set, ts::ThermodynamicState)
-
-The water vapor internal energy, given a thermodynamic state `ts`.
-"""
-@inline internal_energy_vapor(param_set::APS, ts::ThermodynamicState) =
-    internal_energy_vapor(param_set, air_temperature(param_set, ts))
 
 """
     internal_energy_liquid(param_set, T)
@@ -113,14 +90,6 @@ The liquid water internal energy, given
 end
 
 """
-    internal_energy_liquid(param_set, ts::ThermodynamicState)
-
-The liquid water internal energy, given a thermodynamic state `ts`.
-"""
-@inline internal_energy_liquid(param_set::APS, ts::ThermodynamicState) =
-    internal_energy_liquid(param_set, air_temperature(param_set, ts))
-
-"""
     internal_energy_ice(param_set, T)
 
 The ice internal energy, given
@@ -135,14 +104,6 @@ The ice internal energy, given
 
     return cv_i * (T - T_0) - e_int_i0
 end
-
-"""
-    internal_energy_ice(param_set, ts::ThermodynamicState)
-
-The ice internal energy, given a thermodynamic state `ts`.
-"""
-@inline internal_energy_ice(param_set::APS, ts::ThermodynamicState) =
-    internal_energy_ice(param_set, air_temperature(param_set, ts))
 
 """
     internal_energy_sat(param_set, T, ρ, q_tot, phase_type)
@@ -177,22 +138,6 @@ end
     internal_energy_sat(param_set, promote(T, ρ, q_tot)..., phase_type)
 
 """
-    internal_energy_sat(param_set, ts::ThermodynamicState)
-
-The internal energy per unit mass in thermodynamic equilibrium 
-at saturation with a fixed temperature and total specific humidity, 
-given a thermodynamic state `ts`.
-"""
-@inline internal_energy_sat(param_set::APS, ts::ThermodynamicState) =
-    internal_energy_sat(
-        param_set,
-        air_temperature(param_set, ts),
-        air_density(param_set, ts),
-        total_specific_humidity(param_set, ts),
-        typeof(ts),
-    )
-
-"""
     total_energy(param_set, e_kin, e_pot, T[, q::PhasePartition])
 
 The total energy per unit mass, given
@@ -215,20 +160,6 @@ and, optionally,
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
     return internal_energy(param_set, T, q) + e_pot + e_kin
-end
-
-"""
-    total_energy(param_set, ts::ThermodynamicState, e_kin, e_pot)
-
-The total energy per unit mass, given a thermodynamic state `ts`.
-"""
-@inline function total_energy(
-    param_set::APS,
-    ts::ThermodynamicState{FT},
-    e_kin::FT,
-    e_pot::FT,
-) where {FT <: Real}
-    return internal_energy(param_set, ts) + e_pot + e_kin
 end
 
 """
@@ -269,21 +200,6 @@ The specific enthalpy, given
 """
 @inline function specific_enthalpy(e_int::FT, R_m::FT, T::FT) where {FT <: Real}
     return e_int + R_m * T
-end
-
-"""
-    specific_enthalpy(param_set, ts)
-
-The specific enthalpy, given a thermodynamic state `ts`.
-"""
-@inline function specific_enthalpy(
-    param_set::APS,
-    ts::ThermodynamicState{FT},
-) where {FT <: Real}
-    e_int = internal_energy(param_set, ts)
-    R_m = gas_constant_air(param_set, ts)
-    T = air_temperature(param_set, ts)
-    return specific_enthalpy(e_int, R_m, T)
 end
 
 """
@@ -336,23 +252,6 @@ end
 
 
 """
-    moist_static_energy(param_set, ts, e_pot)
-
-The moist static energy, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `ts` a thermodynamic state
- - `e_pot` gravitational potential energy per unit mass
-"""
-@inline function moist_static_energy(
-    param_set::APS,
-    ts::ThermodynamicState,
-    e_pot,
-)
-    return specific_enthalpy(param_set, ts) + e_pot
-end
-
-"""
     total_specific_enthalpy(e_tot, R_m, T)
 
 The total specific enthalpy, given
@@ -367,46 +266,4 @@ The total specific enthalpy, given
     T::FT,
 ) where {FT <: Real}
     return e_tot + R_m * T
-end
-
-"""
-    total_specific_enthalpy(param_set, ts, e_tot::Real)
-
-The total specific enthalpy, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `ts` a thermodynamic state
- - `e_tot` total specific energy
-"""
-@inline function total_specific_enthalpy(
-    param_set::APS,
-    ts::ThermodynamicState{FT},
-    e_tot::FT,
-) where {FT <: Real}
-    R_m = gas_constant_air(param_set, ts)
-    T = air_temperature(param_set, ts)
-    return total_specific_enthalpy(e_tot, R_m, T)
-end
-
-"""
-    virtual_dry_static_energy(param_set, ts, e_pot)
-
-The virtual dry static energy, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `ts` a thermodynamic state
- - `e_pot` gravitational potential energy per unit mass
-
- Note that this static energy does not include the constant offset ``cp_d * T_0`` which is 
- present in the moist static energy.
-"""
-@inline function virtual_dry_static_energy(
-    param_set::APS,
-    ts::ThermodynamicState,
-    e_pot,
-)
-    T_0 = TP.T_0(param_set)
-    cp_d = TP.cp_d(param_set)
-    T_virt = virtual_temperature(param_set, ts)
-    return cp_d * T_virt + e_pot
 end

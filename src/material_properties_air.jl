@@ -40,18 +40,6 @@ end
     gas_constant_air(param_set, q_pt_0(FT))
 
 """
-    gas_constant_air(param_set, ts::ThermodynamicState)
-
-The specific gas constant of moist air given a thermodynamic state `ts`.
-"""
-@inline gas_constant_air(param_set::APS, ts::ThermodynamicState) =
-    gas_constant_air(param_set, PhasePartition(param_set, ts))
-@inline gas_constant_air(
-    param_set::APS,
-    ts::AbstractPhaseDry{FT},
-) where {FT <: Real} = FT(TP.R_d(param_set))
-
-"""
     cp_m(param_set, q_tot, q_liq, q_ice)
     cp_m(param_set[, q::PhasePartition])
 
@@ -97,16 +85,6 @@ end
     cp_m(param_set, q_pt_0(FT))
 
 """
-    cp_m(param_set, ts::ThermodynamicState)
-
-The isobaric specific heat capacity of moist air, given a thermodynamic state `ts`.
-"""
-@inline cp_m(param_set::APS, ts::ThermodynamicState) =
-    cp_m(param_set, PhasePartition(param_set, ts))
-@inline cp_m(param_set::APS, ts::AbstractPhaseDry{FT}) where {FT <: Real} =
-    FT(TP.cp_d(param_set))
-
-"""
     cv_m(param_set[, q::PhasePartition])
 
 The isochoric specific heat capacity of moist air, given
@@ -129,28 +107,13 @@ end
     cv_m(param_set, q_pt_0(FT))
 
 """
-    cv_m(param_set, ts::ThermodynamicState)
-
-The isochoric specific heat capacity of moist air, given a thermodynamic state `ts`.
-"""
-@inline cv_m(param_set::APS, ts::ThermodynamicState) =
-    cv_m(param_set, PhasePartition(param_set, ts))
-@inline cv_m(param_set::APS, ts::AbstractPhaseDry{FT}) where {FT <: Real} =
-    FT(TP.cv_d(param_set))
-
-"""
     (R_m, cp_m, cv_m, γ_m) = gas_constants(param_set, q::PhasePartition)
-    (R_m, cp_m, cv_m, γ_m) = gas_constants(param_set, ts::ThermodynamicState)
 
 Wrapper to compute the gas constant, specific heat capacities, and their 
 ratio at once, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref)
-
- or given
- - `param_set` an `AbstractParameterSet`
- - `ts` a thermodynamic state
 
 The function returns a tuple of
  - `R_m` [`gas_constant_air`](@ref)
@@ -169,9 +132,6 @@ The function returns a tuple of
     return (R_gas, cp, cv, γ)
 end
 
-@inline gas_constants(param_set::APS, ts::ThermodynamicState) =
-    gas_constants(param_set, PhasePartition(param_set, ts))
-
 """
     latent_heat_vapor(param_set, T)
 
@@ -186,14 +146,6 @@ The specific latent heat of vaporization, given
     LH_v0 = TP.LH_v0(param_set)
     return latent_heat_generic(param_set, T, LH_v0, cp_v - cp_l)
 end
-
-"""
-    latent_heat_vapor(param_set, ts::ThermodynamicState)
-
-The specific latent heat of vaporization, given a thermodynamic state `ts`.
-"""
-@inline latent_heat_vapor(param_set::APS, ts::ThermodynamicState) =
-    latent_heat_vapor(param_set, air_temperature(param_set, ts))
 
 """
     latent_heat_sublim(param_set, T) 
@@ -211,14 +163,6 @@ The specific latent heat of sublimation, given
 end
 
 """
-    latent_heat_sublim(param_set, ts::ThermodynamicState)
-
-The specific latent heat of sublimation, given a thermodynamic state `ts`.
-"""
-@inline latent_heat_sublim(param_set::APS, ts::ThermodynamicState) =
-    latent_heat_sublim(param_set, air_temperature(param_set, ts))
-
-"""
     latent_heat_fusion(param_set, T) 
 
 The specific latent heat of fusion, given
@@ -232,14 +176,6 @@ The specific latent heat of fusion, given
     cp_i = TP.cp_i(param_set)
     return latent_heat_generic(param_set, T, LH_f0, cp_l - cp_i)
 end
-
-"""
-    latent_heat_fusion(param_set, ts::ThermodynamicState)
-
-The specific latent heat of fusion, given a thermodynamic state `ts`.
-"""
-@inline latent_heat_fusion(param_set::APS, ts::ThermodynamicState) =
-    latent_heat_fusion(param_set, air_temperature(param_set, ts))
 
 """
     latent_heat_generic(param_set, T, LH_0, Δcp) 
@@ -306,14 +242,3 @@ and, optionally,
     R_m = gas_constant_air(param_set, q)
     return sqrt(γ * R_m * T)
 end
-
-"""
-    soundspeed_air(param_set, ts::ThermodynamicState)
-
-The speed of sound in unstratified air, given a thermodynamic state `ts`.
-"""
-@inline soundspeed_air(param_set::APS, ts::ThermodynamicState) = soundspeed_air(
-    param_set,
-    air_temperature(param_set, ts),
-    PhasePartition(param_set, ts),
-)

@@ -34,25 +34,19 @@ struct Ice <: Phase end
 
 """
     condensate(q::PhasePartition{FT})
-    condensate(param_set, ts::ThermodynamicState)
 
 The condensate specific humidity (liquid + ice) of the phase 
 partition `q`.
 """
 @inline condensate(q::PhasePartition) = q.liq + q.ice
-@inline condensate(param_set::APS, ts::ThermodynamicState) =
-    condensate(PhasePartition(param_set, ts))
 
 """
     has_condensate(q::PhasePartition{FT})
-    has_condensate(param_set, ts::ThermodynamicState)
 
 Bool indicating if condensate exists in the phase partition
 """
 @inline has_condensate(q_c::FT) where {FT <: Real} = q_c > eps(FT)
 @inline has_condensate(q::PhasePartition) = has_condensate(condensate(q))
-@inline has_condensate(param_set::APS, ts::ThermodynamicState) =
-    has_condensate(PhasePartition(param_set, ts))
 
 """
     liquid_fraction(param_set, T, phase_type[, q])
@@ -109,18 +103,7 @@ end
     )
 end
 
-"""
-    liquid_fraction(param_set, ts::ThermodynamicState)
 
-The fraction of condensate that is liquid, given a thermodynamic state `ts`.
-"""
-@inline liquid_fraction(param_set::APS, ts::ThermodynamicState) =
-    liquid_fraction(
-        param_set,
-        air_temperature(param_set, ts),
-        typeof(ts),
-        PhasePartition(param_set, ts),
-    )
 
 """
     PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
@@ -172,14 +155,7 @@ end
 @inline PhasePartition_equil(param_set, T, ρ, q_tot, phase_type) =
     PhasePartition_equil(param_set, promote(T, ρ, q_tot)..., phase_type)
 
-@inline PhasePartition_equil(param_set::APS, ts::ThermodynamicState) =
-    PhasePartition_equil(
-        param_set,
-        air_temperature(param_set, ts),
-        air_density(param_set, ts),
-        total_specific_humidity(param_set, ts),
-        typeof(ts),
-    )
+
 
 """
     PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
@@ -213,19 +189,4 @@ end
 @inline PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type) =
     PhasePartition_equil_given_p(param_set, promote(T, p, q_tot)..., phase_type)
 
-@inline PhasePartition(
-    param_set::APS,
-    ts::AbstractPhaseDry{FT},
-) where {FT <: Real} = q_pt_0(FT)
-@inline function PhasePartition(param_set::APS, ts::AbstractPhaseEquil)
-    T = air_temperature(param_set, ts)
-    ρ = air_density(param_set, ts)
-    q_tot = total_specific_humidity(param_set, ts)
-    phase_type = typeof(ts)
-    λ = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
-    qpt0 = PhasePartition(typeof(λ)(0))
-    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T, qpt0, λ)
 
-    return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
-end
-@inline PhasePartition(param_set::APS, ts::AbstractPhaseNonEquil) = ts.q
