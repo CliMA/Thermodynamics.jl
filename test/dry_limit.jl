@@ -7,15 +7,19 @@ This file contains tests for behavior when approaching dry air conditions.
 @testset "Thermodynamics - Dry Limit" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    param_set = TP.ThermodynamicsParameters(FT)
+    param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
 
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     (; e_int, ρ, q_tot) = profiles
 
     @testset "PhasePartition and Mixing Ratios" begin
         ts_dry = PhaseDry(param_set, first(e_int), first(ρ))
-        ts_eq =
-            PhaseEquil_ρeq(param_set, first(ρ), first(e_int), typeof(first(ρ))(0))
+        ts_eq = PhaseEquil_ρeq(
+            param_set,
+            first(ρ),
+            first(e_int),
+            typeof(first(ρ))(0),
+        )
         @test PhasePartition(param_set, ts_eq).tot ≈
               PhasePartition(param_set, ts_dry).tot
         @test PhasePartition(param_set, ts_eq).liq ≈
@@ -74,7 +78,7 @@ This file contains tests for behavior when approaching dry air conditions.
                 func.(param_set, ts_dry, args...),
             )
         end
-        
+
         # Test supersaturation separately with different phase arguments
         @test all(
             supersaturation.(param_set, ts_eq, Ice()) .≈

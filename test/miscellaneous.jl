@@ -8,7 +8,7 @@ This file contains various miscellaneous tests including ProfileSet Iterator, Ba
     @testset "ProfileSet Iterator" begin
         ArrayType = Array{Float64}
         FT = eltype(ArrayType)
-        param_set = TP.ThermodynamicsParameters(FT)
+        param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         (; T, q_pt, z, phase_type) = profiles
         @test all(z .≈ (nt.z for nt in profiles))
@@ -28,15 +28,30 @@ This file contains various miscellaneous tests including ProfileSet Iterator, Ba
     @testset "T_guess" begin
         ArrayType = Array{Float64}
         FT = eltype(ArrayType)
-        param_set = TP.ThermodynamicsParameters(FT)
+        param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         (; p, ρ, e_int, h, θ_liq_ice, q_tot, T) = profiles
         T_guess = T .+ (FT(0.2) .* randn(FT, length(T)))
         args = (q_tot, 40, FT(rtol_temperature))
         ts =
-            PhaseEquil_ρeq.(param_set, ρ, e_int, args..., RS.NewtonsMethod, T_guess)
+            PhaseEquil_ρeq.(
+                param_set,
+                ρ,
+                e_int,
+                args...,
+                RS.NewtonsMethod,
+                T_guess,
+            )
         ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, args..., T_guess)
-        ts = PhaseEquil_peq.(param_set, p, e_int, args..., RS.SecantMethod, T_guess)
+        ts =
+            PhaseEquil_peq.(
+                param_set,
+                p,
+                e_int,
+                args...,
+                RS.SecantMethod,
+                T_guess,
+            )
         ts = PhaseEquil_phq.(param_set, p, h, args..., RS.SecantMethod, T_guess)
         ts =
             PhaseEquil_ρpq.(
@@ -65,7 +80,7 @@ This file contains various miscellaneous tests including ProfileSet Iterator, Ba
         TD.solution_type() = RS.VerboseSolution()
         ArrayType = Array{Float64}
         FT = eltype(ArrayType)
-        param_set = TP.ThermodynamicsParameters(FT)
+        param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         (; ρ, e_int, q_tot) = profiles
         ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)

@@ -9,7 +9,7 @@ using Random
 @testset "Thermodynamics - isentropic processes" begin
     for ArrayType in array_types
         FT = eltype(ArrayType)
-        param_set = TP.ThermodynamicsParameters(FT)
+        param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
         _R_d = TP.R_d(param_set)
         _cp_d = TP.cp_d(param_set)
         _p_ref_theta = TP.p_ref_theta(param_set)
@@ -29,14 +29,20 @@ using Random
             perturbation = FT(0.1) * rand(FT, length(T))
 
             T∞, p∞ = T .* perturbation, p .* perturbation
-            @test air_temperature.(param_set, p, θ_liq_ice, DryAdiabaticProcess()) ≈
-                  (p ./ _p_ref_theta) .^ (_R_d / _cp_d) .* θ_liq_ice
+            @test air_temperature.(
+                param_set,
+                p,
+                θ_liq_ice,
+                DryAdiabaticProcess(),
+            ) ≈ (p ./ _p_ref_theta) .^ (_R_d / _cp_d) .* θ_liq_ice
             @test TD.air_pressure_given_θ.(
                 param_set,
                 θ_liq_ice,
                 Φ,
                 DryAdiabaticProcess(),
-            ) ≈ _p_ref_theta .* (1 .- Φ ./ (θ_liq_ice .* _cp_d)) .^ (_cp_d / _R_d)
+            ) ≈
+                  _p_ref_theta .*
+                  (1 .- Φ ./ (θ_liq_ice .* _cp_d)) .^ (_cp_d / _R_d)
             @test air_pressure.(param_set, T, T∞, p∞, DryAdiabaticProcess()) ≈
                   p∞ .* (T ./ T∞) .^ (FT(1) / _kappa_d)
         end

@@ -7,7 +7,7 @@ This file contains tests for thermodynamic state constructor consistency.
 @testset "Thermodynamics - Constructor Consistency" begin
     for ArrayType in array_types
         FT = eltype(ArrayType)
-        param_set = TP.ThermodynamicsParameters(FT)
+        param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
 
         @testset "PhaseDry" begin
             profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
@@ -64,7 +64,9 @@ This file contains tests for thermodynamic state constructor consistency.
             @test all(air_density.(param_set, ts_ρθ) .≈ ρ)
 
             ts_ρT = PhaseDry_ρT.(param_set, ρ, T)
-            @test all(air_density.(param_set, ts_ρT) .≈ air_density.(param_set, ts))
+            @test all(
+                air_density.(param_set, ts_ρT) .≈ air_density.(param_set, ts),
+            )
             @test all(
                 internal_energy.(param_set, ts_ρT) .≈
                 internal_energy.(param_set, ts),
@@ -97,7 +99,9 @@ This file contains tests for thermodynamic state constructor consistency.
 
             ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
             @test all(internal_energy.(param_set, ts) .≈ e_int)
-            @test all(getproperty.(PhasePartition.(param_set, ts), :tot) .≈ q_tot)
+            @test all(
+                getproperty.(PhasePartition.(param_set, ts), :tot) .≈ q_tot,
+            )
             @test all(air_density.(param_set, ts) .≈ ρ)
 
             ts_peq = PhaseEquil_peq.(param_set, p, e_int, q_tot)
@@ -161,7 +165,13 @@ This file contains tests for thermodynamic state constructor consistency.
             @test all.(ρ_rec ≈ ρ)
 
             RH_sat =
-                relative_humidity.(param_set, T, p_sat, Ref(phase_type), q_pt_sat)
+                relative_humidity.(
+                    param_set,
+                    T,
+                    p_sat,
+                    Ref(phase_type),
+                    q_pt_sat,
+                )
 
             @test all(RH_sat .≈ 1)
 
@@ -169,7 +179,13 @@ This file contains tests for thermodynamic state constructor consistency.
             q_pt_dry = PhasePartition.(zeros(FT, length(T)))
             p_dry = air_pressure.(param_set, T, ρ, q_pt_dry)
             RH_dry =
-                relative_humidity.(param_set, T, p_dry, Ref(phase_type), q_pt_dry)
+                relative_humidity.(
+                    param_set,
+                    T,
+                    p_dry,
+                    Ref(phase_type),
+                    q_pt_dry,
+                )
             @test all(RH_dry .≈ 0)
 
             # Test virtual temperature
@@ -203,7 +219,9 @@ This file contains tests for thermodynamic state constructor consistency.
             # to original specific humidity
             q_tot_rec = getproperty.(q_pt_rec, :tot)
             RH_moist = q_tot .> eps(FT)
-            @test all(isapprox.(q_tot[RH_moist], q_tot_rec[RH_moist], rtol = 5e-2))
+            @test all(
+                isapprox.(q_tot[RH_moist], q_tot_rec[RH_moist], rtol = 5e-2),
+            )
 
             # Update temperature to be exactly consistent with
             # p, ρ, q_pt_rec; test that this is equal to T_rec

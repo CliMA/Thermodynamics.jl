@@ -19,6 +19,7 @@ array_types = [Array{Float32}, Array{Float64}]
 
 # Reference parameter set for Float64
 param_set_Float64 = TP.ThermodynamicsParameters(Float64)
+param_set_Float32 = TP.ThermodynamicsParameters(Float32)
 
 # Saturation adjustment tolerance (relative change of temperature between consecutive iterations)
 rtol_temperature = 1e-4

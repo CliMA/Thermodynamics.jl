@@ -7,7 +7,7 @@ This file contains tests for error handling on failed convergence.
 @testset "Thermodynamics - Exceptions on Failed Convergence" begin
     ArrayType = Array{Float64}
     FT = eltype(ArrayType)
-    param_set = TP.ThermodynamicsParameters(FT)
+    param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
     (; q_tot, q_pt, RH) = profiles

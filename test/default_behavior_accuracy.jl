@@ -8,7 +8,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
     or(a, b) = a || b
     for ArrayType in array_types
         FT = eltype(ArrayType)
-        param_set = TP.ThermodynamicsParameters(FT)
+        param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
 
         @testset "PhaseEquil" begin
             _cp_d = TP.cp_d(param_set)
@@ -83,7 +83,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
 
             # Test with finite differences
             δ = 1e-3
-            ∂q_vap_sat_∂T_fd_num = (_T, δ) -> (q_vap_sat(_T + δ) - q_vap_sat(_T - δ)) / (2 * δ)
+            ∂q_vap_sat_∂T_fd_num =
+                (_T, δ) -> (q_vap_sat(_T + δ) - q_vap_sat(_T - δ)) / (2 * δ)
             @test all(
                 isapprox.(
                     log.(∂q_vap_sat_∂T_fd_num.(T, δ)),
@@ -149,7 +150,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
             (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
             (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
             ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
-            ts_exact = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-6))
+            ts_exact =
+                PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-6))
             @test all(
                 isapprox.(
                     T,
@@ -196,7 +198,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
             @test all(
                 specific_enthalpy.(param_set, ts) .≈
                 e_int .+
-                gas_constant_air.(param_set, ts) .* air_temperature.(param_set, ts),
+                gas_constant_air.(param_set, ts) .*
+                air_temperature.(param_set, ts),
             )
             @test all(
                 specific_enthalpy.(param_set, ts) .≈
@@ -272,11 +275,13 @@ This file contains tests for saturation adjustment accuracy and convergence.
             )
 
             # PhaseEquil_ρθq
-            ts_exact = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-6))
+            ts_exact =
+                PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-6))
             ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot)
             # Should be machine accurate:
             @test all(
-                air_density.(param_set, ts) .≈ air_density.(param_set, ts_exact),
+                air_density.(param_set, ts) .≈
+                air_density.(param_set, ts_exact),
             )
             @test all(compare_moisture.(param_set, ts, ts_exact))
             # Approximate (temperature must be computed via saturation adjustment):
@@ -303,7 +308,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
             )
 
             # PhaseEquil_pθq
-            ts_exact = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-6))
+            ts_exact =
+                PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-6))
             ts = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
 
             ts =
@@ -397,12 +403,15 @@ This file contains tests for saturation adjustment accuracy and convergence.
             ts_mid = PhaseEquil_pθq.(param_set, p, θ_liq_ice_mid, q_tot)
 
             # Test that enough states converge to exactly the freezing point
-            @test count(air_temperature.(param_set, ts_lower) .== Ref(_T_freeze)) ≥
-                  min_freezing_count_edge
-            @test count(air_temperature.(param_set, ts_upper) .== Ref(_T_freeze)) ≥
-                  min_freezing_count_edge  
-            @test count(air_temperature.(param_set, ts_mid) .== Ref(_T_freeze)) ≥
-                  min_freezing_count_mid
+            @test count(
+                air_temperature.(param_set, ts_lower) .== Ref(_T_freeze),
+            ) ≥ min_freezing_count_edge
+            @test count(
+                air_temperature.(param_set, ts_upper) .== Ref(_T_freeze),
+            ) ≥ min_freezing_count_edge
+            @test count(
+                air_temperature.(param_set, ts_mid) .== Ref(_T_freeze),
+            ) ≥ min_freezing_count_mid
         end
 
         @testset "PhaseNonEquil" begin
@@ -415,7 +424,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
             # Should be machine accurate:
             @test all(compare_moisture.(param_set, ts, ts_exact))
             @test all(
-                air_density.(param_set, ts) .≈ air_density.(param_set, ts_exact),
+                air_density.(param_set, ts) .≈
+                air_density.(param_set, ts_exact),
             )
             # Approximate (temperature must be computed via non-linear solve):
             @test all(

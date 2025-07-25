@@ -6,7 +6,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
 
 @testset "Thermodynamics - correctness" begin
     FT = Float64
-    param_set = TP.ThermodynamicsParameters(FT)
+    param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
 
     @testset "Extract thermodynamic parameters" begin
         # Test that the extraction function works correctly
@@ -43,7 +43,8 @@ This file contains tests for fundamental thermodynamic relations and physical la
 
     @testset "Ideal Gas Law" begin
         # Test fundamental thermodynamic relations using ideal gas law
-        @test air_pressure(param_set, FT(1), FT(1), PhasePartition(FT(1))) === TP.R_v(param_set)
+        @test air_pressure(param_set, FT(1), FT(1), PhasePartition(FT(1))) ===
+              TP.R_v(param_set)
         @test air_pressure(
             param_set,
             FT(1),
@@ -134,7 +135,8 @@ This file contains tests for fundamental thermodynamic relations and physical la
         # Test saturation vapor pressure at triple point
         @test saturation_vapor_pressure(param_set, _T_triple, Liquid()) ≈
               _press_triple
-        @test saturation_vapor_pressure(param_set, _T_triple, Ice()) ≈ _press_triple
+        @test saturation_vapor_pressure(param_set, _T_triple, Ice()) ≈
+              _press_triple
 
         # Test specific humidities at triple point
         @test q_vap_saturation(
@@ -176,8 +178,12 @@ This file contains tests for fundamental thermodynamic relations and physical la
               ρ_v_triple / ρ
         @test q_vap_saturation_generic(param_set, _T_triple, ρ, Ice()) ==
               ρ_v_triple / ρ
-        @test q_vap_saturation_generic(param_set, _T_triple - 20, ρ, Liquid()) >=
-              q_vap_saturation_generic(param_set, _T_triple - 20, ρ, Ice())
+        @test q_vap_saturation_generic(
+            param_set,
+            _T_triple - 20,
+            ρ,
+            Liquid(),
+        ) >= q_vap_saturation_generic(param_set, _T_triple - 20, ρ, Ice())
 
         # Test saturation specific humidity wrapper functions with thermodynamic state
         _T_0 = TP.T_0(param_set)
@@ -230,7 +236,8 @@ This file contains tests for fundamental thermodynamic relations and physical la
         expected_liquid = p_v / p_v_sat_liquid - 1
         expected_ice = p_v / p_v_sat_ice - 1
 
-        @test supersaturation(param_set, q_test, ρ, T, Liquid()) ≈ expected_liquid
+        @test supersaturation(param_set, q_test, ρ, T, Liquid()) ≈
+              expected_liquid
 
         @test supersaturation(
             param_set,
@@ -327,7 +334,13 @@ This file contains tests for fundamental thermodynamic relations and physical la
         # Test 1: Dry air (no water vapor)
         T = FT(300)
         q_dry = PhasePartition(FT(0))
-        test_partial_pressures(T, ρ, q_dry, "dry air"; check_vapor_positive = false)
+        test_partial_pressures(
+            T,
+            ρ,
+            q_dry,
+            "dry air";
+            check_vapor_positive = false,
+        )
         ts = PhaseDry(param_set, T, ρ)
         @test partial_pressure_vapor(param_set, ts) === FT(0)
 
@@ -407,7 +420,8 @@ This file contains tests for fundamental thermodynamic relations and physical la
         # Test temperature recovery from internal energy (ensures arbitrary constants 
         #in internal energy are consistent with temperature recovery equation)
         @test air_temperature(param_set, e_int_dry) === FT(T)
-        @test air_temperature(param_set, e_int_dry, PhasePartition(FT(0))) === FT(T)
+        @test air_temperature(param_set, e_int_dry, PhasePartition(FT(0))) ===
+              FT(T)
 
         @test air_temperature(param_set, e_int_moist, q_pt) === FT(T)
 
@@ -416,7 +430,8 @@ This file contains tests for fundamental thermodynamic relations and physical la
               FT(e_kin) + FT(e_pot) + FT(e_int_dry)
         @test total_energy(param_set, FT(e_kin), FT(e_pot), FT(T), q_pt) ≈
               FT(e_kin) + FT(e_pot) + FT(e_int_moist)
-        @test total_energy(param_set, FT(0), FT(0), FT(T), q_pt) ≈ FT(e_int_moist)
+        @test total_energy(param_set, FT(0), FT(0), FT(T), q_pt) ≈
+              FT(e_int_moist)
     end
 
     @testset "Phase partitioning" begin
@@ -449,7 +464,13 @@ This file contains tests for fundamental thermodynamic relations and physical la
         @test q.ice ≈ 0
 
         p = air_pressure(param_set, T_warm, ρ, q)
-        q = TD.PhasePartition_equil_given_p(param_set, T_warm, p, q_tot, PhaseEquil)
+        q = TD.PhasePartition_equil_given_p(
+            param_set,
+            T_warm,
+            p,
+            q_tot,
+            PhaseEquil,
+        )
         @test 0 <= q.liq <= q_tot
         @test q.ice ≈ 0
 
@@ -462,7 +483,13 @@ This file contains tests for fundamental thermodynamic relations and physical la
         @test q.liq ≈ FT(0)
         @test 0 <= q.ice <= q_tot  # Ice should be non-negative, may be zero if not supersaturated
 
-        q = TD.PhasePartition_equil_given_p(param_set, T_cold, p, q_tot, PhaseEquil)
+        q = TD.PhasePartition_equil_given_p(
+            param_set,
+            T_cold,
+            p,
+            q_tot,
+            PhaseEquil,
+        )
         @test q.liq ≈ FT(0)
         @test q.ice >= FT(0)  # Ice should be non-negative, may be zero if not supersaturated
     end
@@ -546,7 +573,13 @@ This file contains tests for fundamental thermodynamic relations and physical la
         q = TD.PhasePartition_equil_given_p(param_set, T, p, q_tot, PhaseEquil)
         @test q.tot - q.liq - q.ice ≈
               vapor_specific_humidity(q) ≈
-              TD.q_vap_saturation_from_pressure(param_set, q_tot, p, T, PhaseEquil)
+              TD.q_vap_saturation_from_pressure(
+                  param_set,
+                  q_tot,
+                  p,
+                  T,
+                  PhaseEquil,
+              )
     end
 
     @testset "Internal energy" begin
@@ -589,24 +622,46 @@ This file contains tests for fundamental thermodynamic relations and physical la
         T_warm = _T_freeze + FT(30)  # Above freezing
         q_tot_warm =
             FT(1.02) * q_vap_saturation(param_set, T_warm, ρ_test, PhaseEquil)
-        e_int_sat_warm =
-            internal_energy_sat(param_set, T_warm, ρ_test, q_tot_warm, PhaseEquil)
+        e_int_sat_warm = internal_energy_sat(
+            param_set,
+            T_warm,
+            ρ_test,
+            q_tot_warm,
+            PhaseEquil,
+        )
         @test e_int_sat_warm ≈ internal_energy(
             param_set,
             T_warm,
-            PhasePartition_equil(param_set, T_warm, ρ_test, q_tot_warm, PhaseEquil),
+            PhasePartition_equil(
+                param_set,
+                T_warm,
+                ρ_test,
+                q_tot_warm,
+                PhaseEquil,
+            ),
         )
 
         # Test below freezing (ice phase)
         T_cold = _T_freeze - FT(30)  # Below freezing
         q_tot_cold =
             FT(1.02) * q_vap_saturation(param_set, T_cold, ρ_test, PhaseEquil)
-        e_int_sat_cold =
-            internal_energy_sat(param_set, T_cold, ρ_test, q_tot_cold, PhaseEquil)
+        e_int_sat_cold = internal_energy_sat(
+            param_set,
+            T_cold,
+            ρ_test,
+            q_tot_cold,
+            PhaseEquil,
+        )
         @test e_int_sat_cold ≈ internal_energy(
             param_set,
             T_cold,
-            PhasePartition_equil(param_set, T_cold, ρ_test, q_tot_cold, PhaseEquil),
+            PhasePartition_equil(
+                param_set,
+                T_cold,
+                ρ_test,
+                q_tot_cold,
+                PhaseEquil,
+            ),
         )
     end
 
@@ -618,7 +673,11 @@ This file contains tests for fundamental thermodynamic relations and physical la
         _cp_v = TP.cp_v(param_set)
         _p_ref_theta = TP.p_ref_theta(param_set)
         T = FT(300)
-        @test TD.liquid_ice_pottemp_given_pressure(param_set, T, _p_ref_theta) === T
+        @test TD.liquid_ice_pottemp_given_pressure(
+            param_set,
+            T,
+            _p_ref_theta,
+        ) === T
         @test TD.liquid_ice_pottemp_given_pressure(
             param_set,
             T,
@@ -644,7 +703,12 @@ This file contains tests for fundamental thermodynamic relations and physical la
         @test TD.air_temperature_given_pθq(
             param_set,
             p,
-            TD.dry_pottemp_given_pressure(param_set, T, p, PhasePartition(q_tot)),
+            TD.dry_pottemp_given_pressure(
+                param_set,
+                T,
+                p,
+                PhasePartition(q_tot),
+            ),
             PhasePartition(q_tot),
         ) ≈ T
     end
@@ -689,7 +753,8 @@ This file contains tests for fundamental thermodynamic relations and physical la
                 for p in [FT(1e3), FT(1e4), FT(1e5)]
                     for q in [FT(-1), FT(1e-45), FT(0), FT(1e-3), FT(10)]
                         q_pt = PhasePartition(FT(q))
-                        RH = relative_humidity(param_set, T, p, phase_type, q_pt)
+                        RH =
+                            relative_humidity(param_set, T, p, phase_type, q_pt)
                         @test RH >= FT(0) && RH <= FT(1)
                     end
                 end
@@ -711,15 +776,33 @@ This file contains tests for fundamental thermodynamic relations and physical la
         # Test edge cases for relative humidity
         @testset "RH edge cases" begin
             # Extremely dry conditions
-            @test relative_humidity(param_set, 300.0, 1.0e5, PhaseEquil, PhasePartition(0.0)) ≈ 0.0
-            
+            @test relative_humidity(
+                param_set,
+                300.0,
+                1.0e5,
+                PhaseEquil,
+                PhasePartition(0.0),
+            ) ≈ 0.0
+
             # Saturated conditions
             q_sat = q_vap_saturation(param_set, 300.0, 1.0, PhaseEquil)
-            @test relative_humidity(param_set, 300.0, 1.0e5, PhaseEquil, PhasePartition(q_sat)) ≈ 1.0
-            
+            @test relative_humidity(
+                param_set,
+                300.0,
+                1.0e5,
+                PhaseEquil,
+                PhasePartition(q_sat),
+            ) ≈ 1.0
+
             # Supersaturated conditions
             q_super = 1.1 * q_vap_saturation(param_set, 300.0, 1.0, PhaseEquil)
-            rh_super = relative_humidity(param_set, 300.0, 1.0e5, PhaseEquil, PhasePartition(q_super))
+            rh_super = relative_humidity(
+                param_set,
+                300.0,
+                1.0e5,
+                PhaseEquil,
+                PhasePartition(q_super),
+            )
             @test rh_super ≥ 1.0  # Allow for numerical precision in the case where it equals exactly 1.0
         end
     end
