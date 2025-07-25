@@ -1,7 +1,5 @@
 # Saturation adjustment functions for various combinations of input variables
 
-# TODO: Remove catches around freezing temperature (given we have continuous phase partition)
-
 """
     _find_zero_with_convergence_check(
         roots_func,
@@ -101,17 +99,7 @@ See also [`saturation_adjustment`](@ref).
             return T_1
         end
     end
-    _T_freeze = TP.T_freeze(param_set)
-    @inline e_int_sat(T) =
-        internal_energy_sat(param_set, ReLU(T), ρ, q_tot, phase_type)
-    temperature_tol = _T_freeze * relative_temperature_tol
-    e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-    if e_int < e_int_upper
-        e_int_lower = e_int_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-        if e_int_lower < e_int # < e_int_upper
-            return _T_freeze
-        end
-    end
+   
     @inline function roots(_T) # ff′
         T = ReLU(_T)
         return ifelse(
@@ -231,16 +219,7 @@ See also [`saturation_adjustment`](@ref).
     if unsaturated && T_1 ≥ _T_min
         return T_1
     end
-    _T_freeze = TP.T_freeze(param_set)
-    @inline e_int_sat(T) =
-        internal_energy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
-
-    temperature_tol = _T_freeze * relative_temperature_tol
-    e_int_upper = e_int_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-    e_int_lower = e_int_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-    if e_int_lower < e_int < e_int_upper
-        return _T_freeze
-    end
+    
     @inline roots(T) = e_int_sat(T) - e_int
 
     numerical_method = sa_numerical_method_peq(
@@ -329,16 +308,7 @@ See also [`saturation_adjustment`](@ref).
     if unsaturated && T_1 ≥ _T_min
         return T_1
     end
-    _T_freeze = TP.T_freeze(param_set)
-    @inline h_sat(T) =
-        specific_enthalpy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
-
-    temperature_tol = _T_freeze * relative_temperature_tol
-    h_upper = h_sat(_T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-    h_lower = h_sat(_T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-    if h_lower < h < h_upper
-        return _T_freeze
-    end
+    
     @inline roots(T) = h_sat(T) - h
 
     numerical_method = sa_numerical_method_phq(
@@ -595,7 +565,6 @@ See also [`saturation_adjustment`](@ref).
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T_min = TP.T_min(param_set)
-    T_freeze = TP.T_freeze(param_set)
     @inline air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
     @inline function θ_liq_ice_closure(T)
         q = PhasePartition(oftype(T, 0))
@@ -623,12 +592,7 @@ See also [`saturation_adjustment`](@ref).
     if unsaturated && T_1 ≥ T_min
         return T_1
     end
-    temperature_tol = T_freeze * relative_temperature_tol
-    θ_liq_ice_upper = θ_liq_ice_closure(T_freeze + temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-    θ_liq_ice_lower = θ_liq_ice_closure(T_freeze - temperature_tol / 2) # /2 => resulting interval is `temperature_tol` wide
-    if θ_liq_ice_lower < θ_liq_ice < θ_liq_ice_upper
-        return T_freeze
-    end
+   
     roots(T) = oftype(T, θ_liq_ice) - θ_liq_ice_closure(T)
 
     numerical_method = sa_numerical_method_pθq(

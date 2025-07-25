@@ -394,6 +394,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
                 return θ_liq_ice_close
             end
 
+            # TODO: Replace by test of approximate freezing temperature
             θ_liq_ice_upper =
                 θ_liq_ice_closure.(Ref(_T_freeze + sqrt(eps(FT))), p, q_tot)
             θ_liq_ice_lower =
