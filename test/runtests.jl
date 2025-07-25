@@ -33,6 +33,7 @@ include("constructor_consistency.jl")
 include("type_stability.jl")
 include("dry_limit.jl")
 include("miscellaneous.jl")
+include("data_tests.jl")
 
 # Clean up any temporary files created during testing
 rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
