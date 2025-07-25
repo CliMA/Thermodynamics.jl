@@ -314,6 +314,8 @@ See also [`saturation_adjustment`](@ref).
         return T_1
     end
 
+    @inline h_sat(T) = 
+        specific_enthalpy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
     @inline roots(T) = h_sat(T) - h
 
     numerical_method = sa_numerical_method_phq(

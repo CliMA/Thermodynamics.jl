@@ -131,7 +131,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
                     ρ,
                     _e_int,
                     q_tot,
-                    8,
+                    35,
                     FT(rtol_temperature),
                     RS.SecantMethod,
                 )
