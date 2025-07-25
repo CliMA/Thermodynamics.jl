@@ -99,7 +99,10 @@ See also [`saturation_adjustment`](@ref).
             return T_1
         end
     end
-   
+
+    @inline e_int_sat(T) =
+        internal_energy_sat(param_set, ReLU(T), ρ, q_tot, phase_type)
+
     @inline function roots(_T) # ff′
         T = ReLU(_T)
         return ifelse(
@@ -219,7 +222,9 @@ See also [`saturation_adjustment`](@ref).
     if unsaturated && T_1 ≥ _T_min
         return T_1
     end
-    
+
+    @inline e_int_sat(T) =
+        internal_energy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
     @inline roots(T) = e_int_sat(T) - e_int
 
     numerical_method = sa_numerical_method_peq(
@@ -308,7 +313,7 @@ See also [`saturation_adjustment`](@ref).
     if unsaturated && T_1 ≥ _T_min
         return T_1
     end
-    
+
     @inline roots(T) = h_sat(T) - h
 
     numerical_method = sa_numerical_method_phq(
@@ -592,7 +597,7 @@ See also [`saturation_adjustment`](@ref).
     if unsaturated && T_1 ≥ T_min
         return T_1
     end
-   
+
     roots(T) = oftype(T, θ_liq_ice) - θ_liq_ice_closure(T)
 
     numerical_method = sa_numerical_method_pθq(

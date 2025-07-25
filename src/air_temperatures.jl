@@ -1,4 +1,5 @@
 export air_temperature
+export air_temperature_given_ρp
 export dry_pottemp
 export virtual_pottemp
 export liquid_ice_pottemp
