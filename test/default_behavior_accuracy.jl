@@ -167,7 +167,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
                 internal_energy.(param_set, ts_exact),
             )
             @test all(
-                air_density.(param_set, ts) .≈ 
+                air_density.(param_set, ts) .≈
                 air_density.(param_set, ts_exact),
             )
             # Approximate (temperature must be computed via saturation adjustment):
@@ -257,7 +257,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
                 internal_energy.(param_set, ts_exact),
             )
             @test all(
-                air_density.(param_set, ts) .≈ 
+                air_density.(param_set, ts) .≈
                 air_density.(param_set, ts_exact),
             )
             # Approximate (temperature must be computed via saturation adjustment):
