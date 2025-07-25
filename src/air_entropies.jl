@@ -13,8 +13,6 @@ The specific entropy, given
  - `T` temperature
  - `q` phase partition
 
- or a thermodynamic state `ts`.
-
 The specific entropy is computed from equations (29)-(33) of [Pressel2015](@cite).
 """
 @inline function specific_entropy(

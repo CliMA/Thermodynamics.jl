@@ -74,14 +74,9 @@ This file contains tests for thermodynamic state constructor consistency.
             internal_energy.(param_set, ts),
         )
 
-
         ts = PhaseDry_ρp.(param_set, ρ, p)
         @test all(air_density.(param_set, ts) .≈ ρ)
         @test all(air_pressure.(param_set, ts) .≈ p)
-        e_tot_proposed =
-            TD.total_energy_given_ρp.(param_set, ρ, p, e_kin, e_pot)
-        @test all(total_energy.(param_set, ts, e_kin, e_pot) .≈ e_tot_proposed)
-
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
         (; T, p, e_int, h, ρ, θ_liq_ice, phase_type) = profiles
@@ -158,19 +153,6 @@ This file contains tests for thermodynamic state constructor consistency.
         @test all(air_density.(param_set, ts) .≈ ρ)
         @test all(air_pressure.(param_set, ts) .≈ p)
         @test all(getproperty.(PhasePartition.(param_set, ts), :tot) .≈ q_tot)
-
-        # Test against total_energy_given_ρp when not iterating
-        ts = PhaseEquil_ρpq.(param_set, ρ, p, q_tot, false)
-        e_tot_proposed =
-            TD.total_energy_given_ρp.(
-                param_set,
-                ρ,
-                p,
-                e_kin,
-                e_pot,
-                PhasePartition.(q_tot),
-            )
-        @test all(total_energy.(param_set, ts, e_kin, e_pot) .≈ e_tot_proposed)
 
         # PhaseNonEquil
         ts = PhaseNonEquil.(param_set, e_int, ρ, q_pt)
@@ -295,9 +277,6 @@ This file contains tests for thermodynamic state constructor consistency.
             getproperty.(PhasePartition.(param_set, ts), :ice) .≈
             getproperty.(q_pt, :ice),
         )
-        e_tot_proposed =
-            TD.total_energy_given_ρp.(param_set, ρ, p, e_kin, e_pot, q_pt)
-        @test all(total_energy.(param_set, ts, e_kin, e_pot) .≈ e_tot_proposed)
 
         # PhaseNonEquil_ρθq
         ts =
@@ -384,8 +363,7 @@ This file contains tests for thermodynamic state constructor consistency.
 
         # Update temperature to be exactly consistent with
         # p, ρ, q_pt_rec; test that this is equal to T_rec
-        T_local =
-            TD.air_temperature_from_ideal_gas_law.(param_set, p, ρ, q_pt_rec)
+        T_local = TD.air_temperature_given_ρp.(param_set, p, ρ, q_pt_rec)
         @test all(isapprox.(T_local, T_rec, atol = 2 * sqrt(eps(FT))))
     end
 end

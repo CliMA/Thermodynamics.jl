@@ -1,5 +1,7 @@
 # Constructors for thermodynamic states given various input variables
 
+# TODO: Reduce this to what we actually need
+
 export PhasePartition
 
 # Thermodynamic states
@@ -293,7 +295,7 @@ The temperature is computed from the ideal gas law using the pressure and densit
 and the internal energy is computed from the temperature.
 """
 @inline function PhaseDry_ρp(param_set::APS, ρ::FT, p::FT) where {FT <: Real}
-    T = air_temperature_from_ideal_gas_law(param_set, p, ρ)
+    T = air_temperature_given_ρp(param_set, p, ρ)
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
 end
@@ -675,7 +677,7 @@ TODO: change input argument order: perform_sat_adjust is
         e_int = internal_energy(param_set, T, q_pt)
     else
         q_pt = PhasePartition(q_tot)
-        T = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt)
+        T = air_temperature_given_ρp(param_set, p, ρ, q_pt)
         e_int = internal_energy(param_set, T, q_pt)
     end
     return PhaseEquil{FT}(ρ, p, e_int, q_tot, T)
@@ -964,7 +966,7 @@ and the internal energy is computed from the temperature and phase partition.
     p::FT,
     q_pt::PhasePartition{FT},
 ) where {FT <: Real}
-    T = air_temperature_from_ideal_gas_law(param_set, p, ρ, q_pt)
+    T = air_temperature_given_ρp(param_set, p, ρ, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end

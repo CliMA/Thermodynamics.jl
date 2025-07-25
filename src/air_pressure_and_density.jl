@@ -15,7 +15,9 @@ The air pressure from the equation of state (ideal gas law), given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+
+When `q` is not provided, the results are for dry air.
 """
 @inline function air_pressure(
     param_set::APS,
@@ -39,7 +41,9 @@ The (moist-)air density from the equation of state (ideal gas law), given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+
+When `q` is not provided, the results are for dry air.
 """
 @inline function air_density(
     param_set::APS,
@@ -63,7 +67,9 @@ The Exner function, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+
+When `q` is not provided, the results are for dry air.
 """
 @inline function exner(
     param_set::APS,
@@ -86,7 +92,9 @@ The Exner function, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+
+When `q` is not provided, the results are for dry air.
 """
 @inline function exner_given_pressure(
     param_set::APS,

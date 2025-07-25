@@ -2,6 +2,7 @@ export total_specific_humidity
 export liquid_specific_humidity
 export ice_specific_humidity
 export vapor_specific_humidity
+export condensate_shum
 export partial_pressure_vapor
 export partial_pressure_dry
 export vapor_pressure_deficit
@@ -12,7 +13,7 @@ export relative_humidity
 export q_vap_from_p_vap
 export q_vap_from_RH_liquid
 export q_vap_saturation_from_density  # TODO Remove after ClimaAtmos and ClimaLand are updated to use q_vap_from_p_vap
-
+export condensate  # TODO Remove after ClimaAtmos is updated to use condensate_shum
 
 """
     liquid_specific_humidity(q::PhasePartition)
@@ -33,7 +34,7 @@ The ice specific humidity, given
 @inline ice_specific_humidity(q::PhasePartition) = q.ice
 
 """
-    vapor_specific_humidity(q::PhasePartition{FT})
+    vapor_specific_humidity(q::PhasePartition)
 
 The vapor specific humidity, given a 
 
@@ -41,6 +42,21 @@ The vapor specific humidity, given a
 """
 @inline vapor_specific_humidity(q::PhasePartition) =
     max(0, q.tot - q.liq - q.ice)
+
+"""
+    condensate_shum(q::PhasePartition{FT})
+
+The condensate specific humidity (liquid + ice) of the phase 
+partition `q`.
+"""
+@inline condensate_shum(q::PhasePartition) = q.liq + q.ice
+
+"""
+    condensate(q::PhasePartition{FT})
+
+This is identical to [`condensate_shum`](@ref) and will be removed in a future release.
+"""
+const condensate = condensate_shum  # TODO Remove after ClimaAtmos is updated to use condensate_shum
 
 """
     shum_to_mixing_ratio(q, q_tot)
@@ -88,18 +104,20 @@ The volume mixing ratio of water vapor, given
 end
 
 """
-    partial_pressure_dry(param_set, p, q)
+    partial_pressure_dry(param_set, p[, q::PhasePartition])
 
 The partial pressure of dry air, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
  - `q` phase partition
+
+When `q` is not provided, the partial pressure is the total pressure.
 """
 @inline function partial_pressure_dry(
     param_set::APS,
     p::FT,
-    q::PhasePartition{FT},
+    q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
     Rv_over_Rd = TP.Rv_over_Rd(param_set)
     return p * (1 - q.tot) /
@@ -107,18 +125,20 @@ The partial pressure of dry air, given
 end
 
 """
-    partial_pressure_vapor(param_set, p, q)
+    partial_pressure_vapor(param_set, p[, q::PhasePartition])
 
 The partial pressure of water vapor, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
  - `q` phase partition
+
+When `q` is not provided, the partial pressure is zero.
 """
 @inline function partial_pressure_vapor(
     param_set::APS,
     p::FT,
-    q::PhasePartition{FT},
+    q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real}
     Rv_over_Rd = TP.Rv_over_Rd(param_set)
     return p * vapor_specific_humidity(q) * Rv_over_Rd /
@@ -126,7 +146,7 @@ The partial pressure of water vapor, given
 end
 
 """
-    vapor_pressure_deficit(param_set, T, p, q::PhasePartition)
+    vapor_pressure_deficit(param_set, T, p[, q::PhasePartition])
 
 The vapor pressure deficit (saturation vapor pressure minus actual 
 vapor pressure, truncated to be non-negative) over liquid water for temperatures 
@@ -136,12 +156,14 @@ above freezing and over ice for temperatures below freezing, given
  - `T` air temperature
  - `p` air pressure
  - `q` [`PhasePartition`](@ref)
+
+When `q` is not provided, the vapor pressure deficit is the saturation vapor pressure.
 """
 @inline function vapor_pressure_deficit(
     param_set::APS,
     T::FT,
     p::FT,
-    q::PhasePartition{FT},
+    q::PhasePartition{FT} = q_pt_0(FT),
     Tᶠ = TP.T_freeze(param_set),
 ) where {FT <: Real}
     above_freezing = T > Tᶠ
@@ -178,7 +200,7 @@ vapor pressure, truncated to be non-negative), given
 end
 
 """
-    relative_humidity(param_set, T, p, phase_type, q::PhasePartition)
+    relative_humidity(param_set, T, p, phase_type[, q::PhasePartition])
 
 The relative humidity (clipped between 0 and 1), given
 
@@ -186,7 +208,9 @@ The relative humidity (clipped between 0 and 1), given
  - `p` pressure
  - `phase_type` a thermodynamic state type
 and, optionally,
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+
+When `q` is not provided, the relative humidity is 0.
  """
 @inline function relative_humidity(
     param_set::APS,
@@ -225,7 +249,7 @@ end
 """
     q_vap_saturation_from_density(param_set, T, ρ, p_v)
 
-This function is identical to `q_vap_from_p_vap` and is provided for backward compatibility. 
+This function is identical to [`q_vap_from_p_vap`](@ref) and is provided for backward compatibility. 
 It will be removed in a future release.
 """
 const q_vap_saturation_from_density = q_vap_from_p_vap  # TODO Remove after ClimaAtmos and ClimaLand are updated to use q_vap_from_p_vap

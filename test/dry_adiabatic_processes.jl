@@ -45,7 +45,7 @@ using Random
         (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
 
         # Test ideal gas law consistency across all profiles
-        T_idgl = TD.air_temperature_from_ideal_gas_law.(param_set, p, ρ, q_pt)
+        T_idgl = TD.air_temperature_given_ρp.(param_set, p, ρ, q_pt)
         @test all(T .≈ T_idgl)
 
         Φ = FT(1)

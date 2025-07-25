@@ -11,11 +11,13 @@ export virtual_temperature
 The air temperature, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `e_int` specific internal energy
+ - `e_int` specific internal energy of moist air
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air.
 """
 @inline function air_temperature(
     param_set::APS,
@@ -36,16 +38,18 @@ and, optionally,
 end
 
 """
-    air_temperature_from_enthalpy(param_set, h, q::PhasePartition)
+    air_temperature_from_enthalpy(param_set, h[, q::PhasePartition]s)
 
 The air temperature, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `h` specific enthalpy 
+ - `h` specific enthalpy of moist air
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air.
 """
 @inline function air_temperature_from_enthalpy(
     param_set::APS,
@@ -60,7 +64,7 @@ and, optionally,
 end
 
 """
-    air_temperature_from_ideal_gas_law(param_set, p, ρ[, q::PhasePartition])
+    air_temperature_given_ρp(param_set, p, ρ[, q::PhasePartition])
 
 The air temperature, where
 
@@ -70,9 +74,11 @@ The air temperature, where
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air.
 """
-@inline function air_temperature_from_ideal_gas_law(
+@inline function air_temperature_given_ρp(
     param_set::APS,
     p::FT,
     ρ::FT,
@@ -83,7 +89,7 @@ and, optionally,
 end
 
 """
-    dry_pottemp(param_set, T, ρ[, q::PhasePartition, cpm])
+    dry_pottemp(param_set, T, ρ[, q::PhasePartition])
 
 The dry potential temperature, given
 
@@ -93,7 +99,9 @@ The dry potential temperature, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air.
  """
 @inline function dry_pottemp(
     param_set::APS,
@@ -116,7 +124,10 @@ The dry potential temperature, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air, i.e., using the adiabatic exponent 
+ for dry air.
  """
 @inline function dry_pottemp_given_pressure(
     param_set::APS,
@@ -129,12 +140,14 @@ and, optionally,
 end
 
 """
-    latent_heat_liq_ice(param_set, q::PhasePartition{FT})
+    latent_heat_liq_ice(param_set[, q::PhasePartition])
 
 Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference temperature 
 `T_0`, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+
+When `q` is not provided, `latent_heat_liq_ice` is zero.
 
  This is used in the evaluation of the liquid-ice potential temperature.
 """
@@ -148,7 +161,7 @@ Specific-humidity weighted sum of latent heats of liquid and ice evaluated at re
 end
 
 """
-    liquid_ice_pottemp_given_pressure(param_set, T, p[, q::PhasePartition, cpm])
+    liquid_ice_pottemp_given_pressure(param_set, T, p[, q::PhasePartition])
 
 The liquid-ice potential temperature, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
@@ -157,7 +170,9 @@ The liquid-ice potential temperature, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the result is the dry-air potential temperature.
 """
 @inline function liquid_ice_pottemp_given_pressure(
     param_set::APS,
@@ -173,7 +188,7 @@ and, optionally,
 end
 
 """
-    liquid_ice_pottemp(param_set, T, ρ[, q::PhasePartition, cpm])
+    liquid_ice_pottemp(param_set, T, ρ[, q::PhasePartition])
 
 The liquid-ice potential temperature, given
 
@@ -183,7 +198,9 @@ The liquid-ice potential temperature, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the result is the dry-air potential temperature.
 """
 @inline function liquid_ice_pottemp(
     param_set::APS,
@@ -201,18 +218,67 @@ and, optionally,
     )
 end
 
-# Helper function for saturation adjustment when virtual temperature 
-# and relative humidity are given
-@inline function virt_temp_from_RH(
+"""
+    air_temperature_given_pθq(
+        param_set,
+        p,
+        θ_liq_ice,
+        [q::PhasePartition]
+    )
+
+The air temperature obtained by inverting the liquid-ice potential temperature, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `θ_liq_ice` liquid-ice potential temperature
+ 
+and, optionally,
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the `θ_liq_ice` is assumed to be the dry-air potential temperature.
+"""
+@inline function air_temperature_given_pθq(
     param_set::APS,
-    T::FT,
+    p::FT,
+    θ_liq_ice::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
+) where {FT <: Real}
+    return θ_liq_ice * exner_given_pressure(param_set, p, q, cpm) +
+           latent_heat_liq_ice(param_set, q) / cpm
+end
+
+"""
+    air_temperature_given_ρθq(param_set, ρ, θ_liq_ice[, q::PhasePartition])
+
+The air temperature obtained by inverting the liquid-ice potential temperature, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `ρ` (moist-)air density
+ - `θ_liq_ice` liquid-ice potential temperature
+
+and, optionally,
+
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air.
+"""
+@inline function air_temperature_given_ρθq(
+    param_set::APS,
     ρ::FT,
-    RH::FT,
-    ::Type{phase_type},
-) where {FT <: Real, phase_type <: ThermodynamicState}
-    q_tot = RH * q_vap_saturation(param_set, T, ρ, phase_type)
-    q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
-    return virtual_temperature(param_set, T, q_pt)
+    θ_liq_ice::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+) where {FT <: Real}
+
+    p0 = TP.p_ref_theta(param_set)
+    cvm = cv_m(param_set, q)
+    cpm = cp_m(param_set, q)
+    R_m = gas_constant_air(param_set, q)
+    κ = 1 - cvm / cpm
+    T_u = (ρ * R_m * θ_liq_ice / p0)^(R_m / cvm) * θ_liq_ice
+    T_1 = latent_heat_liq_ice(param_set, q) / cvm
+    T_2 = -κ / (2 * T_u) * (latent_heat_liq_ice(param_set, q) / cvm)^2
+    return T_u + T_1 + T_2
 end
 
 """
@@ -227,8 +293,10 @@ The saturated liquid ice potential temperature, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
-"""
+ - `q` [`PhasePartition`](@ref). 
+
+When `q` is not provided, the air assumed to be dry.
+ """
 @inline function liquid_ice_pottemp_sat(
     param_set::APS,
     T::FT,
@@ -262,6 +330,64 @@ The saturated liquid ice potential temperature, given
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     cpm = cp_m(param_set, q)
     return liquid_ice_pottemp(param_set, T, ρ, q, cpm)
+end
+
+"""
+    virtual_pottemp(param_set, T, ρ[, q::PhasePartition])
+
+The virtual potential temperature, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `ρ` (moist-)air density
+
+and, optionally,
+
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the result is the dry-air potential temperature.
+
+The virtual potential temperature is defined as `θ_v = (R_m/R_d) * θ`, where `θ` is the
+potential temperature. It is the potential temperature a dry air parcel would need to have to
+have the same density as the moist air parcel at the same pressure.
+"""
+@inline function virtual_pottemp(
+    param_set::APS,
+    T::FT,
+    ρ::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+    cpm = cp_m(param_set, q),
+) where {FT <: Real}
+    R_d = TP.R_d(param_set)
+    return gas_constant_air(param_set, q) / R_d *
+           dry_pottemp(param_set, T, ρ, q, cpm)
+end
+
+"""
+    virtual_temperature(param_set, T[, q::PhasePartition])
+
+The virtual temperature, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+
+and, optionally,
+ 
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the result is the regular temperature. 
+
+The virtual temperature is defined as `T_v = (R_m/R_d) * T`. It is the temperature
+a dry air parcel would need to have to have the same density as the moist air parcel
+at the same pressure.
+"""
+@inline function virtual_temperature(
+    param_set::APS,
+    T::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+) where {FT <: Real}
+    R_d = TP.R_d(param_set)
+    return gas_constant_air(param_set, q) / R_d * T
 end
 
 """
@@ -323,37 +449,6 @@ The air temperature and total specific humidity `q_tot`, given
 end
 
 """
-    air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q::PhasePartition)
-
-The air temperature, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `ρ` (moist-)air density
-- `θ_liq_ice` liquid-ice potential temperature
-
-and, optionally,
-
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
-"""
-@inline function air_temperature_given_ρθq(
-    param_set::APS,
-    ρ::FT,
-    θ_liq_ice::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
-
-    p0 = TP.p_ref_theta(param_set)
-    cvm = cv_m(param_set, q)
-    cpm = cp_m(param_set, q)
-    R_m = gas_constant_air(param_set, q)
-    κ = 1 - cvm / cpm
-    T_u = (ρ * R_m * θ_liq_ice / p0)^(R_m / cvm) * θ_liq_ice
-    T_1 = latent_heat_liq_ice(param_set, q) / cvm
-    T_2 = -κ / (2 * T_u) * (latent_heat_liq_ice(param_set, q) / cvm)^2
-    return T_u + T_1 + T_2
-end
-
-"""
     air_temperature_given_ρθq_nonlinear(param_set, ρ, θ_liq_ice, maxiter, tol, q::PhasePartition)
 
 Computes temperature `T`, given
@@ -367,7 +462,7 @@ and, optionally,
 - `tol` absolute tolerance for non-linear equation iterations. Can be one of:
     - `RelativeSolutionTolerance()` to stop when `|x_2 - x_1|/x_1 < tol`
     - `ResidualTolerance()` to stop when `|f(x)| < tol`
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air,
+ - `q` [`PhasePartition`](@ref).When `q` is not provided, the results are for dry air,
 
 The temperature `T` is found by finding the root of
 `T - air_temperature_given_pθq(param_set,
@@ -418,86 +513,4 @@ The temperature `T` is found by finding the root of
         end
     end
     return sol.root
-end
-
-"""
-    air_temperature_given_pθq(
-        param_set,
-        p,
-        θ_liq_ice,
-        [q::PhasePartition]
-    )
-
-The air temperature, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
- - `θ_liq_ice` liquid-ice potential temperature
- 
-and, optionally,
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
-"""
-@inline function air_temperature_given_pθq(
-    param_set::APS,
-    p::FT,
-    θ_liq_ice::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-    cpm = cp_m(param_set, q),
-) where {FT <: Real}
-    return θ_liq_ice * exner_given_pressure(param_set, p, q, cpm) +
-           latent_heat_liq_ice(param_set, q) / cpm
-end
-
-"""
-    virtual_pottemp(param_set, T, ρ[, q::PhasePartition])
-
-The virtual potential temperature, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
-
-and, optionally,
-
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
-
-The virtual potential temperature is defined as `θ_v = (R_m/R_d) * θ`, where `θ` is the
-potential temperature. It is the potential temperature a dry air parcel would need to have to
-have the same density as the moist air parcel at the same pressure.
-"""
-@inline function virtual_pottemp(
-    param_set::APS,
-    T::FT,
-    ρ::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-    cpm = cp_m(param_set, q),
-) where {FT <: Real}
-    R_d = TP.R_d(param_set)
-    return gas_constant_air(param_set, q) / R_d *
-           dry_pottemp(param_set, T, ρ, q, cpm)
-end
-
-"""
-    virtual_temperature(param_set, T[, q::PhasePartition])
-
-The virtual temperature, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
-
-and, optionally,
- 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
-
-The virtual temperature is defined as `T_v = (R_m/R_d) * T`. It is the temperature
-a dry air parcel would need to have to have the same density as the moist air parcel
-at the same pressure.
-"""
-@inline function virtual_temperature(
-    param_set::APS,
-    T::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
-    R_d = TP.R_d(param_set)
-    return gas_constant_air(param_set, q) / R_d * T
 end

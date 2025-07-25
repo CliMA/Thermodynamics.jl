@@ -630,4 +630,18 @@ This file contains tests for fundamental thermodynamic relations and physical la
             end
         end
     end
+
+    # Test total specific enthalpy calculations
+    T = FT(300)
+    e_tot = FT(1000)
+
+    # Test for dry air (default PhasePartition)
+    h_tot_dry = total_specific_enthalpy(param_set, e_tot, T)
+    @test h_tot_dry ≈ e_tot + _R_d * T
+
+    # Test for moist air
+    q_pt = PhasePartition(FT(0.02), FT(0.005), FT(0.001))
+    h_tot_moist = total_specific_enthalpy(param_set, e_tot, T, q_pt)
+    R_m_moist = gas_constant_air(param_set, q_pt)
+    @test h_tot_moist ≈ e_tot + R_m_moist * T
 end

@@ -2,7 +2,6 @@
 
 export Liquid, Ice
 export liquid_fraction, PhasePartition_equil
-export condensate
 export has_condensate
 
 """
@@ -33,23 +32,15 @@ An ice phase, to dispatch over
 struct Ice <: Phase end
 
 """
-    condensate(q::PhasePartition{FT})
-
-The condensate specific humidity (liquid + ice) of the phase 
-partition `q`.
-"""
-@inline condensate(q::PhasePartition) = q.liq + q.ice
-
-"""
     has_condensate(q::PhasePartition{FT})
 
 Bool indicating if condensate exists in the phase partition
 """
 @inline has_condensate(q_c::FT) where {FT <: Real} = q_c > eps(FT)
-@inline has_condensate(q::PhasePartition) = has_condensate(condensate(q))
+@inline has_condensate(q::PhasePartition) = has_condensate(condensate_shum(q))
 
 """
-    liquid_fraction(param_set, T, phase_type[, q])
+    liquid_fraction(param_set, T, phase_type[, q::PhasePartition])
 
 The fraction of condensate that is liquid, given
 
@@ -95,15 +86,13 @@ end
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real, phase_type <: PhaseNonEquil}
-    q_c = condensate(q)     # condensate specific humidity
+    q_c = condensate_shum(q)     # condensate specific humidity
     return ifelse(
         has_condensate(q_c),
         q.liq / q_c,
         liquid_fraction(param_set, T, PhaseEquil, q),
     )
 end
-
-
 
 """
     PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)

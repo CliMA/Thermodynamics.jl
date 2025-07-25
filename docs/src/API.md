@@ -60,6 +60,7 @@ air_density
 air_pressure
 air_temperature
 condensate
+condensate_shum
 cp_m
 cv_m
 dry_pottemp

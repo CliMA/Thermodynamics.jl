@@ -1,5 +1,7 @@
 # Saturation adjustment functions for various combinations of input variables
 
+# TODO: Remove catches around freezing temperature (given we have continuous phase partition)
+
 """
     _find_zero_with_convergence_check(
         roots_func,
@@ -390,7 +392,7 @@ Compute the temperature that is consistent with
 by finding the root of
 
 ```
-T - air_temperature_from_ideal_gas_law(
+T - air_temperature_given_ρp(
         param_set,
         p,
         ρ,
@@ -414,7 +416,7 @@ See also [`saturation_adjustment`](@ref).
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     # Use `oftype` to preserve diagonalized type signatures:
     @inline roots(T) =
-        T - air_temperature_from_ideal_gas_law(
+        T - air_temperature_given_ρp(
             param_set,
             oftype(T, p),
             oftype(T, ρ),
@@ -680,7 +682,7 @@ end
     e_int_v0 = TP.e_int_v0(param_set)
     e_int_i0 = TP.e_int_i0(param_set)
 
-    q_c = condensate(q)
+    q_c = condensate_shum(q)
     q_vap_sat = q_vap_from_p_vap(param_set, T, ρ, p_vap_sat)
     L = latent_heat_mixed(param_set, T, λ)
 
@@ -732,4 +734,18 @@ end
     T = air_temperature(param_set, ts)
     q_vap_sat = vapor_specific_humidity(param_set, ts)
     return ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat)
+end
+
+# Helper function for saturation adjustment when virtual temperature 
+# and relative humidity are given
+@inline function virt_temp_from_RH(
+    param_set::APS,
+    T::FT,
+    ρ::FT,
+    RH::FT,
+    ::Type{phase_type},
+) where {FT <: Real, phase_type <: ThermodynamicState}
+    q_tot = RH * q_vap_saturation(param_set, T, ρ, phase_type)
+    q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
+    return virtual_temperature(param_set, T, q_pt)
 end

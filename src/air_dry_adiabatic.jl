@@ -41,9 +41,9 @@ end
 
 The air pressure for an isentropic process, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `T∞` ambient temperature
- - `p∞` ambient pressure
+ - `T` current temperature
+ - `T∞` reference temperature
+ - `p∞` reference pressure
 
 The pressure is computed using the isentropic relation: `p = p∞ * (T/T∞)^(1/κ)`,
 where `κ = R/cₚ` is the ratio of the gas constant to the isobaric specific heat capacity

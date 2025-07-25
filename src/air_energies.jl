@@ -1,16 +1,15 @@
 # Energies
-export total_energy
 export internal_energy
-export internal_energy_sat
 export internal_energy_dry
 export internal_energy_vapor
 export internal_energy_liquid
 export internal_energy_ice
+export internal_energy_sat
+export total_energy
 export moist_static_energy
 export specific_enthalpy
 export total_specific_enthalpy
 export virtual_dry_static_energy
-
 
 """
     internal_energy(param_set, T[, q::PhasePartition])
@@ -22,7 +21,9 @@ The internal energy per unit mass, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air.
 """
 @inline function internal_energy(
     param_set::APS,
@@ -149,8 +150,9 @@ The total energy per unit mass, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
-
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air.
 """
 @inline function total_energy(
     param_set::APS,
@@ -162,33 +164,7 @@ and, optionally,
     return internal_energy(param_set, T, q) + e_pot + e_kin
 end
 
-"""
-    total_energy_given_ρp(param_set, e_kin, e_pot, ρ, p[, q::PhasePartition])
-
-The total energy per unit mass, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `ρ` (moist-)air density
- - `p` pressure
- - `e_kin` kinetic energy per unit mass
- - `e_pot` gravitational potential energy per unit mass
-
-and, optionally,
-
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
-"""
-@inline function total_energy_given_ρp(
-    param_set::APS,
-    ρ::FT,
-    p::FT,
-    e_kin::FT,
-    e_pot::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
-    T = air_temperature_from_ideal_gas_law(param_set, p, ρ, q)
-    return total_energy(param_set, e_kin, e_pot, T, q)
-end
-
+# TODO Remove the method specific_enthalpy(e_int, R_m, T) in a future release (after ClimaAtmos update to not using this)
 """
     specific_enthalpy(e_int, R_m, T)
 
@@ -197,6 +173,8 @@ The specific enthalpy, given
  - `e_int` internal specific energy
  - `R_m` [`gas_constant_air`](@ref)
  - `T` air temperature
+
+This method is deprecated and will be removed in a future release.
 """
 @inline function specific_enthalpy(e_int::FT, R_m::FT, T::FT) where {FT <: Real}
     return e_int + R_m * T
@@ -212,7 +190,9 @@ The specific enthalpy, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air.
 """
 @inline function specific_enthalpy(
     param_set::APS,
@@ -221,7 +201,7 @@ and, optionally,
 ) where {FT <: Real}
     R_m = gas_constant_air(param_set, q)
     e_int = internal_energy(param_set, T, q)
-    return specific_enthalpy(e_int, R_m, T)
+    return e_int + R_m * T
 end
 
 """
@@ -250,7 +230,32 @@ and total specific humidity, given
     )
 end
 
+"""
+    total_specific_enthalpy(param_set, e_tot, T[, q::PhasePartition])
 
+The total specific enthalpy, defined as `e_tot + R_m * T`, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `e_tot` total specific energy
+ - `T` temperature
+
+and, optionally,
+
+ - `q` [`PhasePartition`](@ref). 
+ 
+When `q` is not provided, the results are for dry air.
+"""
+@inline function total_specific_enthalpy(
+    param_set::APS,
+    e_tot::FT,
+    T::FT,
+    q::PhasePartition{FT} = q_pt_0(FT),
+) where {FT <: Real}
+    R_m = gas_constant_air(param_set, q)
+    return e_tot + R_m * T
+end
+
+# TODO: Remove the following method in a future release (after ClimaAtmos update to not using this)
 """
     total_specific_enthalpy(e_tot, R_m, T)
 

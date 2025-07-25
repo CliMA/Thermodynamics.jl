@@ -13,14 +13,13 @@ export latent_heat_liq_ice
 export soundspeed_air
 
 """
-    gas_constant_air(param_set, [q::PhasePartition])
     gas_constant_air(param_set, q_tot, q_liq, q_ice)
 
 The specific gas constant of moist air, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref). Without humidity argument, the results are for dry air.
- - `q_tot`, `q_liq`, `q_ice` - specific humidities for total water, liquid water and ice
+ - `q_tot`, `q_liq`, `q_ice` - specific humidities for total water, liquid water, and ice
+
 """
 @inline function gas_constant_air(param_set::APS, q_tot, q_liq, q_ice)
     R_d = TP.R_d(param_set)
@@ -29,6 +28,16 @@ The specific gas constant of moist air, given
     return R_d * (1 - q_tot) + R_v * q_vap
 end
 
+"""
+    gas_constant_air(param_set[, q::PhasePartition])
+
+The specific gas constant of moist air, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `q` [`PhasePartition`](@ref).
+
+When `q` is not provided, the results are for dry air.
+"""
 @inline function gas_constant_air(
     param_set::APS,
     q::PhasePartition{FT},
@@ -41,12 +50,10 @@ end
 
 """
     cp_m(param_set, q_tot, q_liq, q_ice)
-    cp_m(param_set[, q::PhasePartition])
 
 The isobaric specific heat capacity of moist air, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref). Without humidity argument, the results are for dry air.
  - `q_tot` total specific humidity of water
  - `q_liq` specific humidity of liquid
  - `q_ice` specific humidity of ice
@@ -70,12 +77,14 @@ The isobaric specific heat capacity of moist air, given
 end
 
 """
-    cp_m(param_set, q::PhasePartition)
+    cp_m(param_set[, q::PhasePartition])
 
 The isobaric specific heat capacity of moist air given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref).
+
+When `q` is not provided, the results are for dry air.
 """
 @inline function cp_m(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
     return cp_m(param_set, q.tot, q.liq, q.ice)
@@ -84,6 +93,7 @@ end
 @inline cp_m(param_set::APS, ::Type{FT}) where {FT <: Real} =
     cp_m(param_set, q_pt_0(FT))
 
+# TODO: The methods for cv_m do not parallel those for R_m and cp_m. Make consistent.
 """
     cv_m(param_set[, q::PhasePartition])
 
@@ -205,7 +215,7 @@ latent_heat_generic(param_set, T, LH_0, Δcp) =
     latent_heat_mixed(param_set, T, λ)
 
 Latent heat for a mixture of liquid and ice weighted by the 
-liquid fraction, given
+liquid fraction `λ`, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
@@ -231,7 +241,9 @@ The speed of sound in unstratified air, given
 
 and, optionally,
 
- - `q` [`PhasePartition`](@ref). Without this argument, the results are for dry air.
+ - `q` [`PhasePartition`](@ref). 
+
+When `q` is not provided, the results are for dry air.
 """
 @inline function soundspeed_air(
     param_set::APS,
