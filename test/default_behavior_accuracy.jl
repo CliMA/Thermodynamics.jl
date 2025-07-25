@@ -96,12 +96,17 @@ This file contains tests for saturation adjustment accuracy and convergence.
 
         @testset "PhaseEquil freezing" begin
             _T_freeze = FT(TP.T_freeze(param_set))
+
+            # Test around approximate freezing temperature with tolerance
+            T_freeze_plus = _T_freeze + sqrt(eps(FT))
+            T_freeze_minus = _T_freeze - sqrt(eps(FT))
+            
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
             (; ρ, q_tot, phase_type) = profiles
             e_int_upper =
                 internal_energy_sat.(
                     param_set,
-                    Ref(_T_freeze + sqrt(eps(FT))),
+                    Ref(T_freeze_plus),
                     ρ,
                     q_tot,
                     phase_type,
@@ -109,7 +114,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             e_int_lower =
                 internal_energy_sat.(
                     param_set,
-                    Ref(_T_freeze - sqrt(eps(FT))),
+                    Ref(T_freeze_minus),
                     ρ,
                     q_tot,
                     phase_type,
@@ -366,30 +371,32 @@ This file contains tests for saturation adjustment accuracy and convergence.
             T_freeze_plus = _T_freeze + sqrt(eps(FT))
             T_freeze_minus = _T_freeze - sqrt(eps(FT))
             
-            θ_liq_ice_upper = TD.liquid_ice_pottemp_given_pressure.(
-                param_set,
-                Ref(T_freeze_plus),
-                p,
-                TD.PhasePartition_equil_given_p.(
+            θ_liq_ice_upper =
+                TD.liquid_ice_pottemp_given_pressure.(
                     param_set,
                     Ref(T_freeze_plus),
                     p,
-                    q_tot,
-                    phase_type,
-                ),
-            )
-            θ_liq_ice_lower = TD.liquid_ice_pottemp_given_pressure.(
-                param_set,
-                Ref(T_freeze_minus),
-                p,
-                TD.PhasePartition_equil_given_p.(
+                    TD.PhasePartition_equil_given_p.(
+                        param_set,
+                        Ref(T_freeze_plus),
+                        p,
+                        q_tot,
+                        phase_type,
+                    ),
+                )
+            θ_liq_ice_lower =
+                TD.liquid_ice_pottemp_given_pressure.(
                     param_set,
                     Ref(T_freeze_minus),
                     p,
-                    q_tot,
-                    phase_type,
-                ),
-            )
+                    TD.PhasePartition_equil_given_p.(
+                        param_set,
+                        Ref(T_freeze_minus),
+                        p,
+                        q_tot,
+                        phase_type,
+                    ),
+                )
             θ_liq_ice_mid = (θ_liq_ice_upper .+ θ_liq_ice_lower) ./ 2
 
             ts_lower = PhaseEquil_pθq.(param_set, p, θ_liq_ice_lower, q_tot)
@@ -398,13 +405,17 @@ This file contains tests for saturation adjustment accuracy and convergence.
 
             # Test that all states converge to approximately the freezing point
             @test all(
-                abs.(air_temperature.(param_set, ts_lower) .- T_freeze_minus) .<= atol_temperature,
+                abs.(
+                    air_temperature.(param_set, ts_lower) .- T_freeze_minus
+                ) .<= atol_temperature,
             )
             @test all(
-                abs.(air_temperature.(param_set, ts_upper) .- T_freeze_plus) .<= atol_temperature,
+                abs.(air_temperature.(param_set, ts_upper) .- T_freeze_plus) .<=
+                atol_temperature,
             )
             @test all(
-                abs.(air_temperature.(param_set, ts_mid) .- Ref(_T_freeze)) .<= atol_temperature,
+                abs.(air_temperature.(param_set, ts_mid) .- Ref(_T_freeze)) .<=
+                atol_temperature,
             )
         end
 

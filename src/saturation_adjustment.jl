@@ -1,49 +1,6 @@
 # Saturation adjustment functions for various combinations of input variables
 
 """
-    _find_zero_with_convergence_check(
-        roots_func,
-        numerical_method,
-        solution_type,
-        tol,
-        maxiter,
-        warning_func,
-        warning_args...,
-    )
-
-A generic helper function to find the root of `roots_func` using `numerical_method`,
-and handle convergence checks and warnings.
-
-This function abstracts the common logic of calling the root solver, logging metadata,
-and issuing warnings or errors if the solver fails to converge. It is used by all
-`saturation_adjustment_*` functions to reduce code duplication.
-"""
-function _find_zero_with_convergence_check(
-    roots_func,
-    numerical_method,
-    solution_type,
-    tol,
-    maxiter,
-    warning_func,
-    warning_args...,
-)
-    sol =
-        RS.find_zero(roots_func, numerical_method, solution_type, tol, maxiter)
-
-    DataCollection.log_meta(sol)
-    if !sol.converged
-        if print_warning()
-            # Pass `sol.root` and `tol.tol` to match original warning signatures
-            warning_func(warning_args..., sol.root, maxiter, tol.tol)
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
-    end
-    return sol.root
-end
-
-"""
     saturation_adjustment(
         sat_adjust_method,
         param_set,
@@ -91,52 +48,23 @@ See also [`saturation_adjustment`](@ref).
     _T_min = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
-    T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
-    if T_1 ≥ _T_min
-        q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
-        unsaturated = q_tot <= q_v_sat
-        if unsaturated
-            return T_1
-        end
+    # Unsaturated Check
+    T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot)))
+    if T_1 >= _T_min && q_tot <= q_vap_saturation(param_set, T_1, ρ, phase_type)
+        return T_1
     end
-
-    @inline e_int_sat(T) =
-        internal_energy_sat(param_set, ReLU(T), ρ, q_tot, phase_type)
-
-    @inline function roots(_T) # ff′
+   
+    # Saturated case (with special handling for Newton's method's derivative)
+    @inline function roots(_T)
         T = ReLU(_T)
+        e_int_sat_val = internal_energy_sat(param_set, T, ρ, q_tot, phase_type)
+        f = e_int_sat_val - e_int
+        
+        # This compile-time branch makes this function difficult to merge with others
         return ifelse(
             sat_adjust_method <: RS.NewtonsMethod,
-            begin
-                λ = liquid_fraction(param_set, T, phase_type)
-                p_vap_sat = saturation_vapor_pressure(
-                    param_set,
-                    phase_type,
-                    T,
-                    PhasePartition(FT(0)),
-                    λ,
-                )
-                q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
-
-                cvm = cv_m(param_set, q)
-                f′ = ∂e_int_∂T(
-                    param_set,
-                    T,
-                    e_int,
-                    ρ,
-                    q_tot,
-                    phase_type,
-                    λ,
-                    p_vap_sat,
-                    q,
-                    cvm,
-                )
-                _e_int_sat =
-                    internal_energy_sat(param_set, T, ρ, q_tot, phase_type, q)
-                f = _e_int_sat - e_int
-                (f, f′)
-            end,
-            e_int_sat(T) - e_int,
+            (f, ∂e_int_∂T_sat(param_set, T, ρ, q_tot, phase_type)),
+            f,
         )
     end
 
@@ -211,46 +139,19 @@ See also [`saturation_adjustment`](@ref).
     relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
-    _T_min = TP.T_min(param_set)
-    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
+    # Define how to compute saturated internal energy given p
+    @inline e_int_sat_given_p(T, param_set, p, q_tot, phase_type) =
+        internal_energy_sat(param_set, T, air_density(param_set, T, p, PhasePartition(q_tot)), q_tot, phase_type)
 
-    T_1 = max(_T_min, air_temperature(param_set, e_int, PhasePartition(q_tot))) # Assume all vapor
-    @inline ρ_T(T) = air_density(param_set, T, p, PhasePartition(q_tot))
-    ρ_1 = ρ_T(T_1)
-    q_v_sat = q_vap_saturation(param_set, T_1, ρ_1, phase_type)
-    unsaturated = q_tot <= q_v_sat
-    if unsaturated && T_1 ≥ _T_min
-        return T_1
-    end
-
-    @inline e_int_sat(T) =
-        internal_energy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
-    @inline roots(T) = e_int_sat(T) - e_int
-
-    numerical_method = sa_numerical_method_peq(
-        sat_adjust_method,
-        param_set,
-        p,
-        e_int,
-        q_tot,
-        phase_type,
-        T_guess,
-    )
-
-    return _find_zero_with_convergence_check(
-        roots,
-        numerical_method,
-        RS.CompactSolution(),
-        tol,
-        maxiter,
-        print_warning_peq,
-        sat_adjust_method,
-        p,
-        e_int,
-        q_tot,
+    return _saturation_adjustment_p_thermo_q(
+        sat_adjust_method, param_set, p, e_int, q_tot, phase_type, maxiter, relative_temperature_tol, T_guess,
+        air_temperature,             # temp_from_var_func for e_int
+        e_int_sat_given_p,           # sat_val_func
+        sa_numerical_method_peq,     # constructor for numerical method
+        print_warning_peq,           # warning function
+        sat_adjust_method, p, e_int, q_tot, # arguments for the warning
     )
 end
-
 
 """
     saturation_adjustment_given_phq(
@@ -299,47 +200,17 @@ See also [`saturation_adjustment`](@ref).
     relative_temperature_tol::Real,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
-    _T_min = TP.T_min(param_set)
-    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
-
-    T_1 = max(
-        _T_min,
-        air_temperature_from_enthalpy(param_set, h, PhasePartition(q_tot)),
-    ) # Assume all vapor
-    @inline ρ_T(T) = air_density(param_set, T, p, PhasePartition(q_tot))
-    ρ_1 = ρ_T(T_1)
-    q_v_sat = q_vap_saturation(param_set, T_1, ρ_1, phase_type)
-    unsaturated = q_tot <= q_v_sat
-    if unsaturated && T_1 ≥ _T_min
-        return T_1
-    end
-
-    @inline h_sat(T) = 
-        specific_enthalpy_sat(param_set, ReLU(T), ρ_T(T), q_tot, phase_type)
-    @inline roots(T) = h_sat(T) - h
-
-    numerical_method = sa_numerical_method_phq(
-        sat_adjust_method,
-        param_set,
-        p,
-        h,
-        q_tot,
-        phase_type,
-        T_guess,
-    )
-
-    return _find_zero_with_convergence_check(
-        roots,
-        numerical_method,
-        RS.CompactSolution(),
-        tol,
-        maxiter,
-        print_warning_hpq,
-        sat_adjust_method,
-        h,
-        p,
-        q_tot,
-        T_guess,
+    # Define how to compute saturated enthalpy given p
+    @inline h_sat_given_p(T, param_set, p, q_tot, phase_type) =
+        specific_enthalpy_sat(param_set, T, air_density(param_set, T, p, PhasePartition(q_tot)), q_tot, phase_type)
+        
+    return _saturation_adjustment_p_thermo_q(
+        sat_adjust_method, param_set, p, h, q_tot, phase_type, maxiter, relative_temperature_tol, T_guess,
+        air_temperature_from_enthalpy, # temp_from_var_func for h
+        h_sat_given_p,                 # sat_val_func
+        sa_numerical_method_phq,       # constructor for numerical method
+        print_warning_hpq,             # warning function
+        sat_adjust_method, h, p, q_tot, T_guess, # arguments for the warning
     )
 end
 
@@ -431,31 +302,6 @@ See also [`saturation_adjustment`](@ref).
 end
 
 """
-    ΔT_min(::Type{FT})
-
-Minimum interval for saturation adjustment using Secant method
-"""
-@inline ΔT_min(::Type{FT}) where {FT} = FT(3)
-
-"""
-    ΔT_max(::Type{FT})
-
-Maximum interval for saturation adjustment using Secant method
-"""
-@inline ΔT_max(::Type{FT}) where {FT} = FT(10)
-
-"""
-    bound_upper_temperature(T_1, T_2)
-
-Bounds the upper temperature, `T_2`, for
-saturation adjustment using Secant method
-"""
-@inline function bound_upper_temperature(T_1::FT, T_2::FT) where {FT <: Real}
-    T_2 = max(T_1 + ΔT_min(FT), T_2)
-    return min(T_1 + ΔT_max(FT), T_2)
-end
-
-"""
     saturation_adjustment_given_ρθq(
         param_set,
         ρ,
@@ -497,34 +343,27 @@ See also [`saturation_adjustment`](@ref).
     tol::RS.AbstractTolerance,
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, phase_type <: PhaseEquil}
-    _T_min = TP.T_min(param_set)
-    T_init_min = TP.T_init_min(param_set)
-    @inline air_temp(q) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q)
-    T_1 = max(_T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
-    q_v_sat = q_vap_saturation(param_set, T_1, ρ, phase_type)
-    unsaturated = q_tot <= q_v_sat
-    if unsaturated && T_1 ≥ _T_min
-        return T_1
+    # Define the specific functions for this saturation adjustment method
+    @inline T_1_func(q_pt) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q_pt)
+    
+    @inline q_vap_sat_func(T) = q_vap_saturation(param_set, T, ρ, phase_type)
+    
+    @inline residual_func(T) = liquid_ice_pottemp_sat(param_set, ReLU(T), ρ, phase_type, q_tot) - θ_liq_ice
+    
+    @inline numerical_method_constructor(T_1) = begin
+        T_2 = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
+        T_2 = bound_upper_temperature(T_1, T_2)
+        return RS.SecantMethod(TP.T_init_min(param_set), T_2)
     end
-    T_2 = air_temp(PhasePartition(q_tot, FT(0), q_tot)) # Assume all ice
-    T_2 = bound_upper_temperature(T_1, T_2)
-    @inline roots(T) =
-        liquid_ice_pottemp_sat(param_set, ReLU(T), ρ, phase_type, q_tot) -
-        θ_liq_ice
 
-    numerical_method = RS.SecantMethod(T_init_min, T_2)
-
-    return _find_zero_with_convergence_check(
-        roots,
-        numerical_method,
-        RS.CompactSolution(),
-        tol,
-        maxiter,
-        print_warning_ρθq,
-        RS.SecantMethod,
-        ρ,
-        θ_liq_ice,
-        q_tot,
+    return _saturation_adjustment_θ_q_kernel(
+        param_set, θ_liq_ice, q_tot, phase_type, maxiter, tol,
+        T_1_func,           # T_1_func
+        q_vap_sat_func,     # q_vap_sat_func
+        residual_func,       # residual_func
+        numerical_method_constructor, # numerical_method_constructor
+        print_warning_ρθq,  # warning function
+        RS.SecantMethod, ρ, θ_liq_ice, q_tot, # arguments for the warning
     )
 end
 
@@ -571,9 +410,13 @@ See also [`saturation_adjustment`](@ref).
     T_guess::Union{FT, Nothing} = nothing,
 ) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
-    T_min = TP.T_min(param_set)
-    @inline air_temp(q) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q)
-    @inline function θ_liq_ice_closure(T)
+    
+    # Define the specific functions for this saturation adjustment method
+    @inline T_1_func(q_pt) = air_temperature_given_pθq(param_set, p, θ_liq_ice, q_pt)
+    
+    @inline q_vap_sat_func(T) = q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
+    
+    @inline residual_func(T) = begin
         q = PhasePartition(oftype(T, 0))
         λ = liquid_fraction(param_set, T, phase_type, q)
         q_pt = PhasePartition_equil_given_p(
@@ -584,29 +427,166 @@ See also [`saturation_adjustment`](@ref).
             phase_type,
             λ,
         )
-        return liquid_ice_pottemp_given_pressure(
+        return oftype(T, θ_liq_ice) - liquid_ice_pottemp_given_pressure(
             param_set,
             T,
             oftype(T, p),
             q_pt,
         )
     end
-    @inline q_vap_sat(T) =
-        q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type)
-    T_1 = max(T_min, air_temp(PhasePartition(q_tot))) # Assume all vapor
-    q_v_sat_1 = q_vap_sat(T_1)
-    unsaturated = q_tot <= q_v_sat_1
-    if unsaturated && T_1 ≥ T_min
-        return T_1
-    end
-
-    roots(T) = oftype(T, θ_liq_ice) - θ_liq_ice_closure(T)
-
-    numerical_method = sa_numerical_method_pθq(
+    
+    @inline numerical_method_constructor(T_1) = sa_numerical_method_pθq(
         sat_adjust_method,
         param_set,
         p,
         θ_liq_ice,
+        q_tot,
+        phase_type,
+        T_guess,
+    )
+
+    return _saturation_adjustment_θ_q_kernel(
+        param_set, θ_liq_ice, q_tot, phase_type, maxiter, tol,
+        T_1_func,           # T_1_func
+        q_vap_sat_func,     # q_vap_sat_func
+        residual_func,       # residual_func
+        numerical_method_constructor, # numerical_method_constructor
+        print_warning_pθq,  # warning function
+        sat_adjust_method, p, θ_liq_ice, q_tot, # arguments for the warning
+    )
+end
+
+### Helper functions ###
+
+"""
+    ΔT_min(::Type{FT})
+
+Minimum interval for saturation adjustment using Secant method
+"""
+@inline ΔT_min(::Type{FT}) where {FT} = FT(3)
+
+"""
+    ΔT_max(::Type{FT})
+
+Maximum interval for saturation adjustment using Secant method
+"""
+@inline ΔT_max(::Type{FT}) where {FT} = FT(10)
+
+"""
+    bound_upper_temperature(T_1, T_2)
+
+Bounds the upper temperature, `T_2`, for
+saturation adjustment using Secant method
+"""
+@inline function bound_upper_temperature(T_1::FT, T_2::FT) where {FT <: Real}
+    T_2 = max(T_1 + ΔT_min(FT), T_2)
+    return min(T_1 + ΔT_max(FT), T_2)
+end
+
+"""
+    _find_zero_with_convergence_check(
+        roots_func,
+        numerical_method,
+        solution_type,
+        tol,
+        maxiter,
+        warning_func,
+        warning_args...,
+    )
+
+A generic helper function to find the root of `roots_func` using `numerical_method`,
+and handle convergence checks and warnings.
+
+This function abstracts the common logic of calling the root solver, logging metadata,
+and issuing warnings or errors if the solver fails to converge. It is used by all
+`saturation_adjustment_*` functions to reduce code duplication.
+"""
+function _find_zero_with_convergence_check(
+    roots_func,
+    numerical_method,
+    solution_type,
+    tol,
+    maxiter,
+    warning_func,
+    warning_args...,
+)
+    sol =
+        RS.find_zero(roots_func, numerical_method, solution_type, tol, maxiter)
+
+    DataCollection.log_meta(sol)
+    if !sol.converged
+        if print_warning()
+            # Pass `sol.root` and `tol.tol` to match original warning signatures
+            warning_func(warning_args..., sol.root, maxiter, tol.tol)
+        end
+        if error_on_non_convergence()
+            error("Failed to converge with printed set of inputs.")
+        end
+    end
+    return sol.root
+end
+
+"""
+    _saturation_adjustment_p_thermo_q(
+        sat_adjust_method,
+        param_set,
+        p,
+        thermo_var,
+        q_tot,
+        phase_type,
+        maxiter,
+        relative_temperature_tol,
+        T_guess,
+        temp_from_var_func,
+        sat_val_func,
+        numerical_method_constructor,
+        warning_func,
+        warning_args...,
+    )
+
+A private kernel function that consolidates the logic for saturation adjustment when
+pressure, total humidity, and a thermodynamic variable (like internal energy or enthalpy) are given.
+
+This function encapsulates the common unsaturated check logic and root finding for
+pressure-based saturation adjustment methods.
+"""
+@inline function _saturation_adjustment_p_thermo_q(
+    sat_adjust_method,
+    param_set::APS,
+    p::FT,
+    thermo_var::FT, # This can be e_int or h
+    q_tot::FT,
+    phase_type,
+    maxiter,
+    relative_temperature_tol,
+    T_guess,
+    # The following are functions passed in to customize the behavior
+    temp_from_var_func, # Function to compute T from the thermo_var
+    sat_val_func,       # Function to compute the saturated value of the thermo_var
+    numerical_method_constructor,
+    warning_func,
+    warning_args...,
+) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+    _T_min = TP.T_min(param_set)
+    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
+
+    # Encapsulated "Unsaturated Check" logic
+    T_1 = max(_T_min, temp_from_var_func(param_set, thermo_var, PhasePartition(q_tot)))
+    @inline ρ_T(T) = air_density(param_set, T, p, PhasePartition(q_tot))
+    ρ_1 = ρ_T(T_1)
+    q_v_sat = q_vap_saturation(param_set, T_1, ρ_1, phase_type)
+    if q_tot <= q_v_sat && T_1 >= _T_min
+        return T_1
+    end
+
+    # Saturated case: find the root
+    @inline roots(T) = sat_val_func(T, param_set, p, q_tot, phase_type) - thermo_var
+
+    numerical_method = numerical_method_constructor(
+        sat_adjust_method,
+        param_set,
+        p,
+        thermo_var,
         q_tot,
         phase_type,
         T_guess,
@@ -618,11 +598,74 @@ See also [`saturation_adjustment`](@ref).
         RS.CompactSolution(),
         tol,
         maxiter,
-        print_warning_pθq,
-        sat_adjust_method,
-        p,
+        warning_func,
+        warning_args...,
+    )
+end
+
+"""
+    _saturation_adjustment_θ_q_kernel(
+        param_set,
         θ_liq_ice,
         q_tot,
+        phase_type,
+        maxiter,
+        tol,
+        # Functional arguments to customize behavior
+        T_1_func,
+        q_vap_sat_func,
+        residual_func,
+        numerical_method_constructor,
+        warning_func,
+        warning_args...,
+    )
+
+A generic private kernel for saturation adjustment given liquid-ice potential temperature `θ_liq_ice`.
+It encapsulates the common workflow for both pressure-based (`pθq`) and density-based (`ρθq`) methods.
+
+# Customization via Functional Arguments
+- `T_1_func`: A function `(q_pt) -> T` that computes the initial "all-vapor" temperature.
+- `q_vap_sat_func`: A function `(T) -> q_v_sat` that computes the saturation specific humidity.
+- `residual_func`: A function `(T) -> F` that computes the residual for the root-finder.
+- `numerical_method_constructor`: A function `(T_1) -> method` that returns a configured numerical
+  method instance (e.g., `SecantMethod` or a generic method from a helper).
+- `warning_func`, `warning_args...`: The warning function and its arguments for convergence failure.
+"""
+@inline function _saturation_adjustment_θ_q_kernel(
+    param_set::APS,
+    θ_liq_ice::FT,
+    q_tot::FT,
+    ::Type{phase_type},
+    maxiter::Int,
+    tol::RS.AbstractTolerance,
+    # --- Functional arguments ---
+    T_1_func,
+    q_vap_sat_func,
+    residual_func,
+    numerical_method_constructor,
+    warning_func,
+    warning_args...,
+) where {FT <: Real, phase_type <: PhaseEquil}
+    _T_min = TP.T_min(param_set)
+
+    # 1. Unsaturated Check (logic is now generic)
+    T_1 = max(_T_min, T_1_func(PhasePartition(q_tot))) # Assume all vapor
+    if T_1 >= _T_min && q_tot <= q_vap_sat_func(T_1)
+        return T_1
+    end
+
+    # 2. Saturated case: setup and solve
+    @inline roots(T) = residual_func(T)
+    numerical_method = numerical_method_constructor(T_1)
+
+    return _find_zero_with_convergence_check(
+        roots,
+        numerical_method,
+        RS.CompactSolution(),
+        tol,
+        maxiter,
+        warning_func,
+        warning_args...,
     )
 end
 
@@ -668,6 +711,21 @@ end
            (e_int_v0 + (1 - λ) * e_int_i0 + (T - T_0) * dcvm_dq_vap) *
            _∂q_vap_sat_∂T +
            q_c * e_int_i0 * ∂λ_∂T
+end
+
+@inline function ∂e_int_∂T_sat(
+    param_set::APS,
+    T::FT,
+    ρ::FT,
+    q_tot::FT,
+    ::Type{phase_type},
+) where {FT <: Real, phase_type <: PhaseEquil}
+    λ = liquid_fraction(param_set, T, phase_type)
+    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T, PhasePartition(FT(0)), λ)
+    q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
+    cvm = cv_m(param_set, q)
+    e_int_sat = internal_energy_sat(param_set, T, ρ, q_tot, phase_type)
+    return ∂e_int_∂T(param_set, T, e_int_sat, ρ, q_tot, phase_type, λ, p_vap_sat, q, cvm)
 end
 
 """
