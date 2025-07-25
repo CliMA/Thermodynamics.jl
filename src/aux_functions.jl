@@ -20,7 +20,6 @@ ReLU(0.0)   # returns 0.0
 """
 @inline ReLU(x) = max(zero(x), x)
 
-
 """
     fast_power(x, y)
 

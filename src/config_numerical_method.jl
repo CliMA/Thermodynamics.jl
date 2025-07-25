@@ -1,3 +1,5 @@
+# Configures saturation adjustment numerical methods
+
 #####
 ##### Thermodynamic variable inputs: ρ, e_int, q_tot
 #####

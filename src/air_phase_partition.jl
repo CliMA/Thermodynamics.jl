@@ -188,5 +188,3 @@ The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
 end
 @inline PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type) =
     PhasePartition_equil_given_p(param_set, promote(T, p, q_tot)..., phase_type)
-
-
