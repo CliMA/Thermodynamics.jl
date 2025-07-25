@@ -735,7 +735,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
         @test liquid_specific_humidity(q_partition) == q_liq
         @test ice_specific_humidity(q_partition) == q_ice
         @test vapor_specific_humidity(q_partition) == q_tot - q_liq - q_ice
-        @test condensate_shum(q_partition) == q_liq + q_ice
+        @test condensate_specific_humidity(q_partition) == q_liq + q_ice
 
         mr = shum_to_mixing_ratio(q_tot, q_tot)
         @test mr == q_tot / (1 - q_tot)

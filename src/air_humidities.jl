@@ -2,7 +2,7 @@ export total_specific_humidity
 export liquid_specific_humidity
 export ice_specific_humidity
 export vapor_specific_humidity
-export condensate_shum
+export condensate_specific_humidity
 export partial_pressure_vapor
 export partial_pressure_dry
 export vapor_pressure_deficit
@@ -13,7 +13,7 @@ export relative_humidity
 export q_vap_from_p_vap
 export q_vap_from_RH_liquid
 export q_vap_saturation_from_density  # TODO Remove after ClimaAtmos and ClimaLand are updated to use q_vap_from_p_vap
-export condensate  # TODO Remove after ClimaAtmos is updated to use condensate_shum
+export condensate  # TODO Remove after ClimaAtmos is updated to use condensate_specific_humidity
 
 """
     liquid_specific_humidity(q::PhasePartition)
@@ -44,19 +44,19 @@ The vapor specific humidity, given a
     max(0, q.tot - q.liq - q.ice)
 
 """
-    condensate_shum(q::PhasePartition{FT})
+    condensate_specific_humidity(q::PhasePartition{FT})
 
 The condensate specific humidity (liquid + ice) of the phase 
 partition `q`.
 """
-@inline condensate_shum(q::PhasePartition) = q.liq + q.ice
+@inline condensate_specific_humidity(q::PhasePartition) = q.liq + q.ice
 
 """
     condensate(q::PhasePartition{FT})
 
-This is identical to [`condensate_shum`](@ref) and will be removed in a future release.
+This is identical to [`condensate_specific_humidity`](@ref) and will be removed in a future release.
 """
-const condensate = condensate_shum  # TODO Remove after ClimaAtmos is updated to use condensate_shum
+const condensate = condensate_specific_humidity  # TODO Remove after ClimaAtmos is updated to use condensate_specific_humidity
 
 """
     shum_to_mixing_ratio(q, q_tot)
@@ -211,7 +211,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). 
 
 When `q` is not provided, the relative humidity is 0.
- """
+"""
 @inline function relative_humidity(
     param_set::APS,
     T::FT,
