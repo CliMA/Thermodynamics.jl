@@ -167,7 +167,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
                 internal_energy.(param_set, ts_exact),
             )
             @test all(
-                air_density.(param_set, ts) .≈ air_density.(param_set, ts_exact),
+                air_density.(param_set, ts) .≈ 
+                air_density.(param_set, ts_exact),
             )
             # Approximate (temperature must be computed via saturation adjustment):
             @test all(
@@ -256,7 +257,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
                 internal_energy.(param_set, ts_exact),
             )
             @test all(
-                air_density.(param_set, ts) .≈ air_density.(param_set, ts_exact),
+                air_density.(param_set, ts) .≈ 
+                air_density.(param_set, ts_exact),
             )
             # Approximate (temperature must be computed via saturation adjustment):
             @test all(
@@ -363,14 +365,14 @@ This file contains tests for saturation adjustment accuracy and convergence.
             # Profile structure: 50 altitude levels × 30 relative saturation values = 1500 total points
             # Relative saturation: 10 points from 0-1.0 + 20 points from 1.0-1.02
             n_total = length(p)
-            
+
             # Expected behavior: For conditions just above/below freezing, only the driest conditions 
             # (RS ≈ 0) should result in exactly the freezing temperature. This corresponds to the
             # first 10 RS values (0 to 1.0) across 50 altitude levels = ~500 points.
             # However, due to numerical precision and saturation adjustment, only about 14.5% 
             # (≈217 out of 1500) typically converge to exactly T_freeze.
             min_freezing_count_edge = Int(round(n_total * 0.14))  # ~14% minimum for edge cases
-            
+
             # For the midpoint case (average of upper/lower θ_liq_ice), most conditions should 
             # converge to freezing temperature. Expect ~86% (≈1296 out of 1500).
             min_freezing_count_mid = Int(round(n_total * 0.85))   # ~85% minimum for midpoint

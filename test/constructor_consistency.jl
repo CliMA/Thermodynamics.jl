@@ -94,7 +94,9 @@ This file contains tests for thermodynamic state constructor consistency.
                     RS.SecantMethod,
                 )
             @test all(internal_energy.(param_set, ts) .≈ e_int)
-            @test all(getproperty.(PhasePartition.(param_set, ts), :tot) .≈ q_tot)
+            @test all(
+                getproperty.(PhasePartition.(param_set, ts), :tot) .≈ q_tot,
+            )
             @test all(air_density.(param_set, ts) .≈ ρ)
 
             ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
