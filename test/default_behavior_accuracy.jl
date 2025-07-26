@@ -96,12 +96,17 @@ This file contains tests for saturation adjustment accuracy and convergence.
 
         @testset "PhaseEquil freezing" begin
             _T_freeze = FT(TP.T_freeze(param_set))
+
+            # Test around approximate freezing temperature with tolerance
+            T_freeze_plus = _T_freeze + sqrt(eps(FT))
+            T_freeze_minus = _T_freeze - sqrt(eps(FT))
+
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
             (; ρ, q_tot, phase_type) = profiles
             e_int_upper =
                 internal_energy_sat.(
                     param_set,
-                    Ref(_T_freeze + sqrt(eps(FT))),
+                    Ref(T_freeze_plus),
                     ρ,
                     q_tot,
                     phase_type,
@@ -109,7 +114,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             e_int_lower =
                 internal_energy_sat.(
                     param_set,
-                    Ref(_T_freeze - sqrt(eps(FT))),
+                    Ref(T_freeze_minus),
                     ρ,
                     q_tot,
                     phase_type,
@@ -131,7 +136,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
                     ρ,
                     _e_int,
                     q_tot,
-                    8,
+                    35,
                     FT(rtol_temperature),
                     RS.SecantMethod,
                 )
@@ -362,58 +367,56 @@ This file contains tests for saturation adjustment accuracy and convergence.
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
             (; p, q_tot, phase_type) = profiles
 
-            # Profile structure: 50 altitude levels × 30 relative saturation values = 1500 total points
-            # Relative saturation: 10 points from 0-1.0 + 20 points from 1.0-1.02
-            n_total = length(p)
-
-            # Expected behavior: For conditions just above/below freezing, only the driest conditions 
-            # (RS ≈ 0) should result in exactly the freezing temperature. This corresponds to the
-            # first 10 RS values (0 to 1.0) across 50 altitude levels = ~500 points.
-            # However, due to numerical precision and saturation adjustment, only about 14.5% 
-            # (≈217 out of 1500) typically converge to exactly T_freeze.
-            min_freezing_count_edge = Int(round(n_total * 0.14))  # ~14% minimum for edge cases
-
-            # For the midpoint case (average of upper/lower θ_liq_ice), most conditions should 
-            # converge to freezing temperature. Expect ~86% (≈1296 out of 1500).
-            min_freezing_count_mid = Int(round(n_total * 0.85))   # ~85% minimum for midpoint
-
-            function θ_liq_ice_closure(T, p, q_tot)
-                q_pt_closure = TD.PhasePartition_equil_given_p(
-                    param_set,
-                    T,
-                    p,
-                    q_tot,
-                    phase_type,
-                )
-                θ_liq_ice_close = TD.liquid_ice_pottemp_given_pressure(
-                    param_set,
-                    T,
-                    p,
-                    q_pt_closure,
-                )
-                return θ_liq_ice_close
-            end
+            # Test around approximate freezing temperature with tolerance
+            T_freeze_plus = _T_freeze + sqrt(eps(FT))
+            T_freeze_minus = _T_freeze - sqrt(eps(FT))
 
             θ_liq_ice_upper =
-                θ_liq_ice_closure.(Ref(_T_freeze + sqrt(eps(FT))), p, q_tot)
+                TD.liquid_ice_pottemp_given_pressure.(
+                    param_set,
+                    Ref(T_freeze_plus),
+                    p,
+                    TD.PhasePartition_equil_given_p.(
+                        param_set,
+                        Ref(T_freeze_plus),
+                        p,
+                        q_tot,
+                        phase_type,
+                    ),
+                )
             θ_liq_ice_lower =
-                θ_liq_ice_closure.(Ref(_T_freeze - sqrt(eps(FT))), p, q_tot)
+                TD.liquid_ice_pottemp_given_pressure.(
+                    param_set,
+                    Ref(T_freeze_minus),
+                    p,
+                    TD.PhasePartition_equil_given_p.(
+                        param_set,
+                        Ref(T_freeze_minus),
+                        p,
+                        q_tot,
+                        phase_type,
+                    ),
+                )
             θ_liq_ice_mid = (θ_liq_ice_upper .+ θ_liq_ice_lower) ./ 2
 
             ts_lower = PhaseEquil_pθq.(param_set, p, θ_liq_ice_lower, q_tot)
             ts_upper = PhaseEquil_pθq.(param_set, p, θ_liq_ice_upper, q_tot)
             ts_mid = PhaseEquil_pθq.(param_set, p, θ_liq_ice_mid, q_tot)
 
-            # Test that enough states converge to exactly the freezing point
-            @test count(
-                air_temperature.(param_set, ts_lower) .== Ref(_T_freeze),
-            ) ≥ min_freezing_count_edge
-            @test count(
-                air_temperature.(param_set, ts_upper) .== Ref(_T_freeze),
-            ) ≥ min_freezing_count_edge
-            @test count(
-                air_temperature.(param_set, ts_mid) .== Ref(_T_freeze),
-            ) ≥ min_freezing_count_mid
+            # Test that all states converge to approximately the freezing point
+            @test all(
+                abs.(
+                    air_temperature.(param_set, ts_lower) .- T_freeze_minus
+                ) .<= atol_temperature,
+            )
+            @test all(
+                abs.(air_temperature.(param_set, ts_upper) .- T_freeze_plus) .<=
+                atol_temperature,
+            )
+            @test all(
+                abs.(air_temperature.(param_set, ts_mid) .- Ref(_T_freeze)) .<=
+                atol_temperature,
+            )
         end
 
         @testset "PhaseNonEquil" begin

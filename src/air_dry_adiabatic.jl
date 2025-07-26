@@ -2,7 +2,7 @@
 
 export DryAdiabaticProcess
 
-export air_pressure, air_temperature
+export air_pressure, air_temperature, air_pressure_given_θ
 
 """
     DryAdiabaticProcess
