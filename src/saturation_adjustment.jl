@@ -13,26 +13,23 @@
         T_guess,
     )
 
-Compute the temperature that is consistent with
+Computes the saturation equilibrium temperature given internal energy `e_int`,
+density `ρ`, and total specific humidity `q_tot`.
 
- - `sat_adjust_method` the numerical method to use.
-    See the [`Thermodynamics`](@ref) for options.
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `e_int` internal energy
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
- - `phase_type` a thermodynamic state type
- - `maxiter` maximum iterations for non-linear equation solve
- - `relative_temperature_tol` relative temperature tolerance
- - `T_guess` initial temperature guess
+This function finds the temperature `T` that satisfies the root equation:
+`e_int - internal_energy_sat(T, ρ, q_tot) = 0`.
+It is the most common entry point for saturation adjustment.
 
-by finding the root of
-
-`e_int - internal_energy_sat(param_set, T, ρ, q_tot, phase_type) = 0`
-
-using the given numerical method `sat_adjust_method`.
-
-See also [`saturation_adjustment`](@ref).
+# Arguments
+- `sat_adjust_method`: The numerical method for root-finding (e.g., `NewtonsMethod`, `SecantMethod`).
+- `param_set`: An `AbstractParameterSet` containing thermodynamic parameters.
+- `e_int`: Specific internal energy.
+- `ρ`: Density of moist air.
+- `q_tot`: Total specific humidity (vapor + condensate).
+- `phase_type`: A thermodynamic phase type (`PhaseEquil`, etc.).
+- `maxiter`: Maximum iterations for the solver.
+- `relative_temperature_tol`: Relative tolerance for the temperature solution.
+- `T_guess`: An initial guess for the temperature.
 """
 @inline function saturation_adjustment(
     ::Type{sat_adjust_method},
@@ -96,35 +93,17 @@ end
     saturation_adjustment_given_peq(
         sat_adjust_method,
         param_set,
-        e_int,
         p,
+        e_int,
         q_tot,
-        phase_type,
-        maxiter,
-        relative_temperature_tol,
-        T_guess,
+        ...
     )
 
-Compute the temperature that is consistent with
+Computes the saturation equilibrium temperature given pressure `p`, internal energy `e_int`,
+and total specific humidity `q_tot`.
 
- - `sat_adjust_method` the numerical method to use.
-    See the [`Thermodynamics`](@ref) for options.
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `e_int` internal energy
- - `p` air pressure
- - `q_tot` total specific humidity
- - `phase_type` a thermodynamic state type
- - `maxiter` maximum iterations for non-linear equation solve
- - `relative_temperature_tol` relative temperature tolerance
- - `T_guess` initial temperature guess
-
-by finding the root of
-
-`e_int - internal_energy_sat(param_set, T, ρ(T), q_tot, phase_type) = 0`
-
-where `ρ(T) = air_density(param_set, T, p, PhasePartition(q_tot))`
-
-using the given numerical method `sat_adjust_method`.
+This function finds the temperature `T` that satisfies the root equation:
+`e_int - internal_energy_sat(T, ρ(T, p), q_tot) = 0`.
 
 See also [`saturation_adjustment`](@ref).
 """
@@ -163,10 +142,10 @@ See also [`saturation_adjustment`](@ref).
         e_int_sat_given_p,           # sat_val_func
         sa_numerical_method_peq,     # constructor for numerical method
         print_warning_peq,           # warning function
-        sat_adjust_method,
+        sat_adjust_method,           # arguments for the warning
         p,
         e_int,
-        q_tot, # arguments for the warning
+        q_tot,
     )
 end
 
@@ -177,32 +156,14 @@ end
         p,
         h,
         q_tot,
-        phase_type,
-        maxiter,
-        relative_temperature_tol
-        T_guess,
+        ...
     )
 
-Compute the temperature that is consistent with
+Computes the saturation equilibrium temperature given pressure `p`, specific enthalpy `h`,
+and total specific humidity `q_tot`.
 
- - `sat_adjust_method` the numerical method to use.
-    See the [`Thermodynamics`](@ref) for options.
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` air pressure
- - `h` specific enthalpy
- - `q_tot` total specific humidity
- - `phase_type` a thermodynamic state type
- - `maxiter` maximum iterations for non-linear equation solve
- - `relative_temperature_tol` relative temperature tolerance
- - `T_guess` initial temperature guess
-
-by finding the root of
-
-`h - specific_enthalpy_sat(param_set, T, ρ(T), q_tot, phase_type) = 0`
-
-where `ρ(T) = air_density(param_set, T, p, PhasePartition(q_tot))`
-
-using the given numerical method `sat_adjust_method`.
+This function finds the temperature `T` that satisfies the root equation:
+`h - specific_enthalpy_sat(T, ρ(T, p), q_tot) = 0`.
 
 See also [`saturation_adjustment`](@ref).
 """
@@ -256,33 +217,15 @@ end
         ρ,
         p,
         q_tot,
-        phase_type,
-        maxiter,
-        relative_temperature_tol,
-        T_guess,
+        ...
     )
-Compute the temperature that is consistent with
- - `sat_adjust_method` the numerical method to use.
-    See the [`Thermodynamics`](@ref) for options.
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `ρ` (moist-)air density
- - `p` pressure
- - `q_tot` total specific humidity
- - `phase_type` a thermodynamic state type
- - `maxiter` maximum iterations for non-linear equation solve
- - `relative_temperature_tol` relative temperature tolerance
- - `T_guess` initial temperature guess
-by finding the root of
 
-```
-T - air_temperature_given_ρp(
-        param_set,
-        p,
-        ρ,
-        PhasePartition_equil(param_set, T, ρ, q_tot, phase_type),
-    )
-```
-using Newtons method using ForwardDiff.
+Computes the saturation equilibrium temperature given density `ρ`, pressure `p`,
+and total specific humidity `q_tot`.
+
+This function finds the temperature `T` that satisfies the consistency equation
+`T - air_temperature_given_ρp(p, ρ, q_sat(T)) = 0`.
+
 See also [`saturation_adjustment`](@ref).
 """
 @inline function saturation_adjustment_ρpq(
@@ -342,29 +285,15 @@ end
         ρ,
         θ_liq_ice,
         q_tot,
-        phase_type,
-        maxiter,
-        tol,
-        T_guess,
+        ...
     )
 
-Compute the temperature `T` that is consistent with
+Computes the saturation equilibrium temperature given density `ρ`, liquid-ice potential
+temperature `θ_liq_ice`, and total specific humidity `q_tot`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `ρ` (moist-)air density
- - `θ_liq_ice` liquid-ice potential temperature
- - `q_tot` total specific humidity
- - `phase_type` a thermodynamic state type
- - `maxiter` maximum iterations for non-linear equation solve
- - `tol` absolute tolerance for saturation adjustment iterations. Can be one of:
-    - `RelativeSolutionTolerance()` to stop when `|x_2 - x_1| < tol`
-    - `ResidualTolerance()` to stop when `|f(x)| < tol`
-    - `RelativeRelativeSolutionTolerance()` to stop when `|x_2 - x_1|/x_1 < tol`
- - `T_guess` initial temperature guess
-
-by finding the root of
-
-`θ_{liq_ice} - liquid_ice_pottemp_sat(param_set, T, ρ, phase_type, q_tot) = 0`
+This function finds the temperature `T` that satisfies the root equation:
+`θ_liq_ice - liquid_ice_pottemp_sat(T, ρ, q_tot) = 0`. 
+It uses the `SecantMethod`.
 
 See also [`saturation_adjustment`](@ref).
 """
@@ -425,27 +354,14 @@ end
         p,
         θ_liq_ice,
         q_tot,
-        phase_type,
-        maxiter,
-        relative_temperature_tol,
-        T_guess
+        ...
     )
 
-Compute the temperature `T` that is consistent with
+Computes the saturation equilibrium temperature given pressure `p`, liquid-ice potential
+temperature `θ_liq_ice`, and total specific humidity `q_tot`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` air pressure
- - `θ_liq_ice` liquid-ice potential temperature
- - `q_tot` total specific humidity
- - `phase_type` a thermodynamic state type
- - `relative_temperature_tol` relative temperature tolerance
- - `maxiter` maximum iterations for non-linear equation solve
- - `sat_adjust_method` the numerical method to use.
- - `T_guess` initial temperature guess
-
-by finding the root of
-
-`θ_{liq_ice} - liquid_ice_pottemp_given_pressure(param_set, T, p, phase_type, q_tot) = 0`
+This function finds the temperature `T` that satisfies the root equation:
+`θ_liq_ice - liquid_ice_pottemp_given_pressure(T, p, q_sat(T)) = 0`.
 
 See also [`saturation_adjustment`](@ref).
 """
@@ -522,22 +438,22 @@ end
 """
     ΔT_min(::Type{FT})
 
-Minimum interval for saturation adjustment using Secant method
+Minimum temperature interval for the Secant method bracketing.
 """
 @inline ΔT_min(::Type{FT}) where {FT} = FT(3)
 
 """
     ΔT_max(::Type{FT})
 
-Maximum interval for saturation adjustment using Secant method
+Maximum temperature interval for the Secant method bracketing.
 """
 @inline ΔT_max(::Type{FT}) where {FT} = FT(10)
 
 """
     bound_upper_temperature(T_1, T_2)
 
-Bounds the upper temperature, `T_2`, for
-saturation adjustment using Secant method
+Bounds the upper temperature guess `T_2` for the Secant method
+to prevent divergence.
 """
 @inline function bound_upper_temperature(T_1::FT, T_2::FT) where {FT <: Real}
     T_2 = max(T_1 + ΔT_min(FT), T_2)
@@ -734,8 +650,13 @@ It encapsulates the common workflow for both pressure-based (`pθq`) and density
     )
 end
 
-# Derivative of the internal energy with respect to temperature, needed 
-# for Newton's method in saturation adjustment
+"""
+    ∂e_int_∂T(param_set, T, e_int, ρ, q_tot, phase_type, ...)
+
+The derivative of internal energy with respect to temperature at saturation.
+Note that the `e_int` argument is a placeholder for interface consistency 
+and is not used.
+"""
 @inline function ∂e_int_∂T(
     param_set::APS,
     T::FT,
@@ -778,6 +699,13 @@ end
            q_c * e_int_i0 * ∂λ_∂T
 end
 
+"""
+    ∂e_int_∂T_sat(param_set, T, ρ, q_tot, phase_type)
+
+Helper function to compute the derivative of internal energy with respect to
+temperature at saturation, for use in Newton's method. It computes all necessary
+intermediate variables.
+"""
 @inline function ∂e_int_∂T_sat(
     param_set::APS,
     T::FT,
@@ -847,8 +775,12 @@ end
     return ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat)
 end
 
-# Helper function for saturation adjustment when virtual temperature 
-# and relative humidity are given
+"""
+    virt_temp_from_RH(param_set, T, ρ, RH, phase_type)
+
+Computes the virtual temperature from temperature `T`, density `ρ`, and
+relative humidity `RH`.
+"""
 @inline function virt_temp_from_RH(
     param_set::APS,
     T::FT,
