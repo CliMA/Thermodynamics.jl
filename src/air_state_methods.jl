@@ -583,12 +583,12 @@ Boolean indicating if thermodynamic state is saturated.
 end
 
 """
-    condensate_shum(param_set, ts::ThermodynamicState)
+    condensate_specific_humidity(param_set, ts::ThermodynamicState)
 
 The condensate specific humidity (liquid + ice) given a thermodynamic state `ts`.
 """
-@inline condensate_shum(param_set::APS, ts::ThermodynamicState) =
-    condensate_shum(PhasePartition(param_set, ts))
+@inline condensate_specific_humidity(param_set::APS, ts::ThermodynamicState) =
+    condensate_specific_humidity(PhasePartition(param_set, ts))
 
 """
     has_condensate(param_set, ts::ThermodynamicState)

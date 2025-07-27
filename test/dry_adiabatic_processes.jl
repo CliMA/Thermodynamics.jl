@@ -1,7 +1,5 @@
 """
-# Isentropic Processes Test Suite
-
-This file contains tests for adiabatic processes and ideal gas law consistency.
+Tests for dry adiabatic processes.
 """
 
 using Random

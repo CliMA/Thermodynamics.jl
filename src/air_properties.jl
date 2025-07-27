@@ -1,7 +1,8 @@
 # Material properties of moist air 
 
 # Specific heats and gas constants of moist air
-export cp_m, cv_m, gas_constant_air, gas_constants
+export cp_m, cv_m, gas_constant_air
+export gas_constants   # TODO remove
 
 # Latent heats
 export latent_heat_vapor
@@ -116,6 +117,7 @@ end
 @inline cv_m(param_set::APS, ::Type{FT}) where {FT <: Real} =
     cv_m(param_set, q_pt_0(FT))
 
+# TODO remove gas_constants
 """
     (R_m, cp_m, cv_m, γ_m) = gas_constants(param_set, q::PhasePartition)
 
@@ -130,6 +132,8 @@ The function returns a tuple of
  - `cp_m` [`cp_m`](@ref)
  - `cv_m` [`cv_m`](@ref)
  - `γ_m = cp_m/cv_m`
+
+ This function is deprecated and will be removed in a future release.
 """
 @inline function gas_constants(
     param_set::APS,
