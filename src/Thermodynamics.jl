@@ -67,7 +67,7 @@ include("printing.jl")
 @inline print_warning() = false
 
 # Default phase partition for dry air
-@inline q_pt_0(::Type{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
+@inline q_pt_0(::APS{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
 
 @inline solution_type() = RS.CompactSolution()
 include("DataCollection.jl")

@@ -36,7 +36,7 @@ struct Ice <: Phase end
 
 Bool indicating if condensate exists in the phase partition
 """
-@inline has_condensate(q_c::FT) where {FT <: Real} = q_c > eps(FT)
+@inline has_condensate(q_c::FT) where {FT} = q_c > eps(FT)
 @inline has_condensate(q::PhasePartition) =
     has_condensate(condensate_specific_humidity(q))
 
@@ -59,10 +59,10 @@ with a power law interpolation between the two temperatures based on Kaul et al.
 Weather Rev., 2015, https://doi.org/10.1029/2009JD012384
 """
 @inline function liquid_fraction(
-    param_set::APS,
-    T::FT,
+    param_set::APS{FT},
+    T,
     ::Type{phase_type},
-    q::PhasePartition{FT} = q_pt_0(FT),
+    q::PhasePartition = q_pt_0(param_set),
 ) where {FT, phase_type <: ThermodynamicState}
 
     # Interpolation between homogeneous nucleation and freezing temperatures
@@ -83,10 +83,10 @@ end
 
 @inline function liquid_fraction(
     param_set::APS,
-    T::FT,
+    T,
     ::Type{phase_type},
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: PhaseNonEquil}
+    q::PhasePartition = q_pt_0(param_set),
+) where {phase_type <: PhaseNonEquil}
     q_c = condensate_specific_humidity(q)     # condensate specific humidity
     return ifelse(
         has_condensate(q_c),
@@ -111,14 +111,7 @@ Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object
 
 The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
 """
-@inline function PhasePartition_equil(
-    param_set::APS,
-    T::FT,
-    ρ::FT,
-    q_tot::FT,
-    p_vap_sat::FT,
-    λ::FT,
-) where {FT <: Real}
+@inline function PhasePartition_equil(param_set::APS, T, ρ, q_tot, p_vap_sat, λ)
     q_c = saturation_excess(param_set, T, ρ, p_vap_sat, PhasePartition(q_tot)) # condensate specific humidity
     q_liq = λ * q_c                                                            # liquid specific humidity
     q_ice = (1 - λ) * q_c                                                      # ice specific humidity
@@ -126,13 +119,13 @@ The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
 end
 
 @inline function PhasePartition_equil(
-    param_set::APS,
-    T::FT,
-    ρ::FT,
-    q_tot::FT,
+    param_set::APS{FT},
+    T,
+    ρ,
+    q_tot,
     ::Type{phase_type},
     λ = liquid_fraction(param_set, T, phase_type), # fraction of condensate that is liquid
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT, phase_type <: ThermodynamicState}
     p_vap_sat = saturation_vapor_pressure(
         param_set,
         phase_type,
@@ -162,12 +155,12 @@ The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
 """
 @inline function PhasePartition_equil_given_p(
     param_set::APS,
-    T::FT,
-    p::FT,
-    q_tot::FT,
+    T,
+    p,
+    q_tot,
     ::Type{phase_type},
     λ = liquid_fraction(param_set, T, phase_type),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {phase_type <: ThermodynamicState}
 
     q_v_sat =
         q_vap_saturation_from_pressure(param_set, q_tot, p, T, phase_type, λ)

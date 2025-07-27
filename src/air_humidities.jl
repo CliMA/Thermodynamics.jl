@@ -56,7 +56,7 @@ The mixing ratio, given
  - `q` specific humidity
  - `q_tot` total specific humidity
 """
-@inline function shum_to_mixing_ratio(q::FT, q_tot::FT) where {FT <: Real}
+@inline function shum_to_mixing_ratio(q, q_tot)
     return q / (1 - q_tot)
 end
 
@@ -69,7 +69,7 @@ The mixing ratios, given a specific humidity phase partition, `q`, returned in a
  - `r.liq` liquid mixing ratio
  - `r.ice` ice mixing ratio
 """
-@inline function mixing_ratios(q::PhasePartition{FT}) where {FT <: Real}
+@inline function mixing_ratios(q::PhasePartition)
     return PhasePartition(
         shum_to_mixing_ratio(q.tot, q.tot),
         shum_to_mixing_ratio(q.liq, q.tot),
@@ -85,10 +85,7 @@ The volume mixing ratio of water vapor, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref)
 """
-@inline function vol_vapor_mixing_ratio(
-    param_set::APS,
-    q::PhasePartition{FT},
-) where {FT <: Real}
+@inline function vol_vapor_mixing_ratio(param_set::APS, q::PhasePartition)
     Rv_over_Rd = TP.Rv_over_Rd(param_set)
     q_vap = vapor_specific_humidity(q)
     return Rv_over_Rd * shum_to_mixing_ratio(q_vap, q.tot)
@@ -107,9 +104,9 @@ When `q` is not provided, the partial pressure is the total pressure.
 """
 @inline function partial_pressure_dry(
     param_set::APS,
-    p::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    p,
+    q::PhasePartition = q_pt_0(param_set),
+)
     Rv_over_Rd = TP.Rv_over_Rd(param_set)
     return p * (1 - q.tot) /
            (1 - q.tot + vapor_specific_humidity(q) * Rv_over_Rd)
@@ -128,9 +125,9 @@ When `q` is not provided, the partial pressure is zero.
 """
 @inline function partial_pressure_vapor(
     param_set::APS,
-    p::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    p,
+    q::PhasePartition = q_pt_0(param_set),
+)
     Rv_over_Rd = TP.Rv_over_Rd(param_set)
     return p * vapor_specific_humidity(q) * Rv_over_Rd /
            (1 - q.tot + vapor_specific_humidity(q) * Rv_over_Rd)
@@ -152,11 +149,11 @@ When `q` is not provided, the vapor pressure deficit is the saturation vapor pre
 """
 @inline function vapor_pressure_deficit(
     param_set::APS,
-    T::FT,
-    p::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    T,
+    p,
+    q::PhasePartition = q_pt_0(param_set),
     Tᶠ = TP.T_freeze(param_set),
-) where {FT <: Real}
+)
     above_freezing = T > Tᶠ
     es = ifelse(
         above_freezing,
@@ -179,12 +176,7 @@ vapor pressure, truncated to be non-negative), given
  - `p` air pressure
  - `q_vap` vapor specific humidity
 """
-@inline function vapor_pressure_deficit(
-    param_set::APS,
-    T::FT,
-    p::FT,
-    q_vap::FT,
-) where {FT <: Real}
+@inline function vapor_pressure_deficit(param_set::APS, T, p, q_vap)
     # Create a PhasePartition with only vapor and call the existing method
     q = PhasePartition(q_vap)
     return vapor_pressure_deficit(param_set, T, p, q)
@@ -205,17 +197,17 @@ and, optionally,
 When `q` is not provided, the relative humidity is 0.
 """
 @inline function relative_humidity(
-    param_set::APS,
-    T::FT,
-    p::FT,
+    param_set::APS{FT},
+    T,
+    p,
     ::Type{phase_type},
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+    q::PhasePartition = q_pt_0(param_set),
+) where {FT, phase_type <: ThermodynamicState}
     R_v = TP.R_v(param_set)
     q_vap = vapor_specific_humidity(q)
     p_vap = q_vap * air_density(param_set, T, p, q) * R_v * T
     p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T)
-    return max(FT(0), min(FT(1), p_vap / (p_vap_sat + eps(FT(0)))))
+    return max(0, min(1, p_vap / (p_vap_sat + eps(FT(0)))))
 end
 
 """
@@ -228,12 +220,7 @@ The vapor specific humidity, given
  - `ρ` (moist-)air density
  - `p_v` partial pressure of vapor
 """
-@inline function q_vap_from_p_vap(
-    param_set::APS,
-    T::FT,
-    ρ::FT,
-    p_v::FT,
-) where {FT <: Real}
+@inline function q_vap_from_p_vap(param_set::APS, T, ρ, p_v)
     R_v = TP.R_v(param_set)
     return p_v / (ρ * R_v * T)
 end
@@ -248,13 +235,8 @@ The water vapor specific humidity, given
  - `T` temperature
  - `RH` relative humidity with respect to liquid water
 """
-@inline function q_vap_from_RH_liquid(
-    param_set::APS,
-    p::FT,
-    T::FT,
-    RH::FT,
-) where {FT <: Real}
-    @assert RH <= FT(1)
+@inline function q_vap_from_RH_liquid(param_set::APS, p, T, RH)
+    @assert RH <= 1
     p_vap_sat = saturation_vapor_pressure(param_set, T, Liquid())
     p_vap = RH * p_vap_sat
     _Rv_over_Rd = TP.Rv_over_Rd(param_set)

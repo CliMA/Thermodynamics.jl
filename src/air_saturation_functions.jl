@@ -31,34 +31,21 @@ where `p_tr` is the triple point pressure, `T_tr` is the triple point temperatur
 `L_0` is the latent heat at the reference temperature `T_0`, and `Δc_p` is the
 difference in isobaric specific heat capacities between the phases.
 """
-@inline function saturation_vapor_pressure(
-    param_set::APS,
-    T::FT,
-    ::Liquid,
-) where {FT <: Real}
+@inline function saturation_vapor_pressure(param_set::APS, T, ::Liquid)
     LH_v0 = TP.LH_v0(param_set)
     cp_v = TP.cp_v(param_set)
     cp_l = TP.cp_l(param_set)
     return saturation_vapor_pressure(param_set, T, LH_v0, cp_v - cp_l)
 end
 
-@inline function saturation_vapor_pressure(
-    param_set::APS,
-    T::FT,
-    ::Ice,
-) where {FT <: Real}
+@inline function saturation_vapor_pressure(param_set::APS, T, ::Ice)
     LH_s0 = TP.LH_s0(param_set)
     cp_v = TP.cp_v(param_set)
     cp_i = TP.cp_i(param_set)
     return saturation_vapor_pressure(param_set, T, LH_s0, cp_v - cp_i)
 end
 
-@inline function saturation_vapor_pressure(
-    param_set::APS,
-    T::FT,
-    LH_0::FT,
-    Δcp::FT,
-) where {FT <: Real}
+@inline function saturation_vapor_pressure(param_set::APS, T, LH_0, Δcp)
     press_triple = TP.press_triple(param_set)
     R_v = TP.R_v(param_set)
     T_triple = TP.T_triple(param_set)
@@ -73,10 +60,10 @@ end
 @inline function saturation_vapor_pressure(
     param_set::APS,
     ::Type{phase_type},
-    T::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    T::Number,
+    q::PhasePartition = q_pt_0(param_set),
     λ = liquid_fraction(param_set, T, phase_type, q),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {phase_type <: ThermodynamicState}
 
     LH_v0 = TP.LH_v0(param_set)
     LH_s0 = TP.LH_s0(param_set)
@@ -110,15 +97,13 @@ where `p_v^*` is the saturation vapor pressure.
 """
 @inline function q_vap_saturation_generic(
     param_set::APS,
-    T::FT,
-    ρ::FT,
+    T,
+    ρ,
     phase::Phase = Liquid(),
-) where {FT <: Real}
+)
     p_v_sat = saturation_vapor_pressure(param_set, T, phase)
     return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
 end
-q_vap_saturation_generic(param_set::APS, T, ρ, phase::Phase) =
-    q_vap_saturation_generic(param_set, promote(T, ρ)..., phase)
 
 """
     q_vap_saturation(param_set, T, ρ, phase_type[, q::PhasePartition])
@@ -145,12 +130,12 @@ and the fraction of ice by the complement `1 - liquid_fraction(param_set, T, pha
 """
 @inline function q_vap_saturation(
     param_set::APS,
-    T::FT,
-    ρ::FT,
+    T,
+    ρ,
     ::Type{phase_type},
-    q::PhasePartition{FT} = q_pt_0(FT),
+    q::PhasePartition = q_pt_0(param_set),
     λ = liquid_fraction(param_set, T, phase_type, q),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {phase_type <: ThermodynamicState}
     p_v_sat = saturation_vapor_pressure(param_set, phase_type, T, q, λ)
     return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
 end
@@ -168,13 +153,13 @@ The saturation specific humidity, given
 
 """
 @inline function q_vap_saturation_from_pressure(
-    param_set::APS,
-    q_tot::FT,
-    p::FT,
-    T::FT,
+    param_set::APS{FT},
+    q_tot,
+    p,
+    T,
     ::Type{phase_type},
     λ = liquid_fraction(param_set, T, phase_type),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT, phase_type <: ThermodynamicState}
     R_v = TP.R_v(param_set)
     R_d = TP.R_d(param_set)
     p_v_sat = saturation_vapor_pressure(
@@ -205,11 +190,11 @@ The supersaturation (pv/pv_sat -1) over water or ice, given
 """
 @inline function supersaturation(
     param_set::APS,
-    q::PhasePartition{FT},
-    ρ::FT,
-    T::FT,
+    q::PhasePartition,
+    ρ,
+    T,
     phase::Phase,
-) where {FT <: Real}
+)
 
     p_v_sat = saturation_vapor_pressure(param_set, T, phase)
 
@@ -230,15 +215,15 @@ The supersaturation (pv/pv_sat - 1) given the saturation vapor pressure `p_v_sat
 """
 @inline function supersaturation(
     param_set::APS,
-    q::PhasePartition{FT},
-    ρ::FT,
-    T::FT,
-    p_v_sat::FT,
-) where {FT <: Real}
+    q::PhasePartition,
+    ρ,
+    T,
+    p_v_sat,
+)
 
     p_v = vapor_specific_humidity(q) * (ρ * TP.R_v(param_set) * T)
 
-    return p_v / p_v_sat - FT(1)
+    return p_v / p_v_sat - 1
 end
 
 """
@@ -257,13 +242,13 @@ and the saturation specific humidity in equilibrium, and it is defined to be
 nonzero only if this difference is positive.
 """
 @inline function saturation_excess(
-    param_set::APS,
-    T::FT,
-    ρ::FT,
+    param_set::APS{FT},
+    T,
+    ρ,
     ::Type{phase_type},
-    q::PhasePartition{FT},
+    q::PhasePartition,
     λ = liquid_fraction(param_set, T, phase_type, q),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {FT, phase_type <: ThermodynamicState}
     p_vap_sat = saturation_vapor_pressure(
         param_set,
         phase_type,
@@ -291,11 +276,11 @@ this difference is positive.
 """
 @inline function saturation_excess(
     param_set::APS,
-    T::FT,
-    ρ::FT,
-    p_vap_sat::FT,
-    q::PhasePartition{FT},
-) where {FT <: Real}
+    T,
+    ρ,
+    p_vap_sat,
+    q::PhasePartition,
+)
     q_vap_sat = q_vap_from_p_vap(param_set, T, ρ, p_vap_sat)
     return max(0, q.tot - q_vap_sat)
 end
