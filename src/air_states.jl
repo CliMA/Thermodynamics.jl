@@ -88,6 +88,8 @@ struct PhasePartition{FT <: Real}
     end
 end
 
+PhasePartition(tot, liq, ice) = PhasePartition(promote(tot, liq, ice)...)
+
 @inline Base.zero(::Type{PhasePartition{FT}}) where {FT} =
     PhasePartition(FT(0), FT(0), FT(0))
 
@@ -779,7 +781,7 @@ Base.convert(::Type{PhaseNonEquil{FT}}, ts::PhaseNonEquil) where {FT} =
     param_set::APS,
     e_int::FT,
     ρ::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    q::PhasePartition = q_pt_0(param_set),
 ) where {FT}
     return PhaseNonEquil{FT}(e_int, ρ, q)
 end

@@ -39,15 +39,12 @@ The specific gas constant of moist air, given
 
 When `q` is not provided, the results are for dry air.
 """
-@inline function gas_constant_air(
-    param_set::APS,
-    q::PhasePartition{FT},
-) where {FT}
+@inline function gas_constant_air(param_set::APS, q::PhasePartition)
     return gas_constant_air(param_set, q.tot, q.liq, q.ice)
 end
 
-@inline gas_constant_air(param_set::APS, ::Type{FT}) where {FT} =
-    gas_constant_air(param_set, q_pt_0(FT))
+@inline gas_constant_air(param_set::APS) =
+    gas_constant_air(param_set, q_pt_0(param_set))
 
 """
     cp_m(param_set, q_tot, q_liq, q_ice)
@@ -59,12 +56,7 @@ The isobaric specific heat capacity of moist air, given
  - `q_liq` specific humidity of liquid
  - `q_ice` specific humidity of ice
 """
-@inline function cp_m(
-    param_set::APS,
-    q_tot::FT,
-    q_liq::FT,
-    q_ice::FT,
-) where {FT <: Real}
+@inline function cp_m(param_set::APS, q_tot, q_liq, q_ice)
 
     cp_d = TP.cp_d(param_set)
     cp_v = TP.cp_v(param_set)
@@ -87,12 +79,11 @@ The isobaric specific heat capacity of moist air given
 
 When `q` is not provided, the results are for dry air.
 """
-@inline function cp_m(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
+@inline function cp_m(param_set::APS, q::PhasePartition)
     return cp_m(param_set, q.tot, q.liq, q.ice)
 end
 
-@inline cp_m(param_set::APS, ::Type{FT}) where {FT <: Real} =
-    cp_m(param_set, q_pt_0(FT))
+@inline cp_m(param_set::APS) = cp_m(param_set, q_pt_0(param_set))
 
 # TODO: The methods for cv_m do not parallel those for R_m and cp_m. Make consistent.
 """
@@ -103,7 +94,7 @@ The isochoric specific heat capacity of moist air, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref). Without humidity argument, the results are for dry air.
 """
-@inline function cv_m(param_set::APS, q::PhasePartition{FT}) where {FT <: Real}
+@inline function cv_m(param_set::APS, q::PhasePartition)
     cv_d = TP.cv_d(param_set)
     cv_v = TP.cv_v(param_set)
     cv_l = TP.cv_l(param_set)
@@ -114,8 +105,7 @@ The isochoric specific heat capacity of moist air, given
            (cv_i - cv_v) * q.ice
 end
 
-@inline cv_m(param_set::APS, ::Type{FT}) where {FT <: Real} =
-    cv_m(param_set, q_pt_0(FT))
+@inline cv_m(param_set::APS) = cv_m(param_set, q_pt_0(param_set))
 
 # TODO remove gas_constants
 """
@@ -135,10 +125,7 @@ The function returns a tuple of
 
  This function is deprecated and will be removed in a future release.
 """
-@inline function gas_constants(
-    param_set::APS,
-    q::PhasePartition{FT},
-) where {FT <: Real}
+@inline function gas_constants(param_set::APS, q::PhasePartition)
     R_gas = gas_constant_air(param_set, q)
     cp = cp_m(param_set, q)
     cv = cv_m(param_set, q)
@@ -154,7 +141,7 @@ The specific latent heat of vaporization, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-@inline function latent_heat_vapor(param_set::APS, T::FT) where {FT <: Real}
+@inline function latent_heat_vapor(param_set::APS, T)
     cp_l = TP.cp_l(param_set)
     cp_v = TP.cp_v(param_set)
     LH_v0 = TP.LH_v0(param_set)
@@ -169,7 +156,7 @@ The specific latent heat of sublimation, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-@inline function latent_heat_sublim(param_set::APS, T::FT) where {FT <: Real}
+@inline function latent_heat_sublim(param_set::APS, T)
     LH_s0 = TP.LH_s0(param_set)
     cp_v = TP.cp_v(param_set)
     cp_i = TP.cp_i(param_set)
@@ -184,7 +171,7 @@ The specific latent heat of fusion, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-@inline function latent_heat_fusion(param_set::APS, T::FT) where {FT <: Real}
+@inline function latent_heat_fusion(param_set::APS, T)
     LH_f0 = TP.LH_f0(param_set)
     cp_l = TP.cp_l(param_set)
     cp_i = TP.cp_i(param_set)
@@ -203,12 +190,7 @@ capacities of the two phases, given
  - `LH_0` latent heat at the reference temperature `T_0`
  - `Δcp` difference in isobaric specific heat capacities between the two phases
 """
-@inline function latent_heat_generic(
-    param_set::APS,
-    T::FT,
-    LH_0::FT,
-    Δcp::FT,
-) where {FT <: Real}
+@inline function latent_heat_generic(param_set::APS, T, LH_0, Δcp)
     T_0 = TP.T_0(param_set)
     return LH_0 + Δcp * (T - T_0)
 end
@@ -225,11 +207,7 @@ liquid fraction `λ`, given
  - `T` air temperature
  - `λ` liquid fraction
 """
-@inline function latent_heat_mixed(
-    param_set::APS,
-    T::FT,
-    λ::FT,
-) where {FT <: Real}
+@inline function latent_heat_mixed(param_set::APS, T, λ)
     L_v = latent_heat_vapor(param_set, T)
     L_s = latent_heat_sublim(param_set, T)
     return λ * L_v + (1 - λ) * L_s
@@ -251,9 +229,9 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function soundspeed_air(
     param_set::APS,
-    T::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    T,
+    q::PhasePartition = q_pt_0(param_set),
+)
     γ = cp_m(param_set, q) / cv_m(param_set, q)
     R_m = gas_constant_air(param_set, q)
     return sqrt(γ * R_m * T)

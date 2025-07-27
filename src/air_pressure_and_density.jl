@@ -21,10 +21,10 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function air_pressure(
     param_set::APS,
-    T::FT,
-    ρ::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    T,
+    ρ,
+    q::PhasePartition = q_pt_0(param_set),
+)
     return gas_constant_air(param_set, q) * ρ * T
 end
 @inline air_pressure(param_set, T, ρ, q) =
@@ -47,10 +47,10 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function air_density(
     param_set::APS,
-    T::FT,
-    p::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    T,
+    p,
+    q::PhasePartition = q_pt_0(param_set),
+)
     return p / (gas_constant_air(param_set, q) * T)
 end
 @inline air_density(param_set, T, p, q) =
@@ -73,11 +73,11 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function exner(
     param_set::APS,
-    T::FT,
-    ρ::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    T,
+    ρ,
+    q::PhasePartition = q_pt_0(param_set),
     cpm = cp_m(param_set, q),
-) where {FT <: Real}
+)
     p = air_pressure(param_set, T, ρ, q)
     return exner_given_pressure(param_set, p, q, cpm)
 end
@@ -98,10 +98,10 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function exner_given_pressure(
     param_set::APS,
-    p::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    p,
+    q::PhasePartition = q_pt_0(param_set),
     cpm = cp_m(param_set, q),
-) where {FT <: Real}
+)
     p0 = TP.p_ref_theta(param_set)
     # gas constant and isobaric specific heat of moist air
     _R_m = gas_constant_air(param_set, q)
