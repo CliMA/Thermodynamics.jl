@@ -7,12 +7,12 @@
 A comprehensive Julia package for Earth system thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
 
 |||
-|-----------------------------|--------------------------------------------------|
-| **Documentation**           | [![dev][docs-latest-img]][docs-latest-url]       |
-| **Docs Build**              | [![docs build][docs-bld-img]][docs-bld-url]      |
-| **GHA CI**                  | [![gha ci][gha-ci-img]][gha-ci-url]              |
-| **Code Coverage**           | [![codecov][codecov-img]][codecov-url]           |
-| **Downloads**               | [![Downloads][dlt-img]][dlt-url]                 |
+|-----------------------------:|:--------------------------------------------------|
+| **Documentation**            | [![dev][docs-latest-img]][docs-latest-url]       |
+| **Docs Build**               | [![docs build][docs-bld-img]][docs-bld-url]      |
+| **GHA CI**                   | [![gha ci][gha-ci-img]][gha-ci-url]              |
+| **Code Coverage**            | [![codecov][codecov-img]][codecov-url]           |
+| **Downloads**                | [![Downloads][dlt-img]][dlt-url]                 |
 
 
 [docs-bld-img]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml/badge.svg

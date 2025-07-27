@@ -724,12 +724,19 @@ This file contains tests for fundamental thermodynamic relations and physical la
               10^(gas_constant_air(param_set, q_pt) / cp_m(param_set, q_pt))
     end
 
-    @testset "Humidity and mixing ratios" begin
+    @testset "Humidities and mixing ratios" begin
         _Rv_over_Rd = TP.Rv_over_Rd(param_set)
         # Test humidity and mixing ratio calculations
         q_tot = FT(0.03)
         q_liq = FT(0.005)
         q_ice = FT(0.001)
+        q_partition = PhasePartition(q_tot, q_liq, q_ice)
+
+        @test liquid_specific_humidity(q_partition) == q_liq
+        @test ice_specific_humidity(q_partition) == q_ice
+        @test vapor_specific_humidity(q_partition) == q_tot - q_liq - q_ice
+        @test condensate_specific_humidity(q_partition) == q_liq + q_ice
+
         mr = shum_to_mixing_ratio(q_tot, q_tot)
         @test mr == q_tot / (1 - q_tot)
         mr = shum_to_mixing_ratio(q_liq, q_tot)

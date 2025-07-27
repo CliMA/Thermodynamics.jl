@@ -37,7 +37,8 @@ struct Ice <: Phase end
 Bool indicating if condensate exists in the phase partition
 """
 @inline has_condensate(q_c::FT) where {FT <: Real} = q_c > eps(FT)
-@inline has_condensate(q::PhasePartition) = has_condensate(condensate_shum(q))
+@inline has_condensate(q::PhasePartition) =
+    has_condensate(condensate_specific_humidity(q))
 
 """
     liquid_fraction(param_set, T, phase_type[, q::PhasePartition])
@@ -86,7 +87,7 @@ end
     ::Type{phase_type},
     q::PhasePartition{FT} = q_pt_0(FT),
 ) where {FT <: Real, phase_type <: PhaseNonEquil}
-    q_c = condensate_shum(q)     # condensate specific humidity
+    q_c = condensate_specific_humidity(q)     # condensate specific humidity
     return ifelse(
         has_condensate(q_c),
         q.liq / q_c,

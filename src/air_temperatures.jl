@@ -1,4 +1,5 @@
 export air_temperature
+export air_temperature_given_ρp
 export dry_pottemp
 export virtual_pottemp
 export liquid_ice_pottemp
@@ -102,7 +103,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). 
  
 When `q` is not provided, the results are for dry air.
- """
+"""
 @inline function dry_pottemp(
     param_set::APS,
     T::FT,
@@ -128,7 +129,7 @@ and, optionally,
  
 When `q` is not provided, the results are for dry air, i.e., using the adiabatic exponent 
  for dry air.
- """
+"""
 @inline function dry_pottemp_given_pressure(
     param_set::APS,
     T::FT,
@@ -296,7 +297,7 @@ and, optionally,
  - `q` [`PhasePartition`](@ref). 
 
 When `q` is not provided, the air assumed to be dry.
- """
+"""
 @inline function liquid_ice_pottemp_sat(
     param_set::APS,
     T::FT,

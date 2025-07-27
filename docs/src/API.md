@@ -59,8 +59,10 @@ Liquid
 air_density
 air_pressure
 air_temperature
+air_pressure_given_θ
+air_temperature_given_ρp
 condensate
-condensate_shum
+condensate_specific_humidity
 cp_m
 cv_m
 dry_pottemp
