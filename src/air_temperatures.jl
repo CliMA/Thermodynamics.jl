@@ -22,10 +22,10 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function air_temperature(
     param_set::APS,
-    e_int::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-    cvm = cv_m(param_set, q),
-) where {FT <: Real}
+    e_int,
+    q::PhasePartition = q_pt_0(param_set),
+    cvm::Number = cv_m(param_set, q),
+)
     T_0 = TP.T_0(param_set)
     R_d = TP.R_d(param_set)
     e_int_v0 = TP.e_int_v0(param_set)
@@ -54,9 +54,9 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function air_temperature_from_enthalpy(
     param_set::APS,
-    h::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    h,
+    q::PhasePartition = q_pt_0(param_set),
+)
     cp_m_ = cp_m(param_set, q)
     T_0 = TP.T_0(param_set)
     LH_v0 = TP.LH_v0(param_set)
@@ -81,10 +81,10 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function air_temperature_given_ρp(
     param_set::APS,
-    p::FT,
-    ρ::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    p,
+    ρ,
+    q::PhasePartition = q_pt_0(param_set),
+)
     R_m = gas_constant_air(param_set, q)
     return p / (R_m * ρ)
 end
@@ -106,11 +106,11 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function dry_pottemp(
     param_set::APS,
-    T::FT,
-    ρ::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    T,
+    ρ,
+    q::PhasePartition = q_pt_0(param_set),
     cpm = cp_m(param_set, q),
-) where {FT <: Real}
+)
     return T / exner(param_set, T, ρ, q, cpm)
 end
 
@@ -132,11 +132,11 @@ When `q` is not provided, the results are for dry air, i.e., using the adiabatic
 """
 @inline function dry_pottemp_given_pressure(
     param_set::APS,
-    T::FT,
-    p::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    T,
+    p,
+    q::PhasePartition = q_pt_0(param_set),
     cpm = cp_m(param_set, q),
-) where {FT <: Real}
+)
     return T / exner_given_pressure(param_set, p, q, cpm)
 end
 
@@ -154,8 +154,8 @@ When `q` is not provided, `latent_heat_liq_ice` is zero.
 """
 @inline function latent_heat_liq_ice(
     param_set::APS,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    q::PhasePartition = q_pt_0(param_set),
+)
     LH_v0 = TP.LH_v0(param_set)
     LH_s0 = TP.LH_s0(param_set)
     return LH_v0 * q.liq + LH_s0 * q.ice
@@ -177,11 +177,11 @@ When `q` is not provided, the result is the dry-air potential temperature.
 """
 @inline function liquid_ice_pottemp_given_pressure(
     param_set::APS,
-    T::FT,
-    p::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    T,
+    p,
+    q::PhasePartition = q_pt_0(param_set),
     cpm = cp_m(param_set, q),
-) where {FT <: Real}
+)
     # liquid-ice potential temperature, approximating latent heats
     # of phase transitions as constants
     return dry_pottemp_given_pressure(param_set, T, p, q, cpm) *
@@ -205,11 +205,11 @@ When `q` is not provided, the result is the dry-air potential temperature.
 """
 @inline function liquid_ice_pottemp(
     param_set::APS,
-    T::FT,
-    ρ::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    T,
+    ρ,
+    q::PhasePartition = q_pt_0(param_set),
     cpm = cp_m(param_set, q),
-) where {FT <: Real}
+)
     return liquid_ice_pottemp_given_pressure(
         param_set,
         T,
@@ -240,11 +240,11 @@ When `q` is not provided, the `θ_liq_ice` is assumed to be the dry-air potentia
 """
 @inline function air_temperature_given_pθq(
     param_set::APS,
-    p::FT,
-    θ_liq_ice::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    p,
+    θ_liq_ice,
+    q::PhasePartition = q_pt_0(param_set),
     cpm = cp_m(param_set, q),
-) where {FT <: Real}
+)
     return θ_liq_ice * exner_given_pressure(param_set, p, q, cpm) +
            latent_heat_liq_ice(param_set, q) / cpm
 end
@@ -266,10 +266,10 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function air_temperature_given_ρθq(
     param_set::APS,
-    ρ::FT,
-    θ_liq_ice::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    ρ,
+    θ_liq_ice,
+    q::PhasePartition = q_pt_0(param_set),
+)
 
     p0 = TP.p_ref_theta(param_set)
     cvm = cv_m(param_set, q)
@@ -300,12 +300,12 @@ When `q` is not provided, the air assumed to be dry.
 """
 @inline function liquid_ice_pottemp_sat(
     param_set::APS,
-    T::FT,
-    ρ::FT,
+    T,
+    ρ,
     ::Type{phase_type},
-    q::PhasePartition{FT} = q_pt_0(FT),
+    q::PhasePartition = q_pt_0(param_set),
     cpm = cp_m(param_set, q),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {phase_type <: ThermodynamicState}
     q_v_sat = q_vap_saturation(param_set, T, ρ, phase_type, q)
     return liquid_ice_pottemp(param_set, T, ρ, PhasePartition(q_v_sat), cpm)
 end
@@ -323,11 +323,11 @@ The saturated liquid ice potential temperature, given
 """
 @inline function liquid_ice_pottemp_sat(
     param_set::APS,
-    T::FT,
-    ρ::FT,
+    T,
+    ρ,
     ::Type{phase_type},
-    q_tot::FT,
-) where {FT <: Real, phase_type <: ThermodynamicState}
+    q_tot,
+) where {phase_type <: ThermodynamicState}
     q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     cpm = cp_m(param_set, q)
     return liquid_ice_pottemp(param_set, T, ρ, q, cpm)
@@ -354,11 +354,11 @@ have the same density as the moist air parcel at the same pressure.
 """
 @inline function virtual_pottemp(
     param_set::APS,
-    T::FT,
-    ρ::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
+    T,
+    ρ,
+    q::PhasePartition = q_pt_0(param_set),
     cpm = cp_m(param_set, q),
-) where {FT <: Real}
+)
     R_d = TP.R_d(param_set)
     return gas_constant_air(param_set, q) / R_d *
            dry_pottemp(param_set, T, ρ, q, cpm)
@@ -384,9 +384,9 @@ at the same pressure.
 """
 @inline function virtual_temperature(
     param_set::APS,
-    T::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    T,
+    q::PhasePartition = q_pt_0(param_set),
+)
     R_d = TP.R_d(param_set)
     return gas_constant_air(param_set, q) / R_d * T
 end
@@ -403,14 +403,14 @@ The air temperature and total specific humidity `q_tot`, given
  - `phase_type` a thermodynamic state type
 """
 @inline function temperature_and_humidity_given_TᵥρRH(
-    param_set::APS,
-    T_virt::FT,
-    ρ::FT,
-    RH::FT,
+    param_set::APS{FT},
+    T_virt,
+    ρ,
+    RH,
     ::Type{phase_type},
     maxiter::Int = 100,
-    tol::RS.AbstractTolerance = RS.ResidualTolerance{FT}(sqrt(eps(FT))),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+    tol::RS.AbstractTolerance = RS.ResidualTolerance(sqrt(eps(FT))),
+) where {FT, phase_type <: ThermodynamicState}
 
     T_init_min = TP.T_init_min(param_set)
     _T_max = T_virt
@@ -473,12 +473,12 @@ The temperature `T` is found by finding the root of
 """
 @inline function air_temperature_given_ρθq_nonlinear(
     param_set::APS,
-    ρ::FT,
-    θ_liq_ice::FT,
+    ρ,
+    θ_liq_ice,
     maxiter::Int,
     tol::RS.AbstractTolerance,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    q::PhasePartition = q_pt_0(param_set),
+)
     T_init_min = TP.T_init_min(param_set)
     _T_max = TP.T_max(param_set)
     @inline roots(T) =
