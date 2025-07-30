@@ -34,14 +34,14 @@ It is the most common entry point for saturation adjustment.
 @inline function saturation_adjustment(
     ::Type{sat_adjust_method},
     param_set::APS,
-    e_int::FT,
-    ρ::FT,
-    q_tot::FT,
+    e_int,
+    ρ,
+    q_tot,
     ::Type{phase_type},
     maxiter::Int,
     relative_temperature_tol::Real,
-    T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+    T_guess = nothing,
+) where {sat_adjust_method, phase_type <: PhaseEquil}
     _T_min = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
@@ -110,14 +110,14 @@ See also [`saturation_adjustment`](@ref).
 @inline function saturation_adjustment_given_peq(
     ::Type{sat_adjust_method},
     param_set::APS,
-    p::FT,
-    e_int::FT,
-    q_tot::FT,
+    p,
+    e_int,
+    q_tot,
     ::Type{phase_type},
     maxiter::Int,
     relative_temperature_tol::Real,
-    T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+    T_guess = nothing,
+) where {sat_adjust_method, phase_type <: PhaseEquil}
     # Define how to compute saturated internal energy given p
     @inline e_int_sat_given_p(T, param_set, p, q_tot, phase_type) =
         internal_energy_sat(
@@ -170,14 +170,14 @@ See also [`saturation_adjustment`](@ref).
 @inline function saturation_adjustment_given_phq(
     ::Type{sat_adjust_method},
     param_set::APS,
-    p::FT,
-    h::FT,
-    q_tot::FT,
+    p,
+    h,
+    q_tot,
     ::Type{phase_type},
     maxiter::Int,
     relative_temperature_tol::Real,
-    T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+    T_guess = nothing,
+) where {sat_adjust_method, phase_type <: PhaseEquil}
     # Define how to compute saturated enthalpy given p
     @inline h_sat_given_p(T, param_set, p, q_tot, phase_type) =
         specific_enthalpy_sat(
@@ -231,14 +231,14 @@ See also [`saturation_adjustment`](@ref).
 @inline function saturation_adjustment_ρpq(
     ::Type{sat_adjust_method},
     param_set::APS,
-    ρ::FT,
-    p::FT,
-    q_tot::FT,
+    ρ,
+    p,
+    q_tot,
     ::Type{phase_type},
     maxiter::Int,
     relative_temperature_tol::Real,
-    T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+    T_guess = nothing,
+) where {sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     # Use `oftype` to preserve diagonalized type signatures:
     @inline roots(T) =
@@ -298,15 +298,15 @@ It uses the `SecantMethod`.
 See also [`saturation_adjustment`](@ref).
 """
 @inline function saturation_adjustment_given_ρθq(
-    param_set::APS,
-    ρ::FT,
-    θ_liq_ice::FT,
-    q_tot::FT,
+    param_set::APS{FT},
+    ρ,
+    θ_liq_ice,
+    q_tot,
     ::Type{phase_type},
     maxiter::Int,
     tol::RS.AbstractTolerance,
-    T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, phase_type <: PhaseEquil}
+    T_guess = nothing,
+) where {FT, phase_type <: PhaseEquil}
     # Define the specific functions for this saturation adjustment method
     @inline T_1_func(q_pt) =
         air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q_pt)
@@ -368,14 +368,14 @@ See also [`saturation_adjustment`](@ref).
 @inline function saturation_adjustment_given_pθq(
     ::Type{sat_adjust_method},
     param_set::APS,
-    p::FT,
-    θ_liq_ice::FT,
-    q_tot::FT,
+    p,
+    θ_liq_ice,
+    q_tot,
     ::Type{phase_type},
     maxiter::Int,
     relative_temperature_tol::Real,
-    T_guess::Union{FT, Nothing} = nothing,
-) where {FT <: Real, sat_adjust_method, phase_type <: PhaseEquil}
+    T_guess = nothing,
+) where {sat_adjust_method, phase_type <: PhaseEquil}
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
     # Define the specific functions for this saturation adjustment method
@@ -436,28 +436,14 @@ end
 ### Helper functions ###
 
 """
-    ΔT_min(::Type{FT})
-
-Minimum temperature interval for the Secant method bracketing.
-"""
-@inline ΔT_min(::Type{FT}) where {FT} = FT(3)
-
-"""
-    ΔT_max(::Type{FT})
-
-Maximum temperature interval for the Secant method bracketing.
-"""
-@inline ΔT_max(::Type{FT}) where {FT} = FT(10)
-
-"""
     bound_upper_temperature(T_1, T_2)
 
 Bounds the upper temperature guess `T_2` for the Secant method
 to prevent divergence.
 """
-@inline function bound_upper_temperature(T_1::FT, T_2::FT) where {FT <: Real}
-    T_2 = max(T_1 + ΔT_min(FT), T_2)
-    return min(T_1 + ΔT_max(FT), T_2)
+@inline function bound_upper_temperature(T_1, T_2)
+    T_2 = max(T_1 + 3, T_2)
+    return min(T_1 + 10, T_2)
 end
 
 """
@@ -530,9 +516,9 @@ pressure-based saturation adjustment methods.
 @inline function _saturation_adjustment_p_thermo_q(
     sat_method,
     param_set::APS,
-    p::FT,
-    thermo_var::FT, # This can be e_int or h
-    q_tot::FT,
+    p,
+    thermo_var, # This can be e_int or h
+    q_tot,
     ::Type{phase_type},
     maxiter,
     relative_temperature_tol,
@@ -543,7 +529,7 @@ pressure-based saturation adjustment methods.
     numerical_method_constructor,
     warning_func,
     warning_args...,
-) where {FT <: Real, phase_type <: PhaseEquil}
+) where {phase_type <: PhaseEquil}
     _T_min = TP.T_min(param_set)
     tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
 
@@ -614,8 +600,8 @@ It encapsulates the common workflow for both pressure-based (`pθq`) and density
 """
 @inline function _saturation_adjustment_θ_q_kernel(
     param_set::APS,
-    θ_liq_ice::FT,
-    q_tot::FT,
+    θ_liq_ice,
+    q_tot,
     ::Type{phase_type},
     maxiter::Int,
     tol::RS.AbstractTolerance,
@@ -626,7 +612,7 @@ It encapsulates the common workflow for both pressure-based (`pθq`) and density
     numerical_method_constructor,
     warning_func,
     warning_args...,
-) where {FT <: Real, phase_type <: PhaseEquil}
+) where {phase_type <: PhaseEquil}
     _T_min = TP.T_min(param_set)
 
     # 1. Unsaturated Check (logic is now generic)
@@ -658,11 +644,11 @@ Note that the `e_int` argument is a placeholder for interface consistency
 and is not used.
 """
 @inline function ∂e_int_∂T(
-    param_set::APS,
-    T::FT,
-    e_int::FT,
-    ρ::FT,
-    q_tot::FT,
+    param_set::APS{FT},
+    T,
+    e_int,
+    ρ,
+    q_tot,
     ::Type{phase_type},
     λ = liquid_fraction(param_set, T, phase_type),
     p_vap_sat = saturation_vapor_pressure(
@@ -674,7 +660,7 @@ and is not used.
     ),
     q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ),
     cvm = cv_m(param_set, q),
-) where {FT <: Real, phase_type <: PhaseEquil}
+) where {FT, phase_type <: PhaseEquil}
     T_0 = TP.T_0(param_set)
     cv_v = TP.cv_v(param_set)
     cv_l = TP.cv_l(param_set)
@@ -707,12 +693,12 @@ temperature at saturation, for use in Newton's method. It computes all necessary
 intermediate variables.
 """
 @inline function ∂e_int_∂T_sat(
-    param_set::APS,
-    T::FT,
-    ρ::FT,
-    q_tot::FT,
+    param_set::APS{FT},
+    T,
+    ρ,
+    q_tot,
     ::Type{phase_type},
-) where {FT <: Real, phase_type <: PhaseEquil}
+) where {FT, phase_type <: PhaseEquil}
     λ = liquid_fraction(param_set, T, phase_type)
     p_vap_sat = saturation_vapor_pressure(
         param_set,
@@ -759,11 +745,11 @@ It is computed either given
 """
 @inline function ∂q_vap_sat_∂T(
     param_set::APS,
-    λ::FT,
-    T::FT,
-    q_vap_sat::FT,
+    λ,
+    T,
+    q_vap_sat,
     L = latent_heat_mixed(param_set, T, λ),
-) where {FT <: Real}
+)
     R_v = TP.R_v(param_set)
     return q_vap_sat * (L / (R_v * T^2) - 1 / T)
 end
@@ -783,11 +769,11 @@ relative humidity `RH`.
 """
 @inline function virt_temp_from_RH(
     param_set::APS,
-    T::FT,
-    ρ::FT,
-    RH::FT,
+    T,
+    ρ,
+    RH,
     ::Type{phase_type},
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {phase_type <: ThermodynamicState}
     q_tot = RH * q_vap_saturation(param_set, T, ρ, phase_type)
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     return virtual_temperature(param_set, T, q_pt)
