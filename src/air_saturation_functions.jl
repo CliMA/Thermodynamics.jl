@@ -79,8 +79,8 @@ end
     # saturation vapor pressure over possible mixture of liquid and ice
     return saturation_vapor_pressure(param_set, T, LH_0, Δcp)
 end
-# saturation_vapor_pressure(param_set, T, LH_0, Δcp) =
-#     saturation_vapor_pressure(param_set, promote(T, LH_0, Δcp)...)
+saturation_vapor_pressure(param_set, T, LH_0, Δcp) =
+    saturation_vapor_pressure(param_set, promote(T, LH_0, Δcp)...)
 
 """
     q_vap_saturation_generic(param_set, T, ρ[, phase=Liquid()])
