@@ -28,7 +28,7 @@ end
     e_int::FT,
     q_tot::FT,
     ::Type{phase_type},
-    T_guess::FT,
+    T_guess::Union{FT, Nothing},
 ) where {FT, NM <: RS.NewtonsMethodAD, phase_type <: PhaseEquil}
     T_init_min = TP.T_init_min(param_set)
     T_init = if T_guess isa Nothing

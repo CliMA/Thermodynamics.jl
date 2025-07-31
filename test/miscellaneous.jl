@@ -42,6 +42,15 @@ This file contains various miscellaneous tests including ProfileSet Iterator, Ba
                 RS.NewtonsMethod,
                 T_guess,
             )
+        ts =
+            PhaseEquil_ρeq.(
+                param_set,
+                ρ,
+                e_int,
+                args...,
+                RS.NewtonsMethodAD,
+                T_guess,
+            )
         ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, args..., T_guess)
         ts =
             PhaseEquil_peq.(
