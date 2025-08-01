@@ -32,7 +32,7 @@ _e_int_i0 = FT(TP.e_int_i0(param_set))
 
 ρ = FT(1.0)
 T = FT(280.0)
-q_tot = FT(0.010)
+q_tot = FT(-1e-12)
 #q_pt = PhasePartition(ForwardDiff.Dual(q_tot), FT(0), FT(0))
 
 e_int = TD.internal_energy(param_set, T, PhasePartition(q_tot))
@@ -70,9 +70,12 @@ term1 = -(_T_0 * _R_d) - _e_int_v0
     )
 # @show ∂T_∂q_tot_expected
 p_nonequil = TD.air_pressure(param_set, TD.PhaseNonEquil(param_set, e_int, ρ, PhasePartition(ForwardDiff.Dual(q_tot, FT(1.0)))))
+t_nonequil = TD.air_temperature(param_set, TD.PhaseNonEquil(param_set, e_int, ρ, PhasePartition(ForwardDiff.Dual(q_tot, FT(1.0)))))
 @info "PhaseNonEquil"
 @show ForwardDiff.value(p_nonequil)
 @show ForwardDiff.partials(p_nonequil)
+@show ForwardDiff.value(t_nonequil)
+@show ForwardDiff.partials(t_nonequil)
 
 @info "Expected PhaseNonEquil"
 
@@ -88,5 +91,11 @@ kappa_m = TD.gas_constant_air(param_set, ts_nonequil) / TD.cv_m(param_set, ts_no
         ∂e_int_∂q_tot * q_tot
     )
 @show ∂p_∂q_tot_expected
+
+∂T_∂q_tot_expected = 1 / TD.cv_m(param_set, ts_nonequil) * term1 -
+    (Δcv_v / abs2(TD.cv_m(param_set, ts_nonequil))) * (
+        _R_d * _T_0 + e_int + term1 * q_tot
+    )
+@show ∂T_∂q_tot_expected
 
 nothing

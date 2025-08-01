@@ -51,6 +51,8 @@ It is the most common entry point for saturation adjustment.
         return T_1
     end
 
+    q_tot = max(q_tot, 0)
+
     # Saturated case (with special handling for Newton's method's derivative)
     @inline function roots(_T)
         T = ReLU(_T)

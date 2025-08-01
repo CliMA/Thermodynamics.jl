@@ -81,9 +81,12 @@ struct PhasePartition{FT <: Real}
     "ice specific humidity (default: `0`)"
     ice::FT
     @inline function PhasePartition(tot::FT, liq::FT, ice::FT) where {FT}
-        q_tot_safe = max(tot, 0)
-        q_liq_safe = max(liq, 0)
-        q_ice_safe = max(ice, 0)
+        # q_tot_safe = max(tot, 0)
+        # q_liq_safe = max(liq, 0)
+        # q_ice_safe = max(ice, 0)
+        q_tot_safe = tot
+        q_liq_safe = liq
+        q_ice_safe = ice
         return new{FT}(q_tot_safe, q_liq_safe, q_ice_safe)
     end
 end
@@ -374,7 +377,8 @@ and the pressure is computed from the equation of state using the temperature an
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
-    q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    #q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    q_tot_safe = q_tot
     T = saturation_adjustment(
         sat_adjust_method,
         param_set,
