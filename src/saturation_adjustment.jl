@@ -57,12 +57,13 @@ It is the most common entry point for saturation adjustment.
         e_int_sat_val = internal_energy_sat(param_set, T, ρ, q_tot, phase_type)
         f = e_int_sat_val - e_int
 
-        # This compile-time branch makes this function difficult to merge with others
-        return ifelse(
-            sat_adjust_method <: RS.NewtonsMethod,
-            (f, ∂e_int_∂T_sat(param_set, T, ρ, q_tot, phase_type)),
-            f,
-        )
+        # NewtonsMethod needs to return the derivative but other methods don't, 
+        # which makes this function difficult to merge with others
+        if sat_adjust_method <: RS.NewtonsMethod
+            return (f, ∂e_int_∂T_sat(param_set, T, ρ, q_tot, phase_type))
+        else
+            return f
+        end
     end
 
     numerical_method = sa_numerical_method(
