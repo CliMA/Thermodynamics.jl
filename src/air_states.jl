@@ -374,7 +374,8 @@ and the pressure is computed from the equation of state using the temperature an
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
-    q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    #q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    q_tot_safe = max(q_tot, 0)
     T = saturation_adjustment(
         sat_adjust_method,
         param_set,
@@ -511,7 +512,8 @@ and the density and internal energy are computed from the equation of state.
     q_tot::FT,
 ) where {FT <: Real}
     phase_type = PhaseEquil{FT}
-    q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    #q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    q_tot_safe = max(q_tot, 0)
     q_pt = PhasePartition_equil_given_p(param_set, T, p, q_tot_safe, phase_type)
     ρ = air_density(param_set, T, p, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
@@ -552,7 +554,8 @@ and the density is computed from the equation of state using the pressure and te
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
-    q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    #q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    q_tot_safe = max(q_tot, 0)
     T = saturation_adjustment_given_peq(
         sat_adjust_method,
         param_set,
@@ -603,7 +606,8 @@ and the density and internal energy are computed from the equation of state.
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
-    q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    #q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    q_tot_safe = max(q_tot, 0)
     T = saturation_adjustment_given_phq(
         sat_adjust_method,
         param_set,
@@ -718,7 +722,8 @@ and the density and internal energy are computed from the equation of state.
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
-    q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    #q_tot_safe = clamp(q_tot, FT(0), FT(1))
+    q_tot_safe = max(q_tot, 0)
     T = saturation_adjustment_given_pθq(
         sat_adjust_method,
         param_set,
