@@ -131,11 +131,6 @@ function shared_profiles(
     RS = similar(z_range, n * n_RS)
     z = similar(z_range, n * n_RS)
     linear_indices = LinearIndices((1:n, 1:n_RS))
-    # We take the virtual temperature, returned here,
-    # as the temperature, and then compute a thermodynamic
-    # state consistent with that temperature. This profile
-    # will not be in hydrostatic balance, but this does not
-    # matter for the thermodynamic test profiles.
     profile =
         TDTP.DecayingTemperatureProfile{FT}(param_set, FT(T_surface), FT(T_min))
     for i in linear_indices.indices[1]
@@ -229,21 +224,24 @@ function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     # Compute T, p, from DecayingTemperatureProfile, (reshape RS)
     z, T_virt, p, RS =
         shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
-    T = T_virt
 
-    FT = eltype(T)
+    FT = eltype(T_virt)
     R_d = TP.R_d(param_set)
     grav = TP.grav(param_set)
-    # Compute total specific humidity from temperature, pressure
-    # and relative saturation, and partition the saturation excess
-    # according to temperature.
-    ρ = p ./ (R_d .* T)
+    # Compute density from virtual temperature and pressure
+    ρ = p ./ (R_d .* T_virt)
+
+    # We take the virtual temperature as the temperature, and then compute 
+    # a thermodynamic state consistent with that temperature. This profile
+    # will not be in hydrostatic balance, but this does not
+    # matter for the thermodynamic test profiles.
+    T = T_virt
     q_tot = RS .* TD.q_vap_saturation.(Ref(param_set), T, ρ, Ref(phase_type))
     q_pt =
         TD.PhasePartition_equil.(Ref(param_set), T, ρ, q_tot, Ref(phase_type))
 
     # Extract phase partitioning and update pressure
-    # to be thermodynamically consistent with T, ρ, q_pt
+    # to be thermodynamically consistent with ρ, q_pt, and the assumed T
     q_liq = getproperty.(q_pt, :liq)
     q_ice = getproperty.(q_pt, :ice)
     p = TD.air_pressure.(Ref(param_set), T, ρ, q_pt)

@@ -157,13 +157,55 @@ This file contains tests for saturation adjustment accuracy and convergence.
             ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
             ts_exact =
                 PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-6))
-            @test all(
-                isapprox.(
-                    T,
-                    air_temperature.(param_set, ts),
-                    atol = atol_temperature,
-                ),
-            )
+            # Test temperature accuracy with detailed failure information
+            T_computed = air_temperature.(param_set, ts)
+            T_expected = T
+            tolerance = atol_temperature
+
+            # Check if all values are within tolerance
+            within_tolerance =
+                isapprox.(T_expected, T_computed, atol = tolerance)
+
+            if !all(within_tolerance)
+                # Find indices where test fails
+                failed_indices = findall(.!within_tolerance)
+                println("Temperature accuracy test failed!")
+                println("Number of failed cases: $(length(failed_indices))")
+                println("Floating point precision: $FT")
+                println("Tolerance used: atol = $tolerance")
+                println()
+
+                # Show details for first few failures
+                max_show = min(10, length(failed_indices))
+                for i in 1:max_show
+                    idx = failed_indices[i]
+                    println("Failure $(i):")
+                    println("  Index: $idx")
+                    println("  Expected T: $(T_expected[idx])")
+                    println("  Computed T: $(T_computed[idx])")
+                    println(
+                        "  Absolute difference: $(abs(T_expected[idx] - T_computed[idx]))",
+                    )
+                    println(
+                        "  Relative difference: $(abs(T_expected[idx] - T_computed[idx]) / abs(T_expected[idx]))",
+                    )
+                    println("  ρ: $(ρ[idx])")
+                    println("  e_int_exact: $(e_int[idx])")
+                    println(
+                        "  e_int_exact - e_int_computed: $(e_int[idx] - internal_energy(param_set, ts[idx]))",
+                    )
+                    println("  q_tot: $(q_tot[idx])")
+                    println()
+                end
+
+                if length(failed_indices) > max_show
+                    println(
+                        "... and $(length(failed_indices) - max_show) more failures",
+                    )
+                end
+            end
+
+            @test all(within_tolerance)
 
             # Should be machine accurate (because ts contains `e_int`,`ρ`,`q_tot`):
             @test all(compare_moisture.(param_set, ts, ts_exact))
@@ -183,13 +225,54 @@ This file contains tests for saturation adjustment accuracy and convergence.
                     rtol = rtol_pressure,
                 ),
             )
-            @test all(
-                isapprox.(
-                    air_temperature.(param_set, ts),
-                    air_temperature.(param_set, ts_exact),
-                    atol = atol_temperature,
-                ),
-            )
+            # Test temperature accuracy against exact solution with detailed failure information
+            T_computed = air_temperature.(param_set, ts)
+            T_exact = air_temperature.(param_set, ts_exact)
+            tolerance = atol_temperature
+
+            # Check if all values are within tolerance
+            within_tolerance = isapprox.(T_computed, T_exact, atol = tolerance)
+
+            if !all(within_tolerance)
+                # Find indices where test fails
+                failed_indices = findall(.!within_tolerance)
+                println("Temperature accuracy vs exact solution test failed!")
+                println("Number of failed cases: $(length(failed_indices))")
+                println("Floating point precision: $FT")
+                println("Tolerance used: atol = $tolerance")
+                println()
+
+                # Show details for first few failures
+                max_show = min(5, length(failed_indices))
+                for i in 1:max_show
+                    idx = failed_indices[i]
+                    println("Failure $(i):")
+                    println("  Index: $idx")
+                    println("  Computed T: $(T_computed[idx])")
+                    println("  Exact T: $(T_exact[idx])")
+                    println(
+                        "  Absolute difference: $(abs(T_computed[idx] - T_exact[idx]))",
+                    )
+                    println(
+                        "  Relative difference: $(abs(T_computed[idx] - T_exact[idx]) / abs(T_exact[idx]))",
+                    )
+                    println("  ρ: $(ρ[idx])")
+                    println("  e_int_exact: $(e_int[idx])")
+                    println(
+                        "  e_int_exact - e_int_computed: $(e_int[idx] - internal_energy(param_set, ts[idx]))",
+                    )
+                    println("  q_tot: $(q_tot[idx])")
+                    println()
+                end
+
+                if length(failed_indices) > max_show
+                    println(
+                        "... and $(length(failed_indices) - max_show) more failures",
+                    )
+                end
+            end
+
+            @test all(within_tolerance)
 
             dry_mask = abs.(q_tot .- 0) .< eps(FT)
             q_dry = q_pt[dry_mask]
