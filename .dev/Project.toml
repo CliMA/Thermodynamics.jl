@@ -1,5 +1,6 @@
 [deps]
 JuliaFormatter = "98e50ef6-434e-11e9-1051-2b60c6c9e899"
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 
 [compat]
 JuliaFormatter = "1"
