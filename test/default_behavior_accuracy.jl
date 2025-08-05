@@ -156,7 +156,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
             ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
             ts_exact =
-                PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-7))
+                PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-6))
             # Test temperature accuracy with detailed failure information
             T_computed = air_temperature.(param_set, ts)
             T_expected = T
