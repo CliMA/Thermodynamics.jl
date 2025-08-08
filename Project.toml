@@ -1,7 +1,7 @@
 name = "Thermodynamics"
 uuid = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 authors = ["Climate Modeling Alliance"]
-version = "0.13.0"
+version = "0.13.1"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -17,10 +17,10 @@ ClimaParams = "5c42b081-d73a-476f-9059-fd94b934656c"
 CreateParametersExt = "ClimaParams"
 
 [compat]
-ClimaParams = "0.10"
+ClimaParams = "0.10, 0.11"
 DocStringExtensions = "0.8.1, 0.9"
 ForwardDiff = "1.0.1"
 KernelAbstractions = "0.9"
 Random = "1"
-RootSolvers = "0.4"
+RootSolvers = "0.4, 1"
 julia = "1.6"
