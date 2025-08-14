@@ -25,7 +25,7 @@ param_set_Float32 = TP.ThermodynamicsParameters(Float32)
 rtol_temperature = 1e-4
 
 # Tolerances for tested quantities:
-atol_temperature = 0.4   # Expected absolute temperature accuracy
+atol_temperature = 0.3   # Expected absolute temperature accuracy
 atol_energy_temperature = TP.cv_d(param_set_Float64) * atol_temperature  # Expected absolute energy accuracy due to temperature accuracy
 rtol_humidity = 1e-2     # Relative accuracy of specific humidity (for energy tolerance adjustments)
 rtol_density = 1e-3      # Relative density accuracy
