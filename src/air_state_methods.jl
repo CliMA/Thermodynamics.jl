@@ -630,7 +630,7 @@ Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object
 
 Create a PhasePartition for dry air thermodynamic state.
 """
-@inline PhasePartition(param_set::APS, ts::AbstractPhaseDry) = q_pt_0(param_set)
+@inline PhasePartition(param_set::APS, ts::AbstractPhaseDry) = q_pt_0(eltype(param_set))
 
 """
     PhasePartition(param_set, ts::AbstractPhaseEquil)

@@ -23,7 +23,7 @@ When `q` is not provided, the results are for dry air.
 @inline function air_temperature(
     param_set::APS,
     e_int,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cvm::Number = cv_m(param_set, q),
 )
     T_0 = TP.T_0(param_set)
@@ -55,7 +55,7 @@ When `q` is not provided, the results are for dry air.
 @inline function air_temperature_from_enthalpy(
     param_set::APS,
     h,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     cp_m_ = cp_m(param_set, q)
     T_0 = TP.T_0(param_set)
@@ -83,7 +83,7 @@ When `q` is not provided, the results are for dry air.
     param_set::APS,
     p,
     ρ,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     R_m = gas_constant_air(param_set, q)
     return p / (R_m * ρ)
@@ -108,7 +108,7 @@ When `q` is not provided, the results are for dry air.
     param_set::APS,
     T,
     ρ,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cpm = cp_m(param_set, q),
 )
     return T / exner(param_set, T, ρ, q, cpm)
@@ -134,7 +134,7 @@ When `q` is not provided, the results are for dry air, i.e., using the adiabatic
     param_set::APS,
     T,
     p,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cpm = cp_m(param_set, q),
 )
     return T / exner_given_pressure(param_set, p, q, cpm)
@@ -154,7 +154,7 @@ When `q` is not provided, `latent_heat_liq_ice` is zero.
 """
 @inline function latent_heat_liq_ice(
     param_set::APS,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     LH_v0 = TP.LH_v0(param_set)
     LH_s0 = TP.LH_s0(param_set)
@@ -179,7 +179,7 @@ When `q` is not provided, the result is the dry-air potential temperature.
     param_set::APS,
     T,
     p,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cpm = cp_m(param_set, q),
 )
     # liquid-ice potential temperature, approximating latent heats
@@ -207,7 +207,7 @@ When `q` is not provided, the result is the dry-air potential temperature.
     param_set::APS,
     T,
     ρ,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cpm = cp_m(param_set, q),
 )
     return liquid_ice_pottemp_given_pressure(
@@ -242,7 +242,7 @@ When `q` is not provided, the `θ_liq_ice` is assumed to be the dry-air potentia
     param_set::APS,
     p,
     θ_liq_ice,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cpm = cp_m(param_set, q),
 )
     return θ_liq_ice * exner_given_pressure(param_set, p, q, cpm) +
@@ -268,7 +268,7 @@ When `q` is not provided, the results are for dry air.
     param_set::APS,
     ρ,
     θ_liq_ice,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
 
     p0 = TP.p_ref_theta(param_set)
@@ -303,7 +303,7 @@ When `q` is not provided, the air assumed to be dry.
     T,
     ρ,
     ::Type{phase_type},
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cpm = cp_m(param_set, q),
 ) where {phase_type <: ThermodynamicState}
     q_v_sat = q_vap_saturation(param_set, T, ρ, phase_type, q)
@@ -356,7 +356,7 @@ have the same density as the moist air parcel at the same pressure.
     param_set::APS,
     T,
     ρ,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cpm = cp_m(param_set, q),
 )
     R_d = TP.R_d(param_set)
@@ -385,7 +385,7 @@ at the same pressure.
 @inline function virtual_temperature(
     param_set::APS,
     T,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     R_d = TP.R_d(param_set)
     return gas_constant_air(param_set, q) / R_d * T
@@ -477,7 +477,7 @@ The temperature `T` is found by finding the root of
     θ_liq_ice,
     maxiter::Int,
     tol::RS.AbstractTolerance,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     T_init_min = TP.T_init_min(param_set)
     _T_max = TP.T_max(param_set)

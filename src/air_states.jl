@@ -781,7 +781,7 @@ Base.convert(::Type{PhaseNonEquil{FT}}, ts::PhaseNonEquil) where {FT} =
     param_set::APS,
     e_int::FT,
     ρ::FT,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 ) where {FT}
     return PhaseNonEquil{FT}(e_int, ρ, q)
 end

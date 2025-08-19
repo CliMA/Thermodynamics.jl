@@ -44,7 +44,7 @@ When `q` is not provided, the results are for dry air.
 end
 
 @inline gas_constant_air(param_set::APS) =
-    gas_constant_air(param_set, q_pt_0(param_set))
+    gas_constant_air(param_set, q_pt_0(eltype(param_set)))
 
 """
     cp_m(param_set, q_tot, q_liq, q_ice)
@@ -83,7 +83,7 @@ When `q` is not provided, the results are for dry air.
     return cp_m(param_set, q.tot, q.liq, q.ice)
 end
 
-@inline cp_m(param_set::APS) = cp_m(param_set, q_pt_0(param_set))
+@inline cp_m(param_set::APS) = cp_m(param_set, q_pt_0(eltype(param_set)))
 
 # TODO: The methods for cv_m do not parallel those for R_m and cp_m. Make consistent.
 """
@@ -105,7 +105,7 @@ The isochoric specific heat capacity of moist air, given
            (cv_i - cv_v) * q.ice
 end
 
-@inline cv_m(param_set::APS) = cv_m(param_set, q_pt_0(param_set))
+@inline cv_m(param_set::APS) = cv_m(param_set, q_pt_0(eltype(param_set)))
 
 # TODO remove gas_constants
 """
@@ -230,7 +230,7 @@ When `q` is not provided, the results are for dry air.
 @inline function soundspeed_air(
     param_set::APS,
     T,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     γ = cp_m(param_set, q) / cv_m(param_set, q)
     R_m = gas_constant_air(param_set, q)

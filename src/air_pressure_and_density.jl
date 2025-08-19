@@ -23,7 +23,7 @@ When `q` is not provided, the results are for dry air.
     param_set::APS,
     T,
     ρ,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     return gas_constant_air(param_set, q) * ρ * T
 end
@@ -49,7 +49,7 @@ When `q` is not provided, the results are for dry air.
     param_set::APS,
     T,
     p,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     return p / (gas_constant_air(param_set, q) * T)
 end
@@ -75,7 +75,7 @@ When `q` is not provided, the results are for dry air.
     param_set::APS,
     T,
     ρ,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cpm = cp_m(param_set, q),
 )
     p = air_pressure(param_set, T, ρ, q)
@@ -99,7 +99,7 @@ When `q` is not provided, the results are for dry air.
 @inline function exner_given_pressure(
     param_set::APS,
     p,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     cpm = cp_m(param_set, q),
 )
     p0 = TP.p_ref_theta(param_set)

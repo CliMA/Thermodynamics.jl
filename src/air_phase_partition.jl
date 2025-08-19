@@ -62,7 +62,7 @@ Weather Rev., 2015, https://doi.org/10.1029/2009JD012384
     param_set::APS{FT},
     T,
     ::Type{phase_type},
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 ) where {FT, phase_type <: ThermodynamicState}
 
     # Interpolation between homogeneous nucleation and freezing temperatures
@@ -85,7 +85,7 @@ end
     param_set::APS,
     T,
     ::Type{phase_type},
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 ) where {phase_type <: PhaseNonEquil}
     q_c = condensate_specific_humidity(q)     # condensate specific humidity
     return ifelse(

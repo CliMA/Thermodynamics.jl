@@ -114,7 +114,7 @@ When `q` is not provided, the partial pressure is the total pressure.
 @inline function partial_pressure_dry(
     param_set::APS,
     p,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     Rv_over_Rd = TP.Rv_over_Rd(param_set)
     return p * (1 - q.tot) /
@@ -135,7 +135,7 @@ When `q` is not provided, the partial pressure is zero.
 @inline function partial_pressure_vapor(
     param_set::APS,
     p,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     Rv_over_Rd = TP.Rv_over_Rd(param_set)
     return p * vapor_specific_humidity(q) * Rv_over_Rd /
@@ -160,7 +160,7 @@ When `q` is not provided, the vapor pressure deficit is the saturation vapor pre
     param_set::APS,
     T,
     p,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     Tᶠ = TP.T_freeze(param_set),
 )
     above_freezing = T > Tᶠ
@@ -209,7 +209,7 @@ When `q` is not provided, the relative humidity is 0.
     T,
     p,
     ::Type{phase_type},
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 ) where {FT, phase_type <: ThermodynamicState}
     R_v = TP.R_v(param_set)
     q_vap = vapor_specific_humidity(q)

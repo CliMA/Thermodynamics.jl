@@ -61,7 +61,7 @@ end
     param_set::APS,
     ::Type{phase_type},
     T::Number,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     λ = liquid_fraction(param_set, T, phase_type, q),
 ) where {phase_type <: ThermodynamicState}
 
@@ -135,7 +135,7 @@ and the fraction of ice by the complement `1 - liquid_fraction(param_set, T, pha
     T,
     ρ,
     ::Type{phase_type},
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
     λ = liquid_fraction(param_set, T, phase_type, q),
 ) where {phase_type <: ThermodynamicState}
     p_v_sat = saturation_vapor_pressure(param_set, phase_type, T, q, λ)

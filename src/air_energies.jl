@@ -28,7 +28,7 @@ When `q` is not provided, the results are for dry air.
 @inline function internal_energy(
     param_set::APS,
     T,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     q_vap = vapor_specific_humidity(q)
     q_dry = 1 - q.tot
@@ -156,7 +156,7 @@ When `q` is not provided, the results are for dry air.
     e_kin,
     e_pot,
     T,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     return internal_energy(param_set, T, q) + e_pot + e_kin
 end
@@ -194,7 +194,7 @@ When `q` is not provided, the results are for dry air.
 @inline function specific_enthalpy(
     param_set::APS,
     T,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     R_m = gas_constant_air(param_set, q)
     e_int = internal_energy(param_set, T, q)
@@ -246,7 +246,7 @@ When `q` is not provided, the results are for dry air.
     param_set::APS,
     e_tot,
     T,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition = q_pt_0(eltype(param_set)),
 )
     R_m = gas_constant_air(param_set, q)
     return e_tot + R_m * T
