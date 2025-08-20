@@ -8,7 +8,7 @@ ThermodynamicsParameters(::Type{FT}) where {FT <: Real} =
 
 function ThermodynamicsParameters(toml_dict::CP.AbstractTOMLDict)
     name_map = (;
-        :temperature_min_at_reference => :T_min_ref,
+        :temperature_min_reference => :T_min_ref,
         :entropy_water_vapor => :entropy_water_vapor,
         :entropy_dry_air => :entropy_dry_air,
         :potential_temperature_reference_pressure => :p_ref_theta,
@@ -30,8 +30,8 @@ function ThermodynamicsParameters(toml_dict::CP.AbstractTOMLDict)
         :latent_heat_vaporization_at_reference => :LH_v0,
         :temperature_saturation_adjustment_min => :T_min,
         :temperature_saturation_adjustment_init_min => :T_init_min,
-        :gas_constant => :gas_constant,
-        :temperature_mean_at_reference => :T_surf_ref,
+        :universal_gas_constant => :gas_constant,
+        :temperature_surface_reference => :T_surf_ref,
         :gravitational_acceleration => :grav,
         :temperature_homogenous_nucleation => :T_icenuc,
     )
