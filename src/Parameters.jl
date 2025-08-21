@@ -29,6 +29,9 @@ Base.@kwdef struct ThermodynamicsParameters{FT} <:
     T_0::FT
     MSLP::FT
     p_ref_theta::FT
+    R_d::FT
+    R_v::FT
+    cp_d::FT
     cp_v::FT
     cp_l::FT
     cp_i::FT
@@ -43,7 +46,6 @@ Base.@kwdef struct ThermodynamicsParameters{FT} <:
     entropy_reference_temperature::FT
     entropy_dry_air::FT
     entropy_water_vapor::FT
-    kappa_d::FT
     gas_constant::FT
     molmass_dryair::FT
     molmass_water::FT
@@ -63,14 +65,11 @@ for fn in fieldnames(ThermodynamicsParameters)
 end
 
 # Derived parameters
-@inline R_d(ps::ATP) = ps.gas_constant / ps.molmass_dryair
-@inline R_v(ps::ATP) = ps.gas_constant / ps.molmass_water
-@inline Rv_over_Rd(ps::ATP) = ps.molmass_dryair / ps.molmass_water
-@inline molmass_ratio(ps::ATP) = Rv_over_Rd(ps)  # For backward compatibility
+@inline Rv_over_Rd(ps::ATP) = R_v(ps) / R_d(ps)
 @inline LH_f0(ps::ATP) = ps.LH_s0 - ps.LH_v0
 @inline e_int_v0(ps::ATP) = ps.LH_v0 - R_v(ps) * ps.T_0
 @inline e_int_i0(ps::ATP) = LH_f0(ps)
-@inline cp_d(ps::ATP) = R_d(ps) / ps.kappa_d
+@inline kappa_d(ps::ATP) = R_d(ps) / cp_d(ps)
 @inline cv_d(ps::ATP) = cp_d(ps) - R_d(ps)
 @inline cv_v(ps::ATP) = ps.cp_v - R_v(ps)
 @inline cv_l(ps::ATP) = ps.cp_l

@@ -76,9 +76,6 @@ This file contains tests for fundamental thermodynamic relations and physical la
               _R_d / 2
         @test gas_constant_air(param_set, FT) == _R_d
 
-        # Test backward compatibility for renamed parameters
-        @test TP.molmass_ratio(param_set) === TP.Rv_over_Rd(param_set)
-
         # Test specific heat capacities for different phases
         @test cp_m(param_set, PhasePartition(FT(0))) === _cp_d
         @test cp_m(param_set, PhasePartition(FT(1))) === _cp_v
