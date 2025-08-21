@@ -12,6 +12,8 @@ env:
 steps:
   - label: "init environment :computer:"
     key: "init_env"
+    concurrency: 1
+    concurrency_group: 'depot/thermodynamics-ci'
     command:
       - echo "--- Instantiate test env"
       - julia --project=test -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate(;verbose=true); Pkg.precompile(;strict=true); Pkg.status()'
