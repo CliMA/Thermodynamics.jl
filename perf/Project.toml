@@ -16,5 +16,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 
 [compat]
+PrettyTables = "2"
 KernelAbstractions = "0.9"
 julia = "1.7"

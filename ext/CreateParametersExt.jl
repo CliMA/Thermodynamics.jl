@@ -6,7 +6,7 @@ import ClimaParams as CP
 ThermodynamicsParameters(::Type{FT}) where {FT <: Real} =
     ThermodynamicsParameters(CP.create_toml_dict(FT))
 
-function ThermodynamicsParameters(toml_dict::CP.AbstractTOMLDict)
+function ThermodynamicsParameters(toml_dict::CP.ParamDict{FT}) where {FT}
     name_map = (;
         :temperature_min_reference => :T_min_ref,
         :entropy_water_vapor => :entropy_water_vapor,
@@ -38,7 +38,6 @@ function ThermodynamicsParameters(toml_dict::CP.AbstractTOMLDict)
         :temperature_homogenous_nucleation => :T_icenuc,
     )
     parameters = CP.get_parameter_values(toml_dict, name_map, "Thermodynamics")
-    FT = CP.float_type(toml_dict)
     return ThermodynamicsParameters{FT}(; parameters...)
 end
 
