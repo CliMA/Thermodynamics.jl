@@ -103,6 +103,10 @@ saturation_excess
 saturation_vapor_pressure
 soundspeed_air
 specific_enthalpy
+specific_enthalpy_dry
+specific_enthalpy_vapor
+specific_enthalpy_liquid
+specific_enthalpy_ice
 specific_volume
 supersaturation
 total_energy
