@@ -21,6 +21,10 @@ v1.xxx  (TODO: release once refactoring is done)
   PR [259](https://github.com/CliMA/Thermodynamics.jl/pull/259)
   PR [263](https://github.com/CliMA/Thermodynamics.jl/pull/263)
 
+v0.14.2
+--------
+- Add specific enthalpy functions. PR [282](https://github.com/CliMA/Thermodynamics.jl/pull/282)
+
 v0.12.15
 --------
 - Fix inverse molmass bug. PR [258](https://github.com/CliMA/Thermodynamics.jl/pull/258)

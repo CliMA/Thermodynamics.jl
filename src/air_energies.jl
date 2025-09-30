@@ -8,6 +8,10 @@ export internal_energy_sat
 export total_energy
 export moist_static_energy
 export specific_enthalpy
+export specific_enthalpy_dry
+export specific_enthalpy_vapor
+export specific_enthalpy_liquid
+export specific_enthalpy_ice
 export total_specific_enthalpy
 export virtual_dry_static_energy
 
@@ -229,6 +233,57 @@ and total specific humidity, given
         PhasePartition_equil(param_set, T, ρ, q_tot, phase_type),
     )
 end
+
+"""
+    specific_enthalpy_dry(param_set, T)
+
+The specific enthalpy of dry air, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+"""
+@inline function specific_enthalpy_dry(param_set::APS, T)
+    cp_d = TP.cp_d(param_set)
+    T_0 = TP.T_0(param_set)
+    return cp_d * (T - T_0)
+end
+
+"""
+    specific_enthalpy_vapor(param_set, T)
+
+The specific enthalpy of vapor, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+"""
+@inline function specific_enthalpy_vapor(param_set::APS, T)
+    cp_v = TP.cp_v(param_set)
+    T_0 = TP.T_0(param_set)
+    LH_v0 = TP.LH_v0(param_set)
+    return cp_v * (T - T_0) + LH_v0
+end
+
+"""
+    specific_enthalpy_liquid(param_set, T)
+
+The specific enthalpy of liquid, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+"""
+@inline specific_enthalpy_liquid(param_set::APS, T) =
+    internal_energy_liquid(param_set, T)
+
+"""
+    specific_enthalpy_ice(param_set, T)
+
+The specific enthalpy of ice, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+"""
+@inline specific_enthalpy_ice(param_set::APS, T) =
+    internal_energy_ice(param_set, T)
 
 """
     total_specific_enthalpy(param_set, e_tot, T[, q::PhasePartition])

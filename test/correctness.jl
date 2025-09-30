@@ -811,8 +811,9 @@ This file contains tests for fundamental thermodynamic relations and physical la
         end
     end
 
-    @testset "Total specific enthalpy" begin
+    @testset "Specific enthalpy" begin
         _R_d = TP.R_d(param_set)
+        _R_v = TP.R_v(param_set)
         # Test total specific enthalpy calculations
         T = FT(300)
         e_tot = FT(1000)
@@ -826,5 +827,15 @@ This file contains tests for fundamental thermodynamic relations and physical la
         h_tot_moist = total_specific_enthalpy(param_set, e_tot, T, q_pt)
         R_m_moist = gas_constant_air(param_set, q_pt)
         @test h_tot_moist ≈ e_tot + R_m_moist * T
+
+        # Test specific enthalpy calculations
+        h_dry = specific_enthalpy_dry(param_set, T)
+        h_vap = specific_enthalpy_vapor(param_set, T)
+        h_liq = specific_enthalpy_liquid(param_set, T)
+        h_ice = specific_enthalpy_ice(param_set, T)
+        @test h_dry ≈ internal_energy_dry(param_set, T) + _R_d * T
+        @test h_vap ≈ internal_energy_vapor(param_set, T) + _R_v * T
+        @test h_liq == internal_energy_liquid(param_set, T)
+        @test h_ice == internal_energy_ice(param_set, T)
     end
 end
