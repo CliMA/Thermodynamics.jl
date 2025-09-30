@@ -74,21 +74,21 @@ This file contains tests for fundamental thermodynamic relations and physical la
         @test gas_constant_air(param_set, PhasePartition(FT(1))) === _R_v
         @test gas_constant_air(param_set, PhasePartition(FT(0.5), FT(0.5))) ≈
               _R_d / 2
-        @test gas_constant_air(param_set, FT) == _R_d
+        @test gas_constant_air(param_set) == _R_d
 
         # Test specific heat capacities for different phases
         @test cp_m(param_set, PhasePartition(FT(0))) === _cp_d
         @test cp_m(param_set, PhasePartition(FT(1))) === _cp_v
         @test cp_m(param_set, PhasePartition(FT(1), FT(1))) === _cp_l
         @test cp_m(param_set, PhasePartition(FT(1), FT(0), FT(1))) === _cp_i
-        @test cp_m(param_set, FT) == _cp_d
+        @test cp_m(param_set) == _cp_d
 
         # Test specific heat capacities at constant volume
         @test cv_m(param_set, PhasePartition(FT(0))) === _cp_d - _R_d
         @test cv_m(param_set, PhasePartition(FT(1))) === _cp_v - _R_v
         @test cv_m(param_set, PhasePartition(FT(1), FT(1))) === _cv_l
         @test cv_m(param_set, PhasePartition(FT(1), FT(0), FT(1))) === _cv_i
-        @test cv_m(param_set, FT) == _cv_d
+        @test cv_m(param_set) == _cv_d
     end
 
     @testset "Speed of sound" begin
