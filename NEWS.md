@@ -1,9 +1,6 @@
 Thermodynamics.jl Release Notes
 ========================
 
-main
-----
-
 v1.xxx  (TODO: release once refactoring is done)
 --------
 
@@ -20,6 +17,16 @@ v1.xxx  (TODO: release once refactoring is done)
   - Added comprehensive tests and physical consistency validation for these functions
   PR [259](https://github.com/CliMA/Thermodynamics.jl/pull/259)
   PR [263](https://github.com/CliMA/Thermodynamics.jl/pull/263)
+
+main
+----
+
+v0.15.0
+--------
+- Remove `q_vap_saturation_from_density` and `condensate`. 
+  PR [284](https://github.com/CliMA/Thermodynamics.jl/pull/284)
+- Set error_on_non_covergence and print_warning to false by default. 
+  PR [283](https://github.com/CliMA/Thermodynamics.jl/pull/283)
 
 v0.14.2
 --------
