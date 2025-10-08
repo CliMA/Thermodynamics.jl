@@ -16,6 +16,9 @@ This file contains tests for error handling on failed convergence.
     tol = FT(1e-10)
     T_virt = T
 
+    TD.error_on_non_convergence() = true
+    TD.print_warning() = true
+
     @testset "Saturation Adjustment" begin
         @test_throws ErrorException TD.saturation_adjustment.(
             RS.NewtonsMethod,

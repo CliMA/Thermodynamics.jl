@@ -55,19 +55,16 @@ const APS = TP.AbstractThermodynamicsParameters
 # For printing literal strings on the gpu
 include("printing.jl")
 
-# Allow users to skip error on non-convergence
+# Allow users to print warning and throw errors on non-convergence
 # by importing:
 # ```julia
 # import Thermodynamics
-# Thermodynamics.error_on_non_convergence() = false
+# Thermodynamics.error_on_non_convergence() = true
+# Thermodynamics.print_warning() = true
 # ```
-# Error on convergence must be the default
-# behavior because this can result in printing
-# very large logs resulting in CI to seemingly hang.
-@inline error_on_non_convergence() = true
-
-# Allow users to skip printing warnings on non-convergence
-@inline print_warning() = true
+# By default, we don't print warnings and don't throw errors on non-convergence.
+@inline error_on_non_convergence() = false
+@inline print_warning() = false
 
 # Default phase partition for dry air
 @inline q_pt_0(::Type{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
