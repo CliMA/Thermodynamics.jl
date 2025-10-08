@@ -12,8 +12,6 @@ export vol_vapor_mixing_ratio
 export relative_humidity
 export q_vap_from_p_vap
 export q_vap_from_RH_liquid
-export q_vap_saturation_from_density  # TODO Remove after ClimaAtmos and ClimaLand are updated to use q_vap_from_p_vap
-export condensate  # TODO Remove after ClimaAtmos is updated to use condensate_specific_humidity
 
 """
     liquid_specific_humidity(q::PhasePartition)
@@ -50,13 +48,6 @@ The condensate specific humidity (liquid + ice) of the phase
 partition `q`.
 """
 @inline condensate_specific_humidity(q::PhasePartition) = q.liq + q.ice
-
-"""
-    condensate(q::PhasePartition{FT})
-
-This is identical to [`condensate_specific_humidity`](@ref) and will be removed in a future release.
-"""
-const condensate = condensate_specific_humidity  # TODO Remove after ClimaAtmos is updated to use condensate_specific_humidity
 
 """
     shum_to_mixing_ratio(q, q_tot)
@@ -246,14 +237,6 @@ The vapor specific humidity, given
     R_v = TP.R_v(param_set)
     return p_v / (ρ * R_v * T)
 end
-
-"""
-    q_vap_saturation_from_density(param_set, T, ρ, p_v)
-
-This function is identical to [`q_vap_from_p_vap`](@ref) and is provided for backward compatibility. 
-It will be removed in a future release.
-"""
-const q_vap_saturation_from_density = q_vap_from_p_vap  # TODO Remove after ClimaAtmos and ClimaLand are updated to use q_vap_from_p_vap
 
 """
     q_vap_from_RH_liquid(param_set, p, T, RH)
