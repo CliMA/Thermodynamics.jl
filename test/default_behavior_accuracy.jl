@@ -277,7 +277,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             dry_mask = abs.(q_tot .- 0) .< eps(FT)
             q_dry = q_pt[dry_mask]
             @test all(
-                condensate.(q_pt) .==
+                condensate_specific_humidity.(q_pt) .==
                 getproperty.(q_pt, :liq) .+ getproperty.(q_pt, :ice),
             )
             @test all(has_condensate.(q_dry) .== false)

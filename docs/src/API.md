@@ -61,7 +61,6 @@ air_pressure
 air_temperature
 air_pressure_given_θ
 air_temperature_given_ρp
-condensate
 condensate_specific_humidity
 cp_m
 cv_m
@@ -93,7 +92,6 @@ q_vap_saturation
 q_vap_saturation_liquid
 q_vap_saturation_ice
 q_vap_from_p_vap
-q_vap_saturation_from_density
 partial_pressure_vapor
 partial_pressure_dry
 relative_humidity
