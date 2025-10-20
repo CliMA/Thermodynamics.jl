@@ -63,8 +63,8 @@ include("printing.jl")
 # Thermodynamics.print_warning() = true
 # ```
 # By default, we don't print warnings and don't throw errors on non-convergence.
-@inline error_on_non_convergence() = false
-@inline print_warning() = false
+@inline error_on_non_convergence() = true
+@inline print_warning() = true
 
 # Default phase partition for dry air
 @inline q_pt_0(::Type{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
