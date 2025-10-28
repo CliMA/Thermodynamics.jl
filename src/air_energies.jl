@@ -31,9 +31,9 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function internal_energy(
     param_set::APS,
-    T::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    T,
+    q::PhasePartition = q_pt_0(param_set),
+)
     q_vap = vapor_specific_humidity(q)
     q_dry = 1 - q.tot
 
@@ -53,7 +53,7 @@ The dry air internal energy, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-@inline function internal_energy_dry(param_set::APS, T::FT) where {FT <: Real}
+@inline function internal_energy_dry(param_set::APS, T)
     T_0 = TP.T_0(param_set)
     cv_d = TP.cv_d(param_set)
     R_d = TP.R_d(param_set)
@@ -68,7 +68,7 @@ The water vapor internal energy, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-@inline function internal_energy_vapor(param_set::APS, T::FT) where {FT <: Real}
+@inline function internal_energy_vapor(param_set::APS, T)
     T_0 = TP.T_0(param_set)
     cv_v = TP.cv_v(param_set)
     e_int_v0 = TP.e_int_v0(param_set)
@@ -84,10 +84,7 @@ The liquid water internal energy, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-@inline function internal_energy_liquid(
-    param_set::APS,
-    T::FT,
-) where {FT <: Real}
+@inline function internal_energy_liquid(param_set::APS, T)
     T_0 = TP.T_0(param_set)
     cv_l = TP.cv_l(param_set)
 
@@ -102,7 +99,7 @@ The ice internal energy, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
-@inline function internal_energy_ice(param_set::APS, T::FT) where {FT <: Real}
+@inline function internal_energy_ice(param_set::APS, T)
     T_0 = TP.T_0(param_set)
     cv_i = TP.cv_i(param_set)
     e_int_i0 = TP.e_int_i0(param_set)
@@ -125,18 +122,18 @@ given
 """
 @inline function internal_energy_sat(
     param_set::APS,
-    T::FT,
-    ρ::FT,
-    q_tot::FT,
+    T,
+    ρ,
+    q_tot,
     ::Type{phase_type},
-    q_pt::PhasePartition{FT} = PhasePartition_equil(
+    q_pt::PhasePartition = PhasePartition_equil(
         param_set,
         T,
         ρ,
         q_tot,
         phase_type,
     ),
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {phase_type <: ThermodynamicState}
     return internal_energy(param_set, T, q_pt)
 end
 @inline internal_energy_sat(param_set, T, ρ, q_tot, phase_type) =
@@ -160,11 +157,11 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function total_energy(
     param_set::APS,
-    e_kin::FT,
-    e_pot::FT,
-    T::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    e_kin,
+    e_pot,
+    T,
+    q::PhasePartition = q_pt_0(param_set),
+)
     return internal_energy(param_set, T, q) + e_pot + e_kin
 end
 
@@ -180,7 +177,7 @@ The specific enthalpy, given
 
 This method is deprecated and will be removed in a future release.
 """
-@inline function specific_enthalpy(e_int::FT, R_m::FT, T::FT) where {FT <: Real}
+@inline function specific_enthalpy(e_int, R_m, T)
     return e_int + R_m * T
 end
 
@@ -200,9 +197,9 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function specific_enthalpy(
     param_set::APS,
-    T::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    T,
+    q::PhasePartition = q_pt_0(param_set),
+)
     R_m = gas_constant_air(param_set, q)
     e_int = internal_energy(param_set, T, q)
     return e_int + R_m * T
@@ -222,11 +219,11 @@ and total specific humidity, given
 """
 @inline function specific_enthalpy_sat(
     param_set::APS,
-    T::FT,
-    ρ::FT,
-    q_tot::FT,
+    T,
+    ρ,
+    q_tot,
     ::Type{phase_type},
-) where {FT <: Real, phase_type <: ThermodynamicState}
+) where {phase_type <: ThermodynamicState}
     return specific_enthalpy(
         param_set,
         T,
@@ -302,10 +299,10 @@ When `q` is not provided, the results are for dry air.
 """
 @inline function total_specific_enthalpy(
     param_set::APS,
-    e_tot::FT,
-    T::FT,
-    q::PhasePartition{FT} = q_pt_0(FT),
-) where {FT <: Real}
+    e_tot,
+    T,
+    q::PhasePartition = q_pt_0(param_set),
+)
     R_m = gas_constant_air(param_set, q)
     return e_tot + R_m * T
 end
@@ -320,10 +317,6 @@ The total specific enthalpy, given
  - `R_m` [`gas_constant_air`](@ref)
  - `T` air temperature
 """
-@inline function total_specific_enthalpy(
-    e_tot::FT,
-    R_m::FT,
-    T::FT,
-) where {FT <: Real}
+@inline function total_specific_enthalpy(e_tot, R_m, T)
     return e_tot + R_m * T
 end

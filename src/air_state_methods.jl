@@ -274,10 +274,10 @@ The total energy per unit mass, given a thermodynamic state `ts`.
 """
 @inline function total_energy(
     param_set::APS,
-    ts::ThermodynamicState{FT},
-    e_kin::FT,
-    e_pot::FT,
-) where {FT <: Real}
+    ts::ThermodynamicState,
+    e_kin,
+    e_pot,
+)
     return internal_energy(param_set, ts) + e_pot + e_kin
 end
 
@@ -316,9 +316,9 @@ The total specific enthalpy, given a thermodynamic state `ts`.
 """
 @inline function total_specific_enthalpy(
     param_set::APS,
-    ts::ThermodynamicState{FT},
-    e_tot::FT,
-) where {FT <: Real}
+    ts::ThermodynamicState,
+    e_tot,
+)
     R_m = gas_constant_air(param_set, ts)
     T = air_temperature(param_set, ts)
     return total_specific_enthalpy(e_tot, R_m, T)
@@ -630,10 +630,7 @@ Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object
 
 Create a PhasePartition for dry air thermodynamic state.
 """
-@inline PhasePartition(
-    param_set::APS,
-    ts::AbstractPhaseDry{FT},
-) where {FT <: Real} = q_pt_0(FT)
+@inline PhasePartition(param_set::APS, ts::AbstractPhaseDry) = q_pt_0(param_set)
 
 """
     PhasePartition(param_set, ts::AbstractPhaseEquil)

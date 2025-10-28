@@ -15,12 +15,7 @@ The specific entropy, given
 
 The specific entropy is computed from equations (29)-(33) of [Pressel2015](@cite).
 """
-@inline function specific_entropy(
-    param_set::APS,
-    p::FT,
-    T::FT,
-    q::PhasePartition{FT},
-) where {FT <: Real}
+@inline function specific_entropy(param_set::APS, p, T, q::PhasePartition)
     L_v = latent_heat_vapor(param_set, T)
     L_s = latent_heat_sublim(param_set, T)
     s_d = specific_entropy_dry(param_set, p, T, q)
@@ -39,11 +34,11 @@ The dry air specific entropy, given
  - `q` phase partition
 """
 @inline function specific_entropy_dry(
-    param_set::APS,
-    p::FT,
-    T::FT,
-    q::PhasePartition{FT},
-) where {FT <: Real}
+    param_set::APS{FT},
+    p,
+    T,
+    q::PhasePartition,
+) where {FT}
     T_ref = TP.entropy_reference_temperature(param_set)
     p_ref = TP.MSLP(param_set)
     s_d_ref = TP.entropy_dry_air(param_set)
@@ -64,11 +59,11 @@ The specific entropy of water vapor, given
  - `q` phase partition
 """
 @inline function specific_entropy_vapor(
-    param_set::APS,
-    p::FT,
-    T::FT,
-    q::PhasePartition{FT},
-) where {FT <: Real}
+    param_set::APS{FT},
+    p,
+    T,
+    q::PhasePartition,
+) where {FT}
     T_ref = TP.entropy_reference_temperature(param_set)
     p_ref = TP.MSLP(param_set)
     s_v_ref = TP.entropy_water_vapor(param_set)
