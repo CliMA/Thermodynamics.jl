@@ -13,6 +13,7 @@ export specific_enthalpy_vapor
 export specific_enthalpy_liquid
 export specific_enthalpy_ice
 export total_specific_enthalpy
+export dry_static_energy
 export virtual_dry_static_energy
 
 """
@@ -205,6 +206,7 @@ When `q` is not provided, the results are for dry air.
     return e_int + R_m * T
 end
 
+
 """
     specific_enthalpy_sat(param_set, T, ρ, q_tot, phase_type)
 
@@ -319,4 +321,18 @@ The total specific enthalpy, given
 """
 @inline function total_specific_enthalpy(e_tot, R_m, T)
     return e_tot + R_m * T
+end
+
+"""
+    dry_static_energy(param_set, T, e_pot)
+
+The dry static energy, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `e_pot` gravitational potential energy per unit mass (geopotential)
+
+"""
+@inline function dry_static_energy(param_set::APS, T, e_pot)
+    return specific_enthalpy_dry(param_set, T) + e_pot
 end
