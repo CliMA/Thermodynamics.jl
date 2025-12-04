@@ -86,6 +86,7 @@ liquid_ice_pottemp_sat
 liquid_specific_humidity
 mixing_ratios
 moist_static_energy
+dry_static_energy
 virtual_dry_static_energy
 q_vap_from_RH_liquid
 q_vap_saturation
