@@ -334,6 +334,48 @@ The saturated liquid ice potential temperature, given
 end
 
 """
+    virtual_pottemp(param_set, T, ρ, q_tot, q_liq, q_ice)
+
+The virtual potential temperature, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `ρ` (moist-)air density
+and, optionally,
+ - `q_tot` total specific humidity
+ - `q_liq` specific humidity of liquid
+ - `q_ice` specific humidity of ice
+
+The virtual potential temperature is defined as `θ_v = (R_m/R_d) * θ`, where `θ` is the
+potential temperature. It is the potential temperature a dry air parcel would need to have to
+have the same density as the moist air parcel at the same pressure.
+"""
+@inline function virtual_pottemp(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice),
+)
+    R_d = TP.R_d(param_set)
+    p0 = TP.p_ref_theta(param_set)
+    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
+
+    # TODO: add functional methods for air_pressure, exner etc. 
+    # and use them here
+    # We need to calculate pressure to get exner function
+    p = ρ * R_m * T
+
+    # exner = (p / p0)^(R_m / cpm)
+    exner = fast_power(p / p0, R_m / cpm)
+
+    θ = T / exner
+    return R_m / R_d * θ
+end
+
+"""
     virtual_pottemp(param_set, T, ρ[, q::PhasePartition])
 
 The virtual potential temperature, given
@@ -346,8 +388,6 @@ and, optionally,
 
  - `q` [`PhasePartition`](@ref). 
  
-When `q` is not provided, the result is the dry-air potential temperature.
-
 The virtual potential temperature is defined as `θ_v = (R_m/R_d) * θ`, where `θ` is the
 potential temperature. It is the potential temperature a dry air parcel would need to have to
 have the same density as the moist air parcel at the same pressure.
@@ -356,27 +396,23 @@ have the same density as the moist air parcel at the same pressure.
     param_set::APS,
     T,
     ρ,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition,
     cpm = cp_m(param_set, q),
 )
-    R_d = TP.R_d(param_set)
-    return gas_constant_air(param_set, q) / R_d *
-           dry_pottemp(param_set, T, ρ, q, cpm)
+    return virtual_pottemp(param_set, T, ρ, q.tot, q.liq, q.ice, cpm)
 end
 
 """
-    virtual_temperature(param_set, T[, q::PhasePartition])
+    virtual_temperature(param_set, T, q_tot, q_liq, q_ice)
 
 The virtual temperature, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
-
 and, optionally,
- 
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the result is the regular temperature. 
+ - `q_tot` total specific humidity
+ - `q_liq` specific humidity of liquid
+ - `q_ice` specific humidity of ice
 
 The virtual temperature is defined as `T_v = (R_m/R_d) * T`. It is the temperature
 a dry air parcel would need to have to have the same density as the moist air parcel
@@ -385,10 +421,29 @@ at the same pressure.
 @inline function virtual_temperature(
     param_set::APS,
     T,
-    q::PhasePartition = q_pt_0(param_set),
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
 )
     R_d = TP.R_d(param_set)
-    return gas_constant_air(param_set, q) / R_d * T
+    return gas_constant_air(param_set, q_tot, q_liq, q_ice) / R_d * T
+end
+
+"""
+    virtual_temperature(param_set, T, q::PhasePartition)
+
+The virtual temperature, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `q` [`PhasePartition`](@ref). 
+ 
+The virtual temperature is defined as `T_v = (R_m/R_d) * T`. It is the temperature
+a dry air parcel would need to have to have the same density as the moist air parcel
+at the same pressure.
+"""
+@inline function virtual_temperature(param_set::APS, T, q::PhasePartition)
+    return virtual_temperature(param_set, T, q.tot, q.liq, q.ice)
 end
 
 """

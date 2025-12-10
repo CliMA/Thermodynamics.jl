@@ -89,6 +89,10 @@ This file contains tests for fundamental thermodynamic relations and physical la
         @test cv_m(param_set, PhasePartition(FT(1), FT(1))) === _cv_l
         @test cv_m(param_set, PhasePartition(FT(1), FT(0), FT(1))) === _cv_i
         @test cv_m(param_set) == _cv_d
+
+        # Test scalar version of cv_m
+        @test cv_m(param_set, FT(1), FT(1), FT(0)) === _cv_l
+        @test cv_m(param_set, FT(1), FT(0), FT(1)) === _cv_i
     end
 
     @testset "Speed of sound" begin
