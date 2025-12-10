@@ -85,7 +85,27 @@ end
 
 @inline cp_m(param_set::APS) = cp_m(param_set, q_pt_0(param_set))
 
-# TODO: The methods for cv_m do not parallel those for R_m and cp_m. Make consistent.
+"""
+    cv_m(param_set, q_tot, q_liq, q_ice)
+
+The isochoric specific heat capacity of moist air, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `q_tot` total specific humidity of water
+ - `q_liq` specific humidity of liquid
+ - `q_ice` specific humidity of ice
+"""
+@inline function cv_m(param_set::APS, q_tot, q_liq, q_ice)
+    cv_d = TP.cv_d(param_set)
+    cv_v = TP.cv_v(param_set)
+    cv_l = TP.cv_l(param_set)
+    cv_i = TP.cv_i(param_set)
+    return cv_d +
+           (cv_v - cv_d) * q_tot +
+           (cv_l - cv_v) * q_liq +
+           (cv_i - cv_v) * q_ice
+end
+
 """
     cv_m(param_set[, q::PhasePartition])
 
@@ -95,14 +115,7 @@ The isochoric specific heat capacity of moist air, given
  - `q` [`PhasePartition`](@ref). Without humidity argument, the results are for dry air.
 """
 @inline function cv_m(param_set::APS, q::PhasePartition)
-    cv_d = TP.cv_d(param_set)
-    cv_v = TP.cv_v(param_set)
-    cv_l = TP.cv_l(param_set)
-    cv_i = TP.cv_i(param_set)
-    return cv_d +
-           (cv_v - cv_d) * q.tot +
-           (cv_l - cv_v) * q.liq +
-           (cv_i - cv_v) * q.ice
+    return cv_m(param_set, q.tot, q.liq, q.ice)
 end
 
 @inline cv_m(param_set::APS) = cv_m(param_set, q_pt_0(param_set))

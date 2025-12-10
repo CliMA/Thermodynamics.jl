@@ -21,6 +21,10 @@ v1.xxx  (TODO: release once refactoring is done)
 main
 ----
 
+v0.16.0
+--------
+- Added functional methods for cv_m and virtual (potential) temperature.
+
 v0.15.0
 --------
 - Remove `q_vap_saturation_from_density` and `condensate`. 
