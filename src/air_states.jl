@@ -1,37 +1,12 @@
-# Constructors for thermodynamic states given various input variables
 
-# TODO: Reduce this to what we actually need
-
-export PhasePartition
-
-# Thermodynamic states
 export ThermodynamicState,
-    PhaseDry,
-    PhaseDry_ρe,
-    PhaseDry_ρT,
-    PhaseDry_pT,
-    PhaseDry_pe,
-    PhaseDry_ph,
-    PhaseDry_ρθ,
-    PhaseDry_pθ,
-    PhaseDry_ρp,
-    PhaseEquil,
-    PhaseEquil_ρeq,
-    PhaseEquil_ρTq,
-    PhaseEquil_pTq,
-    PhaseEquil_peq,
-    PhaseEquil_phq,
-    PhaseEquil_ρθq,
-    PhaseEquil_pθq,
-    PhaseEquil_ρpq,
-    PhaseNonEquil,
-    PhaseNonEquil_ρTq,
-    PhaseNonEquil_pTq,
-    PhaseNonEquil_ρθq,
-    PhaseNonEquil_pθq,
-    PhaseNonEquil_peq,
-    PhaseNonEquil_phq,
-    PhaseNonEquil_ρpq
+    AbstractPhaseDry,
+    AbstractPhaseEquil,
+    AbstractPhaseNonEquil
+
+export PhaseDry, PhaseEquil, PhaseNonEquil
+
+export Liquid, Ice, Phase
 
 """
     ThermodynamicState{FT}
@@ -51,71 +26,6 @@ abstract type AbstractPhaseEquil{FT} <: ThermodynamicState{FT} end
 abstract type AbstractPhaseNonEquil{FT} <: ThermodynamicState{FT} end
 
 Base.eltype(::ThermodynamicState{FT}) where {FT} = FT
-
-"""
-    PhasePartition
-
-Represents the mass fractions of the moist air mixture (the partitioning of water substance 
-between vapor, liquid, and ice phases).
-
-The total specific humidity `q_tot` represents the total water content, while `q_liq` and
-`q_ice` represent the liquid and ice specific humidities, respectively. The vapor specific
-humidity is computed as `q_vap = q_tot - q_liq - q_ice`.
-
-# Constructors
-
-    PhasePartition(q_tot::Real[, q_liq::Real[, q_ice::Real]])
-    PhasePartition(param_set::APS, ts::ThermodynamicState)
-
-See also [`PhasePartition_equil`](@ref)
-
-# Fields
-
-$(DocStringExtensions.FIELDS)
-"""
-struct PhasePartition{FT <: Real}
-    "total specific humidity"
-    tot::FT
-    "liquid water specific humidity (default: `0`)"
-    liq::FT
-    "ice specific humidity (default: `0`)"
-    ice::FT
-    @inline function PhasePartition(tot::FT, liq::FT, ice::FT) where {FT}
-        q_tot_safe = max(tot, 0)
-        q_liq_safe = max(liq, 0)
-        q_ice_safe = max(ice, 0)
-        return new{FT}(q_tot_safe, q_liq_safe, q_ice_safe)
-    end
-end
-
-PhasePartition(tot, liq, ice) = PhasePartition(promote(tot, liq, ice)...)
-
-@inline Base.zero(::Type{PhasePartition{FT}}) where {FT} =
-    PhasePartition(FT(0), FT(0), FT(0))
-
-@inline PhasePartition(q_tot::FT, q_liq::FT) where {FT <: Real} =
-    PhasePartition(q_tot, q_liq, zero(FT))
-@inline PhasePartition(q_tot::FT) where {FT <: Real} =
-    PhasePartition(q_tot, zero(FT), zero(FT))
-
-Base.convert(::Type{PhasePartition{FT}}, q_pt::PhasePartition) where {FT} =
-    PhasePartition(FT(q_pt.tot), FT(q_pt.liq), FT(q_pt.ice))
-
-function promote_phase_partition(x, q_pt::PhasePartition)
-    (x′, tot, liq, ice) = promote(x, q_pt.tot, q_pt.liq, q_pt.ice)
-    return (x′, PhasePartition(tot, liq, ice))
-end
-function promote_phase_partition(x1, x2, q_pt::PhasePartition)
-    (x1′, x2′, tot, liq, ice) = promote(x1, x2, q_pt.tot, q_pt.liq, q_pt.ice)
-    return (x1′, x2′, PhasePartition(tot, liq, ice))
-end
-
-const ITERTYPE = Union{Int, Nothing}
-const TOLTYPE = Union{Real, Nothing}
-
-#####
-##### Dry states
-#####
 
 """
     PhaseDry{FT} <: AbstractPhaseDry
@@ -145,6 +55,134 @@ Base.zero(::Type{PhaseDry{FT}}) where {FT} = PhaseDry{FT}(0, 0)
 
 Base.convert(::Type{PhaseDry{FT}}, ts::PhaseDry) where {FT} =
     PhaseDry{FT}(ts.e_int, ts.ρ)
+
+"""
+    PhaseEquil{FT} <: AbstractPhaseEquil
+
+A thermodynamic state assuming thermodynamic equilibrium between water phases.
+This state assumes that the water vapor is in equilibrium with liquid and/or ice,
+requiring saturation adjustment to compute the temperature and phase partitioning.
+
+The state stores the density, pressure, internal energy, total specific humidity,
+and the computed temperature from saturation adjustment.
+
+# Constructors
+
+    PhaseEquil(param_set, ρ, e_int, q_tot)
+
+# Fields
+
+$(DocStringExtensions.FIELDS)
+"""
+struct PhaseEquil{FT} <: AbstractPhaseEquil{FT}
+    "density of air (potentially moist)"
+    ρ::FT
+    "air pressure"
+    p::FT
+    "internal energy"
+    e_int::FT
+    "total specific humidity"
+    q_tot::FT
+    "temperature: computed via [`saturation_adjustment`](@ref)"
+    T::FT
+end
+
+@inline Base.zero(::Type{PhaseEquil{FT}}) where {FT} =
+    PhaseEquil{FT}(0, 0, 0, 0, 0)
+
+Base.convert(::Type{PhaseEquil{FT}}, ts::PhaseEquil) where {FT} =
+    PhaseEquil{FT}(ts.ρ, ts.p, ts.e_int, ts.q_tot, ts.T)
+
+"""
+     PhaseNonEquil{FT} <: ThermodynamicState
+
+A thermodynamic state assuming thermodynamic non-equilibrium between water phases.
+This state allows for arbitrary phase partitioning without requiring saturation adjustment,
+enabling direct computation of temperature from the given thermodynamic variables.
+
+The state stores the internal energy, density, and a complete phase partition
+specifying the distribution of water substance between vapor, liquid, and ice phases.
+
+# Constructors
+
+    PhaseNonEquil(param_set, e_int, q::PhasePartition, ρ)
+
+# Fields
+
+$(DocStringExtensions.FIELDS)
+
+"""
+struct PhaseNonEquil{FT} <: AbstractPhaseNonEquil{FT}
+    "internal energy"
+    e_int::FT
+    "density of air (potentially moist)"
+    ρ::FT
+    "phase partition"
+    q::PhasePartition{FT}
+end
+@inline Base.zero(::Type{PhaseNonEquil{FT}}) where {FT} =
+    PhaseNonEquil{FT}(0, 0, zero(PhasePartition{FT}))
+
+Base.convert(::Type{PhaseNonEquil{FT}}, ts::PhaseNonEquil) where {FT} =
+    PhaseNonEquil{FT}(ts.e_int, ts.ρ, ts.q)
+
+@inline function PhaseNonEquil(
+    param_set::APS,
+    e_int::FT,
+    ρ::FT,
+    q::PhasePartition = q_pt_0(param_set),
+) where {FT}
+    return PhaseNonEquil{FT}(e_int, ρ, q)
+end
+
+"""
+    Phase
+
+A condensed phase, to dispatch over
+[`saturation_vapor_pressure`](@ref) and
+[`q_vap_saturation_generic`](@ref).
+"""
+abstract type Phase end
+
+"""
+    Liquid <: Phase
+
+A liquid phase, to dispatch over
+[`saturation_vapor_pressure`](@ref) and
+[`q_vap_saturation_generic`](@ref).
+"""
+struct Liquid <: Phase end
+
+"""
+    Ice <: Phase
+
+An ice phase, to dispatch over
+[`saturation_vapor_pressure`](@ref) and
+[`q_vap_saturation_generic`](@ref).
+"""
+struct Ice <: Phase end
+# Constructors for thermodynamic states given various input variables
+
+# TODO: Reduce this to what we actually need
+
+
+# Thermodynamic states
+
+
+
+
+
+
+
+
+const ITERTYPE = Union{Int, Nothing}
+const TOLTYPE = Union{Real, Nothing}
+
+#####
+##### Dry states
+#####
+
+
 
 """
     PhaseDry_ρe(param_set, ρ, e_int)
@@ -307,42 +345,7 @@ PhaseDry_ρp(param_set::APS, ρ, p) = PhaseDry_ρp(param_set, promote(ρ, p)...)
 ##### Equilibrium states
 #####
 
-"""
-    PhaseEquil{FT} <: AbstractPhaseEquil
 
-A thermodynamic state assuming thermodynamic equilibrium between water phases.
-This state assumes that the water vapor is in equilibrium with liquid and/or ice,
-requiring saturation adjustment to compute the temperature and phase partitioning.
-
-The state stores the density, pressure, internal energy, total specific humidity,
-and the computed temperature from saturation adjustment.
-
-# Constructors
-
-    PhaseEquil(param_set, ρ, e_int, q_tot)
-
-# Fields
-
-$(DocStringExtensions.FIELDS)
-"""
-struct PhaseEquil{FT} <: AbstractPhaseEquil{FT}
-    "density of air (potentially moist)"
-    ρ::FT
-    "air pressure"
-    p::FT
-    "internal energy"
-    e_int::FT
-    "total specific humidity"
-    q_tot::FT
-    "temperature: computed via [`saturation_adjustment`](@ref)"
-    T::FT
-end
-
-@inline Base.zero(::Type{PhaseEquil{FT}}) where {FT} =
-    PhaseEquil{FT}(0, 0, 0, 0, 0)
-
-Base.convert(::Type{PhaseEquil{FT}}, ts::PhaseEquil) where {FT} =
-    PhaseEquil{FT}(ts.ρ, ts.p, ts.e_int, ts.q_tot, ts.T)
 
 """
     PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
@@ -744,47 +747,9 @@ PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...) =
 ##### Non-equilibrium states
 #####
 
-"""
-     PhaseNonEquil{FT} <: ThermodynamicState
 
-A thermodynamic state assuming thermodynamic non-equilibrium between water phases.
-This state allows for arbitrary phase partitioning without requiring saturation adjustment,
-enabling direct computation of temperature from the given thermodynamic variables.
 
-The state stores the internal energy, density, and a complete phase partition
-specifying the distribution of water substance between vapor, liquid, and ice phases.
 
-# Constructors
-
-    PhaseNonEquil(param_set, e_int, q::PhasePartition, ρ)
-
-# Fields
-
-$(DocStringExtensions.FIELDS)
-
-"""
-struct PhaseNonEquil{FT} <: AbstractPhaseNonEquil{FT}
-    "internal energy"
-    e_int::FT
-    "density of air (potentially moist)"
-    ρ::FT
-    "phase partition"
-    q::PhasePartition{FT}
-end
-@inline Base.zero(::Type{PhaseNonEquil{FT}}) where {FT} =
-    PhaseNonEquil{FT}(0, 0, zero(PhasePartition{FT}))
-
-Base.convert(::Type{PhaseNonEquil{FT}}, ts::PhaseNonEquil) where {FT} =
-    PhaseNonEquil{FT}(ts.e_int, ts.ρ, ts.q)
-
-@inline function PhaseNonEquil(
-    param_set::APS,
-    e_int::FT,
-    ρ::FT,
-    q::PhasePartition = q_pt_0(param_set),
-) where {FT}
-    return PhaseNonEquil{FT}(e_int, ρ, q)
-end
 
 """
     PhaseNonEquil_ρTq(param_set, ρ, T, q_pt)

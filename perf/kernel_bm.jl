@@ -89,10 +89,10 @@ parameter_set(::Type{Float32}) = param_set_Float32
         s += TD.virtual_temperature(param_set, ts)
         s += TD.condensate_specific_humidity(param_set, ts)
         s += TD.has_condensate(param_set, ts)
-        s += TD.specific_enthalpy(param_set, ts)
-        s += TD.total_specific_enthalpy(param_set, ts, FT(0))
+        s += TD.enthalpy(param_set, ts)
+        s += TD.total_enthalpy(param_set, ts, FT(0))
         s += TD.moist_static_energy(param_set, ts, FT(0))
-        s += TD.specific_entropy(param_set, ts)
+        s += TD.entropy(param_set, ts)
         s += TD.saturated(param_set, ts)
         dst[i] = s
 
@@ -160,10 +160,10 @@ function test_thermo_bc_kernel(
     s += TD.virtual_temperature(param_set, ts)
     s += TD.condensate_specific_humidity(param_set, ts)
     s += TD.has_condensate(param_set, ts)
-    s += TD.specific_enthalpy(param_set, ts)
-    s += TD.total_specific_enthalpy(param_set, ts, FT(0))
+    s += TD.enthalpy(param_set, ts)
+    s += TD.total_enthalpy(param_set, ts, FT(0))
     s += TD.moist_static_energy(param_set, ts, FT(0))
-    s += TD.specific_entropy(param_set, ts)
+    s += TD.entropy(param_set, ts)
     s += TD.saturated(param_set, ts)
     return s
 end

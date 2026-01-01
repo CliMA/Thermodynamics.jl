@@ -33,14 +33,6 @@ The isochoric specific heat capacity of moist air, given a thermodynamic state `
     FT(TP.cv_d(param_set))
 
 """
-    (R_m, cp_m, cv_m, γ_m) = gas_constants(param_set, ts::ThermodynamicState)
-
-Wrapper to compute the gas constant, specific heat capacities, and their ratio at once, given a thermodynamic state `ts`.
-"""
-@inline gas_constants(param_set::APS, ts::ThermodynamicState) =
-    gas_constants(param_set, PhasePartition(param_set, ts))
-
-"""
     latent_heat_vapor(param_set, ts::ThermodynamicState)
 
 The specific latent heat of vaporization, given a thermodynamic state `ts`.
@@ -142,12 +134,12 @@ The dry potential temperature, given a thermodynamic state `ts`.
 )
 
 """
-    specific_entropy(param_set, ts)
+    entropy(param_set, ts)
 
 The specific entropy, given a thermodynamic state `ts`.
 """
-@inline specific_entropy(param_set::APS, ts::ThermodynamicState) =
-    specific_entropy(
+@inline entropy(param_set::APS, ts::ThermodynamicState) =
+    entropy(
         param_set,
         air_pressure(param_set, ts),
         air_temperature(param_set, ts),
@@ -282,18 +274,18 @@ The total energy per unit mass, given a thermodynamic state `ts`.
 end
 
 """
-    specific_enthalpy(param_set, ts)
+    enthalpy(param_set, ts)
 
 The specific enthalpy, given a thermodynamic state `ts`.
 """
-@inline function specific_enthalpy(
+@inline function enthalpy(
     param_set::APS,
     ts::ThermodynamicState{FT},
 ) where {FT <: Real}
     e_int = internal_energy(param_set, ts)
     R_m = gas_constant_air(param_set, ts)
     T = air_temperature(param_set, ts)
-    return specific_enthalpy(e_int, R_m, T)
+    return enthalpy(e_int, R_m, T)
 end
 
 """
@@ -306,22 +298,22 @@ The moist static energy, given a thermodynamic state `ts`.
     ts::ThermodynamicState,
     e_pot,
 )
-    return specific_enthalpy(param_set, ts) + e_pot
+    return enthalpy(param_set, ts) + e_pot
 end
 
 """
-    total_specific_enthalpy(param_set, ts, e_tot::Real)
+    total_enthalpy(param_set, ts, e_tot::Real)
 
 The total specific enthalpy, given a thermodynamic state `ts`.
 """
-@inline function total_specific_enthalpy(
+@inline function total_enthalpy(
     param_set::APS,
     ts::ThermodynamicState,
     e_tot,
 )
     R_m = gas_constant_air(param_set, ts)
     T = air_temperature(param_set, ts)
-    return total_specific_enthalpy(e_tot, R_m, T)
+    return total_enthalpy(e_tot, R_m, T)
 end
 
 """
@@ -403,7 +395,7 @@ The mixing ratios, stored in a `PhasePartition`, given a thermodynamic state `ts
 
 The volume mixing ratio of water vapor, given a thermodynamic state `ts`.
 """
-vol_vapor_mixing_ratio(param_set, ts::ThermodynamicState) =
+vol_vapor_mixing_ratio(param_set::APS, ts::ThermodynamicState) =
     vol_vapor_mixing_ratio(param_set, PhasePartition(param_set, ts))
 
 """
@@ -516,8 +508,7 @@ The saturation specific humidity, given a thermodynamic state `ts`.
     T = air_temperature(param_set, ts)
     ρ = air_density(param_set, ts)
     q = PhasePartition(param_set, ts)
-    p_v_sat = saturation_vapor_pressure(param_set, typeof(ts), T, q)
-    return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
+    return q_vap_saturation(param_set, T, ρ, q.liq, q.ice)
 end
 
 """
@@ -638,13 +629,13 @@ Create a PhasePartition for dry air thermodynamic state.
 Create a PhasePartition for equilibrium thermodynamic state.
 """
 @inline function PhasePartition(param_set::APS, ts::AbstractPhaseEquil)
+    FT = eltype(param_set)
     T = air_temperature(param_set, ts)
     ρ = air_density(param_set, ts)
     q_tot = total_specific_humidity(param_set, ts)
     phase_type = typeof(ts)
-    λ = liquid_fraction(param_set, T, phase_type) # fraction of condensate that is liquid
-    qpt0 = PhasePartition(typeof(λ)(0))
-    p_vap_sat = saturation_vapor_pressure(param_set, phase_type, T, qpt0, λ)
+    λ = liquid_fraction(param_set, T) # fraction of condensate that is liquid
+    p_vap_sat = saturation_vapor_pressure(param_set, T)
 
     return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 end

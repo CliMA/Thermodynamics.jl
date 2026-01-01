@@ -45,6 +45,7 @@ Thermodynamics.jl uses a state-based approach where you create a thermodynamic s
 ### Available State Constructors
 
 #### **Equilibrium States** (Saturation Adjustment)
+
 ```julia
 import Thermodynamics as TD
 using ClimaParams
@@ -67,6 +68,7 @@ ts = TD.PhaseEquil_peq(params, p, e_int, q_tot)
 ```
 
 #### **Non-Equilibrium States** (Explicit Phase Partitioning)
+
 ```julia
 import Thermodynamics as TD
 using ClimaParams
@@ -85,6 +87,7 @@ ts = TD.PhaseNonEquil(params, e_int, ρ, q)
 ```
 
 #### **Dry Air States**
+
 ```julia
 import Thermodynamics as TD
 using ClimaParams
@@ -166,7 +169,7 @@ p_v_sat = TD.saturation_vapor_pressure(params, T, TD.Liquid())         # Saturat
 
 # Direct energy calculations
 e_int = TD.internal_energy(params, T, q)          # From temperature and humidity
-h = TD.specific_enthalpy(params, T, q)            # From temperature and humidity
+h = TD.enthalpy(params, T, q)            # From temperature and humidity
 
 ```
 
@@ -178,6 +181,7 @@ h = TD.specific_enthalpy(params, T, q)            # From temperature and humidit
 ## Performance Considerations
 
 ### **Type Stability**
+
 ```julia
 import Thermodynamics as TD
 using ClimaParams
@@ -196,6 +200,7 @@ ts = TD.PhaseEquil_ρeq(params_f64, Float32(ρ), Float32(e_int), Float32(q_tot))
 ```
 
 ### **Vectorized Operations**
+
 ```julia
 import Thermodynamics as TD
 using ClimaParams
@@ -218,6 +223,7 @@ T_array = [TD.air_temperature(params, e_int, TD.PhasePartition(q_tot))
 ```
 
 ### **GPU Compatibility**
+
 ```julia
 import Thermodynamics as TD
 using ClimaParams
@@ -324,6 +330,7 @@ end
 ## Common Pitfalls and Solutions
 
 ### **Pitfall 1: Incorrect State Type**
+
 ```julia
 import Thermodynamics as TD
 using ClimaParams
@@ -344,6 +351,7 @@ ts = TD.PhaseNonEquil(params, e_int, ρ, q)
 ```
 
 ### **Pitfall 2: Mixed Precision**
+
 ```julia
 import Thermodynamics as TD
 using ClimaParams

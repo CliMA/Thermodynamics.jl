@@ -285,27 +285,27 @@ This file contains tests for saturation adjustment accuracy and convergence.
             e_tot = total_energy.(param_set, ts, e_kin, e_pot)
             _cp_d = FT(TP.cp_d(param_set))
             @test all(
-                specific_enthalpy.(param_set, ts) .≈
+                enthalpy.(param_set, ts) .≈
                 e_int .+
                 gas_constant_air.(param_set, ts) .*
                 air_temperature.(param_set, ts),
             )
             @test all(
-                specific_enthalpy.(param_set, ts) .≈
+                enthalpy.(param_set, ts) .≈
                 e_int .+
                 air_pressure.(param_set, ts) ./ air_density.(param_set, ts),
             )
             @test all(
-                total_specific_enthalpy.(param_set, ts, e_tot) .≈
-                specific_enthalpy.(param_set, ts) .+ e_kin .+ e_pot,
+                total_enthalpy.(param_set, ts, e_tot) .≈
+                enthalpy.(param_set, ts) .+ e_kin .+ e_pot,
             )
             @test all(
                 moist_static_energy.(param_set, ts, e_pot) .≈
-                specific_enthalpy.(param_set, ts) .+ e_pot,
+                enthalpy.(param_set, ts) .+ e_pot,
             )
             @test all(
                 moist_static_energy.(param_set, ts, e_pot) .≈
-                total_specific_enthalpy.(param_set, ts, e_tot) .- e_kin,
+                total_enthalpy.(param_set, ts, e_tot) .- e_kin,
             )
             @test all(
                 virtual_dry_static_energy.(param_set, ts, e_pot) .≈

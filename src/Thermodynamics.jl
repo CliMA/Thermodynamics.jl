@@ -52,6 +52,8 @@ import .Parameters
 const TP = Parameters
 const APS = TP.AbstractThermodynamicsParameters
 
+include("ThermodynamicTypes.jl")
+
 # For printing literal strings on the gpu
 include("printing.jl")
 
@@ -67,7 +69,10 @@ include("printing.jl")
 @inline print_warning() = false
 
 # Default phase partition for dry air
-@inline q_pt_0(::APS{FT}) where {FT} = PhasePartition(FT(0), FT(0), FT(0))
+@inline function q_pt_0(ps::APS)
+    FT = eltype(ps)
+    return PhasePartition(FT(0), FT(0), FT(0))
+end
 
 @inline solution_type() = RS.CompactSolution()
 include("DataCollection.jl")
@@ -78,8 +83,8 @@ include("air_states.jl")
 
 include("air_properties.jl")
 include("air_phase_partition.jl")
-include("air_energies.jl")
 include("air_humidities.jl")
+include("air_energies.jl")
 include("air_temperatures.jl")
 include("air_pressure_and_density.jl")
 include("air_saturation_functions.jl")

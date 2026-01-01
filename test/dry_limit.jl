@@ -69,7 +69,7 @@ This file contains tests for behavior when approaching dry air conditions.
             (liquid_ice_pottemp, ()),
             (dry_pottemp, ()),
             (virtual_pottemp, ()),
-            (specific_entropy, ()),
+            (entropy, ()),
             (liquid_ice_pottemp_sat, ()),
             (exner, ()),
         )
@@ -95,14 +95,6 @@ This file contains tests for behavior when approaching dry air conditions.
         @test all(
             saturation_vapor_pressure.(param_set, ts_eq, Liquid()) .≈
             saturation_vapor_pressure.(param_set, ts_dry, Liquid()),
-        )
-        @test all(
-            first.(gas_constants.(param_set, ts_eq)) .≈
-            first.(gas_constants.(param_set, ts_dry)),
-        )
-        @test all(
-            last.(gas_constants.(param_set, ts_eq)) .≈
-            last.(gas_constants.(param_set, ts_dry)),
         )
     end
 end

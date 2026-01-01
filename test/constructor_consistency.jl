@@ -141,7 +141,7 @@ This file contains tests for thermodynamic state constructor consistency.
 
             ts_phq = PhaseNonEquil_phq.(param_set, p, h, q_pt)
             @test all(internal_energy.(param_set, ts_phq) .≈ e_int)
-            @test all(specific_enthalpy.(param_set, ts_phq) .≈ h)
+            @test all(enthalpy.(param_set, ts_phq) .≈ h)
             @test all(compare_moisture.(param_set, ts_phq, q_pt))
             @test all(air_pressure.(param_set, ts_phq) .≈ p)
         end

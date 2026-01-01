@@ -823,20 +823,20 @@ This file contains tests for fundamental thermodynamic relations and physical la
         e_tot = FT(1000)
 
         # Test for dry air (default PhasePartition)
-        h_tot_dry = total_specific_enthalpy(param_set, e_tot, T)
+        h_tot_dry = total_enthalpy(param_set, e_tot, T)
         @test h_tot_dry ≈ e_tot + _R_d * T
 
         # Test for moist air
         q_pt = PhasePartition(FT(0.02), FT(0.005), FT(0.001))
-        h_tot_moist = total_specific_enthalpy(param_set, e_tot, T, q_pt)
+        h_tot_moist = total_enthalpy(param_set, e_tot, T, q_pt)
         R_m_moist = gas_constant_air(param_set, q_pt)
         @test h_tot_moist ≈ e_tot + R_m_moist * T
 
         # Test specific enthalpy calculations
-        h_dry = specific_enthalpy_dry(param_set, T)
-        h_vap = specific_enthalpy_vapor(param_set, T)
-        h_liq = specific_enthalpy_liquid(param_set, T)
-        h_ice = specific_enthalpy_ice(param_set, T)
+        h_dry = enthalpy_dry(param_set, T)
+        h_vap = enthalpy_vapor(param_set, T)
+        h_liq = enthalpy_liquid(param_set, T)
+        h_ice = enthalpy_ice(param_set, T)
         @test h_dry ≈ internal_energy_dry(param_set, T) + _R_d * T
         @test h_vap ≈ internal_energy_vapor(param_set, T) + _R_v * T
         @test h_liq == internal_energy_liquid(param_set, T)

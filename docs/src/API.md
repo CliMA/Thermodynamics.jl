@@ -3,6 +3,7 @@
 ```@meta
 CurrentModule = Thermodynamics
 ```
+
 ```@docs
 Thermodynamics
 ```
@@ -67,7 +68,6 @@ cv_m
 dry_pottemp
 exner
 gas_constant_air
-gas_constants
 has_condensate
 ice_specific_humidity
 internal_energy
@@ -102,22 +102,22 @@ saturation_adjustment
 saturation_excess
 saturation_vapor_pressure
 soundspeed_air
-specific_enthalpy
-specific_enthalpy_dry
-specific_enthalpy_vapor
-specific_enthalpy_liquid
-specific_enthalpy_ice
+enthalpy
+enthalpy_dry
+enthalpy_vapor
+enthalpy_liquid
+enthalpy_ice
 specific_volume
 supersaturation
 total_energy
-total_specific_enthalpy
+total_enthalpy
 total_specific_humidity
 vapor_pressure_deficit
 vapor_specific_humidity
 vol_vapor_mixing_ratio
 virtual_pottemp
 virtual_temperature
-specific_entropy
+entropy
 
 ```
 
@@ -138,6 +138,7 @@ DryAdiabaticProcess
 ```
 
 ## Temperature Profiles
+
 ```@docs
 TemperatureProfiles.IsothermalProfile
 TemperatureProfiles.TemperatureProfile

@@ -115,7 +115,7 @@ function test_type_stability_for_type(FT)
         # Basic thermodynamic properties
         @test typeof.(soundspeed_air.(param_set, ts)) == typeof.(e_int)
         @test typeof.(gas_constant_air.(param_set, ts)) == typeof.(e_int)
-        @test typeof.(specific_enthalpy.(param_set, ts)) == typeof.(e_int)
+        @test typeof.(enthalpy.(param_set, ts)) == typeof.(e_int)
         @test typeof.(vapor_specific_humidity.(param_set, ts)) == typeof.(e_int)
         @test typeof.(relative_humidity.(param_set, ts)) == typeof.(e_int)
         @test typeof.(air_pressure.(param_set, ts)) == typeof.(e_int)
@@ -160,11 +160,10 @@ function test_type_stability_for_type(FT)
 
         # Miscellaneous functions
         @test typeof.(specific_volume.(param_set, ts)) == typeof.(e_int)
-        @test typeof.(specific_entropy.(param_set, ts)) == typeof.(e_int)
-        @test eltype.(gas_constants.(param_set, ts)) == typeof.(e_int)
+        @test typeof.(entropy.(param_set, ts)) == typeof.(e_int)
 
         # Energy functions requiring additional arguments
-        @test typeof.(total_specific_enthalpy.(param_set, ts, e_tot)) ==
+        @test typeof.(total_enthalpy.(param_set, ts, e_tot)) ==
               typeof.(e_int)
         @test typeof.(moist_static_energy.(param_set, ts, e_pot)) ==
               typeof.(e_int)

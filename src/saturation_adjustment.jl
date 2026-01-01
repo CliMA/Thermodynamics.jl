@@ -164,7 +164,7 @@ Computes the saturation equilibrium temperature given pressure `p`, specific ent
 and total specific humidity `q_tot`.
 
 This function finds the temperature `T` that satisfies the root equation:
-`h - specific_enthalpy_sat(T, ρ(T, p), q_tot) = 0`.
+`h - enthalpy_sat(T, ρ(T, p), q_tot) = 0`.
 
 See also [`saturation_adjustment`](@ref).
 """
@@ -181,7 +181,7 @@ See also [`saturation_adjustment`](@ref).
 ) where {sat_adjust_method, phase_type <: PhaseEquil}
     # Define how to compute saturated enthalpy given p
     @inline h_sat_given_p(T, param_set, p, q_tot, phase_type) =
-        specific_enthalpy_sat(
+        enthalpy_sat(
             param_set,
             T,
             air_density(param_set, T, p, PhasePartition(q_tot)),
@@ -299,7 +299,7 @@ It uses the `SecantMethod`.
 See also [`saturation_adjustment`](@ref).
 """
 @inline function saturation_adjustment_given_ρθq(
-    param_set::APS{FT},
+    param_set::APS,
     ρ,
     θ_liq_ice,
     q_tot,
@@ -307,7 +307,8 @@ See also [`saturation_adjustment`](@ref).
     maxiter::Int,
     tol::RS.AbstractTolerance,
     T_guess = nothing,
-) where {FT, phase_type <: PhaseEquil}
+) where {phase_type <: PhaseEquil}
+    FT = eltype(param_set)
     # Define the specific functions for this saturation adjustment method
     @inline T_1_func(q_pt) =
         air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q_pt)
@@ -645,23 +646,18 @@ Note that the `e_int` argument is a placeholder for interface consistency
 and is not used.
 """
 @inline function ∂e_int_∂T(
-    param_set::APS{FT},
+    param_set::APS,
     T,
     e_int,
     ρ,
     q_tot,
     ::Type{phase_type},
-    λ = liquid_fraction(param_set, T, phase_type),
-    p_vap_sat = saturation_vapor_pressure(
-        param_set,
-        phase_type,
-        T,
-        PhasePartition(FT(0)),
-        λ,
-    ),
+    λ = liquid_fraction(param_set, T),
+    p_vap_sat = saturation_vapor_pressure(param_set, T),
     q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ),
     cvm = cv_m(param_set, q),
-) where {FT, phase_type <: PhaseEquil}
+) where {phase_type <: PhaseEquil}
+    FT = eltype(param_set)
     T_0 = TP.T_0(param_set)
     cv_v = TP.cv_v(param_set)
     cv_l = TP.cv_l(param_set)
@@ -694,20 +690,15 @@ temperature at saturation, for use in Newton's method. It computes all necessary
 intermediate variables.
 """
 @inline function ∂e_int_∂T_sat(
-    param_set::APS{FT},
+    param_set::APS,
     T,
     ρ,
     q_tot,
     ::Type{phase_type},
-) where {FT, phase_type <: PhaseEquil}
-    λ = liquid_fraction(param_set, T, phase_type)
-    p_vap_sat = saturation_vapor_pressure(
-        param_set,
-        phase_type,
-        T,
-        PhasePartition(FT(0)),
-        λ,
-    )
+) where {phase_type <: PhaseEquil}
+    FT = eltype(param_set)
+    λ = liquid_fraction(param_set, T)
+    p_vap_sat = saturation_vapor_pressure(param_set, T)
     q = PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
     cvm = cv_m(param_set, q)
     e_int_sat = internal_energy_sat(param_set, T, ρ, q_tot, phase_type)
