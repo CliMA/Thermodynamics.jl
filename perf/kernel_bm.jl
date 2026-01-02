@@ -70,8 +70,6 @@ parameter_set(::Type{Float32}) = param_set_Float32
         s += TD.saturation_vapor_pressure(param_set, ts, TD.Liquid())
         # s += = TD.q_vap_saturation_generic(param_set, ts)
         s += TD.q_vap_saturation(param_set, ts)
-        s += TD.q_vap_saturation_liquid(param_set, ts)
-        s += TD.q_vap_saturation_ice(param_set, ts)
         s += TD.saturation_excess(param_set, ts)
         s += TD.supersaturation(param_set, ts, TD.Liquid())
         s += TD.liquid_fraction(param_set, ts)
@@ -93,7 +91,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         s += TD.total_enthalpy(param_set, ts, FT(0))
         s += TD.moist_static_energy(param_set, ts, FT(0))
         s += TD.entropy(param_set, ts)
-        s += TD.saturated(param_set, ts)
+
         dst[i] = s
 
     end
@@ -141,8 +139,6 @@ function test_thermo_bc_kernel(
     s += TD.saturation_vapor_pressure(param_set, ts, TD.Liquid())
     # s += = TD.q_vap_saturation_generic(param_set, ts)
     s += TD.q_vap_saturation(param_set, ts)
-    s += TD.q_vap_saturation_liquid(param_set, ts)
-    s += TD.q_vap_saturation_ice(param_set, ts)
     s += TD.saturation_excess(param_set, ts)
     s += TD.supersaturation(param_set, ts, TD.Liquid())
     s += TD.liquid_fraction(param_set, ts)
@@ -164,7 +160,7 @@ function test_thermo_bc_kernel(
     s += TD.total_enthalpy(param_set, ts, FT(0))
     s += TD.moist_static_energy(param_set, ts, FT(0))
     s += TD.entropy(param_set, ts)
-    s += TD.saturated(param_set, ts)
+
     return s
 end
 

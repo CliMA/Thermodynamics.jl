@@ -8,6 +8,26 @@ export PhaseDry, PhaseEquil, PhaseNonEquil
 
 export Liquid, Ice, Phase
 
+export PhaseDry_ρe,
+    PhaseDry_pT,
+    PhaseDry_pe,
+    PhaseDry_ph,
+    PhaseDry_ρθ,
+    PhaseDry_pθ,
+    PhaseDry_ρT,
+    PhaseDry_ρp
+
+export PhaseEquil_ρeq,
+    PhaseEquil_ρθq,
+    PhaseEquil_ρTq,
+    PhaseEquil_pTq,
+    PhaseEquil_peq,
+    PhaseEquil_phq,
+    PhaseEquil_ρpq,
+    PhaseEquil_pθq
+
+export PhaseNonEquil_ρTq, PhaseNonEquil_ρθq, PhaseNonEquil_peq, PhaseNonEquil_phq, PhaseNonEquil_pTq, PhaseNonEquil_pθq
+
 """
     ThermodynamicState{FT}
 

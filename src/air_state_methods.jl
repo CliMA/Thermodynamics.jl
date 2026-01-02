@@ -1,5 +1,12 @@
 # This file contains all methods that take a thermodynamic state (ts) as input
 
+export specific_volume
+export total_specific_humidity
+export liquid_specific_humidity
+export ice_specific_humidity
+export mixing_ratios
+export saturated
+
 """
     gas_constant_air(param_set, ts::ThermodynamicState)
 
@@ -431,6 +438,9 @@ The partial pressure of water vapor, given a thermodynamic state `ts`.
     PhasePartition(param_set, ts),
 )
 
+
+
+
 @inline partial_pressure_vapor(
     param_set::APS,
     ts::AbstractPhaseDry{FT},
@@ -511,29 +521,26 @@ The saturation specific humidity, given a thermodynamic state `ts`.
     return q_vap_saturation(param_set, T, ρ, q.liq, q.ice)
 end
 
-"""
-    q_vap_saturation_liquid(param_set, ts::ThermodynamicState)
-
-The saturation specific humidity over liquid, given a thermodynamic state `ts`.
-"""
-@inline function q_vap_saturation_liquid(param_set::APS, ts::ThermodynamicState)
-    T = air_temperature(param_set, ts)
-    ρ = air_density(param_set, ts)
-    p_v_sat = saturation_vapor_pressure(param_set, T, Liquid())
-    return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
+@inline function q_vap_saturation(
+    param_set::APS,
+    T,
+    ρ,
+    ::Type{phase_type},
+) where {phase_type <: ThermodynamicState}
+    return q_vap_saturation(param_set, T, ρ)
 end
 
-"""
-    q_vap_saturation_ice(param_set, ts::ThermodynamicState)
-
-The saturation specific humidity over ice, given a thermodynamic state `ts`.
-"""
-@inline function q_vap_saturation_ice(param_set::APS, ts::ThermodynamicState)
-    T = air_temperature(param_set, ts)
-    ρ = air_density(param_set, ts)
-    p_v_sat = saturation_vapor_pressure(param_set, T, Ice())
-    return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
+@inline function q_vap_saturation_from_pressure(
+    param_set::APS,
+    q_tot,
+    p,
+    T,
+    ::Type{phase_type},
+) where {phase_type <: ThermodynamicState}
+    return q_vap_saturation_from_pressure(param_set, q_tot, p, T)
 end
+
+
 
 """
     saturation_excess(param_set, ts::ThermodynamicState)
@@ -564,13 +571,14 @@ The supersaturation (pv/pv_sat -1) over water or ice, given a thermodynamic stat
     )
 
 """
-    saturated(param_set::APS, ts::ThermodynamicState)
+    saturated(param_set, ts::ThermodynamicState)
 
-Boolean indicating if thermodynamic state is saturated.
+Checks if the thermodynamic state `ts` is saturated or supersaturated.
 """
 @inline function saturated(param_set::APS, ts::ThermodynamicState)
-    RH = relative_humidity(param_set, ts)
-    return RH ≈ 1 || RH > 1
+    FT = eltype(param_set)
+    return supersaturation(param_set, ts, Liquid()) >= -sqrt(eps(FT)) ||
+           supersaturation(param_set, ts, Ice()) >= -sqrt(eps(FT))
 end
 
 """

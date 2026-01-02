@@ -91,13 +91,12 @@ vapor_static_energy
 virtual_dry_static_energy
 q_vap_from_RH_liquid
 q_vap_saturation
-q_vap_saturation_liquid
-q_vap_saturation_ice
+
 q_vap_from_p_vap
 partial_pressure_vapor
 partial_pressure_dry
 relative_humidity
-saturated
+
 saturation_adjustment
 saturation_excess
 saturation_vapor_pressure

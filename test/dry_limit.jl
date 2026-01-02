@@ -62,8 +62,7 @@ This file contains tests for behavior when approaching dry air conditions.
             (latent_heat_sublim, ()),
             (latent_heat_fusion, ()),
             (q_vap_saturation, ()),
-            (q_vap_saturation_liquid, ()),
-            (q_vap_saturation_ice, ()),
+
             (saturation_excess, ()),
             (liquid_fraction, ()),
             (liquid_ice_pottemp, ()),

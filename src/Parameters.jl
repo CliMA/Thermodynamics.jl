@@ -46,7 +46,6 @@ Base.@kwdef struct ThermodynamicsParameters{FT} <:
     entropy_reference_temperature::FT
     entropy_dry_air::FT
     entropy_water_vapor::FT
-    gas_constant::FT
     molmass_dryair::FT
     molmass_water::FT
     T_surf_ref::FT

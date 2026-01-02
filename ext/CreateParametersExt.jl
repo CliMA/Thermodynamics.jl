@@ -32,7 +32,6 @@ function ThermodynamicsParameters(toml_dict::CP.ParamDict{FT}) where {FT}
         :latent_heat_vaporization_at_reference => :LH_v0,
         :temperature_saturation_adjustment_min => :T_min,
         :temperature_saturation_adjustment_init_min => :T_init_min,
-        :universal_gas_constant => :gas_constant,
         :temperature_surface_reference => :T_surf_ref,
         :gravitational_acceleration => :grav,
         :temperature_homogenous_nucleation => :T_icenuc,

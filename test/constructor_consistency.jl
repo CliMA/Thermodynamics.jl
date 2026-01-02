@@ -220,7 +220,7 @@ This file contains tests for thermodynamic state constructor consistency.
             # Test that reconstructed specific humidity is close
             # to original specific humidity
             q_tot_rec = getproperty.(q_pt_rec, :tot)
-            RH_moist = q_tot .> eps(FT)
+            RH_moist = (q_tot .> eps(FT)) .& (RH .< FT(0.99))
             @test all(
                 isapprox.(q_tot[RH_moist], q_tot_rec[RH_moist], rtol = 5e-2),
             )

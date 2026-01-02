@@ -143,8 +143,7 @@ function test_type_stability_for_type(FT)
 
         # Saturation functions
         @test typeof.(q_vap_saturation.(param_set, ts)) == typeof.(e_int)
-        @test typeof.(q_vap_saturation_liquid.(param_set, ts)) == typeof.(e_int)
-        @test typeof.(q_vap_saturation_ice.(param_set, ts)) == typeof.(e_int)
+
         @test typeof.(saturation_excess.(param_set, ts)) == typeof.(e_int)
         @test typeof.(liquid_fraction.(param_set, ts)) == typeof.(e_int)
         @test typeof.(supersaturation.(param_set, ts, Ice())) == typeof.(e_int)

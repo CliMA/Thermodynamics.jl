@@ -7,7 +7,8 @@ export cp_m, cv_m, gas_constant_air
 export latent_heat_vapor
 export latent_heat_sublim
 export latent_heat_fusion
-export latent_heat_liq_ice
+export latent_heat_fusion
+export humidity_weighted_latent_heat
 
 # Speed of sound
 export soundspeed_air
@@ -148,6 +149,7 @@ Because the specific heats are assumed constant, the latent heats are linear fun
     T_0 = TP.T_0(param_set)
     return LH_0 + Δcp * (T - T_0)
 end
+
 latent_heat_generic(param_set, T, LH_0, Δcp) =
     latent_heat_generic(param_set, promote(T, LH_0, Δcp)...)
 
@@ -166,6 +168,23 @@ Because the specific heats are assumed constant, the latent heats are linear fun
     L_v = latent_heat_vapor(param_set, T)
     L_s = latent_heat_sublim(param_set, T)
     return λ * L_v + (1 - λ) * L_s
+end
+
+"""
+    humidity_weighted_latent_heat(param_set, q_liq=0, q_ice=0)
+
+Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference temperature 
+`T_0`, given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `q_liq` liquid specific humidity
+ - `q_ice` ice specific humidity
+
+If `q_liq` and `q_ice` are not provided, `humidity_weighted_latent_heat` is zero.
+"""
+@inline function humidity_weighted_latent_heat(param_set::APS, q_liq = 0, q_ice = 0)
+    LH_v0 = TP.LH_v0(param_set)
+    LH_s0 = TP.LH_s0(param_set)
+    return LH_v0 * q_liq + LH_s0 * q_ice
 end
 
 """

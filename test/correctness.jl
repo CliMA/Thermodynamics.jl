@@ -199,15 +199,25 @@ This file contains tests for fundamental thermodynamic relations and physical la
             air_temperature(param_set, ts),
             ρ,
             Liquid(),
-        ) ≈ q_vap_saturation_liquid(param_set, ts)
+        ) ≈ q_vap_saturation(
+            param_set,
+            air_temperature(param_set, ts),
+            ρ,
+            Liquid(),
+        )
         @test q_vap_saturation_generic(
             param_set,
             air_temperature(param_set, ts),
             ρ,
             Ice(),
-        ) ≈ q_vap_saturation_ice(param_set, ts)
-        @test q_vap_saturation_ice(param_set, ts) <=
-              q_vap_saturation_liquid(param_set, ts)
+        ) ≈ q_vap_saturation(
+            param_set,
+            air_temperature(param_set, ts),
+            ρ,
+            Ice(),
+        )
+        @test q_vap_saturation(param_set, air_temperature(param_set, ts), ρ, Ice()) <=
+              q_vap_saturation(param_set, air_temperature(param_set, ts), ρ, Liquid())
 
         # Test saturation excess calculations
         @test saturation_excess(

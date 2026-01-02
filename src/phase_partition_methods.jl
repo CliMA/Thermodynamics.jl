@@ -3,6 +3,57 @@
 export PhasePartition_equil
 export liquid_ice_pottemp_sat
 export air_temperature_given_ρθq_nonlinear
+export liquid_specific_humidity
+export ice_specific_humidity
+export mixing_ratios
+export internal_energy_sat
+export temperature_and_humidity_given_TᵥρRH
+
+"""
+    temperature_and_humidity_given_TᵥρRH(param_set, T_virt, ρ, RH, phase_type, maxiter, tol)
+
+Compute temperature and total specific humidity given virtual temperature, density, and relative humidity.
+"""
+function temperature_and_humidity_given_TᵥρRH(
+    param_set::APS,
+    T_virt,
+    ρ,
+    RH,
+    ::Type{phase_type},
+    maxiter=10,
+    tol=nothing,
+) where {phase_type}
+    FT = eltype(param_set)
+    _tol = isnothing(tol) ? RS.SolutionTolerance(sqrt(eps(FT))) : tol
+    
+    function residual(T)
+        p_sat = saturation_vapor_pressure(param_set, T, FT(0), FT(0))
+        q_sat = q_vap_from_p_vap(param_set, T, ρ, p_sat)
+        q_vap = RH * q_sat
+        # Assume q_tot = q_vap (no condensate)
+        Tv_calc = virtual_temperature(param_set, T, q_vap, FT(0), FT(0))
+        return Tv_calc - T_virt
+    end
+
+    FT = eltype(param_set)
+    sol = RS.find_zero(
+        residual,
+        RS.SecantMethod,
+        T_virt,
+        T_virt - FT(1),
+        RS.CompactSolution(),
+        _tol,
+        maxiter,
+    )
+    if !sol.converged
+        error("Converge failed in temperature_and_humidity_given_TᵥρRH")
+    end
+    T = sol.root
+    p_sat = saturation_vapor_pressure(param_set, T, FT(0), FT(0))
+    q_sat = q_vap_from_p_vap(param_set, T, ρ, p_sat)
+    q_tot = RH * q_sat
+    return T, PhasePartition(q_tot)
+end
 
 """
     has_condensate(q::PhasePartition{FT})

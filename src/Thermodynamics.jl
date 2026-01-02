@@ -82,7 +82,7 @@ include("aux_functions.jl")
 include("air_states.jl")
 
 include("air_properties.jl")
-include("air_phase_partition.jl")
+include("phase_partition_methods.jl")
 include("air_humidities.jl")
 include("air_energies.jl")
 include("air_temperatures.jl")

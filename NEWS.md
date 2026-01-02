@@ -23,6 +23,7 @@ main
 
 - Renamed `specific_enthalpy*` to `enthalpy*`.
 - Renamed `specific_entropy*` to `entropy*`.
+- Renamed `latent_heat_liq_ice` to `humidity_weighted_latent_heat`.
 
 v0.16.0
 --------
