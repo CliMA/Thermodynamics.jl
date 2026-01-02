@@ -76,7 +76,7 @@ end
 """
     air_temperature_given_ρp(param_set, p, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The air temperature, where
+The air temperature, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
@@ -178,6 +178,7 @@ end
     virtual_pottemp(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
 The virtual potential temperature, given
+
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
@@ -185,7 +186,7 @@ The virtual potential temperature, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is the dry-air potential temperature.
+If the specific humidities are not given, the result is for dry air.
 """
 @inline function virtual_pottemp(
     param_set::APS,
@@ -212,7 +213,7 @@ The liquid-ice potential temperature, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is the dry-air potential temperature.
+If the specific humidities are not given, the result is for dry air.
 """
 @inline function liquid_ice_pottemp(
     param_set::APS,
@@ -243,7 +244,7 @@ The liquid-ice potential temperature, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is the dry-air potential temperature.
+If the specific humidities are not given, the result is for dry air.
 """
 @inline function liquid_ice_pottemp_given_pressure(
     param_set::APS,
@@ -317,7 +318,7 @@ If the specific humidities are not given, the results are for dry air.
     q_liq = 0,
     q_ice = 0,
 )
-
+    # Second-order Taylor expansion around unsaturated temperature
     p0 = TP.p_ref_theta(param_set)
     cvm = cv_m(param_set, q_tot, q_liq, q_ice)
     cpm = cp_m(param_set, q_tot, q_liq, q_ice)

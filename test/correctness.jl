@@ -175,16 +175,16 @@ This file contains tests for fundamental thermodynamic relations and physical la
         ) == ρ_v_triple / ρ
 
         # Test generic saturation specific humidity functions for liquid and ice
-        @test q_vap_saturation_generic(param_set, _T_triple, ρ, Liquid()) ==
+        @test q_vap_saturation(param_set, _T_triple, ρ, Liquid()) ==
               ρ_v_triple / ρ
-        @test q_vap_saturation_generic(param_set, _T_triple, ρ, Ice()) ==
+        @test q_vap_saturation(param_set, _T_triple, ρ, Ice()) ==
               ρ_v_triple / ρ
-        @test q_vap_saturation_generic(
+        @test q_vap_saturation(
             param_set,
             _T_triple - 20,
             ρ,
             Liquid(),
-        ) >= q_vap_saturation_generic(param_set, _T_triple - 20, ρ, Ice())
+        ) >= q_vap_saturation(param_set, _T_triple - 20, ρ, Ice())
 
         # Test saturation specific humidity wrapper functions with thermodynamic state
         _T_0 = TP.T_0(param_set)
@@ -194,7 +194,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
         e_int = internal_energy(param_set, T, q_pt)
 
         ts = PhaseNonEquil(param_set, e_int, ρ, q_pt)
-        @test q_vap_saturation_generic(
+        @test q_vap_saturation(
             param_set,
             air_temperature(param_set, ts),
             ρ,
@@ -205,7 +205,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
             ρ,
             Liquid(),
         )
-        @test q_vap_saturation_generic(
+        @test q_vap_saturation(
             param_set,
             air_temperature(param_set, ts),
             ρ,
@@ -359,7 +359,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
         test_cases = [(FT(300), Liquid(), "liquid"), (FT(270), Ice(), "ice")]
 
         for (T_test, phase_type, phase_name) in test_cases
-            q_sat = q_vap_saturation_generic(param_set, T_test, ρ, phase_type)
+            q_sat = q_vap_saturation(param_set, T_test, ρ, phase_type)
             q_sat_partition = PhasePartition(q_sat)  # All vapor, no liquid/ice
 
             test_partial_pressures(
@@ -372,7 +372,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
 
         # Test 4: Subsaturated air (RH < 1)
         T = FT(300)
-        q_sub = 0.5 * q_vap_saturation_generic(param_set, T, ρ, Liquid())
+        q_sub = 0.5 * q_vap_saturation(param_set, T, ρ, Liquid())
         q_sub_partition = PhasePartition(q_sub)  # Small amount of vapor
         p_sat_liq = saturation_vapor_pressure(param_set, T, Liquid())
         test_partial_pressures(T, ρ, q_sub_partition, "subsaturated air")

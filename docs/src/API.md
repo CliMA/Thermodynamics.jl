@@ -124,7 +124,6 @@ entropy
 
 ```@docs
 shum_to_mixing_ratio
-q_vap_saturation_generic
 q_vap_saturation_from_pressure
 PhasePartition_equil
 PhasePartition_equil_given_p

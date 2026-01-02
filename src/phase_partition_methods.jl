@@ -9,6 +9,12 @@ export mixing_ratios
 export internal_energy_sat
 export temperature_and_humidity_given_TᵥρRH
 
+# Default phase partition for dry air
+@inline function q_pt_0(ps::APS)
+    FT = eltype(ps)
+    return PhasePartition(FT(0), FT(0), FT(0))
+end
+
 """
     temperature_and_humidity_given_TᵥρRH(param_set, T_virt, ρ, RH, phase_type, maxiter, tol)
 
@@ -311,7 +317,7 @@ The relative humidity (clipped between 0 and 1), given
     ::Type{phase_type},
     q::PhasePartition,
 ) where {phase_type <: ThermodynamicState}
-    return relative_humidity(param_set, T, p, phase_type, q.tot, q.liq, q.ice)
+    return relative_humidity(param_set, T, p, q.tot, q.liq, q.ice)
 end
 
 # -------------------------------------------------------------------------

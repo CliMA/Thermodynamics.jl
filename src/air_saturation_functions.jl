@@ -1,6 +1,5 @@
 export liquid_fraction
 export saturation_vapor_pressure
-export q_vap_saturation_generic
 export q_vap_saturation
 export q_vap_saturation_from_pressure
 export saturation_excess
@@ -21,8 +20,8 @@ zero, a sharp temperature dependent partitioning is used (linear ramp from 0 to
 freezing and one above freezing.
 
 If `q_liq` and `q_ice` are not provided, the liquid fraction is computed from
-temperature using a power law interpolation between `T_icenuc` and `T_freeze`
-(Kaul et al., 2015).
+temperature using a power law interpolation between `T_icenuc` and `T_freeze`,
+following Kaul et al. (2015), doi: [10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
 """
 @inline function liquid_fraction(
     param_set::APS,
@@ -102,8 +101,8 @@ end
 """
     saturation_vapor_pressure_calc(param_set, T, LH_0, Δcp)
 
-Computes the saturation vapor pressure using the Rankine-Kirchhoff approximation, 
-given:
+Internal function. Computes the saturation vapor pressure using the Rankine-Kirchhoff
+approximation, given:
 
  - `param_set` an `AbstractParameterSet`
  - `T` temperature
@@ -172,8 +171,8 @@ end
 """
     saturation_vapor_pressure_mixture(param_set, T, λ)
 
-Compute the saturation vapor pressure over a mixture of liquid and ice,
-given the temperature `T` and liquid fraction `λ`.
+Internal function. Compute the saturation vapor pressure over a mixture of liquid
+and/or ice, given the temperature `T` and liquid fraction `λ`.
 
 The computation uses a weighted mean of the temperature-dependent latent heats of
 vaporization and sublimation, weighted by the liquid fraction, following Pressel 
@@ -187,8 +186,8 @@ et al. (JAMES, 2015).
     cp_i = TP.cp_i(param_set)
 
     # Effective latent heat at T_0 and effective difference in isobaric specific
-    # heats of the mixture, which combined yield the effective (temperature-dependent) 
-    #latent heat
+    # heats of the mixture, which combined yield the effective (temperature-dependent)
+    # latent heat
     LH_0 = λ * LH_v0 + (1 - λ) * LH_s0
     Δcp = λ * (cp_v - cp_l) + (1 - λ) * (cp_v - cp_i)
 
@@ -253,29 +252,6 @@ The saturation specific humidity, given
     T,
     ρ,
     phase::Phase,
-)
-    p_v_sat = saturation_vapor_pressure(param_set, T, phase)
-    return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
-end
-
-"""
-    q_vap_saturation_generic(param_set, T, ρ[, phase=Liquid()])
-
-The saturation specific humidity over a plane surface of condensate, given
-    - `param_set`: an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
-    - `T`: temperature
-    - `ρ`: air density
-    - (optional) `Liquid()`: indicating condensate is liquid (default)
-    - (optional) `Ice()`: indicating condensate is ice
-
-The saturation specific humidity is computed as `q_v^* = p_v^*(T) / (ρ * R_v * T)`,
-where `p_v^*` is the saturation vapor pressure.
-"""
-@inline function q_vap_saturation_generic(
-    param_set::APS,
-    T,
-    ρ,
-    phase::Phase = Liquid(),
 )
     p_v_sat = saturation_vapor_pressure(param_set, T, phase)
     return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
@@ -452,7 +428,7 @@ The saturation excess given the saturation vapor pressure `p_vap_sat`:
 - `q_tot`: Total specific humidity
 - `p_vap_sat`: Saturation vapor pressure
 
-The saturation excess is the difference between the total specific humidity `q.tot`
+The saturation excess is the difference between the total specific humidity `q_tot`
 and the saturation specific humidity, and it is defined to be nonzero only if
 this difference is positive.
 """

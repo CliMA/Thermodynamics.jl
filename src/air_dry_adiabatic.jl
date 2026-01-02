@@ -1,8 +1,7 @@
 # Formulas assuming dry (unsaturated) adiabatic (i.e. isentropic) processes
 
 export DryAdiabaticProcess
-
-export air_pressure, air_temperature, air_pressure_given_θ
+export air_pressure_given_θ
 
 """
     DryAdiabaticProcess
@@ -21,8 +20,8 @@ The air pressure for an isentropic process, given
  - `Φ` gravitational potential
 
 The pressure is computed using the hydrostatic balance and the definition of potential temperature
-for an isentropic process: `p = p₀ * (1 - Φ/(θ * cₚ))^(cₚ/R)`, where `p₀` is the reference pressure,
-`cₚ` is the isobaric specific heat capacity of dry air, and `R` is the gas constant of dry air.
+for an isentropic process: `p = p₀ * (1 - Φ/(θ * cp_d))^(1/κ_d)`, where `p₀` is the reference pressure,
+`cp_d` is the isobaric specific heat capacity of dry air, and `κ_d = R_d/cp_d`.
 """
 @inline function air_pressure_given_θ(
     param_set::APS,
@@ -45,8 +44,8 @@ The air pressure for an isentropic process, given
  - `T∞` reference temperature
  - `p∞` reference pressure
 
-The pressure is computed using the isentropic relation: `p = p∞ * (T/T∞)^(1/κ)`,
-where `κ = R/cₚ` is the ratio of the gas constant to the isobaric specific heat capacity
+The pressure is computed using the isentropic relation: `p = p∞ * (T/T∞)^(1/κ_d)`,
+where `κ_d = R_d/cp_d` is the ratio of the gas constant to the isobaric specific heat capacity
 of dry air.
 """
 @inline function air_pressure(param_set::APS, T, T∞, p∞, ::DryAdiabaticProcess)
@@ -63,8 +62,7 @@ The air temperature, given
  - `θ` potential temperature
 
 The temperature is computed using the definition of the dry potential temperature:
-`T = θ * (p/p₀)^(R/cₚ)`, where `p₀` is the reference pressure, `R` is the gas constant of dry air,
-and `cₚ` is the isobaric specific heat capacity of dry air.
+`T = θ * (p/p₀)^κ_d`, where `p₀` is the reference pressure and `κ_d = R_d/cp_d`.
 """
 @inline function air_temperature(param_set::APS, p, θ, ::DryAdiabaticProcess)
     R_d = TP.R_d(param_set)

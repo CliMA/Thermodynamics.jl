@@ -1,3 +1,8 @@
+"""
+    Parameters
+
+Submodule defining thermodynamic parameter types and accessor functions.
+"""
 module Parameters
 
 export ThermodynamicsParameters
@@ -26,32 +31,37 @@ param_set = TP.ThermodynamicsParameters(toml_dict)
 """
 Base.@kwdef struct ThermodynamicsParameters{FT} <:
                    AbstractThermodynamicsParameters{FT}
+    # Reference temperatures
     T_0::FT
+    T_triple::FT
+    T_freeze::FT
+    T_icenuc::FT
+    T_min::FT
+    T_max::FT
+    T_init_min::FT
+    T_surf_ref::FT
+    T_min_ref::FT
+    entropy_reference_temperature::FT
+    # Reference pressures
     MSLP::FT
     p_ref_theta::FT
+    press_triple::FT
+    # Gas constants
     R_d::FT
     R_v::FT
+    # Isobaric specific heat capacities
     cp_d::FT
     cp_v::FT
     cp_l::FT
     cp_i::FT
+    # Latent heats at reference temperature
     LH_v0::FT
     LH_s0::FT
-    press_triple::FT
-    T_triple::FT
-    T_freeze::FT
-    T_min::FT
-    T_max::FT
-    T_init_min::FT
-    entropy_reference_temperature::FT
+    # Entropy reference values
     entropy_dry_air::FT
     entropy_water_vapor::FT
-    molmass_dryair::FT
-    molmass_water::FT
-    T_surf_ref::FT
-    T_min_ref::FT
+    # Other
     grav::FT
-    T_icenuc::FT
     pow_icenuc::FT
 end
 
@@ -64,13 +74,32 @@ for fn in fieldnames(ThermodynamicsParameters)
 end
 
 # Derived parameters
+
+"Ratio of gas constants `R_v / R_d`."
 @inline Rv_over_Rd(ps::ATP) = R_v(ps) / R_d(ps)
-@inline LH_f0(ps::ATP) = ps.LH_s0 - ps.LH_v0
-@inline e_int_v0(ps::ATP) = ps.LH_v0 - R_v(ps) * ps.T_0
+
+"Latent heat of fusion at reference temperature `T_0`."
+@inline LH_f0(ps::ATP) = LH_s0(ps) - LH_v0(ps)
+
+"Internal energy of vaporization at reference temperature `T_0`."
+@inline e_int_v0(ps::ATP) = LH_v0(ps) - R_v(ps) * T_0(ps)
+
+"Internal energy of fusion at reference temperature `T_0`."
 @inline e_int_i0(ps::ATP) = LH_f0(ps)
+
+"Ratio of dry air gas constant to isobaric specific heat `R_d / cp_d`."
 @inline kappa_d(ps::ATP) = R_d(ps) / cp_d(ps)
+
+"Isochoric specific heat capacity of dry air."
 @inline cv_d(ps::ATP) = cp_d(ps) - R_d(ps)
-@inline cv_v(ps::ATP) = ps.cp_v - R_v(ps)
-@inline cv_l(ps::ATP) = ps.cp_l
-@inline cv_i(ps::ATP) = ps.cp_i
+
+"Isochoric specific heat capacity of water vapor."
+@inline cv_v(ps::ATP) = cp_v(ps) - R_v(ps)
+
+"Isochoric specific heat capacity of liquid water."
+@inline cv_l(ps::ATP) = cp_l(ps)
+
+"Isochoric specific heat capacity of ice."
+@inline cv_i(ps::ATP) = cp_i(ps)
+
 end

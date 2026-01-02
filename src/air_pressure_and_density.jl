@@ -57,7 +57,7 @@ end
 """
     exner(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The Exner function, given
+The Exner function `Π = (p/p₀)^(R_m/cp_m)`, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -67,6 +67,7 @@ The Exner function, given
  - `q_ice` ice specific humidity
 
 If the specific humidities are not given, the result is for dry air.
+The pressure is computed internally from the equation of state.
 """
 @inline function exner(param_set::APS, T, ρ, q_tot = 0, q_liq = 0, q_ice = 0)
     p = air_pressure(param_set, T, ρ, q_tot, q_liq, q_ice)
@@ -76,7 +77,7 @@ end
 """
     exner_given_pressure(param_set, p, q_tot=0, q_liq=0, q_ice=0)
 
-The Exner function, given
+The Exner function `Π = (p/p₀)^(R_m/cp_m)`, where `p₀` is the reference pressure, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
@@ -94,10 +95,8 @@ If the specific humidities are not given, the result is for dry air.
     q_ice = 0,
 )
     p0 = TP.p_ref_theta(param_set)
-    # gas constant and isobaric specific heat of moist air
     R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     cpm = cp_m(param_set, q_tot, q_liq, q_ice)
 
-    # return (p / p0)^(R_m / cpm)
     return fast_power(p / p0, R_m / cpm)
 end

@@ -31,6 +31,7 @@ If the specific humidities are not given, the result is for dry air.
     q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
     return R_d * (1 - q_tot) + R_v * q_vap
 end
+
 """
     cp_m(param_set, q_tot=0, q_liq=0, q_ice=0)
 
@@ -45,7 +46,6 @@ If the specific humidities are not given, the result is for dry air.
 The specific heat capacities are assumed to be constant (calorically perfect air).
 """
 @inline function cp_m(param_set::APS, q_tot = 0, q_liq = 0, q_ice = 0)
-
     cp_d = TP.cp_d(param_set)
     cp_v = TP.cp_v(param_set)
     cp_l = TP.cp_l(param_set)
@@ -56,15 +56,16 @@ The specific heat capacities are assumed to be constant (calorically perfect air
            (cp_l - cp_v) * q_liq +
            (cp_i - cp_v) * q_ice
 end
+
 """
     cv_m(param_set, q_tot=0, q_liq=0, q_ice=0)
 
 The isochoric specific heat capacity of moist air `cv_m`, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total specific humidity of water
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
+ - `q_tot` total specific humidity
+ - `q_liq` liquid specific humidity
+ - `q_ice` ice specific humidity
 
 If the specific humidities are not given, the result is for dry air.
 The specific heat capacities are assumed to be constant (calorically perfect air).
@@ -79,7 +80,6 @@ The specific heat capacities are assumed to be constant (calorically perfect air
            (cv_l - cv_v) * q_liq +
            (cv_i - cv_v) * q_ice
 end
-
 
 """
     latent_heat_vapor(param_set, T)
@@ -135,8 +135,8 @@ end
 """
     latent_heat_generic(param_set, T, LH_0, Δcp)
 
-The specific latent heat of a generic phase transition between two phases,
-computed using Kirchhoff's law, given
+Internal function. The specific latent heat of a generic phase transition between
+two phases, computed using Kirchhoff's law, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -194,9 +194,9 @@ The speed of sound in unstratified air, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
- - `q_tot` total specific humidity of water
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
+ - `q_tot` total specific humidity
+ - `q_liq` liquid specific humidity
+ - `q_ice` ice specific humidity
 
 If the specific humidities are not given, the result is for dry air.
 """

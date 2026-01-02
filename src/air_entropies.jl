@@ -17,7 +17,9 @@ The specific entropy in thermodynamic equilibrium, given
  - `q_ice` ice specific humidity
 
 If the specific humidities are not given, the result is for dry air.
-The specific entropy is computed from equations (29)-(33) of [Pressel2015](@cite).
+
+The specific entropy is computed from equations (29)-(33) of
+Pressel et al. (2015), doi: [10.1002/2015MS000496](https://doi.org/10.1002/2015MS000496).
 """
 @inline function entropy(
     param_set::APS,
@@ -37,16 +39,16 @@ end
 """
     entropy_dry(param_set, p, T, q_tot=0, q_liq=0, q_ice=0)
 
-The dry air specific entropy, given
+The specific entropy of dry air at its partial pressure, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
+ - `p` total air pressure
  - `T` temperature
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+If the specific humidities are not given, the partial pressure equals the total pressure.
 """
 @inline function entropy_dry(
     param_set::APS,
@@ -69,10 +71,10 @@ end
 """
     entropy_vapor(param_set, p, T, q_tot=0, q_liq=0, q_ice=0)
 
-The specific entropy of water vapor, given
+The specific entropy of water vapor at its partial pressure, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
+ - `p` total air pressure
  - `T` temperature
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity

@@ -24,6 +24,9 @@ main
 - Renamed `specific_enthalpy*` to `enthalpy*`.
 - Renamed `specific_entropy*` to `entropy*`.
 - Renamed `latent_heat_liq_ice` to `humidity_weighted_latent_heat`.
+- Removed `phase_type` from `relative_humidity`.
+- Removed `q_vap_saturation_generic`. Use `q_vap_saturation` instead.
+- Removed `universal_gas_constant` (or `gas_constant`), `molar_mass_dryair` and `molar_mass_water` from thermo parameters.
 
 v0.16.0
 --------

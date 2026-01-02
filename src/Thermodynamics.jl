@@ -16,12 +16,11 @@ import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)
-_Rv_over_Rd = TP.Rv_over_Rd(param_set)
+Rv_over_Rd = TP.Rv_over_Rd(param_set)
 ```
 
 Because these parameters are widely used throughout this module,
 `param_set` is an argument for many Thermodynamics functions.
-    
 ## Saturation adjustment
 
 Saturation adjustment functions accept:
@@ -52,7 +51,7 @@ import .Parameters
 const TP = Parameters
 const APS = TP.AbstractThermodynamicsParameters
 
-include("ThermodynamicTypes.jl")
+include("PhasePartitionTypes.jl")
 
 # For printing literal strings on the gpu
 include("printing.jl")
@@ -67,12 +66,6 @@ include("printing.jl")
 # By default, we don't print warnings and don't throw errors on non-convergence.
 @inline error_on_non_convergence() = false
 @inline print_warning() = false
-
-# Default phase partition for dry air
-@inline function q_pt_0(ps::APS)
-    FT = eltype(ps)
-    return PhasePartition(FT(0), FT(0), FT(0))
-end
 
 @inline solution_type() = RS.CompactSolution()
 include("DataCollection.jl")
@@ -101,4 +94,4 @@ include("phase_partition_methods.jl")
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)
 
-end #module Thermodynamics.jl
+end # module Thermodynamics

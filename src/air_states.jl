@@ -159,7 +159,7 @@ end
 
 A condensed phase, to dispatch over
 [`saturation_vapor_pressure`](@ref) and
-[`q_vap_saturation_generic`](@ref).
+[`q_vap_saturation`](@ref).
 """
 abstract type Phase end
 
@@ -168,7 +168,7 @@ abstract type Phase end
 
 A liquid phase, to dispatch over
 [`saturation_vapor_pressure`](@ref) and
-[`q_vap_saturation_generic`](@ref).
+[`q_vap_saturation`](@ref).
 """
 struct Liquid <: Phase end
 
@@ -177,7 +177,7 @@ struct Liquid <: Phase end
 
 An ice phase, to dispatch over
 [`saturation_vapor_pressure`](@ref) and
-[`q_vap_saturation_generic`](@ref).
+[`q_vap_saturation`](@ref).
 """
 struct Ice <: Phase end
 # Constructors for thermodynamic states given various input variables

@@ -16,7 +16,7 @@ export moist_static_energy
 export vapor_static_energy
 export virtual_dry_static_energy
 
-#TODO: add internal_energy_sat
+#TODO: add internal_energy_sat, enthalpy_sat
 
 """
     internal_energy(param_set, T, q_tot=0, q_liq=0, q_ice=0)
@@ -238,7 +238,6 @@ The dry static energy, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `e_pot` gravitational potential energy per unit mass (geopotential)
-
 """
 @inline function dry_static_energy(param_set::APS, T, e_pot)
     return enthalpy_dry(param_set, T) + e_pot
@@ -247,12 +246,11 @@ end
 """
     vapor_static_energy(param_set, T, e_pot)
 
-The static energy of water vapor, `cp_v * (T - T_0) + e_pot`, given
+The static energy (sensible heat only) of water vapor, `cp_v * (T - T_0) + e_pot`, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `e_pot` gravitational potential energy per unit mass (geopotential)
-
 """
 @inline function vapor_static_energy(param_set::APS, T, e_pot)
     cp_v = TP.cp_v(param_set)

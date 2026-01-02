@@ -1,8 +1,8 @@
 
 """
-    ThermodynamicTypes
+    PhasePartitionTypes
 
-Defines all thermodynamic state types and the PhasePartition struct.
+Defines the PhasePartition struct for representing mass fractions of moist air.
 """
 
 import DocStringExtensions

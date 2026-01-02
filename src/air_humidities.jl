@@ -38,7 +38,7 @@ end
 """
     vol_vapor_mixing_ratio(param_set, q_tot=0, q_liq=0, q_ice=0)
 
-The volume mixing ratio of water vapor, given
+The molar (volume) mixing ratio of water vapor, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
@@ -134,7 +134,7 @@ end
 """
     q_vap_from_RH_liquid(param_set, p, T, RH)
 
-The water vapor specific humidity, given 
+The water vapor specific humidity, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
@@ -149,14 +149,13 @@ The water vapor specific humidity, given
 end
 
 """
-    relative_humidity(param_set, T, p, phase_type, q_tot=0, q_liq=0, q_ice=0)
+    relative_humidity(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
 The relative humidity (clipped between 0 and 1), given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `p` pressure
- - `phase_type` a thermodynamic state type
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
@@ -167,11 +166,10 @@ If the specific humidities are not given, the relative humidity is 0.
     param_set::APS,
     T,
     p,
-    ::Type{phase_type},
     q_tot = 0,
     q_liq = 0,
     q_ice = 0,
-) where {phase_type <: ThermodynamicState}
+)
     FT = eltype(param_set)
     p_vap = partial_pressure_vapor(param_set, p, q_tot, q_liq, q_ice)
     p_vap_sat = saturation_vapor_pressure(param_set, T, q_liq, q_ice)
