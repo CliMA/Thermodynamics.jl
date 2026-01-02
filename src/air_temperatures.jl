@@ -35,14 +35,14 @@ If the specific humidities are not given, the result is for dry air.
     R_d = TP.R_d(param_set)
     e_int_v0 = TP.e_int_v0(param_set)
     e_int_i0 = TP.e_int_i0(param_set)
-    _cv_m = cv_m(param_set, q_tot, q_liq, q_ice)
+    cvm = cv_m(param_set, q_tot, q_liq, q_ice)
     q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
     return T_0 +
            (
         e_int - q_vap * e_int_v0 +
         q_ice * e_int_i0 +
         (1 - q_tot) * R_d * T_0
-    ) / _cv_m
+    ) / cvm
 end
 
 """
@@ -65,12 +65,12 @@ If the specific humidities are not given, the result is for dry air.
     q_liq = 0,
     q_ice = 0,
 )
-    _cp_m = cp_m(param_set, q_tot, q_liq, q_ice)
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice)
     T_0 = TP.T_0(param_set)
     LH_v0 = TP.LH_v0(param_set)
     LH_f0 = TP.LH_f0(param_set)
     q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
-    return T_0 + (h - q_vap * LH_v0 + q_ice * LH_f0) / _cp_m
+    return T_0 + (h - q_vap * LH_v0 + q_ice * LH_f0) / cpm
 end
 
 """
@@ -156,9 +156,9 @@ The virtual temperature, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
- - `q_tot` total specific humidity of water
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
+ - `q_tot` total specific humidity
+ - `q_liq` liquid specific humidity
+ - `q_ice` ice specific humidity
 
 If the specific humidities are not given, the result is for dry air.
 """
@@ -255,9 +255,9 @@ If the specific humidities are not given, the result is the dry-air potential te
 )
     # liquid-ice potential temperature, approximating latent heats
     # of phase transitions as constants
-    _cp_m = cp_m(param_set, q_tot, q_liq, q_ice)
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice)
     return dry_pottemp_given_pressure(param_set, T, p, q_tot, q_liq, q_ice) *
-           (1 - humidity_weighted_latent_heat(param_set, q_liq, q_ice) / (_cp_m * T))
+           (1 - humidity_weighted_latent_heat(param_set, q_liq, q_ice) / (cpm * T))
 end
 
 """
@@ -289,10 +289,10 @@ If the specific humidities are not given, the `θ_liq_ice` is assumed to be the 
     q_liq = 0,
     q_ice = 0,
 )
-    _cp_m = cp_m(param_set, q_tot, q_liq, q_ice)
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice)
     return θ_liq_ice *
            exner_given_pressure(param_set, p, q_tot, q_liq, q_ice) +
-           humidity_weighted_latent_heat(param_set, q_liq, q_ice) / _cp_m
+           humidity_weighted_latent_heat(param_set, q_liq, q_ice) / cpm
 end
 
 """
@@ -319,13 +319,13 @@ If the specific humidities are not given, the results are for dry air.
 )
 
     p0 = TP.p_ref_theta(param_set)
-    _cv_m = cv_m(param_set, q_tot, q_liq, q_ice)
-    _cp_m = cp_m(param_set, q_tot, q_liq, q_ice)
-    _R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
-    κ = 1 - _cv_m / _cp_m
-    T_u = (ρ * _R_m * θ_liq_ice / p0)^(_R_m / _cv_m) * θ_liq_ice
+    cvm = cv_m(param_set, q_tot, q_liq, q_ice)
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice)
+    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
+    κ = 1 - cvm / cpm
+    T_u = (ρ * R_m * θ_liq_ice / p0)^(R_m / cvm) * θ_liq_ice
     L_q = humidity_weighted_latent_heat(param_set, q_liq, q_ice)
-    T_1 = L_q / _cv_m
-    T_2 = -κ / (2 * T_u) * (L_q / _cv_m)^2
+    T_1 = L_q / cvm
+    T_2 = -κ / (2 * T_u) * (L_q / cvm)^2
     return T_u + T_1 + T_2
 end

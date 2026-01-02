@@ -95,9 +95,9 @@ If the specific humidities are not given, the result is for dry air.
 )
     p0 = TP.p_ref_theta(param_set)
     # gas constant and isobaric specific heat of moist air
-    _R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
-    _cp_m = cp_m(param_set, q_tot, q_liq, q_ice)
+    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice)
 
-    # return (p / p0)^(_R_m / _cp_m)
-    return fast_power(p / p0, _R_m / _cp_m)
+    # return (p / p0)^(R_m / cpm)
+    return fast_power(p / p0, R_m / cpm)
 end

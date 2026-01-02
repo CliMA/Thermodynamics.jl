@@ -31,9 +31,9 @@ for an isentropic process: `p = p₀ * (1 - Φ/(θ * cₚ))^(cₚ/R)`, where `p�
     ::DryAdiabaticProcess,
 )
     p0 = TP.p_ref_theta(param_set)
-    _R_d = TP.R_d(param_set)
-    _cp_d = TP.cp_d(param_set)
-    return p0 * (1 - Φ / (θ * _cp_d))^(_cp_d / _R_d)
+    R_d = TP.R_d(param_set)
+    cp_d = TP.cp_d(param_set)
+    return p0 * (1 - Φ / (θ * cp_d))^(cp_d / R_d)
 end
 
 """
@@ -50,8 +50,8 @@ where `κ = R/cₚ` is the ratio of the gas constant to the isobaric specific he
 of dry air.
 """
 @inline function air_pressure(param_set::APS, T, T∞, p∞, ::DryAdiabaticProcess)
-    _kappa_d = TP.kappa_d(param_set)
-    return p∞ * (T / T∞)^(1 / _kappa_d)
+    kappa_d = TP.kappa_d(param_set)
+    return p∞ * (T / T∞)^(1 / kappa_d)
 end
 
 """
@@ -67,8 +67,8 @@ The temperature is computed using the definition of the dry potential temperatur
 and `cₚ` is the isobaric specific heat capacity of dry air.
 """
 @inline function air_temperature(param_set::APS, p, θ, ::DryAdiabaticProcess)
-    _R_d = TP.R_d(param_set)
-    _cp_d = TP.cp_d(param_set)
+    R_d = TP.R_d(param_set)
+    cp_d = TP.cp_d(param_set)
     p0 = TP.p_ref_theta(param_set)
-    return (p / p0)^(_R_d / _cp_d) * θ
+    return (p / p0)^(R_d / cp_d) * θ
 end

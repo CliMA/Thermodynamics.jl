@@ -82,7 +82,6 @@ include("aux_functions.jl")
 include("air_states.jl")
 
 include("air_properties.jl")
-include("phase_partition_methods.jl")
 include("air_humidities.jl")
 include("air_energies.jl")
 include("air_temperatures.jl")
@@ -97,6 +96,7 @@ include("TestedProfiles.jl")
 
 # State methods
 include("air_state_methods.jl")
+include("phase_partition_methods.jl")
 
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)

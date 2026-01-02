@@ -247,7 +247,7 @@ end
 """
     vapor_static_energy(param_set, T, e_pot)
 
-The `dry` static energy of water vapor, `cp_v * (T - T_0) + e_pot`, given
+The static energy of water vapor, `cp_v * (T - T_0) + e_pot`, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature

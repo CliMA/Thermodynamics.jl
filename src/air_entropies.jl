@@ -78,7 +78,7 @@ The specific entropy of water vapor, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+Note: the entropy of water vapor diverges logarithmically as `q_tot → 0` (since `p_v → 0`).
 """
 @inline function entropy_vapor(
     param_set::APS,

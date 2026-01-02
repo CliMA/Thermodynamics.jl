@@ -7,7 +7,7 @@ export cp_m, cv_m, gas_constant_air
 export latent_heat_vapor
 export latent_heat_sublim
 export latent_heat_fusion
-export latent_heat_fusion
+export latent_heat_mixed
 export humidity_weighted_latent_heat
 
 # Speed of sound
@@ -19,9 +19,9 @@ export soundspeed_air
 The specific gas constant of moist air `R_m`, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total specific humidity of water
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
+ - `q_tot` total specific humidity
+ - `q_liq` liquid specific humidity
+ - `q_ice` ice specific humidity
 
 If the specific humidities are not given, the result is for dry air.
 """

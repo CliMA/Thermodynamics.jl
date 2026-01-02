@@ -9,7 +9,6 @@ export has_condensate
 export vapor_pressure_deficit
 
 """
-
     liquid_fraction(param_set, T)
     liquid_fraction(param_set, T, q_liq, q_ice)
 
@@ -291,7 +290,7 @@ The saturation specific humidity, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q_tot` total water specific humidity,
  - `p` air pressure,
- - `T` air tempearture
+ - `T` air temperature
  - (optional) `q_liq` liquid specific humidity
  - (optional) `q_ice` ice specific humidity
 
