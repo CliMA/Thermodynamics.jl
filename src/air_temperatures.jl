@@ -1,8 +1,8 @@
 # Temperature functions
 export virtual_temperature
 export air_temperature
-export air_temperature_from_enthalpy
-export air_temperature_given_ρp
+export air_temperature_given_hq
+export air_temperature_given_pρq
 export dry_pottemp
 export dry_pottemp_given_pressure
 export liquid_ice_pottemp
@@ -46,7 +46,7 @@ If the specific humidities are not given, the result is for dry air.
 end
 
 """
-    air_temperature_from_enthalpy(param_set, h, q_tot=0, q_liq=0, q_ice=0)
+    air_temperature_given_hq(param_set, h, q_tot=0, q_liq=0, q_ice=0)
 
 The air temperature, given
 
@@ -58,7 +58,7 @@ The air temperature, given
 
 If the specific humidities are not given, the result is for dry air.
 """
-@inline function air_temperature_from_enthalpy(
+@inline function air_temperature_given_hq(
     param_set::APS,
     h,
     q_tot = 0,
@@ -74,7 +74,7 @@ If the specific humidities are not given, the result is for dry air.
 end
 
 """
-    air_temperature_given_ρp(param_set, p, ρ, q_tot=0, q_liq=0, q_ice=0)
+    air_temperature_given_pρq(param_set, p, ρ, q_tot=0, q_liq=0, q_ice=0)
 
 The air temperature, given
 
@@ -87,7 +87,7 @@ The air temperature, given
 
 If the specific humidities are not given, the result is for dry air.
 """
-@inline function air_temperature_given_ρp(
+@inline function air_temperature_given_pρq(
     param_set::APS,
     p,
     ρ,

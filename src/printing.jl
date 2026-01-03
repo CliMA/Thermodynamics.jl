@@ -1,5 +1,5 @@
 import RootSolvers:
-    NewtonsMethod, NewtonsMethodAD, SecantMethod, RegulaFalsiMethod
+    NewtonsMethod, NewtonsMethodAD, SecantMethod, BrentsMethod
 
 # KA.@print only accepts literal strings, so we must
 # branch to print which method is being used.
@@ -7,7 +7,7 @@ import RootSolvers:
 #####
 ##### ρeq
 #####
-for rsm in (:NewtonsMethod, :NewtonsMethodAD, :SecantMethod, :RegulaFalsiMethod)
+for rsm in (:NewtonsMethod, :NewtonsMethodAD, :SecantMethod, :BrentsMethod)
     @eval function print_warning_ρeq(::Type{<:$(rsm)}, args...)
         (ρ, e_int, q_tot, T, maxiter, tol) = args
         return KA.@print(

@@ -10,6 +10,8 @@ import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
 import ClimaParams as CP
 
+include("TestedProfiles.jl")
+
 # Determine array type based on command line argument
 # This allows testing on both CPU (Array) and GPU (CuArray)
 if get(ARGS, 1, "Array") == "CuArray"
@@ -88,7 +90,7 @@ The kernel tests two different thermodynamic state constructors:
             true,                    # Enable saturation adjustment
             100,                     # Maximum iterations
             FT(sqrt(eps(FT))),       # Tolerance
-            RS.RegulaFalsiMethod,    # Root finding method
+            RS.BrentsMethod,    # Root finding method
         )
         dst[2, i] = TD.air_temperature(param_set, ts_ρpq)
     end
@@ -108,8 +110,8 @@ This function moves arrays to the target device while preserving the structure.
 # Returns
 - New ProfileSet with arrays converted to the target type
 """
-convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
-    TD.TestedProfiles.ProfileSet(
+convert_profile_set(ps::TestedProfiles.ProfileSet, ArrayType, slice) =
+    TestedProfiles.ProfileSet(
         ArrayType(ps.z[slice]),
         ArrayType(ps.T[slice]),
         ArrayType(ps.p[slice]),
@@ -121,14 +123,12 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
         ArrayType(ps.q_tot[slice]),
         ArrayType(ps.q_liq[slice]),
         ArrayType(ps.q_ice[slice]),
-        TD.PhasePartition.(ps.q_tot[slice], ps.q_liq[slice], ps.q_ice[slice]),
         ArrayType(ps.RH[slice]),
         ArrayType(ps.e_pot[slice]),
         ArrayType(ps.u[slice]),
         ArrayType(ps.v[slice]),
         ArrayType(ps.w[slice]),
         ArrayType(ps.e_kin[slice]),
-        ps.phase_type,
     )
 
 @testset "Thermodynamics - kernels" begin
@@ -136,7 +136,7 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
     param_set = parameter_set(FT)
 
     # Load test profiles and convert to target array type
-    profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array)
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array)
     slice = Colon()  # Use all profiles
     profiles = convert_profile_set(profiles, ArrayType, slice)
 
@@ -178,7 +178,7 @@ convert_profile_set(ps::TD.TestedProfiles.ProfileSet, ArrayType, slice) =
             true,                    # Enable saturation adjustment
             100,                     # Maximum iterations
             sqrt(eps()),            # Tolerance
-            RS.RegulaFalsiMethod,   # Root finding method
+            RS.BrentsMethod,   # Root finding method
         )
     @test all(Array(d_dst)[2, :] .≈ TD.air_temperature.(param_set, ts_correct))
 end

@@ -515,7 +515,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
         @test TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            internal_energy_sat(param_set, T, ρ, q_tot, PhaseEquil),
+            internal_energy_sat(param_set, T, ρ, q_tot),
             ρ,
             q_tot,
             PhaseEquil,
@@ -526,7 +526,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
             TD.saturation_adjustment(
                 RS.NewtonsMethod,
                 param_set,
-                internal_energy_sat(param_set, T, ρ, q_tot, PhaseEquil),
+                internal_energy_sat(param_set, T, ρ, q_tot),
                 ρ,
                 q_tot,
                 PhaseEquil,
@@ -545,7 +545,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
             TD.saturation_adjustment(
                 RS.SecantMethod,
                 param_set,
-                internal_energy_sat(param_set, T_cold, ρ, q_tot, PhaseEquil),
+                internal_energy_sat(param_set, T_cold, ρ, q_tot),
                 ρ,
                 q_tot,
                 PhaseEquil,
@@ -559,7 +559,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
             TD.saturation_adjustment(
                 RS.NewtonsMethod,
                 param_set,
-                internal_energy_sat(param_set, T_cold, ρ, q_tot, PhaseEquil),
+                internal_energy_sat(param_set, T_cold, ρ, q_tot),
                 ρ,
                 q_tot,
                 PhaseEquil,
@@ -638,7 +638,6 @@ This file contains tests for fundamental thermodynamic relations and physical la
             T_warm,
             ρ_test,
             q_tot_warm,
-            PhaseEquil,
         )
         @test e_int_sat_warm ≈ internal_energy(
             param_set,
@@ -661,7 +660,6 @@ This file contains tests for fundamental thermodynamic relations and physical la
             T_cold,
             ρ_test,
             q_tot_cold,
-            PhaseEquil,
         )
         @test e_int_sat_cold ≈ internal_energy(
             param_set,

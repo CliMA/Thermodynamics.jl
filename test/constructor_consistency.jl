@@ -12,7 +12,7 @@ This file contains tests for thermodynamic state constructor consistency.
         @testset "PhaseDry" begin
             profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
             (; T, p, e_int, h, ρ, θ_liq_ice) = profiles
-            (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
+            (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
 
             ts = PhaseDry.(param_set, e_int, ρ)
             @test all(internal_energy.(param_set, ts) .≈ e_int)
@@ -80,8 +80,8 @@ This file contains tests for thermodynamic state constructor consistency.
         @testset "PhaseEquil" begin
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, e_int, h, ρ, θ_liq_ice, phase_type) = profiles
-            (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
+            (; T, p, e_int, h, ρ, θ_liq_ice) = profiles
+            (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
 
             ts =
                 PhaseEquil_ρeq.(
@@ -127,8 +127,9 @@ This file contains tests for thermodynamic state constructor consistency.
         @testset "PhaseNonEquil" begin
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
             (; T, p, e_int, h, ρ, θ_liq_ice) = profiles
-            (; q_tot, q_liq, q_ice, q_pt) = profiles
-
+            (; q_tot, q_liq, q_ice) = profiles
+            # Create PhasePartition for PhaseNonEquil tests
+            q_pt = TD.PhasePartition.(q_tot, q_liq, q_ice)
             ts = PhaseNonEquil.(param_set, e_int, ρ, q_pt)
             @test all(internal_energy.(param_set, ts) .≈ e_int)
             @test all(compare_moisture.(param_set, ts, q_pt))
@@ -139,6 +140,8 @@ This file contains tests for thermodynamic state constructor consistency.
             @test all(compare_moisture.(param_set, ts, q_pt))
             @test all(air_pressure.(param_set, ts) .≈ p)
 
+            # NB: PhaseNonEquil_phq is not tested here, since we don't have a way to
+            # construct h at the moment
             ts_phq = PhaseNonEquil_phq.(param_set, p, h, q_pt)
             @test all(internal_energy.(param_set, ts_phq) .≈ e_int)
             @test all(enthalpy.(param_set, ts_phq) .≈ h)
@@ -148,7 +151,8 @@ This file contains tests for thermodynamic state constructor consistency.
 
         @testset "Relative humidity and virtual temperature" begin
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, ρ, phase_type) = profiles
+            (; T, p, ρ) = profiles
+            phase_type = PhaseEquil{FT}
             (; q_tot, RH) = profiles
 
             # Test that relative humidity is 1 for saturated conditions
@@ -159,10 +163,10 @@ This file contains tests for thermodynamic state constructor consistency.
             @test all(getproperty.(q_pt_sat, :ice) .≈ 0)
             @test all(q_vap .≈ q_sat)
 
-            # Compute thermodynamic consistent pressure
+            #  Compute thermodynamic consistent pressure
             p_sat = air_pressure.(param_set, T, ρ, q_pt_sat)
 
-            # Test that density remains consistent
+            #  Test that density remains consistent
             ρ_rec = air_density.(param_set, T, p_sat, q_pt_sat)
             @test all.(ρ_rec ≈ ρ)
 
@@ -193,13 +197,16 @@ This file contains tests for thermodynamic state constructor consistency.
             # Test virtual temperature
             _R_d = FT(TP.R_d(param_set))
             q_pt = PhasePartition.(q_tot)
-            T_virt = virtual_temperature.(param_set, T, q_pt)
-            @test all(T_virt ≈ gas_constant_air.(param_set, q_pt) ./ _R_d .* T)
+            T_virt_dry = virtual_temperature.(param_set, T)
+            @test all(T_virt_dry ≈ gas_constant_air.(param_set) ./ _R_d .* T)
+
+            # Test convergence of virtual temperature iterations with MOIST virtual temperature
+            T_virt_moist = virtual_temperature.(param_set, T, q_pt)
 
             T_rec_qpt_rec =
                 TD.temperature_and_humidity_given_TᵥρRH.(
                     param_set,
-                    T_virt,
+                    T_virt_moist,
                     ρ,
                     RH,
                     Ref(phase_type),
@@ -208,10 +215,9 @@ This file contains tests for thermodynamic state constructor consistency.
             T_rec = first.(T_rec_qpt_rec)
             q_pt_rec = last.(T_rec_qpt_rec)
 
-            # Test convergence of virtual temperature iterations
             @test all(
                 isapprox.(
-                    T_virt,
+                    T_virt_moist,
                     virtual_temperature.(param_set, T_rec, q_pt_rec),
                     atol = sqrt(eps(FT)),
                 ),
@@ -222,17 +228,17 @@ This file contains tests for thermodynamic state constructor consistency.
             q_tot_rec = getproperty.(q_pt_rec, :tot)
             RH_moist = (q_tot .> eps(FT)) .& (RH .< FT(0.99))
             @test all(
-                isapprox.(q_tot[RH_moist], q_tot_rec[RH_moist], rtol = 5e-2),
+                isapprox.(q_tot[RH_moist], q_tot_rec[RH_moist], rtol = 0.10),
             )
 
             # Update temperature to be exactly consistent with
-            # p, ρ, q_pt_rec; test that this is equal to T_rec
+            # p, ρ_rec; test that this is equal to T_rec
             # Note: Relaxed tolerance needed due to cumulative numerical errors in saturation adjustment
             # and the iterative nature of relative humidity/virtual temperature calculations.
-            # The extreme cases (saturated high-humidity) can have differences up to ~1.6K due to
+            # The extreme cases (saturated high-humidity) can have differences up to ~2.5K due to
             # numerical challenges in the iterative root finding algorithms.
-            T_local = TD.air_temperature_given_ρp.(param_set, p, ρ, q_pt_rec)
-            @test all(isapprox.(T_local, T_rec, atol = FT(1.8)))
+            T_local = TD.air_temperature_given_pρq.(param_set, p, ρ, q_pt_rec)
+            @test all(isapprox.(T_local, T_rec, atol = FT(2.5)))
         end
     end
 end

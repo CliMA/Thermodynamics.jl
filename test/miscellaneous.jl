@@ -10,11 +10,9 @@ This file contains various miscellaneous tests including ProfileSet Iterator, Ba
         FT = eltype(ArrayType)
         param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-        (; T, q_pt, z, phase_type) = profiles
+        (; T, z) = profiles
         @test all(z .≈ (nt.z for nt in profiles))
         @test all(T .≈ (nt.T for nt in profiles))
-        @test all(getproperty.(q_pt, :tot) .≈ (nt.q_pt.tot for nt in profiles))
-        @test all(phase_type .== (nt.phase_type for nt in profiles))
     end
 
     @testset "Base.zero" begin

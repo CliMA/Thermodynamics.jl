@@ -14,10 +14,10 @@ using Random
         _kappa_d = TP.kappa_d(param_set)
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-        (; T, p, ρ, θ_liq_ice, q_pt) = profiles
+        (; T, p, ρ, θ_liq_ice, q_tot, q_liq, q_ice) = profiles
 
         @testset "Ideal Gas Law" begin
-            T_idgl = TD.air_temperature_given_ρp.(param_set, p, ρ, q_pt)
+            T_idgl = TD.air_temperature_given_pρq.(param_set, p, ρ, q_tot, q_liq, q_ice)
             @test all(T .≈ T_idgl)
         end
 

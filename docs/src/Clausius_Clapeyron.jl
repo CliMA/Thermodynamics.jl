@@ -2,7 +2,8 @@ import ForwardDiff
 import ClimaParams as CP
 
 import Thermodynamics as TD
-using Thermodynamics.TestedProfiles
+include("../../test/TestedProfiles.jl")
+import .TestedProfiles
 import Thermodynamics.Parameters as TP
 
 ArrayType = Array{Float64}
@@ -10,8 +11,8 @@ FT = eltype(ArrayType)
 
 param_set = TP.ThermodynamicsParameters(FT)
 profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-(; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
-(; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
+(; T, p, e_int, ρ, θ_liq_ice) = profiles
+(; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
 
 k = findfirst(q -> q > 0.01, q_tot) # test for one value with q_tot above some threshhold
 ts_sol = TD.PhaseEquil_ρTq(param_set, ρ[k], T[k], q_tot[k])

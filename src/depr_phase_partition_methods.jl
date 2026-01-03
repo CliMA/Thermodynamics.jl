@@ -6,7 +6,6 @@ export air_temperature_given_ρθq_nonlinear
 export liquid_specific_humidity
 export ice_specific_humidity
 export mixing_ratios
-export internal_energy_sat
 export temperature_and_humidity_given_TᵥρRH
 
 # Default phase partition for dry air
@@ -516,38 +515,6 @@ end
 
 
 """
-    internal_energy_sat(param_set, T, ρ, q_tot, phase_type)
-
-The internal energy per unit mass in thermodynamic equilibrium 
-at saturation with a fixed temperature and total specific humidity, 
-given 
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
- - `phase_type` a thermodynamic state type
-"""
-@inline function internal_energy_sat(
-    param_set::APS,
-    T,
-    ρ,
-    q_tot,
-    ::Type{phase_type},
-    q_pt::PhasePartition = PhasePartition_equil(
-        param_set,
-        T,
-        ρ,
-        q_tot,
-        phase_type,
-    ),
-) where {phase_type <: ThermodynamicState}
-    return internal_energy(param_set, T, q_pt)
-end
-@inline internal_energy_sat(param_set, T, ρ, q_tot, phase_type) =
-    internal_energy_sat(param_set, promote(T, ρ, q_tot)..., phase_type)
-
-"""
     total_energy(param_set, e_kin, e_pot, T[, q::PhasePartition])
 
 The total energy per unit mass, given
@@ -680,7 +647,7 @@ When `q` is not provided, the results are for dry air.
     q::PhasePartition = q_pt_0(param_set),
 )
     R_m = gas_constant_air(param_set, q)
-    return e_tot + R_m * T
+    return total_enthalpy(e_tot, R_m, T)
 end
 
 # -------------------------------------------------------------------------
@@ -764,7 +731,6 @@ end
 
 
 """
-
     q_vap_saturation(param_set, T, ρ, q::PhasePartition)
 
 The saturation specific humidity, given
@@ -916,7 +882,7 @@ When `q` is not provided, the results are for dry air.
 end
 
 """
-    air_temperature_from_enthalpy(param_set, h[, q::PhasePartition]s)
+    air_temperature_given_hq(param_set, h[, q::PhasePartition]s)
 
 The air temperature, given
 
@@ -929,16 +895,16 @@ and, optionally,
  
 When `q` is not provided, the results are for dry air.
 """
-@inline function air_temperature_from_enthalpy(
+@inline function air_temperature_given_hq(
     param_set::APS,
     h,
     q::PhasePartition,
 )
-    return air_temperature_from_enthalpy(param_set, h, q.tot, q.liq, q.ice)
+    return air_temperature_given_hq(param_set, h, q.tot, q.liq, q.ice)
 end
 
 """
-    air_temperature_given_ρp(param_set, p, ρ[, q::PhasePartition])
+    air_temperature_given_pρq(param_set, p, ρ[, q::PhasePartition])
 
 The air temperature, where
 
@@ -952,13 +918,13 @@ and, optionally,
  
 When `q` is not provided, the results are for dry air.
 """
-@inline function air_temperature_given_ρp(
+@inline function air_temperature_given_pρq(
     param_set::APS,
     p,
     ρ,
     q::PhasePartition,
 )
-    return air_temperature_given_ρp(param_set, p, ρ, q.tot, q.liq, q.ice)
+    return air_temperature_given_pρq(param_set, p, ρ, q.tot, q.liq, q.ice)
 end
 
 """

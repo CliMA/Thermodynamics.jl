@@ -1,17 +1,14 @@
 """
     TestedProfiles
 
-This module contains functions to compute all of the thermodynamic 
-_states_ that Thermodynamics is tested with in runtests.jl
+This module contains functions to compute thermodynamic test profiles
+for various atmospheric conditions.
 """
 module TestedProfiles
 
-import ..Thermodynamics
+using Thermodynamics
 const TD = Thermodynamics
-const TDTP = TD.TemperatureProfiles
-
-import ..Parameters
-const TP = Parameters
+import Thermodynamics.Parameters as TP
 const APS = TP.ThermodynamicsParameters
 
 import Random
@@ -21,7 +18,7 @@ import Random
 
 A set of profiles used to test Thermodynamics.
 """
-struct ProfileSet{AFT, QPT, PT}
+struct ProfileSet{AFT}
     z::AFT          # Altitude
     T::AFT          # Temperature
     p::AFT          # Pressure
@@ -29,18 +26,16 @@ struct ProfileSet{AFT, QPT, PT}
     e_int::AFT      # Internal energy
     h::AFT          # Specific enthalpy
     ρ::AFT          # Density
-    θ_liq_ice::AFT  # Liquid Ice Potential temperature
+    θ_liq_ice::AFT  # Liquid ice potential temperature
     q_tot::AFT      # Total specific humidity
     q_liq::AFT      # Liquid specific humidity
     q_ice::AFT      # Ice specific humidity
-    q_pt::QPT       # Phase partition
     RH::AFT         # Relative humidity
-    e_pot::AFT      # gravitational potential
-    u::AFT          # velocity (x component)
-    v::AFT          # velocity (y component)
-    w::AFT          # velocity (z component)
-    e_kin::AFT      # kinetic energy
-    phase_type::PT  # Phase type (e.g., `PhaseDry`, `PhaseEquil`)
+    e_pot::AFT      # Gravitational potential
+    u::AFT          # Velocity (x component)
+    v::AFT          # Velocity (y component)
+    w::AFT          # Velocity (z component)
+    e_kin::AFT      # Kinetic energy
 end
 
 function Base.iterate(ps::ProfileSet, state = 1)
@@ -57,14 +52,12 @@ function Base.iterate(ps::ProfileSet, state = 1)
         q_tot = ps.q_tot[state],
         q_liq = ps.q_liq[state],
         q_ice = ps.q_ice[state],
-        q_pt = ps.q_pt[state],
         RH = ps.RH[state],
         e_pot = ps.e_pot[state],
         u = ps.u[state],
         v = ps.v[state],
         w = ps.w[state],
         e_kin = ps.e_kin[state],
-        phase_type = ps.phase_type,
     )
     return (nt, state + 1)
 end
@@ -81,7 +74,7 @@ Base.length(ps::ProfileSet) = length(ps.z)
         T_surface=340
     )
 
-Return input arguments to construct profiles
+Return input arguments to construct profiles.
 """
 function input_config(
     ArrayType;
@@ -108,9 +101,7 @@ end
         T_min,
     )
 
-Compute profiles shared across `PhaseDry`,
-`PhaseEquil` and `PhaseNonEquil` thermodynamic
-states, including:
+Compute profiles shared across dry and moist thermodynamic states:
  - `z` altitude
  - `T` temperature
  - `p` pressure
@@ -144,37 +135,31 @@ function shared_profiles(
     return z, T, p, RS
 end
 
-####
-#### PhaseDry
-####
-
 """
-    PhaseDryProfiles(param_set, ::Type{ArrayType})
+    DryProfiles(param_set, ::Type{ArrayType})
 
-Returns a `ProfileSet` used to test dry thermodynamic states.
+Returns a `ProfileSet` for dry atmospheric conditions (no moisture).
 """
-function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
-    phase_type = TD.PhaseDry{eltype(ArrayType)}
-
+function DryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
-    z, T_virt, p, RS =
+    z, T, p, RS =
         shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
-    T = T_virt
+    
     FT = eltype(T)
     R_d = TP.R_d(param_set)
     grav = TP.grav(param_set)
     ρ = p ./ (R_d .* T)
 
-    # Additional variables
-    q_tot = similar(T)
-    fill!(q_tot, 0)
-    q_pt = TD.PhasePartition_equil.(param_set, T, ρ, q_tot, phase_type)
-    e_int = TD.internal_energy.(param_set, T, q_pt)
-    h = TD.enthalpy.(param_set, T, q_pt)
-    θ_liq_ice = TD.liquid_ice_pottemp.(param_set, T, ρ, q_pt)
-    q_liq = getproperty.(q_pt, :liq)
-    q_ice = getproperty.(q_pt, :ice)
-    RH = TD.relative_humidity.(param_set, T, p, phase_type, q_pt)
+    # Dry state: no moisture
+    q_tot = zero(T)
+    q_liq = zero(T)
+    q_ice = zero(T)
+    
+    e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
+    h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
+    θ_liq_ice = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
+    RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
+    
     e_pot = grav * z
     Random.seed!(15)
     u = rand(FT, size(T)) * 50
@@ -182,8 +167,7 @@ function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     w = rand(FT, size(T)) * 50
     e_kin = (u .^ 2 .+ v .^ 2 .+ w .^ 2) / 2
 
-
-    return ProfileSet{typeof(T), typeof(q_pt), typeof(phase_type)}(
+    return ProfileSet{typeof(T)}(
         z,
         T,
         p,
@@ -195,61 +179,49 @@ function PhaseDryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
         q_tot,
         q_liq,
         q_ice,
-        q_pt,
         RH,
         e_pot,
         u,
         v,
         w,
         e_kin,
-        phase_type,
     )
 end
 
-####
-#### PhaseEquil
-####
-
 """
-    PhaseEquilProfiles(param_set, ::Type{ArrayType})
+    EquilMoistProfiles(param_set, ::Type{ArrayType})
 
-Returns a `ProfileSet` used to test moist states in thermodynamic equilibrium.
+Returns a `ProfileSet` for moist atmospheric conditions in thermodynamic equilibrium.
 """
-function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
-    phase_type = TD.PhaseEquil{eltype(ArrayType)}
-
-    # Prescribe z_range, relative_sat, T_surface, T_min
+function EquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
-
-    # Compute T, p, from DecayingTemperatureProfile, (reshape RS)
     z, T_virt, p, RS =
         shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
 
     FT = eltype(T_virt)
     R_d = TP.R_d(param_set)
     grav = TP.grav(param_set)
-    # Compute density from virtual temperature and pressure
     ρ = p ./ (R_d .* T_virt)
 
-    # We take the virtual temperature as the temperature, and then compute 
-    # a thermodynamic state consistent with that temperature. This profile
-    # will not be in hydrostatic balance, but this does not
-    # matter for the thermodynamic test profiles.
+    # Compute equilibrium moisture
     T = T_virt
-    q_tot = RS .* TD.q_vap_saturation.(Ref(param_set), T, ρ, Ref(phase_type))
-    q_pt =
-        TD.PhasePartition_equil.(Ref(param_set), T, ρ, q_tot, Ref(phase_type))
+    q_tot = RS .* TD.q_vap_saturation.(Ref(param_set), T, ρ)
+    
+    # Compute phase partitioning for each element
+    q_liq = similar(T)
+    q_ice = similar(T)
+    for i in eachindex(T)
+        q_liq[i], q_ice[i] = TD.condensate_partition(param_set, T[i], ρ[i], q_tot[i])
+    end
 
-    # Extract phase partitioning and update pressure
-    # to be thermodynamically consistent with ρ, q_pt, and the assumed T
-    q_liq = getproperty.(q_pt, :liq)
-    q_ice = getproperty.(q_pt, :ice)
-    p = TD.air_pressure.(Ref(param_set), T, ρ, q_pt)
+    # Update pressure to be thermodynamically consistent
+    p = TD.air_pressure.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
 
-    e_int = TD.internal_energy.(Ref(param_set), T, q_pt)
-    h = TD.enthalpy.(Ref(param_set), T, q_pt)
-    θ_liq_ice = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_pt)
-    RH = TD.relative_humidity.(Ref(param_set), T, p, Ref(phase_type), q_pt)
+    e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
+    h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
+    θ_liq_ice = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
+    RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
+    
     e_pot = grav * z
     Random.seed!(15)
     u = rand(FT, size(T)) * 50
@@ -257,7 +229,7 @@ function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     w = rand(FT, size(T)) * 50
     e_kin = (u .^ 2 .+ v .^ 2 .+ w .^ 2) / 2
 
-    return ProfileSet{typeof(T), typeof(q_pt), typeof(phase_type)}(
+    return ProfileSet{typeof(T)}(
         z,
         T,
         p,
@@ -269,15 +241,76 @@ function PhaseEquilProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
         q_tot,
         q_liq,
         q_ice,
-        q_pt,
         RH,
         e_pot,
         u,
         v,
         w,
         e_kin,
-        phase_type,
     )
 end
+
+"""
+    NonEquilMoistProfiles(param_set, ::Type{ArrayType})
+
+Returns a `ProfileSet` for moist atmospheric conditions 
+in thermodynamic non-equilibrium (supersaturated).
+"""
+function NonEquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
+    z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
+    z, T, p, RS =
+        shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
+
+    FT = eltype(T)
+    R_d = TP.R_d(param_set)
+    grav = TP.grav(param_set)
+
+    # Non-equilibrium: prescribe q_tot > q_sat for some profiles
+    q_vap_sat = TD.q_vap_saturation.(Ref(param_set), T, p ./ (R_d .* T))
+    q_tot = RS .* q_vap_sat
+    
+    # Prescribe non-equilibrium phase partitioning
+    # For simplicity, prescribe q_liq and q_ice separately
+    q_liq = max.(zero(FT), (q_tot .- q_vap_sat) .* FT(0.6))  # 60% liquid
+    q_ice = max.(zero(FT), (q_tot .- q_vap_sat) .* FT(0.4))  # 40% ice
+    
+    ρ = TD.air_density.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
+    
+    e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
+    h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
+    θ_liq_ice = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
+    RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
+    
+    e_pot = grav * z
+    Random.seed!(15)
+    u = rand(FT, size(T)) * 50
+    v = rand(FT, size(T)) * 50
+    w = rand(FT, size(T)) * 50
+    e_kin = (u .^ 2 .+ v .^ 2 .+ w .^ 2) / 2
+
+    return ProfileSet{typeof(T)}(
+        z,
+        T,
+        p,
+        RS,
+        e_int,
+        h,
+        ρ,
+        θ_liq_ice,
+        q_tot,
+        q_liq,
+        q_ice,
+        RH,
+        e_pot,
+        u,
+        v,
+        w,
+        e_kin,
+    )
+end
+
+# Backwards compatibility aliases
+const PhaseDryProfiles = DryProfiles
+const PhaseEquilProfiles = EquilMoistProfiles
 
 end # module

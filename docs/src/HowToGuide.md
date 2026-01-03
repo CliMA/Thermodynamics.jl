@@ -157,7 +157,7 @@ q = TD.PhasePartition(q_tot, q_liq, q_ice)         # Create phase partition dire
 e_int = -7.0e4
 T = TD.air_temperature(params, e_int, q)           # From internal energy and humidity
 h = -6.0e4
-T = TD.air_temperature_from_enthalpy(params, h, q) # From enthalpy and humidity
+T = TD.air_temperature_given_hq(params, h, q) # From enthalpy and humidity
 
 # Direct pressure calculations  
 ρ = 1.0

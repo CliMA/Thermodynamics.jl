@@ -11,7 +11,8 @@ function test_type_stability_for_type(FT)
     # Create dry profiles and thermodynamic states
     profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
     (; T, p, e_int, ρ, θ_liq_ice) = profiles
-    (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
+    (; T, p, e_int, ρ, θ_liq_ice) = profiles
+    (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
     h = e_int + p ./ ρ
 
     θ_dry = dry_pottemp.(param_set, T, ρ)
@@ -25,7 +26,9 @@ function test_type_stability_for_type(FT)
     # Create equilibrium profiles and thermodynamic states
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
     (; T, p, e_int, ρ, θ_liq_ice) = profiles
-    (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
+    (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
+    # Create PhasePartition for testing
+    q_pt = TD.PhasePartition.(q_tot, q_liq, q_ice)
 
     ts_eq =
         PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 15, FT(rtol_temperature))

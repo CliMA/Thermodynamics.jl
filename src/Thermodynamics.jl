@@ -21,6 +21,7 @@ Rv_over_Rd = TP.Rv_over_Rd(param_set)
 
 Because these parameters are widely used throughout this module,
 `param_set` is an argument for many Thermodynamics functions.
+
 ## Saturation adjustment
 
 Saturation adjustment functions accept:
@@ -33,7 +34,7 @@ Supported methods in RootSolvers.jl:
 - `NewtonsMethod`: Newton method with analytic gradients
 - `NewtonsMethodAD`: Newton method with autodiff
 - `SecantMethod`: Secant method
-- `RegulaFalsiMethod`: Regula-Falsi method
+- `BrentsMethod`: Brent's method (hybrid root-finding)
 """
 module Thermodynamics
 
@@ -51,7 +52,7 @@ import .Parameters
 const TP = Parameters
 const APS = TP.AbstractThermodynamicsParameters
 
-include("PhasePartitionTypes.jl")
+include("depr_PhasePartitionTypes.jl")
 
 # For printing literal strings on the gpu
 include("printing.jl")
@@ -72,7 +73,7 @@ include("DataCollection.jl")
 import .DataCollection
 
 include("aux_functions.jl")
-include("air_states.jl")
+include("depr_air_states.jl")
 
 include("air_properties.jl")
 include("air_humidities.jl")
@@ -81,15 +82,15 @@ include("air_temperatures.jl")
 include("air_pressure_and_density.jl")
 include("air_saturation_functions.jl")
 include("saturation_adjustment.jl")
+include("depr_saturation_adjustment.jl")
 include("air_entropies.jl")
 include("air_dry_adiabatic.jl")
 include("config_numerical_method.jl")
 include("TemperatureProfiles.jl")
-include("TestedProfiles.jl")
 
 # State methods
-include("air_state_methods.jl")
-include("phase_partition_methods.jl")
+include("depr_state_methods.jl")
+include("depr_phase_partition_methods.jl")
 
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)

@@ -1,14 +1,15 @@
-# Energies, enthalpies, and static energies
 export internal_energy
 export internal_energy_dry
 export internal_energy_vapor
 export internal_energy_liquid
 export internal_energy_ice
+export internal_energy_sat
 export enthalpy
 export enthalpy_dry
 export enthalpy_vapor
 export enthalpy_liquid
 export enthalpy_ice
+export enthalpy_sat
 export total_energy
 export total_enthalpy
 export dry_static_energy
@@ -16,7 +17,6 @@ export moist_static_energy
 export vapor_static_energy
 export virtual_dry_static_energy
 
-#TODO: add internal_energy_sat, enthalpy_sat
 
 """
     internal_energy(param_set, T, q_tot=0, q_liq=0, q_ice=0)
@@ -101,6 +101,24 @@ The ice internal energy, given
     e_int_i0 = TP.e_int_i0(param_set)
 
     return cv_i * (T - T_0) - e_int_i0
+end
+
+"""
+    internal_energy_sat(param_set, T, ρ, q_tot)
+
+The internal energy per unit mass in thermodynamic equilibrium at saturation, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `ρ` (moist-)air density
+ - `q_tot` total specific humidity
+
+The phase partition is computed internally using the temperature-dependent liquid
+fraction and saturation excess.
+"""
+@inline function internal_energy_sat(param_set::APS, T, ρ, q_tot)
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    return internal_energy(param_set, T, q_tot, q_liq, q_ice)
 end
 
 """
@@ -189,6 +207,24 @@ The specific enthalpy of ice, given
 """
 @inline enthalpy_ice(param_set::APS, T) =
     internal_energy_ice(param_set, T)
+
+"""
+    enthalpy_sat(param_set, T, ρ, q_tot)
+
+The specific enthalpy in thermodynamic equilibrium at saturation, given
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `ρ` (moist-)air density
+ - `q_tot` total specific humidity
+
+The phase partition is computed internally using the temperature-dependent liquid
+fraction and saturation excess.
+"""
+@inline function enthalpy_sat(param_set::APS, T, ρ, q_tot)
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    return enthalpy(param_set, T, q_tot, q_liq, q_ice)
+end
 
 """
     total_energy(param_set, e_kin, e_pot, T, q_tot=0, q_liq=0, q_ice=0)

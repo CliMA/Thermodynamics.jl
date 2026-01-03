@@ -61,7 +61,10 @@ air_density
 air_pressure
 air_temperature
 air_pressure_given_θ
-air_temperature_given_ρp
+air_temperature_given_pρq
+air_temperature_given_hq
+air_temperature_given_ρθq
+air_temperature_given_pθq
 condensate_specific_humidity
 cp_m
 cv_m
@@ -77,7 +80,7 @@ internal_energy_liquid
 internal_energy_ice
 internal_energy_sat
 latent_heat_fusion
-latent_heat_liq_ice
+humidity_weighted_latent_heat
 latent_heat_sublim
 latent_heat_vapor
 liquid_fraction

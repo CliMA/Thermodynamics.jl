@@ -9,8 +9,9 @@ This file contains tests for error handling on failed convergence.
     FT = eltype(ArrayType)
     param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
-    (; q_tot, q_pt, RH) = profiles
+    (; T, p, e_int, ρ, θ_liq_ice, q_tot, q_liq, q_ice, RH) = profiles
+    phase_type = PhaseEquil{FT}
+    q_pt = TD.PhasePartition.(q_tot, q_liq, q_ice)
 
     maxiter = 2
     tol = FT(1e-10)

@@ -3,6 +3,7 @@ export saturation_vapor_pressure
 export q_vap_saturation
 export q_vap_saturation_from_pressure
 export saturation_excess
+export condensate_partition
 export supersaturation
 export has_condensate
 export vapor_pressure_deficit
@@ -441,6 +442,28 @@ this difference is positive.
 )
     q_vap_sat = q_vap_from_p_vap(param_set, T, ρ, p_vap_sat)
     return max(0, q_tot - q_vap_sat)
+end
+
+"""
+    condensate_partition(param_set, T, ρ, q_tot)
+
+Compute the equilibrium liquid and ice specific humidities from the condensate
+in thermodynamic equilibrium, returning a tuple `(q_liq, q_ice)`.
+
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `T` temperature
+ - `ρ` (moist-)air density
+ - `q_tot` total specific humidity
+
+The condensate is partitioned into liquid and ice using the temperature-dependent
+liquid fraction.
+"""
+@inline function condensate_partition(param_set::APS, T, ρ, q_tot)
+    λ = liquid_fraction(param_set, T)
+    q_c = saturation_excess(param_set, T, ρ, q_tot)
+    q_liq = λ * q_c
+    q_ice = (1 - λ) * q_c
+    return (q_liq, q_ice)
 end
 
 """

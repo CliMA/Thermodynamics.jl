@@ -11,15 +11,9 @@
 #
 # To run GPU tests: julia --project=. test/runtests_gpu.jl CuArray
 
-# Run Aqua tests for code quality and performance
-# Temporarily disabled due to system-level precompilation issues
-# include("aqua.jl")
-
-# Run aqua tests
-include("aqua.jl")
-
 # Run temperature profile tests for physical consistency
 include("TemperatureProfiles.jl")
+include("TestedProfiles.jl")
 
 # Include common parameters, functions, and imports for all tests
 include("test_common.jl")
@@ -35,6 +29,10 @@ include("dry_limit.jl")
 include("miscellaneous.jl")
 include("data_tests.jl")
 
+# Run aqua tests for code quality and performance
+include("aqua.jl")
+
 # Clean up any temporary files created during testing
 rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
 rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)
+

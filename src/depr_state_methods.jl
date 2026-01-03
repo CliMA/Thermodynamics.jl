@@ -154,12 +154,12 @@ The specific entropy, given a thermodynamic state `ts`.
     )
 
 """
-    latent_heat_liq_ice(param_set::APS, ts::ThermodynamicState)
+    humidity_weighted_latent_heat(param_set::APS, ts::ThermodynamicState)
 
 Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference temperature `T_0`, given a thermodynamic state `ts`.
 """
-latent_heat_liq_ice(param_set::APS, ts::ThermodynamicState) =
-    latent_heat_liq_ice(param_set, PhasePartition(param_set, ts))
+humidity_weighted_latent_heat(param_set::APS, ts::ThermodynamicState) =
+    humidity_weighted_latent_heat(param_set, PhasePartition(param_set, ts))
 
 """
     liquid_ice_pottemp(param_set, ts::ThermodynamicState)
@@ -263,7 +263,6 @@ The internal energy per unit mass in thermodynamic equilibrium at saturation wit
         air_temperature(param_set, ts),
         air_density(param_set, ts),
         total_specific_humidity(param_set, ts),
-        typeof(ts),
     )
 
 """

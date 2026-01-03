@@ -272,7 +272,7 @@ The temperature is computed from the specific enthalpy using the dry air equatio
 and the density is computed from the ideal gas law using the pressure and temperature.
 """
 @inline function PhaseDry_ph(param_set::APS, p::FT, h::FT) where {FT <: Real}
-    T = air_temperature_from_enthalpy(param_set, h)
+    T = air_temperature_given_hq(param_set, h)
     ρ = air_density(param_set, T, p)
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
@@ -354,7 +354,7 @@ The temperature is computed from the ideal gas law using the pressure and densit
 and the internal energy is computed from the temperature.
 """
 @inline function PhaseDry_ρp(param_set::APS, ρ::FT, p::FT) where {FT <: Real}
-    T = air_temperature_given_ρp(param_set, p, ρ)
+    T = air_temperature_given_pρq(param_set, p, ρ)
     e_int = internal_energy(param_set, T)
     return PhaseDry{FT}(e_int, ρ)
 end
@@ -701,7 +701,7 @@ TODO: change input argument order: perform_sat_adjust is
         e_int = internal_energy(param_set, T, q_pt)
     else
         q_pt = PhasePartition(q_tot)
-        T = air_temperature_given_ρp(param_set, p, ρ, q_pt)
+        T = air_temperature_given_pρq(param_set, p, ρ, q_pt)
         e_int = internal_energy(param_set, T, q_pt)
     end
     return PhaseEquil{FT}(ρ, p, e_int, q_tot, T)
@@ -926,7 +926,7 @@ and the density and internal energy are computed from the equation of state.
     h::FT,
     q_pt::PhasePartition{FT},
 ) where {FT <: Real}
-    T = air_temperature_from_enthalpy(param_set, h, q_pt)
+    T = air_temperature_given_hq(param_set, h, q_pt)
     ρ = air_density(param_set, T, p, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
@@ -952,7 +952,7 @@ and the internal energy is computed from the temperature and phase partition.
     p::FT,
     q_pt::PhasePartition{FT},
 ) where {FT <: Real}
-    T = air_temperature_given_ρp(param_set, p, ρ, q_pt)
+    T = air_temperature_given_pρq(param_set, p, ρ, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
