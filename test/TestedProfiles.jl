@@ -10,6 +10,7 @@ using Thermodynamics
 const TD = Thermodynamics
 import Thermodynamics.Parameters as TP
 const APS = TP.ThermodynamicsParameters
+const TDTP = TD.TemperatureProfiles
 
 import Random
 

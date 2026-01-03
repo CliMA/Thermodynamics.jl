@@ -85,7 +85,7 @@ include("saturation_adjustment.jl")
 include("depr_saturation_adjustment.jl")
 include("air_entropies.jl")
 include("air_dry_adiabatic.jl")
-include("config_numerical_method.jl")
+include("config_sa_method.jl")
 include("TemperatureProfiles.jl")
 
 # State methods

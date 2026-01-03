@@ -9,7 +9,7 @@ using Test
 using Thermodynamics
 import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
-using Thermodynamics.TestedProfiles
+using TestedProfiles
 import RootSolvers as RS
 using LinearAlgebra
 import ForwardDiff
