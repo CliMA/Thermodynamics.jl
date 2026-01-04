@@ -5,8 +5,6 @@ export ThermodynamicState,
 
 export PhaseDry, PhaseEquil, PhaseNonEquil
 
-export Liquid, Ice, Phase
-
 export PhaseDry_ρe,
     PhaseDry_pT,
     PhaseDry_pe,
@@ -58,7 +56,8 @@ This state assumes the air parcel contains only dry air components.
 
 # Fields
 
-$(DocStringExtensions.FIELDS)
+ - `e_int`: internal energy
+ - `ρ`: density of dry air
 """
 struct PhaseDry{FT} <: AbstractPhaseDry{FT}
     # TODO: swap order of variables (breaking change)
@@ -91,7 +90,11 @@ and the computed temperature from saturation adjustment.
 
 # Fields
 
-$(DocStringExtensions.FIELDS)
+ - `ρ`: density of air (potentially moist)
+ - `p`: air pressure
+ - `e_int`: internal energy
+ - `q_tot`: total specific humidity
+ - `T`: temperature: computed via [`saturation_adjustment`](@ref)
 """
 struct PhaseEquil{FT} <: AbstractPhaseEquil{FT}
     "density of air (potentially moist)"
@@ -128,7 +131,9 @@ specifying the distribution of water substance between vapor, liquid, and ice ph
 
 # Fields
 
-$(DocStringExtensions.FIELDS)
+ - `e_int`: internal energy
+ - `ρ`: density of air (potentially moist)
+ - `q`: phase partition
 
 """
 struct PhaseNonEquil{FT} <: AbstractPhaseNonEquil{FT}
@@ -154,54 +159,14 @@ Base.convert(::Type{PhaseNonEquil{FT}}, ts::PhaseNonEquil) where {FT} =
     return PhaseNonEquil{FT}(e_int, ρ, q)
 end
 
-"""
-    Phase
-
-A condensed phase, to dispatch over
-[`saturation_vapor_pressure`](@ref) and
-[`q_vap_saturation`](@ref).
-"""
-abstract type Phase end
-
-"""
-    Liquid <: Phase
-
-A liquid phase, to dispatch over
-[`saturation_vapor_pressure`](@ref) and
-[`q_vap_saturation`](@ref).
-"""
-struct Liquid <: Phase end
-
-"""
-    Ice <: Phase
-
-An ice phase, to dispatch over
-[`saturation_vapor_pressure`](@ref) and
-[`q_vap_saturation`](@ref).
-"""
-struct Ice <: Phase end
-# Constructors for thermodynamic states given various input variables
-
-# TODO: Reduce this to what we actually need
-
-
-# Thermodynamic states
-
-
-
-
-
-
-
-
 const ITERTYPE = Union{Int, Nothing}
 const TOLTYPE = Union{Real, Nothing}
+
+# Constructors for thermodynamic states given various input variables
 
 #####
 ##### Dry states
 #####
-
-
 
 """
     PhaseDry_ρe(param_set, ρ, e_int)
@@ -470,7 +435,6 @@ and the pressure and internal energy are computed from the equation of state.
     relative_temperature_tol === nothing &&
         (relative_temperature_tol = FT(1e-4))
     phase_type = PhaseEquil{FT}
-    tol = RS.RelativeSolutionTolerance(relative_temperature_tol)
     T = saturation_adjustment_given_ρθq(
         param_set,
         ρ,
@@ -478,7 +442,7 @@ and the pressure and internal energy are computed from the equation of state.
         q_tot,
         phase_type,
         maxiter,
-        tol,
+        relative_temperature_tol,
         T_guess,
     )
     q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)

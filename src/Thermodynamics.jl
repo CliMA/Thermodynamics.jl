@@ -38,9 +38,6 @@ Supported methods in RootSolvers.jl:
 """
 module Thermodynamics
 
-import DocStringExtensions
-const DSE = DocStringExtensions
-
 import RootSolvers
 const RS = RootSolvers
 
@@ -51,6 +48,8 @@ include("Parameters.jl")
 import .Parameters
 const TP = Parameters
 const APS = TP.AbstractThermodynamicsParameters
+
+include("ThermoTypes.jl")
 
 include("depr_PhasePartitionTypes.jl")
 
@@ -75,6 +74,7 @@ import .DataCollection
 include("aux_functions.jl")
 include("depr_air_states.jl")
 
+
 include("air_properties.jl")
 include("air_humidities.jl")
 include("air_energies.jl")
@@ -82,13 +82,14 @@ include("air_temperatures.jl")
 include("air_pressure_and_density.jl")
 include("air_saturation_functions.jl")
 include("saturation_adjustment.jl")
-include("depr_saturation_adjustment.jl")
 include("air_entropies.jl")
 include("air_dry_adiabatic.jl")
 include("config_sa_method.jl")
 include("TemperatureProfiles.jl")
 
-# State methods
+# Soon to be removed
+include("depr_air_temperatures.jl")
+include("depr_saturation_adjustment.jl")
 include("depr_state_methods.jl")
 include("depr_phase_partition_methods.jl")
 

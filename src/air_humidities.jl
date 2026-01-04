@@ -5,13 +5,14 @@ export partial_pressure_dry
 export partial_pressure_vapor
 export shum_to_mixing_ratio
 export q_vap_from_p_vap
+export q_vap_from_RH
 export q_vap_from_RH_liquid
 export relative_humidity
 
 """
     vapor_specific_humidity(q_tot=0, q_liq=0, q_ice=0)
 
-The vapor specific humidity, given
+The vapor specific humidity (clamped to be non-negative), given
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
@@ -132,6 +133,23 @@ The vapor specific humidity, given
 end
 
 """
+    q_vap_from_RH(param_set, p, T, RH, phase)
+
+The water vapor specific humidity, given
+ - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `p` pressure
+ - `T` temperature
+ - `RH` relative humidity with respect to `phase`
+ - `phase` the phase to compute saturation over (either `Liquid()` or `Ice()`)
+"""
+@inline function q_vap_from_RH(param_set::APS, p, T, RH, phase::Phase)
+    p_vap_sat = saturation_vapor_pressure(param_set, T, phase)
+    p_vap = RH * p_vap_sat
+    Rv_over_Rd = TP.Rv_over_Rd(param_set)
+    return p_vap / Rv_over_Rd / (p - (1 - 1 / Rv_over_Rd) * p_vap)
+end
+
+"""
     q_vap_from_RH_liquid(param_set, p, T, RH)
 
 The water vapor specific humidity, given
@@ -140,12 +158,11 @@ The water vapor specific humidity, given
  - `p` pressure
  - `T` temperature
  - `RH` relative humidity with respect to liquid water
+
+ This function is deprecated. Use `q_vap_from_RH` with `Liquid()` instead.
 """
 @inline function q_vap_from_RH_liquid(param_set::APS, p, T, RH)
-    p_vap_sat = saturation_vapor_pressure(param_set, T, Liquid())
-    p_vap = RH * p_vap_sat
-    Rv_over_Rd = TP.Rv_over_Rd(param_set)
-    return p_vap / Rv_over_Rd / (p - (1 - 1 / Rv_over_Rd) * p_vap)
+    return q_vap_from_RH(param_set, p, T, RH, Liquid())
 end
 
 """
@@ -160,7 +177,10 @@ The relative humidity (clipped between 0 and 1), given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the relative humidity is 0.
+ If `q_liq` and `q_ice` are zero (or not given), the relative humidity is computed relative
+ to saturation over ice below freezing and over liquid above freezing. If condensate is
+ present, the relative humidity is computed relative to saturation over a mixture of liquid
+ and ice, with the liquid fraction given by the ratio `q_liq / (q_liq + q_ice)`.
 """
 @inline function relative_humidity(
     param_set::APS,

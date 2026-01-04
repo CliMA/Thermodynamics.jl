@@ -1,7 +1,8 @@
 # Material properties of moist air 
 
 # Specific heats and gas constant of moist air
-export cp_m, cv_m, gas_constant_air
+export gas_constant_air
+export cp_m, cv_m
 
 # Specific latent heats
 export latent_heat_vapor
@@ -89,7 +90,8 @@ The specific latent heat of vaporization `L_v`, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 
-Because the specific heats are assumed constant, the latent heats are linear functions of temperature by Kirchhoff's law.
+ Because the specific heats are assumed constant, the latent heats are linear functions of
+ temperature by Kirchhoff's law.
 """
 @inline function latent_heat_vapor(param_set::APS, T)
     cp_l = TP.cp_l(param_set)
@@ -106,7 +108,8 @@ The specific latent heat of sublimation `L_s`, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 
-Because the specific heats are assumed constant, the latent heats are linear functions of temperature by Kirchhoff's law.
+ Because the specific heats are assumed constant, the latent heats are linear functions of
+ temperature by Kirchhoff's law.
 """
 @inline function latent_heat_sublim(param_set::APS, T)
     LH_s0 = TP.LH_s0(param_set)
@@ -123,7 +126,8 @@ The specific latent heat of fusion `L_f`, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 
-Because the specific heats are assumed constant, the latent heats are linear functions of temperature by Kirchhoff's law.
+ Because the specific heats are assumed constant, the latent heats are linear functions of
+ temperature by Kirchhoff's law.
 """
 @inline function latent_heat_fusion(param_set::APS, T)
     LH_f0 = TP.LH_f0(param_set)
@@ -143,7 +147,8 @@ two phases, computed using Kirchhoff's law, given
  - `LH_0` latent heat at the reference temperature `T_0`
  - `Δcp` difference in isobaric specific heat capacities between the two phases
 
-Because the specific heats are assumed constant, the latent heats are linear functions of temperature.
+ Because the specific heats are assumed constant, the latent heats are linear functions of
+ temperature by Kirchhoff's law.
 """
 @inline function latent_heat_generic(param_set::APS, T, LH_0, Δcp)
     T_0 = TP.T_0(param_set)
@@ -162,7 +167,8 @@ The specific latent heat of a mixed phase, weighted by the liquid fraction `λ`,
  - `T` air temperature
  - `λ` liquid fraction
 
-Because the specific heats are assumed constant, the latent heats are linear functions of temperature by Kirchhoff's law.
+ Because the specific heats are assumed constant, the latent heats are linear functions of
+ temperature by Kirchhoff's law.
 """
 @inline function latent_heat_mixed(param_set::APS, T, λ)
     L_v = latent_heat_vapor(param_set, T)
@@ -173,8 +179,8 @@ end
 """
     humidity_weighted_latent_heat(param_set, q_liq=0, q_ice=0)
 
-Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference temperature 
-`T_0`, given
+Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference
+temperature `T_0`, given
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity

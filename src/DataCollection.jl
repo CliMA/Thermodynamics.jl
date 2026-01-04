@@ -12,7 +12,7 @@ import Thermodynamics as TD
 import RootSolvers as RS
 
 function do_work()
-    # Calls TD.PhaseEquil_ρeq()..., possibly many times
+    # Calls TD.saturation_adjustment()..., possibly many times
 end
 
 TD.solution_type() = RS.VerboseSolution()

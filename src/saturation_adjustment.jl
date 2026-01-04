@@ -1,12 +1,12 @@
 # Saturation adjustment functions for various combinations of input variables
 
-export saturation_adjustment_ρeq
-export saturation_adjustment_phq
+export saturation_adjustment
 
 """
-    saturation_adjustment_ρeq(
+    saturation_adjustment(
         sat_adjust_method::Type,
         param_set::APS,
+        ::ρeq,
         ρ::Real,
         e_int::Real,
         q_tot::Real,
@@ -31,16 +31,17 @@ Returns a tuple `(T, q_liq, q_ice)`.
 - `tol`: Relative tolerance for the temperature solution.
 - `T_guess`: Optional initial guess for the temperature.
 """
-@inline function saturation_adjustment_ρeq(
-    ::Type{sat_adjust_method},
+@inline function saturation_adjustment(
+    sat_adjust_method::Type,
     param_set::APS,
+    ::ρeq,
     ρ,
     e_int,
     q_tot,
     maxiter::Int,
     tol::Real,
     T_guess = nothing,
-) where {sat_adjust_method}
+)
     T_init_min = TP.T_init_min(param_set)
     sol_tol = RS.RelativeSolutionTolerance(tol)
 
@@ -94,30 +95,11 @@ Returns a tuple `(T, q_liq, q_ice)`.
     return (T, q_liq, q_ice)
 end
 
-# Default to SecantMethod when no root solver method is specified
-@inline saturation_adjustment_ρeq(
-    param_set::APS,
-    ρ,
-    e_int,
-    q_tot,
-    maxiter::Int,
-    tol::Real,
-    T_guess = nothing,
-) = saturation_adjustment_ρeq(
-    SecantMethod,
-    param_set,
-    ρ,
-    e_int,
-    q_tot,
-    maxiter,
-    tol,
-    T_guess,
-)
-
 """
-    saturation_adjustment_phq(
+    saturation_adjustment(
         sat_adjust_method::Type,
         param_set::APS,
+        ::phq,
         p::Real,
         h::Real,
         q_tot::Real,
@@ -142,18 +124,18 @@ Returns a tuple `(T, q_liq, q_ice)`.
 - `tol`: Relative tolerance for the temperature solution.
 - `T_guess`: Optional initial guess for the temperature.
 """
-@inline function saturation_adjustment_phq(
-    ::Type{sat_adjust_method},
+@inline function saturation_adjustment(
+    sat_adjust_method::Type,
     param_set::APS,
+    ::phq,
     p,
     h,
     q_tot,
     maxiter::Int,
     tol::Real,
     T_guess = nothing,
-) where {sat_adjust_method}
-    
-    @inline h_sat_given_p(T, param_set, p, q_tot) =
+)
+    @inline h_sat_given_p(T) =
         enthalpy_sat(
             param_set,
             T,
@@ -161,21 +143,108 @@ Returns a tuple `(T, q_liq, q_ice)`.
             q_tot,
         )
 
-    T = _saturation_adjustment_p_thermo_q(
+    @inline q_sat_unsat_p(param_set, T, q_tot) =
+        q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
+
+    @inline make_numerical_method_p(sat_method, param_set, h, q_tot, T_guess) =
+        sa_numerical_method_phq(sat_method, param_set, p, h, q_tot, T_guess)
+
+    T = _saturation_adjustment_generic(
         sat_adjust_method,
         param_set,
-        p,
         h,
         q_tot,
         maxiter,
         tol,
         T_guess,
         air_temperature_given_hq, 
+        q_sat_unsat_p,
         h_sat_given_p,
-        sa_numerical_method_phq,
+        make_numerical_method_p,
         print_warning_hpq,             
         sat_adjust_method,
         h,
+        p,
+        q_tot,
+        T_guess, 
+    )
+    
+    return (T, q_liq, q_ice)
+end
+    
+"""
+    saturation_adjustment(
+        sat_adjust_method::Type,
+        param_set::APS,
+        ::pθ_liq_ice_q,
+        p::Real,
+        θ_liq_ice::Real,
+        q_tot::Real,
+        maxiter::Int,
+        tol::Real,
+        [T_guess::Union{Nothing, Real}]
+    )
+
+Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
+given pressure `p`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
+
+Returns a tuple `(T, q_liq, q_ice)`.
+"""
+@inline function saturation_adjustment(
+    sat_adjust_method::Type,
+    param_set::APS,
+    ::pθ_liq_ice_q,
+    p,
+    θ_liq_ice,
+    q_tot,
+    maxiter::Int,
+    tol::Real,
+    T_guess = nothing,
+)
+    @inline function θ_liq_ice_sat_given_p(T)
+        ρ = air_density(param_set, T, p, q_tot)
+        (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+
+        return liquid_ice_pottemp_given_pressure(
+            param_set,
+            T,
+            p,
+            q_tot,
+            q_liq,
+            q_ice,
+        )
+    end
+    
+    @inline temp_from_θ_liq_ice_func(param_set, θ_liq_ice, q_tot) =
+        air_temperature(
+            param_set,
+            pθ_liq_ice_q(),
+            p,
+            θ_liq_ice,
+            q_tot,
+        )
+
+    @inline q_sat_unsat_p(param_set, T, q_tot) =
+        q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
+
+    @inline make_numerical_method_p(sat_method, param_set, θ, q_tot, T_guess) =
+        sa_numerical_method_pθq(sat_method, param_set, p, θ, q_tot, T_guess)
+
+    T = _saturation_adjustment_generic(
+        sat_adjust_method,
+        param_set,
+        θ_liq_ice,
+        q_tot,
+        maxiter,
+        tol,
+        T_guess,
+        temp_from_θ_liq_ice_func, 
+        q_sat_unsat_p,
+        θ_liq_ice_sat_given_p,
+        make_numerical_method_p,
+        print_warning_pθq,       
+        sat_adjust_method,
+        θ_liq_ice,
         p,
         q_tot,
         T_guess, 
@@ -187,6 +256,192 @@ Returns a tuple `(T, q_liq, q_ice)`.
     
     return (T, q_liq, q_ice)
 end
+
+"""
+    saturation_adjustment(
+        sat_adjust_method::Type,
+        param_set::APS,
+        ::ρθ_liq_ice_q,
+        ρ::Real,
+        θ_liq_ice::Real,
+        q_tot::Real,
+        maxiter::Int,
+        tol::Real,
+        [T_guess::Union{Nothing, Real}]
+    )
+
+Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
+given density `ρ`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
+
+Returns a tuple `(T, q_liq, q_ice)`.
+"""
+@inline function saturation_adjustment(
+    sat_adjust_method::Type,
+    param_set::APS,
+    ::ρθ_liq_ice_q,
+    ρ,
+    θ_liq_ice,
+    q_tot,
+    maxiter::Int,
+    tol::Real,
+    T_guess = nothing,
+)
+    @inline function θ_liq_ice_sat_given_ρ(T)
+        (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+        return liquid_ice_pottemp(
+            param_set,
+            T,
+            ρ,
+            q_tot,
+            q_liq,
+            q_ice,
+        )
+    end
+    
+    @inline temp_from_θ_liq_ice_func(param_set, θ_liq_ice, q_tot) =
+        air_temperature(
+            param_set,
+            ρθ_liq_ice_q(),
+            ρ,
+            θ_liq_ice,
+            q_tot,
+        )
+
+    @inline q_sat_unsat_ρ(param_set, T, q_tot) =
+        q_vap_saturation(param_set, T, ρ)
+
+    @inline make_numerical_method_ρ(sat_method, param_set, θ, q_tot, T_guess) =
+        sa_numerical_method_ρθq(sat_method, param_set, ρ, θ, q_tot, T_guess)
+
+    T = _saturation_adjustment_generic(
+        sat_adjust_method,
+        param_set,
+        θ_liq_ice,
+        q_tot,
+        maxiter,
+        tol,
+        T_guess,
+        temp_from_θ_liq_ice_func, 
+        q_sat_unsat_ρ,
+        θ_liq_ice_sat_given_ρ,
+        make_numerical_method_ρ,
+        print_warning_pθq, 
+        sat_adjust_method,
+        θ_liq_ice,
+        ρ,
+        q_tot,
+        T_guess, 
+    )
+    
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    
+    return (T, q_liq, q_ice)
+end
+
+
+"""
+    saturation_adjustment(
+        sat_adjust_method::Type,
+        param_set::APS,
+        ::pρq,
+        p::Real,
+        ρ::Real,
+        q_tot::Real,
+        maxiter::Int,
+        tol::Real,
+        [T_guess::Union{Nothing, Real}]
+    )
+
+Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
+given pressure `p`, density `ρ`, and total specific humidity `q_tot`.
+
+Returns a tuple `(T, q_liq, q_ice)`.
+"""
+@inline function saturation_adjustment(
+    sat_adjust_method::Type,
+    param_set::APS,
+    ::pρq,
+    p,
+    ρ,
+    q_tot,
+    maxiter::Int,
+    tol::Real,
+    T_guess = nothing,
+)
+    @inline function pressure_sat_given_ρ(T)
+        (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+        return air_pressure(
+            param_set,
+            T,
+            ρ,
+            q_tot,
+            q_liq,
+            q_ice,
+        )
+    end
+    
+    @inline temp_from_pρq_func(param_set, p, q_tot) =
+        air_temperature(
+            param_set,
+            pρq(),
+            p,
+            ρ,
+            q_tot,
+        )
+
+    @inline q_sat_unsat_ρ(param_set, T, q_tot) =
+        q_vap_saturation(param_set, T, ρ)
+
+    @inline make_numerical_method_ρ(sat_method, param_set, target_p, q_tot, T_guess) =
+        sa_numerical_method_ρpq(sat_method, param_set, ρ, target_p, q_tot, T_guess)
+
+    # Using generic helper with p as target thermo_var
+    T = _saturation_adjustment_generic(
+        sat_adjust_method,
+        param_set,
+        p, # thermo_var (target p)
+        q_tot,
+        maxiter,
+        tol,
+        T_guess,
+        temp_from_pρq_func, 
+        q_sat_unsat_ρ, 
+        pressure_sat_given_ρ,
+        make_numerical_method_ρ,
+        print_warning_ρpq,       
+        sat_adjust_method,
+        ρ, 
+        p,
+        q_tot,
+        # T_guess removed to match printing.jl signature
+    )
+    
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    
+    return (T, q_liq, q_ice)
+end
+
+# Default to secant method
+@inline saturation_adjustment(
+    param_set::APS,
+    iv::IndepVars,
+    arg1,
+    arg2,
+    arg3,
+    maxiter::Int,
+    tol::Real,
+    T_guess = nothing,
+) = saturation_adjustment(
+    SecantMethod,
+    param_set,
+    iv,
+    arg1,
+    arg2,
+    arg3,
+    maxiter,
+    tol,
+    T_guess,
+)
 
 # ---------------------------------------------
 # Helper functions 
@@ -234,40 +489,41 @@ function _find_zero_with_convergence_check(
 end
 
 """
-    _saturation_adjustment_p_thermo_q(
+    _saturation_adjustment_generic(
         sat_method,
         param_set,
-        p,
         thermo_var,
         q_tot,
         maxiter,
         relative_temperature_tol,
         T_guess,
-        temp_from_var_func,
+        temp_from_var_unsat_func,
+        q_sat_unsat_func,
         sat_val_func,
-        numerical_method_constructor,
+        numerical_method_func,
         warning_func,
         warning_args...,
     )
 
-Private kernel for saturation adjustment given pressure `p`, total humidity `q_tot`,
-and a thermodynamic variable `thermo_var` (e.g., specific enthalpy or internal energy).
+Generic kernel for saturation adjustment.
 
-Encapsulates unsaturated check logic and root-finding for pressure-based adjustments.
+Encapsulates unsaturated check logic and root-finding for saturation adjustments.
+Arguments `temp_from_var_unsat_func`, `q_sat_unsat_func`, `sat_val_func` and `numerical_method_func`
+are closures that capture any specific independent variables (like p or ρ).
 """
-@inline function _saturation_adjustment_p_thermo_q(
+@inline function _saturation_adjustment_generic(
     sat_method,
     param_set::APS,
-    p,
     thermo_var, # This can be e_int or h
     q_tot,
     maxiter,
     relative_temperature_tol,
     T_guess,
     # The following are functions passed in to customize the behavior
-    temp_from_var_func, # Function to compute T from the thermo_var
-    sat_val_func,       # Function to compute the saturated value of the thermo_var
-    numerical_method_constructor,
+    temp_from_var_unsat_func,   # (param_set, thermo_var, q_tot) -> T
+    q_sat_unsat_func,           # (param_set, T, q_tot) -> q_sat (for unsaturated check)
+    sat_val_func,               # (T) -> val (to match thermo_var)
+    numerical_method_func,      # (sat_method, param_set, thermo_var, q_tot, T_guess) -> method
     warning_func,
     warning_args...,
 )
@@ -277,23 +533,23 @@ Encapsulates unsaturated check logic and root-finding for pressure-based adjustm
     # Encapsulated "Unsaturated Check" logic
     T_1 = max(
         _T_min,
-        temp_from_var_func(param_set, thermo_var, q_tot),
+        temp_from_var_unsat_func(param_set, thermo_var, q_tot),
     )
-    @inline ρ_T(T) = air_density(param_set, T, p, q_tot)
-    ρ_1 = ρ_T(T_1)
-    q_v_sat = q_vap_saturation(param_set, T_1, ρ_1)
+    
+    q_v_sat = q_sat_unsat_func(param_set, T_1, q_tot)
     if q_tot <= q_v_sat
         return T_1
     end
 
     # Saturated case: find the root
-    @inline roots(T) =
-        sat_val_func(T, param_set, p, q_tot) - thermo_var
+    @inline function roots(T)
+        T_safe = max(T, _T_min)
+        return sat_val_func(T_safe) - thermo_var
+    end
 
-    numerical_method = numerical_method_constructor(
+    numerical_method = numerical_method_func(
         sat_method,
         param_set,
-        p,
         thermo_var,
         q_tot,
         T_guess,

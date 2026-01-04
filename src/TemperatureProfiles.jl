@@ -1,8 +1,5 @@
 module TemperatureProfiles
 
-import DocStringExtensions
-const DSE = DocStringExtensions
-
 export TemperatureProfile,
     IsothermalProfile, DecayingTemperatureProfile, DryAdiabaticProfile
 
@@ -49,7 +46,8 @@ the height where a minimum temperature is reached.
 
 # Fields
 
-$(DSE.FIELDS)
+ - `T_surface`: Surface temperature (K)
+ - `T_min_ref`: Minimum temperature (K)
 """
 struct DryAdiabaticProfile{FT} <: TemperatureProfile{FT}
     "Surface temperature (K)"
@@ -103,7 +101,9 @@ T_{\\text{v}}(z) = \\max(T_{\\text{v, sfc}} − (T_{\\text{v, sfc}} - T_{\\text{
 
 # Fields
 
-$(DSE.FIELDS)
+ - `T_virt_surf`: Virtual temperature at surface (K)
+ - `T_min_ref`: Minimum virtual temperature at the top of the atmosphere (K)
+ - `H_t`: Height scale over which virtual temperature drops (m)
 """
 struct DecayingTemperatureProfile{FT} <: TemperatureProfile{FT}
     "Virtual temperature at surface (K)"

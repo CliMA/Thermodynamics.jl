@@ -5,8 +5,6 @@
 Defines the PhasePartition struct for representing mass fractions of moist air.
 """
 
-import DocStringExtensions
-
 # Exports
 export PhasePartition, promote_phase_partition
 
@@ -29,7 +27,9 @@ See also [`PhasePartition_equil`](@ref)
 
 # Fields
 
-$(DocStringExtensions.FIELDS)
+ - `tot`: total specific humidity
+ - `liq`: liquid water specific humidity (default: `0`)
+ - `ice`: ice specific humidity (default: `0`)
 """
 struct PhasePartition{FT <: Real}
     "total specific humidity"

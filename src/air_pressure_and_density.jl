@@ -77,7 +77,8 @@ end
 """
     exner_given_pressure(param_set, p, q_tot=0, q_liq=0, q_ice=0)
 
-The Exner function `Π = (p/p₀)^(R_m/cp_m)`, where `p₀` is the reference pressure, given
+The Exner function `Π = (p/p₀)^(R_m/cp_m)`, where `p₀` is the reference pressure,
+given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure

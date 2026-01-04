@@ -1,11 +1,11 @@
 export liquid_fraction
+export has_condensate
 export saturation_vapor_pressure
 export q_vap_saturation
 export q_vap_saturation_from_pressure
+export supersaturation
 export saturation_excess
 export condensate_partition
-export supersaturation
-export has_condensate
 export vapor_pressure_deficit
 
 """
@@ -68,6 +68,9 @@ end
     has_condensate(q_c)
 
 Bool indicating if condensate exists, i.e., q_c > eps.
+
+We use a threshold of `eps` rather than `0` to avoid division by zero in functions
+like `liquid_fraction` and to robustly handle numerical noise.
 """
 @inline has_condensate(q_c) = q_c > eps(typeof(q_c))
 
@@ -114,7 +117,8 @@ The computed value is:
 
 ``p_v^*(T) = p_{tr} \\left( \\frac{T}{T_{tr}} \\right)^{\\Delta c_{p} / R_v} \\exp \\left[ \\frac{L_0 - \\Delta c_{p} T_0}{R_v} \\left( \\frac{1}{T_{tr}} - \\frac{1}{T} \\right) \\right]``
 
-where ``T_{tr}`` is the triple point temperature, ``p_{tr}`` is the triple point pressure, ``T_0`` is the reference temperature, and ``R_v`` is the gas constant for water vapor.
+where ``T_{tr}`` is the triple point temperature, ``p_{tr}`` is the triple point pressure,
+``T_0`` is the reference temperature, and ``R_v`` is the gas constant for water vapor.
 """
 @inline function saturation_vapor_pressure_calc(param_set::APS, T, LH_0, Δcp)
     press_triple = TP.press_triple(param_set)
@@ -123,7 +127,7 @@ where ``T_{tr}`` is the triple point temperature, ``p_{tr}`` is the triple point
     T_0 = TP.T_0(param_set)
 
     return press_triple *
-           # (T / T_triple)^(Δcp / R_v) *
+           # Use fast_power to compute (T / T_triple)^(Δcp / R_v) more efficiently
            fast_power(T / T_triple, Δcp / R_v) *
            exp((LH_0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T))
 end
@@ -217,7 +221,8 @@ sublimation, with the weights given by the liquid fraction. If `q_liq` and `q_ic
 the saturation specific humidity is that over liquid above freezing and over ice below 
 freezing.
  
-Otherwise, the fraction of liquid is given by the temperature dependent `liquid_fraction(param_set, T)`.
+Otherwise, the fraction of liquid is given by the temperature dependent
+`liquid_fraction(param_set, T)`.
 """
 @inline function q_vap_saturation(
     param_set::APS,
@@ -313,6 +318,7 @@ Compute the saturation specific humidity from the saturation vapor pressure `p_v
 
 The saturation specific humidity is computed as:
 ``q_v^* = (R_d / R_v) * (1 - q_{tot}) * p_v^* / (p - p_v^*)``
+and is set to 1 if `p - p_v_sat` is less than machine epsilon.
 """
 @inline function q_vap_saturation_from_pressure_calc(
     param_set::APS,
@@ -348,7 +354,6 @@ The supersaturation (pv/pv_sat -1) over water or ice, given
     T,
     phase::Phase = Liquid(),
 )
-
     p_v_sat = saturation_vapor_pressure(param_set, T, phase)
 
     return supersaturation(param_set, q_vap, ρ, T, p_v_sat)
@@ -364,7 +369,6 @@ The supersaturation (pv/pv_sat - 1) given the saturation vapor pressure `p_v_sat
 - `ρ`: Air density
 - `T`: Temperature
 - `p_v_sat`: Saturation vapor pressure
-
 """
 @inline function supersaturation(
     param_set::APS,
@@ -373,7 +377,6 @@ The supersaturation (pv/pv_sat - 1) given the saturation vapor pressure `p_v_sat
     T,
     p_v_sat,
 )
-
     p_v = q_vap * (ρ * TP.R_v(param_set) * T)
 
     return p_v / p_v_sat - 1

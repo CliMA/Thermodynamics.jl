@@ -29,19 +29,19 @@ using Random
             T∞, p∞ = T .* perturbation, p .* perturbation
             @test air_temperature.(
                 param_set,
+                DryAdiabaticProcess(),
                 p,
                 θ_liq_ice,
-                DryAdiabaticProcess(),
             ) ≈ (p ./ _p_ref_theta) .^ (_R_d / _cp_d) .* θ_liq_ice
             @test TD.air_pressure_given_θ.(
                 param_set,
+                DryAdiabaticProcess(),
                 θ_liq_ice,
                 Φ,
-                DryAdiabaticProcess(),
             ) ≈
                   _p_ref_theta .*
                   (1 .- Φ ./ (θ_liq_ice .* _cp_d)) .^ (_cp_d / _R_d)
-            @test air_pressure.(param_set, T, T∞, p∞, DryAdiabaticProcess()) ≈
+            @test air_pressure.(param_set, DryAdiabaticProcess(), T, T∞, p∞) ≈
                   p∞ .* (T ./ T∞) .^ (FT(1) / _kappa_d)
         end
     end

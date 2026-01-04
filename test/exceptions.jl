@@ -93,7 +93,7 @@ This file contains tests for error handling on failed convergence.
             p,
             q_tot,
             Ref(phase_type),
-            maxiter,
+            1, # maxiter reduced to ensure non-convergence
             tol,
         )
     end
@@ -105,11 +105,11 @@ This file contains tests for error handling on failed convergence.
             ρ,
             RH,
             Ref(phase_type),
-            maxiter,
+            1, # maxiter reduced
             RS.ResidualTolerance(tol),
         )
 
-        @test_throws ErrorException TD.air_temperature_given_ρθq_nonlinear.(
+        @test_throws ErrorException TD.air_temperature_given_ρθq_nonlinear(
             param_set,
             ρ,
             θ_liq_ice,

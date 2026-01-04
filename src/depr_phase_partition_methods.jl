@@ -159,8 +159,8 @@ The residual `q.tot - q.liq - q.ice` is the vapor specific humidity.
     λ = liquid_fraction(param_set, T, phase_type),
 ) where {phase_type <: ThermodynamicState}
 
-    q_v_sat = q_vap_saturation_from_pressure(param_set, q_tot, p, T)
-    q_c = q_tot - q_v_sat
+    ρ = air_density(param_set, T, p, q_tot)
+    q_c = saturation_excess(param_set, T, ρ, q_tot)
     q_liq = λ * q_c
     q_ice = (1 - λ) * q_c
     return PhasePartition(q_tot, q_liq, q_ice)
@@ -1276,3 +1276,5 @@ The temperature `T` is found by finding the root of
     end
     return sol.root
 end
+
+

@@ -261,6 +261,67 @@ end
     return RS.NewtonsMethodAD(T_init)
 end
 
+#####
+##### Thermodynamic variable inputs: ρ, θ_liq_ice, q_tot
+#####
+
+@inline function sa_numerical_method_ρθq(
+    ::Type{NM},
+    param_set::APS,
+    ρ,
+    θ_liq_ice,
+    q_tot,
+    T_guess,
+) where {NM <: RS.BrentsMethod}
+    T_init_min = TP.T_init_min(param_set)
+    # BrentsMethod requires strict bracketing - ignore T_guess
+    @inline air_temp(args...) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, args...)
+    T_1 = max(T_init_min, air_temp(q_tot)) # Assume all vapor
+    T_2 = T_1 + 10
+    T_1 = T_1 - 10
+    return RS.BrentsMethod(T_1, T_2)
+end
+
+@inline function sa_numerical_method_ρθq(
+    ::Type{NM},
+    param_set::APS,
+    ρ::FT,
+    θ_liq_ice,
+    q_tot,
+    T_guess,
+) where {FT, NM <: RS.SecantMethod}
+    T_init_min = TP.T_init_min(param_set)
+    @inline air_temp(args...) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, args...)
+    if T_guess isa Nothing
+        T_1 = max(T_init_min, air_temp(q_tot))
+        T_2 = air_temp(q_tot, FT(0), q_tot)
+    else
+        T_1 = max(T_init_min, T_guess)
+        T_2 = air_temp(q_tot, FT(0), q_tot)
+    end
+    T_2 = bound_upper_temperature(param_set, T_1, T_2)
+    return RS.SecantMethod(T_1, T_2)
+end
+
+@inline function sa_numerical_method_ρθq(
+    ::Type{NM},
+    param_set::APS,
+    ρ,
+    θ_liq_ice,
+    q_tot,
+    T_guess,
+) where {NM <: RS.NewtonsMethodAD}
+    T_init_min = TP.T_init_min(param_set)
+    @inline air_temp(args...) = air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, args...)
+    T_init = if T_guess isa Nothing
+        max(T_init_min, air_temp(q_tot)) # Assume all vapor
+    else
+        T_guess
+    end
+    return RS.NewtonsMethodAD(T_init)
+end
+
+
 """
     bound_upper_temperature(param_set, T_1, T_2)
 

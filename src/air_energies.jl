@@ -13,8 +13,8 @@ export enthalpy_sat
 export total_energy
 export total_enthalpy
 export dry_static_energy
-export moist_static_energy
 export vapor_static_energy
+export moist_static_energy
 export virtual_dry_static_energy
 
 
@@ -113,8 +113,8 @@ The internal energy per unit mass in thermodynamic equilibrium at saturation, gi
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
 
-The phase partition is computed internally using the temperature-dependent liquid
-fraction and saturation excess.
+The phase partition into liquid and ice is computed internally from `q_tot` using the 
+temperature-dependent liquid fraction and saturation excess.
 """
 @inline function internal_energy_sat(param_set::APS, T, ρ, q_tot)
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
@@ -193,6 +193,9 @@ The specific enthalpy of liquid, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
+
+ The specific enthalpy of liquid is equal to the internal energy of liquid because the
+ specific volume of condensed water is neglected.
 """
 @inline enthalpy_liquid(param_set::APS, T) =
     internal_energy_liquid(param_set, T)
@@ -204,6 +207,9 @@ The specific enthalpy of ice, given
 
  - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
+
+ The specific enthalpy of ice is equal to the internal energy of ice because the
+ specific volume of condensed water is neglected.
 """
 @inline enthalpy_ice(param_set::APS, T) =
     internal_energy_ice(param_set, T)
@@ -218,8 +224,8 @@ The specific enthalpy in thermodynamic equilibrium at saturation, given
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
 
-The phase partition is computed internally using the temperature-dependent liquid
-fraction and saturation excess.
+The phase partition into liquid and ice is computed internally from `q_tot` using the 
+temperature-dependent liquid fraction and saturation excess.
 """
 @inline function enthalpy_sat(param_set::APS, T, ρ, q_tot)
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
