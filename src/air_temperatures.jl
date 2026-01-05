@@ -21,10 +21,10 @@ If the specific humidities are not given, the result is for dry air.
 """
 @inline function air_temperature(
     param_set::APS,
-    e_int::Number,     # Number type needed to disambiguate from deprecated methods that are still there
-    q_tot::Number = 0,
-    q_liq::Number = 0,
-    q_ice::Number = 0,
+    e_int::Real,     # Number type needed to disambiguate from deprecated methods that are still there
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
     return air_temperature(param_set, ρeq(), e_int, q_tot, q_liq, q_ice)
 end
@@ -32,10 +32,10 @@ end
 @inline function air_temperature(
     param_set::APS,
     ::ρeq,
-    e_int::Number,
-    q_tot::Number = 0,
-    q_liq::Number = 0,
-    q_ice::Number = 0,
+    e_int::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
     T_0 = TP.T_0(param_set)
     R_d = TP.R_d(param_set)
@@ -65,10 +65,10 @@ If the specific humidities are not given, the result is for dry air.
 @inline function air_temperature(
     param_set::APS,
     ::phq,
-    h::Number,
-    q_tot::Number = 0,
-    q_liq::Number = 0,
-    q_ice::Number = 0,
+    h::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
     cpm = cp_m(param_set, q_tot, q_liq, q_ice)
     T_0 = TP.T_0(param_set)
@@ -95,11 +95,11 @@ If the specific humidities are not given, the result is for dry air.
 @inline function air_temperature(
     param_set::APS,
     ::pρq,
-    p::Number,  
-    ρ::Number,
-    q_tot::Number = 0,
-    q_liq::Number = 0,
-    q_ice::Number = 0,
+    p::Real,  
+    ρ::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
     R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     return p / (R_m * ρ)
@@ -131,11 +131,11 @@ potential temperature.
 @inline function air_temperature(
     param_set::APS,
     ::pθ_liq_ice_q,
-    p::Number,
-    θ_liq_ice::Number,
-    q_tot::Number = 0,
-    q_liq::Number = 0,
-    q_ice::Number = 0,
+    p::Real,
+    θ_liq_ice::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
     cpm = cp_m(param_set, q_tot, q_liq, q_ice)
     return θ_liq_ice * exner_given_pressure(param_set, p, q_tot, q_liq, q_ice) +
@@ -160,23 +160,27 @@ If the specific humidities are not given, the results are for dry air.
 @inline function air_temperature(
     param_set::APS,
     ::ρθ_liq_ice_q,
-    ρ::Number,
-    θ_liq_ice::Number,
-    q_tot::Number = 0,
-    q_liq::Number = 0,
-    q_ice::Number = 0,
+    ρ::Real,
+    θ_liq_ice::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
     # Second-order Taylor expansion around unsaturated temperature
-    p0 = TP.p_ref_theta(param_set)
+    p_ref = TP.p_ref_theta(param_set)
     cvm = cv_m(param_set, q_tot, q_liq, q_ice)
     cpm = cp_m(param_set, q_tot, q_liq, q_ice)
     R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     κ = 1 - cvm / cpm
-    T_u = (ρ * R_m * θ_liq_ice / p0)^(R_m / cvm) * θ_liq_ice
+
+    # Unsaturated temperature corresponding to (ρ, θ_liq_ice) in the dry/moist EOS sense
+    T_unsat = (ρ * R_m * θ_liq_ice / p_ref)^(R_m / cvm) * θ_liq_ice
+
+    # Latent-heat correction (humidity-weighted at reference temperature)
     L_q = humidity_weighted_latent_heat(param_set, q_liq, q_ice)
-    T_1 = L_q / cvm
-    T_2 = -κ / (2 * T_u) * (L_q / cvm)^2
-    return T_u + T_1 + T_2
+    ΔT₁ = L_q / cvm
+    ΔT₂ = -κ / (2 * T_unsat) * (L_q / cvm)^2
+    return T_unsat + ΔT₁ + ΔT₂
 end
 
 

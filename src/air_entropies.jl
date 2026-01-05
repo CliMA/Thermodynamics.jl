@@ -16,7 +16,7 @@ The specific entropy in thermodynamic equilibrium, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 
 The specific entropy is computed from equations (29)-(33) of
 Pressel et al. (2015), doi: [10.1002/2015MS000496](https://doi.org/10.1002/2015MS000496).
@@ -41,7 +41,7 @@ The specific entropy of dry air at its partial pressure, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the partial pressure equals the total pressure.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), the dry-air partial pressure equals the total pressure.
 """
 @inline function entropy_dry(
     param_set::APS,

@@ -24,7 +24,7 @@ The specific gas constant of moist air `R_m`, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
 @inline function gas_constant_air(
     param_set::APS,
@@ -48,7 +48,7 @@ The isobaric specific heat capacity of moist air `cp_m`, given
  - `q_liq` specific humidity of liquid
  - `q_ice` specific humidity of ice
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 The specific heat capacities are assumed to be constant (calorically perfect air).
 """
 @inline function cp_m(param_set::APS, q_tot = 0, q_liq = 0, q_ice = 0)
@@ -73,7 +73,7 @@ The isochoric specific heat capacity of moist air `cv_m`, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 The specific heat capacities are assumed to be constant (calorically perfect air).
 """
 @inline function cv_m(param_set::APS, q_tot = 0, q_liq = 0, q_ice = 0)
@@ -213,7 +213,7 @@ The speed of sound in unstratified air, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
 @inline function soundspeed_air(
     param_set::APS,

@@ -15,14 +15,18 @@ export vapor_pressure_deficit
 The fraction of condensate that is liquid.
 
 If `q_liq` and `q_ice` are provided, the liquid fraction is computed from them.
-If they are nonzero, `q_liq / (q_liq + q_ice)` is returned. If they are both
-zero, a sharp temperature dependent partitioning is used (linear ramp from 0 to 
-1 over +/- 0.1 K around freezing), so that the liquid fraction is zero below
-freezing and one above freezing.
+If `q_liq + q_ice` exceeds a small threshold (see [`has_condensate`](@ref)), `q_liq / (q_liq + q_ice)`
+is returned. If there is effectively no condensate, a smooth temperature-dependent partitioning is used
+(linear ramp from 0 to 1 over ±0.1 K around freezing).
 
 If `q_liq` and `q_ice` are not provided, the liquid fraction is computed from
 temperature using a power law interpolation between `T_icenuc` and `T_freeze`,
 following Kaul et al. (2015), doi: [10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
+
+Edge cases:
+- For `T > T_freeze`, this returns `1`; for `T ≤ T_icenuc`, it returns `0`.
+- The temperature-only form uses a (generally broader) supercooled-liquid transition between `T_icenuc` and `T_freeze`,
+  whereas the `(T, q_liq, q_ice)` form uses the narrow ±0.1 K transition *only* when `q_liq ≈ q_ice ≈ 0`.
 """
 @inline function liquid_fraction(param_set::APS, T, q_liq, q_ice)
     FT = eltype(param_set)
@@ -146,6 +150,9 @@ above freezing and over ice below freezing.
 
 Otherwise, the liquid fraction below freezing is computed from a temperature dependent
 parameterization `liquid_fraction(param_set, T)`.
+
+Edge case: the `saturation_vapor_pressure(param_set, T, q_liq, q_ice)` form includes a small smooth transition
+around freezing when `q_liq == q_ice == 0` (via `liquid_fraction(param_set, T, q_liq, q_ice)`).
 """
 @inline function saturation_vapor_pressure(param_set::APS, T, q_liq, q_ice)
     λ = liquid_fraction(param_set, T, q_liq, q_ice)
@@ -257,6 +264,8 @@ Otherwise, the liquid fraction is computed from a temperature dependent paramete
 The saturation specific humidity is computed as:
 ``q_v^* = (R_d / R_v) * (1 - q_{tot}) * p_v^* / (p - p_v^*)``
 where `p_v^*` is the saturation vapor pressure.
+
+Edge case: this expression assumes `p > p_v^*(T)`; if `p ≤ p_v^*(T)` the denominator changes sign.
 """
 @inline function q_vap_saturation_from_pressure(
     param_set::APS,

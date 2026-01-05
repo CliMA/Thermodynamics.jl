@@ -18,14 +18,7 @@ using Random
 
         @testset "Ideal Gas Law" begin
             T_idgl =
-                TD.air_temperature_given_pρq.(
-                    param_set,
-                    p,
-                    ρ,
-                    q_tot,
-                    q_liq,
-                    q_ice,
-                )
+                TD.air_temperature.(Ref(param_set), Ref(TD.pρq()), p, ρ, q_tot, q_liq, q_ice)
             @test all(T .≈ T_idgl)
         end
 

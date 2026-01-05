@@ -1,9 +1,5 @@
 using Test
 
-using KernelAbstractions
-import KernelAbstractions as KA
-using Random
-using LinearAlgebra
 import RootSolvers as RS
 
 import Thermodynamics as TD
@@ -22,9 +18,11 @@ else
     ArrayType = Array
 end
 
-# Pre-allocate parameter sets for different floating-point types
-const param_set_Float64 = TP.ThermodynamicsParameters(Float64)
-const param_set_Float32 = TP.ThermodynamicsParameters(Float32)
+# Pre-allocate parameter sets for different floating-point types.
+# Use ClimaParams to construct the TOML dict explicitly to avoid relying on extensions
+# being loaded implicitly in this standalone test runner.
+const param_set_Float64 = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
+const param_set_Float32 = TP.ThermodynamicsParameters(CP.create_toml_dict(Float32))
 
 """
     parameter_set(::Type{FT})
@@ -43,146 +41,536 @@ parameter_set(::Type{Float32}) = param_set_Float32
 @show ArrayType
 
 """
-    test_thermo_kernel!(param_set, dst, e_int, ρ, p, q_tot)
+    sat_adjust!(dst_T, dst_ql, dst_qi, inputs..., maxiter, tol, param_set)
 
-GPU kernel for testing thermodynamic state constructors.
-This kernel creates thermodynamic states from different input combinations
-and computes air temperature to verify consistency.
+CPU/GPU implementation for testing the functional `saturation_adjustment` API.
 
-# Arguments
-- `param_set`: Thermodynamic parameter set
-- `dst`: Destination array for storing computed temperatures
-- `e_int`: Internal energy array
-- `ρ`: Density array
-- `p`: Pressure array
-- `q_tot`: Total specific humidity array
-
-# Details
-The kernel tests two different thermodynamic state constructors:
-1. PhaseEquil_ρeq: Uses density, internal energy, and humidity
-2. PhaseEquil_ρpq: Uses density, pressure, and humidity with saturation adjustment
+For each point, this kernel runs `saturation_adjustment` for multiple independent-variable
+formulations and stores `(T, q_liq, q_ice)` for each.
 """
-@kernel function test_thermo_kernel!(
+@inline function sat_adjust_point!(
     param_set,
-    dst::AbstractArray{FT},
-    e_int,
+    dst_T,
+    dst_ql,
+    dst_qi,
     ρ,
     p,
+    p_ρ,
     q_tot,
-) where {FT}
-    i = @index(Global)
-    @inbounds begin
-        # Get parameter set for current floating-point type
-        param_set = parameter_set(FT)
+    e_int_ρ,
+    e_int_p,
+    h_p,
+    θ_ρ,
+    θ_p,
+    i,
+    maxiter,
+    tol,
+)
+    # 1) ρeq
+    (T, ql, qi) = TD.saturation_adjustment(
+        RS.NewtonsMethod,
+        param_set,
+        TD.ρeq(),
+        ρ[i],
+        e_int_ρ[i],
+        q_tot[i],
+        maxiter,
+        tol,
+    )
+    dst_T[1, i] = T
+    dst_ql[1, i] = ql
+    dst_qi[1, i] = qi
 
-        # Test 1: PhaseEquil_ρeq constructor
-        # Uses density, internal energy, and total humidity
-        ts = TD.PhaseEquil_ρeq(param_set, FT(ρ[i]), FT(e_int[i]), FT(q_tot[i]))
-        dst[1, i] = TD.air_temperature(param_set, ts)
+    # 2) peq
+    (T, ql, qi) = TD.saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        TD.peq(),
+        p[i],
+        e_int_p[i],
+        q_tot[i],
+        maxiter,
+        tol,
+    )
+    dst_T[2, i] = T
+    dst_ql[2, i] = ql
+    dst_qi[2, i] = qi
 
-        # Test 2: PhaseEquil_ρpq constructor with saturation adjustment
-        # Uses density, pressure, and total humidity with iterative convergence
-        ts_ρpq = TD.PhaseEquil_ρpq(
-            param_set,
-            FT(ρ[i]),
-            FT(p[i]),
-            FT(q_tot[i]),
-            true,                    # Enable saturation adjustment
-            100,                     # Maximum iterations
-            FT(sqrt(eps(FT))),       # Tolerance
-            RS.BrentsMethod,    # Root finding method
-        )
-        dst[2, i] = TD.air_temperature(param_set, ts_ρpq)
-    end
+    # 3) phq
+    (T, ql, qi) = TD.saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        TD.phq(),
+        p[i],
+        h_p[i],
+        q_tot[i],
+        maxiter,
+        tol,
+    )
+    dst_T[3, i] = T
+    dst_ql[3, i] = ql
+    dst_qi[3, i] = qi
+
+    # 4) pρq
+    (T, ql, qi) = TD.saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        TD.pρq(),
+        p_ρ[i],
+        ρ[i],
+        q_tot[i],
+        maxiter,
+        tol,
+    )
+    dst_T[4, i] = T
+    dst_ql[4, i] = ql
+    dst_qi[4, i] = qi
+
+    # 5) ρθ_liq_ice_q
+    (T, ql, qi) = TD.saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        TD.ρθ_liq_ice_q(),
+        ρ[i],
+        θ_ρ[i],
+        q_tot[i],
+        maxiter,
+        tol,
+    )
+    dst_T[5, i] = T
+    dst_ql[5, i] = ql
+    dst_qi[5, i] = qi
+
+    # 6) pθ_liq_ice_q
+    (T, ql, qi) = TD.saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        TD.pθ_liq_ice_q(),
+        p[i],
+        θ_p[i],
+        q_tot[i],
+        maxiter,
+        tol,
+    )
+    dst_T[6, i] = T
+    dst_ql[6, i] = ql
+    dst_qi[6, i] = qi
+
+    return nothing
 end
 
-"""
-    convert_profile_set(ps, ArrayType, slice)
+function sat_adjust_cpu!(
+    param_set,
+    dst_T,
+    dst_ql,
+    dst_qi,
+    ρ,
+    p,
+    p_ρ,
+    q_tot,
+    e_int_ρ,
+    e_int_p,
+    h_p,
+    θ_ρ,
+    θ_p,
+    maxiter,
+    tol,
+)
+    n = length(q_tot)
+    @inbounds for i in 1:n
+        sat_adjust_point!(
+            param_set,
+            dst_T,
+            dst_ql,
+            dst_qi,
+            ρ,
+            p,
+            p_ρ,
+            q_tot,
+            e_int_ρ,
+            e_int_p,
+            h_p,
+            θ_ρ,
+            θ_p,
+            i,
+            maxiter,
+            tol,
+        )
+    end
+    return nothing
+end
 
-Convert a ProfileSet to use a different array type (e.g., for GPU computation).
-This function moves arrays to the target device while preserving the structure.
+if get(ARGS, 1, "Array") == "CuArray"
+    import CUDA
+    # Define CUDA-kernel code only when CUDA is actually available.
+    # (`CUDA.@cuda` is a macro and must not be expanded unless CUDA is loaded.)
+    @eval begin
+        function sat_adjust_cuda!(
+            param_set,
+            dst_T,
+            dst_ql,
+            dst_qi,
+            ρ,
+            p,
+            p_ρ,
+            q_tot,
+            e_int_ρ,
+            e_int_p,
+            h_p,
+            θ_ρ,
+            θ_p,
+            maxiter,
+            tol,
+        )
+            function kernel!(
+                param_set,
+                dst_T,
+                dst_ql,
+                dst_qi,
+                ρ,
+                p,
+                p_ρ,
+                q_tot,
+                e_int_ρ,
+                e_int_p,
+                h_p,
+                θ_ρ,
+                θ_p,
+                maxiter,
+                tol,
+            )
+                i = (CUDA.blockIdx().x - 1) * CUDA.blockDim().x + CUDA.threadIdx().x
+                if i <= length(q_tot)
+                    @inbounds sat_adjust_point!(
+                        param_set,
+                        dst_T,
+                        dst_ql,
+                        dst_qi,
+                        ρ,
+                        p,
+                        p_ρ,
+                        q_tot,
+                        e_int_ρ,
+                        e_int_p,
+                        h_p,
+                        θ_ρ,
+                        θ_p,
+                        i,
+                        maxiter,
+                        tol,
+                    )
+                end
+                return nothing
+            end
 
-# Arguments
-- `ps`: ProfileSet to convert
-- `ArrayType`: Target array type (Array or CuArray)
-- `slice`: Index slice to apply to arrays
-
-# Returns
-- New ProfileSet with arrays converted to the target type
-"""
-convert_profile_set(ps::TestedProfiles.ProfileSet, ArrayType, slice) =
-    TestedProfiles.ProfileSet(
-        ArrayType(ps.z[slice]),
-        ArrayType(ps.T[slice]),
-        ArrayType(ps.p[slice]),
-        ArrayType(ps.RS[slice]),
-        ArrayType(ps.e_int[slice]),
-        ArrayType(ps.h[slice]),
-        ArrayType(ps.ρ[slice]),
-        ArrayType(ps.θ_liq_ice[slice]),
-        ArrayType(ps.q_tot[slice]),
-        ArrayType(ps.q_liq[slice]),
-        ArrayType(ps.q_ice[slice]),
-        ArrayType(ps.RH[slice]),
-        ArrayType(ps.e_pot[slice]),
-        ArrayType(ps.u[slice]),
-        ArrayType(ps.v[slice]),
-        ArrayType(ps.w[slice]),
-        ArrayType(ps.e_kin[slice]),
-    )
+            threads = 256
+            blocks = cld(length(q_tot), threads)
+            CUDA.@cuda threads = threads blocks = blocks kernel!(
+                param_set,
+                dst_T,
+                dst_ql,
+                dst_qi,
+                ρ,
+                p,
+                p_ρ,
+                q_tot,
+                e_int_ρ,
+                e_int_p,
+                h_p,
+                θ_ρ,
+                θ_p,
+                maxiter,
+                tol,
+            )
+            CUDA.synchronize()
+            return nothing
+        end
+    end
+end
 
 @testset "Thermodynamics - kernels" begin
     FT = Float32  # Use Float32 for GPU compatibility
     param_set = parameter_set(FT)
 
-    # Load test profiles and convert to target array type
-    profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array)
-    slice = Colon()  # Use all profiles
-    profiles = convert_profile_set(profiles, ArrayType, slice)
+    # Create equilibrium-consistent test inputs on CPU, then move to device.
+    profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT})
+    n = min(length(profiles.z), 256)
+    sl = 1:n
+    T0 = profiles.T[sl]
+    ρ0 = profiles.ρ[sl]
+    q0 = profiles.q_tot[sl]
+    q_liq0 = profiles.q_liq[sl]
+    q_ice0 = profiles.q_ice[sl]
 
-    # Set up kernel execution
-    n_profiles = length(profiles.z)
-    n_vars = length(propertynames(profiles))
-    d_dst = ArrayType(Array{FT}(undef, 2, n_profiles))
-    fill!(d_dst, 0)
+    # ρ-based targets
+    e_int_ρ = TD.internal_energy_sat.(Ref(param_set), T0, ρ0, q0)
+    p_ρ = TD.air_pressure.(Ref(param_set), T0, ρ0, q0, q_liq0, q_ice0)
+    θ_ρ = TD.liquid_ice_pottemp.(Ref(param_set), T0, ρ0, q0, q_liq0, q_ice0)
 
-    # Extract required variables from profiles
-    (; e_int, ρ, p, q_tot) = profiles
+    # p-based targets (match peq/phq/pθ internals: ρ(T) = air_density(T,p,q_tot))
+    p0 = profiles.p[sl]
+    ρ_p = TD.air_density.(Ref(param_set), T0, p0, q0)
+    (q_liq_p, q_ice_p) =
+        TD.condensate_partition.(Ref(param_set), T0, ρ_p, q0) |> x -> (first.(x), last.(x))
+    e_int_p = TD.internal_energy_sat.(Ref(param_set), T0, ρ_p, q0)
+    h_p = TD.enthalpy_sat.(Ref(param_set), T0, ρ_p, q0)
+    θ_p =
+        TD.liquid_ice_pottemp_given_pressure.(Ref(param_set), T0, p0, q0, q_liq_p, q_ice_p)
 
-    # Execute kernel
-    ndrange = (n_profiles,)
-    backend = KA.get_backend(d_dst)
-    kernel! = test_thermo_kernel!(backend)
-    kernel!(param_set, d_dst, e_int, ρ, p, q_tot; ndrange = ndrange)
-    KA.synchronize(backend)
+    # Move arrays to device
+    d_ρ = ArrayType(ρ0)
+    d_p = ArrayType(p0)
+    d_p_ρ = ArrayType(p_ρ)
+    d_q = ArrayType(q0)
+    d_e_int_ρ = ArrayType(e_int_ρ)
+    d_e_int_p = ArrayType(e_int_p)
+    d_h_p = ArrayType(h_p)
+    d_θ_ρ = ArrayType(θ_ρ)
+    d_θ_p = ArrayType(θ_p)
 
-    # Test 1: Verify PhaseEquil_ρeq results
-    # Compare GPU results with CPU reference implementation
-    ts_cpu =
-        TD.PhaseEquil_ρeq.(
+    d_T = ArrayType(zeros(FT, 6, n))
+    d_ql = ArrayType(zeros(FT, 6, n))
+    d_qi = ArrayType(zeros(FT, 6, n))
+
+    if ArrayType === Array
+        sat_adjust_cpu!(
             param_set,
-            Array{FT}(ρ),
-            Array{FT}(e_int),
-            Array{FT}(q_tot),
+            d_T,
+            d_ql,
+            d_qi,
+            d_ρ,
+            d_p,
+            d_p_ρ,
+            d_q,
+            d_e_int_ρ,
+            d_e_int_p,
+            d_h_p,
+            d_θ_ρ,
+            d_θ_p,
+            80,
+            FT(1e-10),
         )
-    @test all(Array(d_dst)[1, :] .≈ TD.air_temperature.(param_set, ts_cpu))
-
-    # Test 2: Verify PhaseEquil_ρpq results
-    # Compare GPU results with CPU reference implementation including saturation adjustment
-    ts_correct =
-        TD.PhaseEquil_ρpq.(
+    else
+        sat_adjust_cuda!(
             param_set,
-            Array(ρ),
-            Array(p),
-            Array(q_tot),
-            true,                    # Enable saturation adjustment
-            100,                     # Maximum iterations
-            sqrt(eps()),            # Tolerance
-            RS.BrentsMethod,   # Root finding method
+            d_T,
+            d_ql,
+            d_qi,
+            d_ρ,
+            d_p,
+            d_p_ρ,
+            d_q,
+            d_e_int_ρ,
+            d_e_int_p,
+            d_h_p,
+            d_θ_ρ,
+            d_θ_p,
+            80,
+            FT(1e-10),
         )
-    @test all(Array(d_dst)[2, :] .≈ TD.air_temperature.(param_set, ts_correct))
+    end
+
+    # Compare device results with CPU reference, and check correctness invariants.
+    T_gpu = Array(d_T)
+    ql_gpu = Array(d_ql)
+    qi_gpu = Array(d_qi)
+
+    # Helper for tight-but-robust phase partition comparison.
+    approx_tight(a, b) = isapprox(a, b; rtol = FT(100) * eps(FT), atol = FT(100) * eps(FT))
+
+    for i in 1:n
+        # CPU reference for each formulation
+        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+            RS.NewtonsMethod,
+            param_set,
+            TD.ρeq(),
+            ρ0[i],
+            e_int_ρ[i],
+            q0[i],
+            80,
+            FT(1e-10),
+        )
+        @test isapprox(T_gpu[1, i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_gpu[1, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_gpu[1, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        # Invariance checks (ρeq): internal energy and phase partition at saturation
+        @test isapprox(
+            TD.internal_energy_sat(param_set, T_gpu[1, i], ρ0[i], q0[i]),
+            e_int_ρ[i];
+            rtol = FT(5e-6),
+        )
+        let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[1, i], ρ0[i], q0[i])
+            @test approx_tight(ql_gpu[1, i], ql_chk)
+            @test approx_tight(qi_gpu[1, i], qi_chk)
+        end
+
+        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.peq(),
+            p0[i],
+            e_int_p[i],
+            q0[i],
+            80,
+            FT(1e-10),
+        )
+        @test isapprox(T_gpu[2, i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_gpu[2, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_gpu[2, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        # Invariance checks (peq): energy and partition using ρ(T,p,q_tot)
+        let ρ_eff = TD.air_density(param_set, T_gpu[2, i], p0[i], q0[i])
+            @test isapprox(
+                TD.internal_energy_sat(param_set, T_gpu[2, i], ρ_eff, q0[i]),
+                e_int_p[i];
+                rtol = FT(5e-6),
+            )
+            let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[2, i], ρ_eff, q0[i])
+                @test approx_tight(ql_gpu[2, i], ql_chk)
+                @test approx_tight(qi_gpu[2, i], qi_chk)
+            end
+        end
+
+        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.phq(),
+            p0[i],
+            h_p[i],
+            q0[i],
+            80,
+            FT(1e-10),
+        )
+        @test isapprox(T_gpu[3, i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_gpu[3, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_gpu[3, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        # Invariance checks (phq): enthalpy and partition using ρ(T,p,q_tot)
+        let ρ_eff = TD.air_density(param_set, T_gpu[3, i], p0[i], q0[i])
+            @test isapprox(
+                TD.enthalpy_sat(param_set, T_gpu[3, i], ρ_eff, q0[i]),
+                h_p[i];
+                rtol = FT(5e-6),
+            )
+            let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[3, i], ρ_eff, q0[i])
+                @test approx_tight(ql_gpu[3, i], ql_chk)
+                @test approx_tight(qi_gpu[3, i], qi_chk)
+            end
+        end
+
+        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.pρq(),
+            p_ρ[i],
+            ρ0[i],
+            q0[i],
+            80,
+            FT(1e-10),
+        )
+        @test isapprox(T_gpu[4, i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_gpu[4, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_gpu[4, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        # Invariance checks (pρq): pressure target and partition at saturation
+        @test isapprox(
+            TD.air_pressure(param_set, T_gpu[4, i], ρ0[i], q0[i], ql_gpu[4, i], qi_gpu[4, i]),
+            p_ρ[i];
+            rtol = FT(5e-6),
+        )
+        let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[4, i], ρ0[i], q0[i])
+            @test approx_tight(ql_gpu[4, i], ql_chk)
+            @test approx_tight(qi_gpu[4, i], qi_chk)
+        end
+
+        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.ρθ_liq_ice_q(),
+            ρ0[i],
+            θ_ρ[i],
+            q0[i],
+            80,
+            FT(1e-10),
+        )
+        @test isapprox(T_gpu[5, i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_gpu[5, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_gpu[5, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        # Invariance checks (ρθ_liq_ice_q): θ target and partition at saturation
+        @test isapprox(
+            TD.liquid_ice_pottemp(
+                param_set,
+                T_gpu[5, i],
+                ρ0[i],
+                q0[i],
+                ql_gpu[5, i],
+                qi_gpu[5, i],
+            ),
+            θ_ρ[i];
+            rtol = FT(5e-6),
+        )
+        let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[5, i], ρ0[i], q0[i])
+            @test approx_tight(ql_gpu[5, i], ql_chk)
+            @test approx_tight(qi_gpu[5, i], qi_chk)
+        end
+
+        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.pθ_liq_ice_q(),
+            p0[i],
+            θ_p[i],
+            q0[i],
+            80,
+            FT(1e-10),
+        )
+        @test isapprox(T_gpu[6, i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_gpu[6, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_gpu[6, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        # Invariance checks (pθ_liq_ice_q): θ target and partition using ρ(T,p,q_tot)
+        let ρ_eff = TD.air_density(param_set, T_gpu[6, i], p0[i], q0[i])
+            let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[6, i], ρ_eff, q0[i])
+                @test approx_tight(ql_gpu[6, i], ql_chk)
+                @test approx_tight(qi_gpu[6, i], qi_chk)
+                @test isapprox(
+                    TD.liquid_ice_pottemp_given_pressure(
+                        param_set,
+                        T_gpu[6, i],
+                        p0[i],
+                        q0[i],
+                        ql_chk,
+                        qi_chk,
+                    ),
+                    θ_p[i];
+                    rtol = FT(5e-6),
+                )
+            end
+        end
+
+        # Basic invariants for all formulations
+        @test all(ql_gpu[:, i] .>= 0)
+        @test all(qi_gpu[:, i] .>= 0)
+    end
+
+    @testset "Broadcasting on ArrayType ($ArrayType)" begin
+        # Broadcasting checks: run a few key pure functions on the target ArrayType
+        # and compare against CPU. This catches GPU broadcast/kernel lowering issues.
+        dT0 = ArrayType(T0)
+        dρ0 = ArrayType(ρ0)
+        dq0 = ArrayType(q0)
+        dql0 = ArrayType(q_liq0)
+        dqi0 = ArrayType(q_ice0)
+
+        # air_pressure broadcast
+        p_dev = TD.air_pressure.(Ref(param_set), dT0, dρ0, dq0, dql0, dqi0)
+        p_cpu = TD.air_pressure.(Ref(param_set), T0, ρ0, q0, q_liq0, q_ice0)
+        @test all(Array(p_dev) .≈ p_cpu)
+
+        # internal_energy broadcast
+        e_dev = TD.internal_energy.(Ref(param_set), dT0, dq0, dql0, dqi0)
+        e_cpu = TD.internal_energy.(Ref(param_set), T0, q0, q_liq0, q_ice0)
+        @test all(Array(e_dev) .≈ e_cpu)
+
+        # liquid_ice_pottemp broadcast (ρ-based)
+        θ_dev = TD.liquid_ice_pottemp.(Ref(param_set), dT0, dρ0, dq0, dql0, dqi0)
+        θ_cpu = TD.liquid_ice_pottemp.(Ref(param_set), T0, ρ0, q0, q_liq0, q_ice0)
+        @test all(Array(θ_dev) .≈ θ_cpu)
+    end
 end
-
-# Clean up any temporary files created during testing
-rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
-rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)

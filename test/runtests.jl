@@ -15,23 +15,31 @@
 include("TemperatureProfiles.jl")
 include("TestedProfiles.jl")
 
-# Include common parameters, functions, and imports for all tests
+# Functional tests
 include("test_common.jl")
 
 # Run core thermodynamic function tests (split into functional categories)
 include("dry_adiabatic_processes.jl")
 include("correctness.jl")
-include("default_behavior_accuracy.jl")
 include("exceptions.jl")
-include("constructor_consistency.jl")
+include("saturation_adjustment.jl")
+include("convergence_saturation_adjustment.jl")
 include("type_stability.jl")
-include("dry_limit.jl")
-include("miscellaneous.jl")
-include("data_tests.jl")
+
+const _include_deprecated =
+    lowercase(get(ENV, "THERMODYNAMICS_INCLUDE_DEPRECATED", "true")) ∉ ("0", "false", "no")
+
+if _include_deprecated
+    # Deprecated tests (PhasePartition and thermodynamic state methods in `src/depr_*`); soon to be removed
+    include("depr_test_common.jl")
+    include("depr_default_behavior_accuracy.jl")
+    include("depr_constructor_consistency.jl")
+    include("depr_type_stability.jl")
+    include("depr_dry_limit.jl")
+    include("depr_miscellaneous.jl")
+    include("depr_data_tests.jl")
+    include("depr_exceptions.jl")
+end
 
 # Run aqua tests for code quality and performance
 include("aqua.jl")
-
-# Clean up any temporary files created during testing
-rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
-rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)

@@ -175,7 +175,7 @@ const TOLTYPE = Union{Real, Nothing}
     PhaseDry_ρe(param_set, ρ, e_int)
 
 Constructs a [`PhaseDry`](@ref) thermodynamic state from density and internal energy, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` air density
  - `e_int` specific internal energy
 
@@ -191,7 +191,7 @@ PhaseDry_ρe(param_set::APS, ρ, e_int) =
     PhaseDry_pT(param_set, p, T)
 
 Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and temperature, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
 
@@ -209,7 +209,7 @@ PhaseDry_pT(param_set::APS, p, T) = PhaseDry_pT(param_set, promote(p, T)...)
     PhaseDry_pe(param_set, p, e_int)
 
 Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and internal energy, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `e_int` specific internal energy
 
@@ -232,7 +232,7 @@ PhaseDry_pe(param_set::APS, p, e_int) =
      PhaseDry_ph(param_set, p, h)
 
 Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and specific enthalpy, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `h` specific enthalpy
 
@@ -251,7 +251,7 @@ PhaseDry_ph(param_set::APS, p, h) = PhaseDry_ph(param_set, promote(p, h)...)
     PhaseDry_ρθ(param_set, ρ, θ_dry)
 
 Constructs a [`PhaseDry`](@ref) thermodynamic state from density and dry potential temperature, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `θ_dry` dry potential temperature
 
@@ -274,7 +274,7 @@ PhaseDry_ρθ(param_set::APS, ρ, θ_dry) =
     PhaseDry_pθ(param_set, p, θ_dry)
 
 Constructs a [`PhaseDry`](@ref) thermodynamic state from pressure and dry potential temperature, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `θ_dry` dry potential temperature
 
@@ -298,7 +298,7 @@ PhaseDry_pθ(param_set::APS, p, θ_dry) =
     PhaseDry_ρT(param_set, ρ, T)
 
 Constructs a [`PhaseDry`](@ref) thermodynamic state from density and temperature, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `T` temperature
 
@@ -314,7 +314,7 @@ PhaseDry_ρT(param_set::APS, ρ, T) = PhaseDry_ρT(param_set, promote(ρ, T)...)
     PhaseDry_ρp(param_set, ρ, p)
 
 Constructs a [`PhaseDry`](@ref) thermodynamic state from density and pressure, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `p` pressure
 
@@ -338,7 +338,7 @@ PhaseDry_ρp(param_set::APS, ρ, p) = PhaseDry_ρp(param_set, promote(ρ, p)...)
     PhaseEquil_ρeq(param_set, ρ, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, internal energy, and total specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `e_int` specific internal energy
  - `q_tot` total specific humidity
@@ -413,7 +413,7 @@ end
     PhaseEquil_ρθq(param_set, ρ, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, liquid-ice potential temperature, and total specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
@@ -460,7 +460,7 @@ PhaseEquil_ρθq(param_set::APS, ρ, θ_liq_ice, q_tot, args...) =
     PhaseEquil_ρTq(param_set, ρ, T, q_tot)
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, temperature, and total specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `T` temperature
  - `q_tot` total specific humidity
@@ -487,7 +487,7 @@ PhaseEquil_ρTq(param_set::APS, ρ, T, q_tot) =
     PhaseEquil_pTq(param_set, p, T, q_tot)
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, temperature, and total specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
  - `q_tot` total specific humidity
@@ -515,7 +515,7 @@ PhaseEquil_pTq(param_set::APS, p, T, q_tot) =
     PhaseEquil_peq(param_set, p, e_int, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, internal energy, and total specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `e_int` specific internal energy
  - `q_tot` total specific humidity
@@ -566,7 +566,7 @@ PhaseEquil_peq(param_set::APS, p, e_int, q_tot, args...) =
     PhaseEquil_phq(param_set, p, h, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, specific enthalpy, and total specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `h` specific enthalpy
  - `q_tot` total specific humidity
@@ -618,7 +618,7 @@ PhaseEquil_phq(param_set::APS, p, h, q_tot, args...) =
     PhaseEquil_ρpq(param_set, ρ, p, q_tot[, perform_sat_adjust=true, maxiter, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, pressure, and total specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `p` pressure
  - `q_tot` total specific humidity
@@ -681,7 +681,7 @@ PhaseEquil_ρpq(param_set::APS, ρ, p, q_tot, args...) =
     PhaseEquil_pθq(param_set, p, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, liquid-ice potential temperature, and total specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
@@ -741,7 +741,7 @@ PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...) =
     PhaseNonEquil_ρTq(param_set, ρ, T, q_pt)
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from density, temperature, and phase partition, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
  - `T` temperature
  - `q_pt` phase partition
@@ -764,7 +764,7 @@ PhaseNonEquil_ρTq(param_set::APS, ρ, T, q_pt) =
     PhaseNonEquil_ρθq(param_set, ρ, θ_liq_ice, q_pt)
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from density, liquid-ice potential temperature, and phase partition, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_pt` phase partition
@@ -803,7 +803,7 @@ PhaseNonEquil_ρθq(param_set::APS, ρ, θ_liq_ice, q_pt) =
     PhaseNonEquil_pθq(param_set, p, θ_liq_ice, q_pt)
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, liquid-ice potential temperature, and phase partition, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_pt` phase partition
@@ -829,7 +829,7 @@ PhaseNonEquil_pθq(param_set::APS, p, θ_liq_ice, q_pt) =
     PhaseNonEquil_pTq(param_set, p, T, q_pt)
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, temperature, and phase partition, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` air temperature
  - `q_pt` phase partition
@@ -854,7 +854,7 @@ PhaseNonEquil_pTq(param_set::APS, p, T, q_pt) =
     PhaseNonEquil_peq(param_set, p, e_int, q_pt)
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, internal energy, and phase partition, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `e_int` specific internal energy
  - `q_pt` phase partition
@@ -879,7 +879,7 @@ PhaseNonEquil_peq(param_set::APS, p, e_int, q_pt) =
     PhaseNonEquil_phq(param_set, p, h, q_pt)
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, specific enthalpy, and phase partition, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `h` specific enthalpy
  - `q_pt` phase partition
@@ -905,7 +905,7 @@ PhaseNonEquil_phq(param_set::APS, p, h, q_pt) =
     PhaseNonEquil_ρpq(param_set, ρ, p, q_pt)
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from density, pressure, and phase partition, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` density
  - `p` pressure
  - `q_pt` phase partition

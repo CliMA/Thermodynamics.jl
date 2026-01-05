@@ -5,13 +5,13 @@ export saturation_adjustment
 """
     saturation_adjustment(
         sat_adjust_method::Type,
-        param_set::APS,
+        param_set,
         ::ρeq,
         ρ::Real,
         e_int::Real,
         q_tot::Real,
         maxiter::Int,
-        tol::Real,
+        tol,
         [T_guess::Union{Nothing, Real}]
     )
 
@@ -28,10 +28,10 @@ Returns a tuple `(T, q_liq, q_ice)`.
 - `e_int`: Specific internal energy.
 - `q_tot`: Total specific humidity.
 - `maxiter`: Maximum iterations for the solver.
-- `tol`: Relative tolerance for the temperature solution.
+- `tol`: Relative tolerance for the temperature solution (or a `RootSolvers.RelativeSolutionTolerance`).
 - `T_guess`: Optional initial guess for the temperature.
 """
-@inline function saturation_adjustment(
+function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
     ::ρeq,
@@ -55,7 +55,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
 
     # Root function: e_int - internal_energy_sat(T, ρ, q_tot) = 0
     # For NewtonsMethod, also return the derivative
-    @inline function roots(_T)
+    function roots(_T)
         T = ReLU(_T)
         f = e_int - internal_energy_sat(param_set, T, ρ, q_tot)
         if sat_adjust_method <: RS.NewtonsMethod
@@ -100,14 +100,14 @@ end
 """
     saturation_adjustment(
         sat_adjust_method::Type,
-        param_set::APS,
+        param_set,
         ::peq,
         p,
         e_int,
         q_tot,
         maxiter::Int,
         tol,
-        T_guess = nothing,
+        [T_guess::Union{Nothing, Real}]
     )
 
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
@@ -115,7 +115,7 @@ given pressure `p`, specific internal energy `e_int`, and total specific humidit
 
 Returns a tuple `(T, q_liq, q_ice)`.
 """
-@inline function saturation_adjustment(
+function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
     ::peq,
@@ -179,13 +179,13 @@ end
 """
     saturation_adjustment(
         sat_adjust_method::Type,
-        param_set::APS,
+        param_set,
         ::phq,
         p::Real,
         h::Real,
         q_tot::Real,
         maxiter::Int,
-        tol::Real,
+        tol,
         [T_guess::Union{Nothing, Real}]
     )
 
@@ -202,10 +202,10 @@ Returns a tuple `(T, q_liq, q_ice)`.
 - `h`: Specific enthalpy.
 - `q_tot`: Total specific humidity.
 - `maxiter`: Maximum iterations for the solver.
-- `tol`: Relative tolerance for the temperature solution.
+- `tol`: Relative tolerance for the temperature solution (or a `RootSolvers.RelativeSolutionTolerance`).
 - `T_guess`: Optional initial guess for the temperature.
 """
-@inline function saturation_adjustment(
+function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
     ::phq,
@@ -225,6 +225,10 @@ Returns a tuple `(T, q_liq, q_ice)`.
     @inline make_numerical_method_p(sat_method, param_set, h, q_tot, T_guess) =
         sa_numerical_method(sat_method, param_set, phq(), p, h, q_tot, T_guess)
 
+    # Unsaturated temperature estimate from (h, q_tot) with zero condensate.
+    @inline temp_from_hq_unsat(param_set, h, q_tot) =
+        air_temperature(param_set, phq(), h, q_tot, 0, 0)
+
     T = _saturation_adjustment_generic(
         sat_adjust_method,
         param_set,
@@ -233,7 +237,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
         maxiter,
         tol,
         T_guess,
-        air_temperature_given_hq,
+        temp_from_hq_unsat,
         q_sat_unsat_p,
         h_sat_given_p,
         make_numerical_method_p,
@@ -255,13 +259,13 @@ end
 """
     saturation_adjustment(
         sat_adjust_method::Type,
-        param_set::APS,
+        param_set,
         ::pθ_liq_ice_q,
         p::Real,
         θ_liq_ice::Real,
         q_tot::Real,
         maxiter::Int,
-        tol::Real,
+        tol,
         [T_guess::Union{Nothing, Real}]
     )
 
@@ -270,7 +274,7 @@ given pressure `p`, liquid-ice potential temperature `θ_liq_ice`, and total spe
 
 Returns a tuple `(T, q_liq, q_ice)`.
 """
-@inline function saturation_adjustment(
+function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
     ::pθ_liq_ice_q,
@@ -343,13 +347,13 @@ end
 """
     saturation_adjustment(
         sat_adjust_method::Type,
-        param_set::APS,
+        param_set,
         ::ρθ_liq_ice_q,
         ρ::Real,
         θ_liq_ice::Real,
         q_tot::Real,
         maxiter::Int,
-        tol::Real,
+        tol,
         [T_guess::Union{Nothing, Real}]
     )
 
@@ -358,7 +362,7 @@ given density `ρ`, liquid-ice potential temperature `θ_liq_ice`, and total spe
 
 Returns a tuple `(T, q_liq, q_ice)`.
 """
-@inline function saturation_adjustment(
+function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
     ::ρθ_liq_ice_q,
@@ -421,13 +425,13 @@ end
 """
     saturation_adjustment(
         sat_adjust_method::Type,
-        param_set::APS,
+        param_set,
         ::pρq,
         p::Real,
         ρ::Real,
         q_tot::Real,
         maxiter::Int,
-        tol::Real,
+        tol,
         [T_guess::Union{Nothing, Real}]
     )
 
@@ -436,7 +440,7 @@ given pressure `p`, density `ρ`, and total specific humidity `q_tot`.
 
 Returns a tuple `(T, q_liq, q_ice)`.
 """
-@inline function saturation_adjustment(
+function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
     ::pρq,
@@ -591,7 +595,7 @@ Encapsulates unsaturated check logic and root-finding for saturation adjustments
 Arguments `temp_from_var_unsat_func`, `q_sat_unsat_func`, `sat_val_func` and `numerical_method_func`
 are closures that capture any specific independent variables (like p or ρ).
 """
-@inline function _saturation_adjustment_generic(
+function _saturation_adjustment_generic(
     sat_method,
     param_set::APS,
     thermo_var, # This can be e_int or h
@@ -614,15 +618,15 @@ are closures that capture any specific independent variables (like p or ρ).
         relative_temperature_tol
 
     # Encapsulated "Unsaturated Check" logic
-    T_1 = max(_T_min, temp_from_var_unsat_func(param_set, thermo_var, q_tot))
+    T_unsat = max(_T_min, temp_from_var_unsat_func(param_set, thermo_var, q_tot))
 
-    q_v_sat = q_sat_unsat_func(param_set, T_1, q_tot)
+    q_v_sat = q_sat_unsat_func(param_set, T_unsat, q_tot)
     if q_tot <= q_v_sat
-        return T_1
+        return T_unsat
     end
 
     # Saturated case: find the root
-    @inline function roots(T)
+    function roots(T)
         T_safe = max(T, _T_min)
         return sat_val_func(T_safe) - thermo_var
     end

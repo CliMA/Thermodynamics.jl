@@ -1,112 +1,50 @@
 """
-# Exceptions Test Suite
+# Exceptions Test Suite (functional API)
 
-This file contains tests for error handling on failed convergence.
+These tests ensure the functional `saturation_adjustment` API can surface
+non-convergence via `Thermodynamics.error_on_non_convergence()`.
 """
 
-@testset "Thermodynamics - Exceptions on Failed Convergence" begin
-    ArrayType = Array{Float64}
-    FT = eltype(ArrayType)
-    param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
-    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    (; T, p, e_int, ρ, θ_liq_ice, q_tot, q_liq, q_ice, RH) = profiles
-    phase_type = PhaseEquil{FT}
-    q_pt = TD.PhasePartition.(q_tot, q_liq, q_ice)
+@testset "Thermodynamics - Exceptions on Failed Convergence (functional)" begin
+    for FT in (Float32, Float64)
+        param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
 
-    maxiter = 2
-    tol = FT(1e-10)
-    T_virt = T
+        # Configure to throw on non-convergence, and ensure we restore defaults afterwards.
+        Thermodynamics.error_on_non_convergence() = true
+        Thermodynamics.print_warning() = true
+        try
+            ρ = FT(1.0)
+            T = FT(290)
+            # Force a saturated case (harder for tiny maxiter)
+            q_tot = FT(1.2) * TD.q_vap_saturation(param_set, T, ρ)
+            e_int_sat = TD.internal_energy_sat(param_set, T, ρ, q_tot)
 
-    TD.error_on_non_convergence() = true
-    TD.print_warning() = true
+            @test_throws ErrorException TD.saturation_adjustment(
+                RS.NewtonsMethod,
+                param_set,
+                TD.ρeq(),
+                ρ,
+                e_int_sat,
+                q_tot,
+                1, # maxiter
+                FT(1e-12),
+            )
 
-    @testset "Saturation Adjustment" begin
-        @test_throws ErrorException TD.saturation_adjustment.(
-            RS.NewtonsMethod,
-            param_set,
-            e_int,
-            ρ,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment.(
-            RS.SecantMethod,
-            param_set,
-            e_int,
-            ρ,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-
-
-
-        @test_throws ErrorException TD.saturation_adjustment_given_ρθq.(
-            Ref(param_set),
-            ρ,
-            θ_liq_ice,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            RS.ResidualTolerance(tol),
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment_given_pθq.(
-            RS.SecantMethod,
-            param_set,
-            p,
-            θ_liq_ice,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment_given_pθq.(
-            RS.NewtonsMethodAD,
-            param_set,
-            p,
-            θ_liq_ice,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment_ρpq.(
-            RS.NewtonsMethodAD,
-            param_set,
-            ρ,
-            p,
-            q_tot,
-            Ref(phase_type),
-            1, # maxiter reduced to ensure non-convergence
-            tol,
-        )
-    end
-
-    @testset "Temperature and Humidity" begin
-        @test_throws ErrorException TD.temperature_and_humidity_given_TᵥρRH.(
-            param_set,
-            T_virt,
-            ρ,
-            RH,
-            Ref(phase_type),
-            1, # maxiter reduced
-            RS.ResidualTolerance(tol),
-        )
-
-        @test_throws ErrorException TD.air_temperature_given_ρθq_nonlinear.(
-            param_set,
-            ρ,
-            θ_liq_ice,
-            maxiter,
-            RS.ResidualTolerance(tol),
-            q_pt,
-        )
+            @test_throws ErrorException TD.saturation_adjustment(
+                RS.SecantMethod,
+                param_set,
+                TD.ρeq(),
+                ρ,
+                e_int_sat,
+                q_tot,
+                1, # maxiter
+                FT(1e-12),
+            )
+        finally
+            Thermodynamics.error_on_non_convergence() = false
+            Thermodynamics.print_warning() = false
+        end
     end
 end
+
+

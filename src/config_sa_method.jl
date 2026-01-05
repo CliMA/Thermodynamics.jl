@@ -29,12 +29,12 @@ end
 ) where {NM <: RS.SecantMethod}
     T_init_min = TP.T_init_min(param_set)
     if T_guess isa Nothing
-        T_1 = max(T_init_min, T_unsat)
+        T_lo = max(T_init_min, T_unsat)
     else
-        T_1 = max(T_init_min, T_guess)
+        T_lo = max(T_init_min, T_guess)
     end
-    T_2 = bound_upper_temperature(param_set, T_1, T_ice)
-    return RS.SecantMethod(T_1, T_2)
+    T_hi = bound_upper_temperature(param_set, T_lo, T_ice)
+    return RS.SecantMethod(T_lo, T_hi)
 end
 
 @inline function _make_sa_solver(
@@ -46,9 +46,9 @@ end
 ) where {NM <: RS.BrentsMethod}
     T_init_min = TP.T_init_min(param_set)
     # BrentsMethod requires strict bracketing - ignore T_guess
-    T_1 = max(T_init_min, T_unsat)
-    T_2 = bound_upper_temperature(param_set, T_1, T_ice)
-    return RS.BrentsMethod(T_1, T_2)
+    T_lo = max(T_init_min, T_unsat)
+    T_hi = bound_upper_temperature(param_set, T_lo, T_ice)
+    return RS.BrentsMethod(T_lo, T_hi)
 end
 
 #####
@@ -184,18 +184,18 @@ end
 end
 
 """
-    bound_upper_temperature(param_set, T_1, T_2)
+    bound_upper_temperature(param_set, T_lo, T_hi)
 
-Internal function. Bounds the upper temperature guess `T_2` for bracket methods.
+Internal function. Bounds the upper temperature guess `T_hi` for bracket methods.
 
-Returns `T_2` bounded by `T_max`, ensuring it is at least `T_1 + 0.1` for
+Returns `T_hi` bounded by `T_max`, ensuring it is at least `T_lo + 0.1` for
 valid numerical initialization.
 """
-@inline function bound_upper_temperature(param_set, T_1, T_2)
+@inline function bound_upper_temperature(param_set, T_lo, T_hi)
     FT = eltype(param_set)
     T_max = TP.T_max(param_set)
-    # Ensure T_2 is physically valid (<= T_max)
-    T_2_phys = min(T_max, T_2)
-    # Ensure T_2 > T_1 for numerical initialization (bracket width / finite difference)
-    return max(T_1 + FT(0.1), T_2_phys)
+    # Ensure T_hi is physically valid (<= T_max)
+    T_hi_phys = min(T_max, T_hi)
+    # Ensure T_hi > T_lo for numerical initialization (bracket width / finite difference)
+    return max(T_lo + FT(0.1), T_hi_phys)
 end

@@ -16,7 +16,7 @@ The air pressure from the equation of state (ideal gas law), given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
 @inline function air_pressure(
     param_set::APS,
@@ -41,7 +41,7 @@ The (moist-)air density from the equation of state (ideal gas law), given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
 @inline function air_density(
     param_set::APS,
@@ -66,7 +66,7 @@ The Exner function `Π = (p/p₀)^(R_m/cp_m)`, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 The pressure is computed internally from the equation of state.
 """
 @inline function exner(param_set::APS, T, ρ, q_tot = 0, q_liq = 0, q_ice = 0)
@@ -86,7 +86,7 @@ given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
 @inline function exner_given_pressure(
     param_set::APS,

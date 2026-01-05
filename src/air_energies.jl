@@ -29,7 +29,7 @@ The internal energy per unit mass, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
 @inline function internal_energy(
     param_set::APS,
@@ -151,7 +151,7 @@ The specific enthalpy, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
 @inline function enthalpy(param_set::APS, T, q_tot = 0, q_liq = 0, q_ice = 0)
     q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
@@ -250,7 +250,7 @@ The total energy per unit mass, given
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
-If the specific humidities are not given, the result is for dry air.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
 @inline function total_energy(
     param_set::APS,

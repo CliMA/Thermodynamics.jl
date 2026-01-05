@@ -3,6 +3,12 @@
 
 This module contains functions to compute thermodynamic test profiles
 for various atmospheric conditions.
+
+Notes:
+- These profiles are intended for **testing**; some are in thermodynamic equilibrium
+  (`EquilMoistProfiles`) while others are intentionally non-equilibrium (`NonEquilMoistProfiles`).
+- `TemperatureProfiles` return a temperature-like quantity which may be interpreted as
+  virtual temperature, depending on the profile implementation.
 """
 module TestedProfiles
 
@@ -21,9 +27,9 @@ A set of profiles used to test Thermodynamics.
 """
 struct ProfileSet{AFT}
     z::AFT          # Altitude
-    T::AFT          # Temperature
+    T::AFT          # Temperature-like quantity (T or T_virt)
     p::AFT          # Pressure
-    RS::AFT         # Relative saturation
+    RS::AFT         # Relative saturation factor used to scale q_vap_saturation
     e_int::AFT      # Internal energy
     h::AFT          # Specific enthalpy
     ρ::AFT          # Density
@@ -76,6 +82,9 @@ Base.length(ps::ProfileSet) = length(ps.z)
     )
 
 Return input arguments to construct profiles.
+
+`relative_sat` is a dimensionless scaling applied to the saturation vapor specific humidity
+(`q_vap_saturation`) to generate both unsaturated and slightly supersaturated cases (values > 1).
 """
 function input_config(
     ArrayType;
@@ -104,9 +113,9 @@ end
 
 Compute profiles shared across dry and moist thermodynamic states:
  - `z` altitude
- - `T` temperature
+ - `T` temperature-like quantity returned by `TemperatureProfiles` (often interpreted as virtual temperature)
  - `p` pressure
- - `RS` relative saturation
+ - `RS` relative saturation factor
 """
 function shared_profiles(
     param_set::APS,
@@ -163,10 +172,11 @@ function DryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
 
     e_pot = grav * z
-    Random.seed!(15)
-    u = rand(FT, size(T)) * 50
-    v = rand(FT, size(T)) * 50
-    w = rand(FT, size(T)) * 50
+    # Use a local RNG for reproducibility without mutating global RNG state.
+    rng = Random.MersenneTwister(15)
+    u = rand(rng, FT, size(T)) * 50
+    v = rand(rng, FT, size(T)) * 50
+    w = rand(rng, FT, size(T)) * 50
     e_kin = (u .^ 2 .+ v .^ 2 .+ w .^ 2) / 2
 
     return ProfileSet{typeof(T)}(
@@ -194,6 +204,9 @@ end
     EquilMoistProfiles(param_set, ::Type{ArrayType})
 
 Returns a `ProfileSet` for moist atmospheric conditions in thermodynamic equilibrium.
+
+`RS` is interpreted as a scaling factor for the equilibrium saturation vapor specific humidity,
+i.e. `q_tot = RS * q_vap_saturation(param_set, T, ρ)` (and any excess condenses).
 """
 function EquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
@@ -205,7 +218,8 @@ function EquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     grav = TP.grav(param_set)
     ρ = p ./ (R_d .* T_virt)
 
-    # Compute equilibrium moisture
+    # Compute equilibrium moisture.
+    # Here we treat the profile's returned temperature-like quantity as `T`.
     T = T_virt
     q_tot = RS .* TD.q_vap_saturation.(Ref(param_set), T, ρ)
 
@@ -217,7 +231,7 @@ function EquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
             TD.condensate_partition(param_set, T[i], ρ[i], q_tot[i])
     end
 
-    # Update pressure to be thermodynamically consistent
+    # Update pressure to be thermodynamically consistent with moist air equation of state at fixed ρ.
     p = TD.air_pressure.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
 
     e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
@@ -227,10 +241,11 @@ function EquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
 
     e_pot = grav * z
-    Random.seed!(15)
-    u = rand(FT, size(T)) * 50
-    v = rand(FT, size(T)) * 50
-    w = rand(FT, size(T)) * 50
+    # Use a local RNG for reproducibility without mutating global RNG state.
+    rng = Random.MersenneTwister(15)
+    u = rand(rng, FT, size(T)) * 50
+    v = rand(rng, FT, size(T)) * 50
+    w = rand(rng, FT, size(T)) * 50
     e_kin = (u .^ 2 .+ v .^ 2 .+ w .^ 2) / 2
 
     return ProfileSet{typeof(T)}(
@@ -259,6 +274,9 @@ end
 
 Returns a `ProfileSet` for moist atmospheric conditions 
 in thermodynamic non-equilibrium (supersaturated).
+
+This constructor intentionally does **not** enforce thermodynamic equilibrium:
+it prescribes `q_tot` and then assigns `q_liq`/`q_ice` via a fixed split for simplicity.
 """
 function NonEquilMoistProfiles(
     param_set::APS,
@@ -290,10 +308,11 @@ function NonEquilMoistProfiles(
     RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
 
     e_pot = grav * z
-    Random.seed!(15)
-    u = rand(FT, size(T)) * 50
-    v = rand(FT, size(T)) * 50
-    w = rand(FT, size(T)) * 50
+    # Use a local RNG for reproducibility without mutating global RNG state.
+    rng = Random.MersenneTwister(15)
+    u = rand(rng, FT, size(T)) * 50
+    v = rand(rng, FT, size(T)) * 50
+    w = rand(rng, FT, size(T)) * 50
     e_kin = (u .^ 2 .+ v .^ 2 .+ w .^ 2) / 2
 
     return ProfileSet{typeof(T)}(
