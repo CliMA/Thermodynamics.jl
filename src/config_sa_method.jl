@@ -186,16 +186,16 @@ end
 """
     bound_upper_temperature(param_set, T_1, T_2)
 
-Internal function. Bounds the upper temperature guess `T_2` for bracket methods
-to ensure numerical stability and physical validity.
+Internal function. Bounds the upper temperature guess `T_2` for bracket methods.
 
-Returns T_2 bounded to [T_1 + 3K, min(T_max, T_1 + 10K)] to ensure:
-- Minimum bracket width of 3K for numerical stability
-- Maximum bracket width of 10K to maintain accuracy
-- Never exceeds physical T_max
+Returns `T_2` bounded by `T_max`, ensuring it is at least `T_1 + 0.1` for
+valid numerical initialization.
 """
 @inline function bound_upper_temperature(param_set, T_1, T_2)
+    FT = eltype(param_set)
     T_max = TP.T_max(param_set)
-    T_2_bounded = max(T_1 + 3, T_2)
-    return min(min(T_max, T_1 + 10), T_2_bounded)
+    # Ensure T_2 is physically valid (<= T_max)
+    T_2_phys = min(T_max, T_2)
+    # Ensure T_2 > T_1 for numerical initialization (bracket width / finite difference)
+    return max(T_1 + FT(0.1), T_2_phys)
 end

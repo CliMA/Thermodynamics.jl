@@ -29,6 +29,7 @@ main
 - Removed `phase_type` from `relative_humidity`.
 - Removed `q_vap_saturation_generic`. Use `q_vap_saturation` instead.
 - Removed `universal_gas_constant` (or `gas_constant`), `molar_mass_dryair` and `molar_mass_water` from thermo parameters.
+- Fixed bug in `liquid_fraction` logic for nonequilibrium phases
 
 v0.16.0
 --------

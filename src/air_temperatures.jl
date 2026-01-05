@@ -21,7 +21,7 @@ If the specific humidities are not given, the result is for dry air.
 """
 @inline function air_temperature(
     param_set::APS,
-    e_int::Number,
+    e_int::Number,     # Number type needed to disambiguate from deprecated methods that are still there
     q_tot::Number = 0,
     q_liq::Number = 0,
     q_ice::Number = 0,
@@ -95,7 +95,7 @@ If the specific humidities are not given, the result is for dry air.
 @inline function air_temperature(
     param_set::APS,
     ::pρq,
-    p::Number,  # Number type needed to disambiguate from deprecated methods that are still there
+    p::Number,  
     ρ::Number,
     q_tot::Number = 0,
     q_liq::Number = 0,
@@ -104,7 +104,6 @@ If the specific humidities are not given, the result is for dry air.
     R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     return p / (R_m * ρ)
 end
-
 
 """
     air_temperature(
