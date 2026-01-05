@@ -653,3 +653,10 @@ end
 Create a PhasePartition for non-equilibrium thermodynamic state.
 """
 @inline PhasePartition(param_set::APS, ts::AbstractPhaseNonEquil) = ts.q
+
+@inline function ∂q_vap_sat_∂T(param_set::APS, ts::ThermodynamicState)
+    λ = liquid_fraction(param_set, ts)
+    T = air_temperature(param_set, ts)
+    q_vap_sat = vapor_specific_humidity(param_set, ts)
+    return ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat)
+end

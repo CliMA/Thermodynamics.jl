@@ -72,7 +72,6 @@ include("DataCollection.jl")
 import .DataCollection
 
 include("aux_functions.jl")
-include("depr_air_states.jl")
 
 
 include("air_properties.jl")
@@ -90,6 +89,7 @@ include("TemperatureProfiles.jl")
 # Soon to be removed
 include("depr_air_temperatures.jl")
 include("depr_saturation_adjustment.jl")
+include("depr_air_states.jl")
 include("depr_state_methods.jl")
 include("depr_phase_partition_methods.jl")
 

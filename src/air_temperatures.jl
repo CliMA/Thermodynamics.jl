@@ -97,7 +97,7 @@ If the specific humidities are not given, the result is for dry air.
 @inline function air_temperature(
     param_set::APS,
     ::pρq,
-    p::Number,
+    p::Number,  # Number type needed to disambiguate from deprecated methods that are still there
     ρ::Number,
     q_tot::Number = 0,
     q_liq::Number = 0,

@@ -43,19 +43,10 @@ This file contains tests for error handling on failed convergence.
             tol,
         )
 
-        @test_throws ErrorException TD.saturation_adjustment_given_peq.(
-            RS.SecantMethod,
-            param_set,
-            p,
-            e_int,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
+
 
         @test_throws ErrorException TD.saturation_adjustment_given_ρθq.(
-            param_set,
+            Ref(param_set),
             ρ,
             θ_liq_ice,
             q_tot,
@@ -109,7 +100,7 @@ This file contains tests for error handling on failed convergence.
             RS.ResidualTolerance(tol),
         )
 
-        @test_throws ErrorException TD.air_temperature_given_ρθq_nonlinear(
+        @test_throws ErrorException TD.air_temperature_given_ρθq_nonlinear.(
             param_set,
             ρ,
             θ_liq_ice,

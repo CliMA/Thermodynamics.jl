@@ -1,5 +1,6 @@
 export IndepVars
 export ρeq
+export peq
 export phq
 export pρq
 export pθ_liq_ice_q
@@ -23,6 +24,13 @@ abstract type IndepVars end
 Density, internal energy, and total specific humidity.
 """
 struct ρeq <: IndepVars end
+
+"""
+    peq <: IndepVars
+
+Pressure, internal energy, and total specific humidity.
+"""
+struct peq <: IndepVars end
 
 """
     phq <: IndepVars
