@@ -45,9 +45,7 @@ end
     q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
     return T_0 +
            (
-        e_int - q_vap * e_int_v0 +
-        q_ice * e_int_i0 +
-        (1 - q_tot) * R_d * T_0
+        e_int - q_vap * e_int_v0 + q_ice * e_int_i0 + (1 - q_tot) * R_d * T_0
     ) / cvm
 end
 
@@ -141,8 +139,7 @@ potential temperature.
     q_ice::Number = 0,
 )
     cpm = cp_m(param_set, q_tot, q_liq, q_ice)
-    return θ_liq_ice *
-           exner_given_pressure(param_set, p, q_tot, q_liq, q_ice) +
+    return θ_liq_ice * exner_given_pressure(param_set, p, q_tot, q_liq, q_ice) +
            humidity_weighted_latent_heat(param_set, q_liq, q_ice) / cpm
 end
 
@@ -342,6 +339,7 @@ If the specific humidities are not given, the result is for dry air.
     # liquid-ice potential temperature, approximating latent heats
     # of phase transitions as constants
     cpm = cp_m(param_set, q_tot, q_liq, q_ice)
-    return dry_pottemp_given_pressure(param_set, T, p, q_tot, q_liq, q_ice) *
-           (1 - humidity_weighted_latent_heat(param_set, q_liq, q_ice) / (cpm * T))
+    return dry_pottemp_given_pressure(param_set, T, p, q_tot, q_liq, q_ice) * (
+        1 - humidity_weighted_latent_heat(param_set, q_liq, q_ice) / (cpm * T)
+    )
 end

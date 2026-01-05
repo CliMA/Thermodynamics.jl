@@ -165,8 +165,7 @@ function test_type_stability_for_type(FT)
         @test typeof.(entropy.(param_set, ts)) == typeof.(e_int)
 
         # Energy functions requiring additional arguments
-        @test typeof.(total_enthalpy.(param_set, ts, e_tot)) ==
-              typeof.(e_int)
+        @test typeof.(total_enthalpy.(param_set, ts, e_tot)) == typeof.(e_int)
         @test typeof.(moist_static_energy.(param_set, ts, e_pot)) ==
               typeof.(e_int)
         @test typeof.(getproperty.(PhasePartition.(param_set, ts), :tot)) ==

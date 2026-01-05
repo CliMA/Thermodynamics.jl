@@ -24,12 +24,7 @@ If `q_liq` and `q_ice` are not provided, the liquid fraction is computed from
 temperature using a power law interpolation between `T_icenuc` and `T_freeze`,
 following Kaul et al. (2015), doi: [10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
 """
-@inline function liquid_fraction(
-    param_set::APS,
-    T,
-    q_liq,
-    q_ice,
-)
+@inline function liquid_fraction(param_set::APS, T, q_liq, q_ice)
     FT = eltype(param_set)
     q_c = q_liq + q_ice
 
@@ -42,10 +37,7 @@ following Kaul et al. (2015), doi: [10.1175/MWR-D-14-00319.1](https://doi.org/10
     return ifelse(has_condensate(q_c), q_liq / q_c, λ_T)
 end
 
-@inline function liquid_fraction(
-    param_set::APS,
-    T,
-)
+@inline function liquid_fraction(param_set::APS, T)
     FT = eltype(param_set)
 
     # Interpolation between homogeneous nucleation and freezing temperatures
@@ -155,20 +147,12 @@ above freezing and over ice below freezing.
 Otherwise, the liquid fraction below freezing is computed from a temperature dependent
 parameterization `liquid_fraction(param_set, T)`.
 """
-@inline function saturation_vapor_pressure(
-    param_set::APS,
-    T,
-    q_liq,
-    q_ice,
-)
+@inline function saturation_vapor_pressure(param_set::APS, T, q_liq, q_ice)
     λ = liquid_fraction(param_set, T, q_liq, q_ice)
     return saturation_vapor_pressure_mixture(param_set, T, λ)
 end
 
-@inline function saturation_vapor_pressure(
-    param_set::APS,
-    T,
-)
+@inline function saturation_vapor_pressure(param_set::APS, T)
     λ = liquid_fraction(param_set, T)
     return saturation_vapor_pressure_mixture(param_set, T, λ)
 end
@@ -224,22 +208,12 @@ freezing.
 Otherwise, the fraction of liquid is given by the temperature dependent
 `liquid_fraction(param_set, T)`.
 """
-@inline function q_vap_saturation(
-    param_set::APS,
-    T,
-    ρ,
-    q_liq,
-    q_ice,
-)
+@inline function q_vap_saturation(param_set::APS, T, ρ, q_liq, q_ice)
     p_v_sat = saturation_vapor_pressure(param_set, T, q_liq, q_ice)
     return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
 end
 
-@inline function q_vap_saturation(
-    param_set::APS,
-    T,
-    ρ,
-)
+@inline function q_vap_saturation(param_set::APS, T, ρ)
     p_v_sat = saturation_vapor_pressure(param_set, T)
     return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
 end
@@ -253,12 +227,7 @@ The saturation specific humidity, given
  - `ρ` (moist-)air density
  - `phase` the phase to compute saturation over (either `Liquid()` or `Ice()`)
 """
-@inline function q_vap_saturation(
-    param_set::APS,
-    T,
-    ρ,
-    phase::Phase,
-)
+@inline function q_vap_saturation(param_set::APS, T, ρ, phase::Phase)
     p_v_sat = saturation_vapor_pressure(param_set, T, phase)
     return q_vap_from_p_vap(param_set, T, ρ, p_v_sat)
 end
@@ -301,12 +270,7 @@ where `p_v^*` is the saturation vapor pressure.
     return q_vap_saturation_from_pressure_calc(param_set, q_tot, p, p_v_sat)
 end
 
-@inline function q_vap_saturation_from_pressure(
-    param_set::APS,
-    q_tot,
-    p,
-    T,
-)
+@inline function q_vap_saturation_from_pressure(param_set::APS, q_tot, p, T)
     p_v_sat = saturation_vapor_pressure(param_set, T)
     return q_vap_saturation_from_pressure_calc(param_set, q_tot, p, p_v_sat)
 end
@@ -370,13 +334,7 @@ The supersaturation (pv/pv_sat - 1) given the saturation vapor pressure `p_v_sat
 - `T`: Temperature
 - `p_v_sat`: Saturation vapor pressure
 """
-@inline function supersaturation(
-    param_set::APS,
-    q_vap,
-    ρ,
-    T,
-    p_v_sat,
-)
+@inline function supersaturation(param_set::APS, q_vap, ρ, T, p_v_sat)
     p_v = q_vap * (ρ * TP.R_v(param_set) * T)
 
     return p_v / p_v_sat - 1
@@ -399,24 +357,12 @@ The saturation excess is the difference between the total specific humidity `q_t
 and the saturation specific humidity in equilibrium, and it is defined to be
 nonzero only if this difference is positive.
 """
-@inline function saturation_excess(
-    param_set::APS,
-    T,
-    ρ,
-    q_tot,
-    q_liq,
-    q_ice,
-)
+@inline function saturation_excess(param_set::APS, T, ρ, q_tot, q_liq, q_ice)
     p_vap_sat = saturation_vapor_pressure(param_set, T, q_liq, q_ice)
     return saturation_excess(param_set, T, ρ, q_tot, p_vap_sat)
 end
 
-@inline function saturation_excess(
-    param_set::APS,
-    T,
-    ρ,
-    q_tot,
-)
+@inline function saturation_excess(param_set::APS, T, ρ, q_tot)
     p_vap_sat = saturation_vapor_pressure(param_set, T)
     return saturation_excess(param_set, T, ρ, q_tot, p_vap_sat)
 end
@@ -436,13 +382,7 @@ The saturation excess is the difference between the total specific humidity `q_t
 and the saturation specific humidity, and it is defined to be nonzero only if
 this difference is positive.
 """
-@inline function saturation_excess(
-    param_set::APS,
-    T,
-    ρ,
-    q_tot,
-    p_vap_sat,
-)
+@inline function saturation_excess(param_set::APS, T, ρ, q_tot, p_vap_sat)
     q_vap_sat = q_vap_from_p_vap(param_set, T, ρ, p_vap_sat)
     return max(0, q_tot - q_vap_sat)
 end

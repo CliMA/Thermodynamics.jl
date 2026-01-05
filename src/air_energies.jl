@@ -31,7 +31,13 @@ The internal energy per unit mass, given
 
 If the specific humidities are not given, the result is for dry air.
 """
-@inline function internal_energy(param_set::APS, T, q_tot = 0, q_liq = 0, q_ice = 0)
+@inline function internal_energy(
+    param_set::APS,
+    T,
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
+)
     q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
     q_dry = 1 - q_tot
 
@@ -211,8 +217,7 @@ The specific enthalpy of ice, given
  The specific enthalpy of ice is equal to the internal energy of ice because the
  specific volume of condensed water is neglected.
 """
-@inline enthalpy_ice(param_set::APS, T) =
-    internal_energy_ice(param_set, T)
+@inline enthalpy_ice(param_set::APS, T) = internal_energy_ice(param_set, T)
 
 """
     enthalpy_sat(param_set, T, ρ, q_tot)
@@ -352,4 +357,3 @@ If the specific humidities are not given, the result is for dry air.
     T_virt = virtual_temperature(param_set, T, q_tot, q_liq, q_ice)
     return cp_d * T_virt + e_pot
 end
-

@@ -145,7 +145,7 @@ function DryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
     z, T, p, RS =
         shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
-    
+
     FT = eltype(T)
     R_d = TP.R_d(param_set)
     grav = TP.grav(param_set)
@@ -155,12 +155,13 @@ function DryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     q_tot = zero(T)
     q_liq = zero(T)
     q_ice = zero(T)
-    
+
     e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
     h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
-    θ_liq_ice = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
+    θ_liq_ice =
+        TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
     RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
-    
+
     e_pot = grav * z
     Random.seed!(15)
     u = rand(FT, size(T)) * 50
@@ -207,12 +208,13 @@ function EquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
     # Compute equilibrium moisture
     T = T_virt
     q_tot = RS .* TD.q_vap_saturation.(Ref(param_set), T, ρ)
-    
+
     # Compute phase partitioning for each element
     q_liq = similar(T)
     q_ice = similar(T)
     for i in eachindex(T)
-        q_liq[i], q_ice[i] = TD.condensate_partition(param_set, T[i], ρ[i], q_tot[i])
+        q_liq[i], q_ice[i] =
+            TD.condensate_partition(param_set, T[i], ρ[i], q_tot[i])
     end
 
     # Update pressure to be thermodynamically consistent
@@ -220,9 +222,10 @@ function EquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
 
     e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
     h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
-    θ_liq_ice = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
+    θ_liq_ice =
+        TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
     RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
-    
+
     e_pot = grav * z
     Random.seed!(15)
     u = rand(FT, size(T)) * 50
@@ -257,7 +260,10 @@ end
 Returns a `ProfileSet` for moist atmospheric conditions 
 in thermodynamic non-equilibrium (supersaturated).
 """
-function NonEquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
+function NonEquilMoistProfiles(
+    param_set::APS,
+    ::Type{ArrayType},
+) where {ArrayType}
     z_range, relative_sat, T_surface, T_min = input_config(ArrayType)
     z, T, p, RS =
         shared_profiles(param_set, z_range, relative_sat, T_surface, T_min)
@@ -269,19 +275,20 @@ function NonEquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayTy
     # Non-equilibrium: prescribe q_tot > q_sat for some profiles
     q_vap_sat = TD.q_vap_saturation.(Ref(param_set), T, p ./ (R_d .* T))
     q_tot = RS .* q_vap_sat
-    
+
     # Prescribe non-equilibrium phase partitioning
     # For simplicity, prescribe q_liq and q_ice separately
     q_liq = max.(zero(FT), (q_tot .- q_vap_sat) .* FT(0.6))  # 60% liquid
     q_ice = max.(zero(FT), (q_tot .- q_vap_sat) .* FT(0.4))  # 40% ice
-    
+
     ρ = TD.air_density.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
-    
+
     e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
     h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
-    θ_liq_ice = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
+    θ_liq_ice =
+        TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
     RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
-    
+
     e_pot = grav * z
     Random.seed!(15)
     u = rand(FT, size(T)) * 50

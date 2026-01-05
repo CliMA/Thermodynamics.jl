@@ -133,8 +133,21 @@ Returns a tuple `(T, q_liq, q_ice)`.
     @inline q_sat_unsat_p(param_set, T, q_tot) =
         q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    @inline make_numerical_method_p(sat_method, param_set, target_e, q_tot, T_guess) =
-        sa_numerical_method(sat_method, param_set, peq(), p, target_e, q_tot, T_guess)
+    @inline make_numerical_method_p(
+        sat_method,
+        param_set,
+        target_e,
+        q_tot,
+        T_guess,
+    ) = sa_numerical_method(
+        sat_method,
+        param_set,
+        peq(),
+        p,
+        target_e,
+        q_tot,
+        T_guess,
+    )
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -150,14 +163,14 @@ Returns a tuple `(T, q_liq, q_ice)`.
         make_numerical_method_p,
         print_warning_ρeq, # Reuse ρeq warning for now (e_int based)
         sat_adjust_method,
-        p, 
+        p,
         e_int,
         q_tot,
     )
 
     ρ = air_density(param_set, T, p, q_tot)
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    
+
     return (T, q_liq, q_ice)
 end
 
@@ -202,12 +215,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
     T_guess = nothing,
 )
     @inline h_sat_given_p(T) =
-        enthalpy_sat(
-            param_set,
-            T,
-            air_density(param_set, T, p, q_tot),
-            q_tot,
-        )
+        enthalpy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
 
     @inline q_sat_unsat_p(param_set, T, q_tot) =
         q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
@@ -223,24 +231,24 @@ Returns a tuple `(T, q_liq, q_ice)`.
         maxiter,
         tol,
         T_guess,
-        air_temperature_given_hq, 
+        air_temperature_given_hq,
         q_sat_unsat_p,
         h_sat_given_p,
         make_numerical_method_p,
-        print_warning_hpq,             
+        print_warning_hpq,
         sat_adjust_method,
         h,
         p,
         q_tot,
-        T_guess, 
+        T_guess,
     )
-    
+
     ρ = air_density(param_set, T, p, q_tot)
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
 
     return (T, q_liq, q_ice)
 end
-    
+
 """
     saturation_adjustment(
         sat_adjust_method::Type,
@@ -283,21 +291,23 @@ Returns a tuple `(T, q_liq, q_ice)`.
             q_ice,
         )
     end
-    
+
     @inline temp_from_θ_liq_ice_func(param_set, θ_liq_ice, q_tot) =
-        air_temperature(
-            param_set,
-            pθ_liq_ice_q(),
-            p,
-            θ_liq_ice,
-            q_tot,
-        )
+        air_temperature(param_set, pθ_liq_ice_q(), p, θ_liq_ice, q_tot)
 
     @inline q_sat_unsat_p(param_set, T, q_tot) =
         q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
     @inline make_numerical_method_p(sat_method, param_set, θ, q_tot, T_guess) =
-        sa_numerical_method(sat_method, param_set, pθ_liq_ice_q(), p, θ, q_tot, T_guess)
+        sa_numerical_method(
+            sat_method,
+            param_set,
+            pθ_liq_ice_q(),
+            p,
+            θ,
+            q_tot,
+            T_guess,
+        )
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -307,22 +317,22 @@ Returns a tuple `(T, q_liq, q_ice)`.
         maxiter,
         tol,
         T_guess,
-        temp_from_θ_liq_ice_func, 
+        temp_from_θ_liq_ice_func,
         q_sat_unsat_p,
         θ_liq_ice_sat_given_p,
         make_numerical_method_p,
-        print_warning_pθq,       
+        print_warning_pθq,
         sat_adjust_method,
         θ_liq_ice,
         p,
         q_tot,
-        T_guess, 
+        T_guess,
     )
-    
+
     # Compute equilibrium phase partition
     ρ = air_density(param_set, T, p, q_tot)
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    
+
     return (T, q_liq, q_ice)
 end
 
@@ -357,30 +367,25 @@ Returns a tuple `(T, q_liq, q_ice)`.
 )
     @inline function θ_liq_ice_sat_given_ρ(T)
         (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-        return liquid_ice_pottemp(
-            param_set,
-            T,
-            ρ,
-            q_tot,
-            q_liq,
-            q_ice,
-        )
+        return liquid_ice_pottemp(param_set, T, ρ, q_tot, q_liq, q_ice)
     end
-    
+
     @inline temp_from_θ_liq_ice_func(param_set, θ_liq_ice, q_tot) =
-        air_temperature(
-            param_set,
-            ρθ_liq_ice_q(),
-            ρ,
-            θ_liq_ice,
-            q_tot,
-        )
+        air_temperature(param_set, ρθ_liq_ice_q(), ρ, θ_liq_ice, q_tot)
 
     @inline q_sat_unsat_ρ(param_set, T, q_tot) =
         q_vap_saturation(param_set, T, ρ)
 
     @inline make_numerical_method_ρ(sat_method, param_set, θ, q_tot, T_guess) =
-        sa_numerical_method(sat_method, param_set, ρθ_liq_ice_q(), ρ, θ, q_tot, T_guess)
+        sa_numerical_method(
+            sat_method,
+            param_set,
+            ρθ_liq_ice_q(),
+            ρ,
+            θ,
+            q_tot,
+            T_guess,
+        )
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -390,20 +395,20 @@ Returns a tuple `(T, q_liq, q_ice)`.
         maxiter,
         tol,
         T_guess,
-        temp_from_θ_liq_ice_func, 
+        temp_from_θ_liq_ice_func,
         q_sat_unsat_ρ,
         θ_liq_ice_sat_given_ρ,
         make_numerical_method_ρ,
-        print_warning_pθq, 
+        print_warning_pθq,
         sat_adjust_method,
         θ_liq_ice,
         ρ,
         q_tot,
-        T_guess, 
+        T_guess,
     )
-    
+
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    
+
     return (T, q_liq, q_ice)
 end
 
@@ -439,30 +444,30 @@ Returns a tuple `(T, q_liq, q_ice)`.
 )
     @inline function pressure_sat_given_ρ(T)
         (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-        return air_pressure(
-            param_set,
-            T,
-            ρ,
-            q_tot,
-            q_liq,
-            q_ice,
-        )
+        return air_pressure(param_set, T, ρ, q_tot, q_liq, q_ice)
     end
-    
+
     @inline temp_from_pρq_func(param_set, p, q_tot) =
-        air_temperature(
-            param_set,
-            pρq(),
-            p,
-            ρ,
-            q_tot,
-        )
+        air_temperature(param_set, pρq(), p, ρ, q_tot)
 
     @inline q_sat_unsat_ρ(param_set, T, q_tot) =
         q_vap_saturation(param_set, T, ρ)
 
-    @inline make_numerical_method_ρ(sat_method, param_set, target_p, q_tot, T_guess) =
-        sa_numerical_method(sat_method, param_set, pρq(), target_p, ρ, q_tot, T_guess)
+    @inline make_numerical_method_ρ(
+        sat_method,
+        param_set,
+        target_p,
+        q_tot,
+        T_guess,
+    ) = sa_numerical_method(
+        sat_method,
+        param_set,
+        pρq(),
+        target_p,
+        ρ,
+        q_tot,
+        T_guess,
+    )
 
     # Using generic helper with p as target thermo_var
     T = _saturation_adjustment_generic(
@@ -473,20 +478,20 @@ Returns a tuple `(T, q_liq, q_ice)`.
         maxiter,
         tol,
         T_guess,
-        temp_from_pρq_func, 
-        q_sat_unsat_ρ, 
+        temp_from_pρq_func,
+        q_sat_unsat_ρ,
         pressure_sat_given_ρ,
         make_numerical_method_ρ,
-        print_warning_ρpq,       
+        print_warning_ρpq,
         sat_adjust_method,
-        ρ, 
+        ρ,
         p,
         q_tot,
         # T_guess removed to match printing.jl signature
     )
-    
+
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    
+
     return (T, q_liq, q_ice)
 end
 
@@ -597,14 +602,14 @@ are closures that capture any specific independent variables (like p or ρ).
     warning_args...,
 )
     _T_min = TP.T_min(param_set)
-    tol = relative_temperature_tol isa Real ? RS.RelativeSolutionTolerance(relative_temperature_tol) : relative_temperature_tol
+    tol =
+        relative_temperature_tol isa Real ?
+        RS.RelativeSolutionTolerance(relative_temperature_tol) :
+        relative_temperature_tol
 
     # Encapsulated "Unsaturated Check" logic
-    T_1 = max(
-        _T_min,
-        temp_from_var_unsat_func(param_set, thermo_var, q_tot),
-    )
-    
+    T_1 = max(_T_min, temp_from_var_unsat_func(param_set, thermo_var, q_tot))
+
     q_v_sat = q_sat_unsat_func(param_set, T_1, q_tot)
     if q_tot <= q_v_sat
         return T_1
@@ -616,13 +621,8 @@ are closures that capture any specific independent variables (like p or ρ).
         return sat_val_func(T_safe) - thermo_var
     end
 
-    numerical_method = numerical_method_func(
-        sat_method,
-        param_set,
-        thermo_var,
-        q_tot,
-        T_guess,
-    )
+    numerical_method =
+        numerical_method_func(sat_method, param_set, thermo_var, q_tot, T_guess)
 
     return _find_zero_with_convergence_check(
         roots,
@@ -670,7 +670,11 @@ Derivative of internal energy with respect to temperature at saturation.
     Tᶠ = TP.T_freeze(param_set)
     Tⁱ = TP.T_icenuc(param_set)
     n = TP.pow_icenuc(param_set)
-    ∂λ_∂T = ifelse(Tⁱ < T < Tᶠ, n / (Tᶠ - Tⁱ) * ((T - Tⁱ) / (Tᶠ - Tⁱ))^(n - 1), FT(0))
+    ∂λ_∂T = ifelse(
+        Tⁱ < T < Tᶠ,
+        n / (Tᶠ - Tⁱ) * ((T - Tⁱ) / (Tᶠ - Tⁱ))^(n - 1),
+        FT(0),
+    )
 
     # ∂q_vap_sat/∂T from Clausius-Clapeyron
     _∂q_vap_sat_∂T = ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, L)
@@ -698,24 +702,11 @@ end
 Helper to compute `∂e_int/∂T` at saturation for Newton's method,
 calculating necessary intermediate variables.
 """
-@inline function ∂e_int_∂T_sat(
-    param_set::APS,
-    T,
-    ρ,
-    q_tot,
-)
+@inline function ∂e_int_∂T_sat(param_set::APS, T, ρ, q_tot)
     p_vap_sat = saturation_vapor_pressure(param_set, T)
     λ = liquid_fraction(param_set, T)
     e_int_sat = internal_energy_sat(param_set, T, ρ, q_tot)
-    return ∂e_int_∂T(
-        param_set,
-        T,
-        e_int_sat,
-        ρ,
-        q_tot,
-        λ,
-        p_vap_sat,
-    )
+    return ∂e_int_∂T(param_set, T, e_int_sat, ρ, q_tot, λ, p_vap_sat)
 end
 
 """
@@ -736,6 +727,3 @@ Computed via the Clausius-Clapeyron relation: `∂q_sat/∂T = q_sat * (L / (Rv 
     R_v = TP.R_v(param_set)
     return q_vap_sat * (L / (R_v * T^2) - 1 / T)
 end
-
-
-

@@ -1,5 +1,4 @@
-import RootSolvers:
-    NewtonsMethod, NewtonsMethodAD, SecantMethod, BrentsMethod
+import RootSolvers: NewtonsMethod, NewtonsMethodAD, SecantMethod, BrentsMethod
 
 # KA.@print only accepts literal strings, so we must
 # branch to print which method is being used.

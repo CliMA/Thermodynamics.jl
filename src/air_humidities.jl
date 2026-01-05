@@ -195,4 +195,3 @@ The relative humidity (clipped between 0 and 1), given
     p_vap_sat = saturation_vapor_pressure(param_set, T, q_liq, q_ice)
     return max(0, min(1, p_vap / (p_vap_sat + eps(FT(0)))))
 end
-

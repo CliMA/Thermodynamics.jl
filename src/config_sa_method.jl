@@ -144,7 +144,15 @@ end
 ) where {NM}
     FT = eltype(param_set)
     T_unsat = air_temperature(param_set, pθ_liq_ice_q(), p, θ_liq_ice, q_tot)
-    T_ice = air_temperature(param_set, pθ_liq_ice_q(), p, θ_liq_ice, q_tot, FT(0), q_tot)
+    T_ice = air_temperature(
+        param_set,
+        pθ_liq_ice_q(),
+        p,
+        θ_liq_ice,
+        q_tot,
+        FT(0),
+        q_tot,
+    )
     return _make_sa_solver(NM, param_set, T_unsat, T_ice, T_guess)
 end
 
@@ -163,7 +171,15 @@ end
 ) where {NM}
     FT = eltype(param_set)
     T_unsat = air_temperature(param_set, ρθ_liq_ice_q(), ρ, θ_liq_ice, q_tot)
-    T_ice = air_temperature(param_set, ρθ_liq_ice_q(), ρ, θ_liq_ice, q_tot, FT(0), q_tot)
+    T_ice = air_temperature(
+        param_set,
+        ρθ_liq_ice_q(),
+        ρ,
+        θ_liq_ice,
+        q_tot,
+        FT(0),
+        q_tot,
+    )
     return _make_sa_solver(NM, param_set, T_unsat, T_ice, T_guess)
 end
 

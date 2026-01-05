@@ -1,7 +1,5 @@
 export ThermodynamicState,
-    AbstractPhaseDry,
-    AbstractPhaseEquil,
-    AbstractPhaseNonEquil
+    AbstractPhaseDry, AbstractPhaseEquil, AbstractPhaseNonEquil
 
 export PhaseDry, PhaseEquil, PhaseNonEquil
 
@@ -23,7 +21,12 @@ export PhaseEquil_ρeq,
     PhaseEquil_ρpq,
     PhaseEquil_pθq
 
-export PhaseNonEquil_ρTq, PhaseNonEquil_ρθq, PhaseNonEquil_peq, PhaseNonEquil_phq, PhaseNonEquil_pTq, PhaseNonEquil_pθq
+export PhaseNonEquil_ρTq,
+    PhaseNonEquil_ρθq,
+    PhaseNonEquil_peq,
+    PhaseNonEquil_phq,
+    PhaseNonEquil_pTq,
+    PhaseNonEquil_pθq
 
 """
     ThermodynamicState{FT}

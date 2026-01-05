@@ -177,14 +177,9 @@ This file contains tests for fundamental thermodynamic relations and physical la
         # Test generic saturation specific humidity functions for liquid and ice
         @test q_vap_saturation(param_set, _T_triple, ρ, Liquid()) ==
               ρ_v_triple / ρ
-        @test q_vap_saturation(param_set, _T_triple, ρ, Ice()) ==
-              ρ_v_triple / ρ
-        @test q_vap_saturation(
-            param_set,
-            _T_triple - 20,
-            ρ,
-            Liquid(),
-        ) >= q_vap_saturation(param_set, _T_triple - 20, ρ, Ice())
+        @test q_vap_saturation(param_set, _T_triple, ρ, Ice()) == ρ_v_triple / ρ
+        @test q_vap_saturation(param_set, _T_triple - 20, ρ, Liquid()) >=
+              q_vap_saturation(param_set, _T_triple - 20, ρ, Ice())
 
         # Test saturation specific humidity wrapper functions with thermodynamic state
         _T_0 = TP.T_0(param_set)
@@ -216,8 +211,17 @@ This file contains tests for fundamental thermodynamic relations and physical la
             ρ,
             Ice(),
         )
-        @test q_vap_saturation(param_set, air_temperature(param_set, ts), ρ, Ice()) <=
-              q_vap_saturation(param_set, air_temperature(param_set, ts), ρ, Liquid())
+        @test q_vap_saturation(
+            param_set,
+            air_temperature(param_set, ts),
+            ρ,
+            Ice(),
+        ) <= q_vap_saturation(
+            param_set,
+            air_temperature(param_set, ts),
+            ρ,
+            Liquid(),
+        )
 
         # Test saturation excess calculations
         @test saturation_excess(
@@ -633,12 +637,8 @@ This file contains tests for fundamental thermodynamic relations and physical la
         T_warm = _T_freeze + FT(30)  # Above freezing
         q_tot_warm =
             FT(1.02) * q_vap_saturation(param_set, T_warm, ρ_test, PhaseEquil)
-        e_int_sat_warm = internal_energy_sat(
-            param_set,
-            T_warm,
-            ρ_test,
-            q_tot_warm,
-        )
+        e_int_sat_warm =
+            internal_energy_sat(param_set, T_warm, ρ_test, q_tot_warm)
         @test e_int_sat_warm ≈ internal_energy(
             param_set,
             T_warm,
@@ -655,12 +655,8 @@ This file contains tests for fundamental thermodynamic relations and physical la
         T_cold = _T_freeze - FT(30)  # Below freezing
         q_tot_cold =
             FT(1.02) * q_vap_saturation(param_set, T_cold, ρ_test, PhaseEquil)
-        e_int_sat_cold = internal_energy_sat(
-            param_set,
-            T_cold,
-            ρ_test,
-            q_tot_cold,
-        )
+        e_int_sat_cold =
+            internal_energy_sat(param_set, T_cold, ρ_test, q_tot_cold)
         @test e_int_sat_cold ≈ internal_energy(
             param_set,
             T_cold,

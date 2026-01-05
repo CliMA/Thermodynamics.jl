@@ -26,7 +26,12 @@ The specific gas constant of moist air `R_m`, given
 
 If the specific humidities are not given, the result is for dry air.
 """
-@inline function gas_constant_air(param_set::APS, q_tot = 0, q_liq = 0, q_ice = 0)
+@inline function gas_constant_air(
+    param_set::APS,
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
+)
     R_d = TP.R_d(param_set)
     R_v = TP.R_v(param_set)
     q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
@@ -187,7 +192,11 @@ temperature `T_0`, given
 
 If `q_liq` and `q_ice` are not provided, `humidity_weighted_latent_heat` is zero.
 """
-@inline function humidity_weighted_latent_heat(param_set::APS, q_liq = 0, q_ice = 0)
+@inline function humidity_weighted_latent_heat(
+    param_set::APS,
+    q_liq = 0,
+    q_ice = 0,
+)
     LH_v0 = TP.LH_v0(param_set)
     LH_s0 = TP.LH_s0(param_set)
     return LH_v0 * q_liq + LH_s0 * q_ice
@@ -213,7 +222,9 @@ If the specific humidities are not given, the result is for dry air.
     q_liq = 0,
     q_ice = 0,
 )
-    γ = cp_m(param_set, q_tot, q_liq, q_ice) / cv_m(param_set, q_tot, q_liq, q_ice)
+    γ =
+        cp_m(param_set, q_tot, q_liq, q_ice) /
+        cv_m(param_set, q_tot, q_liq, q_ice)
     R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     return sqrt(γ * R_m * T)
 end

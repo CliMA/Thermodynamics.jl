@@ -21,14 +21,7 @@ If the specific humidities are not given, the result is for dry air.
 The specific entropy is computed from equations (29)-(33) of
 Pressel et al. (2015), doi: [10.1002/2015MS000496](https://doi.org/10.1002/2015MS000496).
 """
-@inline function entropy(
-    param_set::APS,
-    p,
-    T,
-    q_tot = 0,
-    q_liq = 0,
-    q_ice = 0,
-)
+@inline function entropy(param_set::APS, p, T, q_tot = 0, q_liq = 0, q_ice = 0)
     L_v = latent_heat_vapor(param_set, T)
     L_s = latent_heat_sublim(param_set, T)
     s_d = entropy_dry(param_set, p, T, q_tot, q_liq, q_ice)

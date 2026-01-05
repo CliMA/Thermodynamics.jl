@@ -145,13 +145,12 @@ The dry potential temperature, given a thermodynamic state `ts`.
 
 The specific entropy, given a thermodynamic state `ts`.
 """
-@inline entropy(param_set::APS, ts::ThermodynamicState) =
-    entropy(
-        param_set,
-        air_pressure(param_set, ts),
-        air_temperature(param_set, ts),
-        PhasePartition(param_set, ts),
-    )
+@inline entropy(param_set::APS, ts::ThermodynamicState) = entropy(
+    param_set,
+    air_pressure(param_set, ts),
+    air_temperature(param_set, ts),
+    PhasePartition(param_set, ts),
+)
 
 """
     humidity_weighted_latent_heat(param_set::APS, ts::ThermodynamicState)
@@ -312,11 +311,7 @@ end
 
 The total specific enthalpy, given a thermodynamic state `ts`.
 """
-@inline function total_enthalpy(
-    param_set::APS,
-    ts::ThermodynamicState,
-    e_tot,
-)
+@inline function total_enthalpy(param_set::APS, ts::ThermodynamicState, e_tot)
     R_m = gas_constant_air(param_set, ts)
     T = air_temperature(param_set, ts)
     return total_enthalpy(e_tot, R_m, T)

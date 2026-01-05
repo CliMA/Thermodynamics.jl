@@ -35,4 +35,3 @@ include("aqua.jl")
 # Clean up any temporary files created during testing
 rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
 rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)
-

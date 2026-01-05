@@ -53,7 +53,15 @@ end
     q_liq = 0,
     q_ice = 0,
 )
-    return air_temperature(param_set, pθ_liq_ice_q(), p, θ_liq_ice, q_tot, q_liq, q_ice)
+    return air_temperature(
+        param_set,
+        pθ_liq_ice_q(),
+        p,
+        θ_liq_ice,
+        q_tot,
+        q_liq,
+        q_ice,
+    )
 end
 
 """
@@ -71,5 +79,13 @@ end
     q_liq = 0,
     q_ice = 0,
 )
-    return air_temperature(param_set, ρθ_liq_ice_q(), ρ, θ_liq_ice, q_tot, q_liq, q_ice)
+    return air_temperature(
+        param_set,
+        ρθ_liq_ice_q(),
+        ρ,
+        θ_liq_ice,
+        q_tot,
+        q_liq,
+        q_ice,
+    )
 end

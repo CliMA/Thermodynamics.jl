@@ -25,12 +25,12 @@ function temperature_and_humidity_given_TᵥρRH(
     ρ,
     RH,
     ::Type{phase_type},
-    maxiter=10,
-    tol=nothing,
+    maxiter = 10,
+    tol = nothing,
 ) where {phase_type}
     FT = eltype(param_set)
     _tol = isnothing(tol) ? RS.SolutionTolerance(sqrt(eps(FT))) : tol
-    
+
     function residual(T)
         p_sat = saturation_vapor_pressure(param_set, T, FT(0), FT(0))
         q_sat = q_vap_from_p_vap(param_set, T, ρ, p_sat)
@@ -249,11 +249,7 @@ The partial pressure of dry air, given
  - `q` phase partition
 
 """
-@inline function partial_pressure_dry(
-    param_set::APS,
-    p,
-    q::PhasePartition,
-)
+@inline function partial_pressure_dry(param_set::APS, p, q::PhasePartition)
     return partial_pressure_dry(param_set, p, q.tot, q.liq, q.ice)
 end
 
@@ -267,11 +263,7 @@ The partial pressure of water vapor, given
  - `q` phase partition
 
 """
-@inline function partial_pressure_vapor(
-    param_set::APS,
-    p,
-    q::PhasePartition,
-)
+@inline function partial_pressure_vapor(param_set::APS, p, q::PhasePartition)
     return partial_pressure_vapor(param_set, p, q.tot, q.liq, q.ice)
 end
 
@@ -289,12 +281,7 @@ above freezing and over ice for temperatures below freezing, given
 
 When `q` is not provided, the vapor pressure deficit is the saturation vapor pressure.
 """
-@inline function vapor_pressure_deficit(
-    param_set::APS,
-    T,
-    p,
-    q::PhasePartition,
-)
+@inline function vapor_pressure_deficit(param_set::APS, T, p, q::PhasePartition)
     return vapor_pressure_deficit(param_set, T, p, q.tot, q.liq, q.ice)
 end
 
@@ -378,11 +365,7 @@ and, optionally,
 
 When `q` is not provided, the results are for dry air.
 """
-@inline function soundspeed_air(
-    param_set::APS,
-    T,
-    q::PhasePartition,
-)
+@inline function soundspeed_air(param_set::APS, T, q::PhasePartition)
     return soundspeed_air(param_set, T, q.tot, q.liq, q.ice)
 end
 
@@ -405,12 +388,7 @@ and, optionally,
 
 When `q` is not provided, the results are for dry air.
 """
-@inline function air_pressure(
-    param_set::APS,
-    T,
-    ρ,
-    q::PhasePartition,
-)
+@inline function air_pressure(param_set::APS, T, ρ, q::PhasePartition)
     return air_pressure(param_set, T, ρ, q.tot, q.liq, q.ice)
 end
 
@@ -430,12 +408,7 @@ and, optionally,
 
 When `q` is not provided, the results are for dry air.
 """
-@inline function air_density(
-    param_set::APS,
-    T,
-    p,
-    q::PhasePartition,
-)
+@inline function air_density(param_set::APS, T, p, q::PhasePartition)
     return air_density(param_set, T, p, q.tot, q.liq, q.ice)
 end
 
@@ -455,12 +428,7 @@ and, optionally,
 
 When `q` is not provided, the results are for dry air.
 """
-@inline function exner(
-    param_set::APS,
-    T,
-    ρ,
-    q::PhasePartition,
-)
+@inline function exner(param_set::APS, T, ρ, q::PhasePartition)
     return exner(param_set, T, ρ, q.tot, q.liq, q.ice)
 end
 
@@ -478,11 +446,7 @@ and, optionally,
 
 When `q` is not provided, the results are for dry air.
 """
-@inline function exner_given_pressure(
-    param_set::APS,
-    p,
-    q::PhasePartition,
-)
+@inline function exner_given_pressure(param_set::APS, p, q::PhasePartition)
     return exner_given_pressure(param_set, p, q.tot, q.liq, q.ice)
 end
 
@@ -504,11 +468,7 @@ and, optionally,
  
 When `q` is not provided, the results are for dry air.
 """
-@inline function internal_energy(
-    param_set::APS,
-    T,
-    q::PhasePartition,
-)
+@inline function internal_energy(param_set::APS, T, q::PhasePartition)
     return internal_energy(param_set, T, q.tot, q.liq, q.ice)
 end
 @inline internal_energy(param_set, T, q) =
@@ -551,11 +511,7 @@ The specific enthalpy, given
  - `q` [`PhasePartition`](@ref). 
 
 """
-@inline function enthalpy(
-    param_set::APS,
-    T,
-    q::PhasePartition,
-)
+@inline function enthalpy(param_set::APS, T, q::PhasePartition)
     return enthalpy(param_set, T, q.tot, q.liq, q.ice)
 end
 
@@ -681,12 +637,7 @@ The dry air specific entropy, given
  - `T` temperature
  - `q` [`PhasePartition`](@ref).
 """
-@inline function entropy_dry(
-    param_set::APS,
-    p,
-    T,
-    q::PhasePartition,
-)
+@inline function entropy_dry(param_set::APS, p, T, q::PhasePartition)
     return entropy_dry(param_set, p, T, q.tot, q.liq, q.ice)
 end
 
@@ -700,12 +651,7 @@ The specific entropy of water vapor, given
  - `T` temperature
  - `q` [`PhasePartition`](@ref).
 """
-@inline function entropy_vapor(
-    param_set::APS,
-    p,
-    T,
-    q::PhasePartition,
-)
+@inline function entropy_vapor(param_set::APS, p, T, q::PhasePartition)
     return entropy_vapor(param_set, p, T, q.tot, q.liq, q.ice)
 end
 
@@ -746,12 +692,7 @@ mixture of liquid and ice, computed in a thermodynamically consistent way from t
 weighted sum of the latent heats of the respective phase transitions (Pressel et al.,
 JAMES, 2015).
 """
-@inline function q_vap_saturation(
-    param_set::APS,
-    T,
-    ρ,
-    q::PhasePartition,
-)
+@inline function q_vap_saturation(param_set::APS, T, ρ, q::PhasePartition)
     return q_vap_saturation(param_set, T, ρ, q.liq, q.ice)
 end
 
@@ -874,11 +815,7 @@ and, optionally,
  
 When `q` is not provided, the results are for dry air.
 """
-@inline function air_temperature(
-    param_set::APS,
-    e_int,
-    q::PhasePartition,
-)
+@inline function air_temperature(param_set::APS, e_int, q::PhasePartition)
     return air_temperature(param_set, e_int, q.tot, q.liq, q.ice)
 end
 
@@ -896,11 +833,7 @@ and, optionally,
  
 When `q` is not provided, the results are for dry air.
 """
-@inline function air_temperature_given_hq(
-    param_set::APS,
-    h,
-    q::PhasePartition,
-)
+@inline function air_temperature_given_hq(param_set::APS, h, q::PhasePartition)
     return air_temperature_given_hq(param_set, h, q.tot, q.liq, q.ice)
 end
 
@@ -943,12 +876,7 @@ and, optionally,
  
 When `q` is not provided, the results are for dry air.
 """
-@inline function dry_pottemp(
-    param_set::APS,
-    T,
-    ρ,
-    q::PhasePartition,
-)
+@inline function dry_pottemp(param_set::APS, T, ρ, q::PhasePartition)
     return dry_pottemp(param_set, T, ρ, q.tot, q.liq, q.ice)
 end
 
@@ -1041,12 +969,7 @@ and, optionally,
  
 When `q` is not provided, the result is the dry-air potential temperature.
 """
-@inline function liquid_ice_pottemp(
-    param_set::APS,
-    T,
-    ρ,
-    q::PhasePartition,
-)
+@inline function liquid_ice_pottemp(param_set::APS, T, ρ, q::PhasePartition)
     return liquid_ice_pottemp(param_set, T, ρ, q.tot, q.liq, q.ice)
 end
 
@@ -1184,12 +1107,7 @@ The virtual potential temperature is defined as `θ_v = (R_m/R_d) * θ`, where `
 potential temperature. It is the potential temperature a dry air parcel would need to have to
 have the same density as the moist air parcel at the same pressure.
 """
-@inline function virtual_pottemp(
-    param_set::APS,
-    T,
-    ρ,
-    q::PhasePartition,
-)
+@inline function virtual_pottemp(param_set::APS, T, ρ, q::PhasePartition)
     return virtual_pottemp(param_set, T, ρ, q.tot, q.liq, q.ice)
 end
 
@@ -1277,5 +1195,3 @@ The temperature `T` is found by finding the root of
     end
     return sol.root
 end
-
-

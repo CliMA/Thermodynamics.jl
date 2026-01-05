@@ -17,7 +17,15 @@ using Random
         (; T, p, ρ, θ_liq_ice, q_tot, q_liq, q_ice) = profiles
 
         @testset "Ideal Gas Law" begin
-            T_idgl = TD.air_temperature_given_pρq.(param_set, p, ρ, q_tot, q_liq, q_ice)
+            T_idgl =
+                TD.air_temperature_given_pρq.(
+                    param_set,
+                    p,
+                    ρ,
+                    q_tot,
+                    q_liq,
+                    q_ice,
+                )
             @test all(T .≈ T_idgl)
         end
 

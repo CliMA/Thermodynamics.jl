@@ -104,19 +104,9 @@ This file contains tests for saturation adjustment accuracy and convergence.
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
             (; ρ, q_tot) = profiles
             e_int_upper =
-                internal_energy_sat.(
-                    param_set,
-                    Ref(T_freeze_plus),
-                    ρ,
-                    q_tot,
-                )
+                internal_energy_sat.(param_set, Ref(T_freeze_plus), ρ, q_tot)
             e_int_lower =
-                internal_energy_sat.(
-                    param_set,
-                    Ref(T_freeze_minus),
-                    ρ,
-                    q_tot,
-                )
+                internal_energy_sat.(param_set, Ref(T_freeze_minus), ρ, q_tot)
             _e_int = (e_int_upper .+ e_int_lower) / 2
             ts = PhaseEquil_ρeq.(param_set, ρ, _e_int, q_tot)
             @test all(
@@ -277,10 +267,13 @@ This file contains tests for saturation adjustment accuracy and convergence.
             q_dry_liq = q_liq[dry_mask]
             q_dry_ice = q_ice[dry_mask]
             @test all(
-                condensate_specific_humidity.(q_liq, q_ice) .==
-                q_liq .+ q_ice,
+                condensate_specific_humidity.(q_liq, q_ice) .== q_liq .+ q_ice,
             )
-            @test all(has_condensate.(condensate_specific_humidity.(q_dry_liq, q_dry_ice)) .== false)
+            @test all(
+                has_condensate.(
+                    condensate_specific_humidity.(q_dry_liq, q_dry_ice)
+                ) .== false,
+            )
 
             e_tot = total_energy.(param_set, ts, e_kin, e_pot)
             _cp_d = FT(TP.cp_d(param_set))
