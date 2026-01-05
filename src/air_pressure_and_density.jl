@@ -9,7 +9,7 @@ export exner_given_pressure
 
 The air pressure from the equation of state (ideal gas law), given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -34,7 +34,7 @@ end
 
 The (moist-)air density from the equation of state (ideal gas law), given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
  - `p` pressure
  - `q_tot` total specific humidity
@@ -59,7 +59,7 @@ end
 
 The Exner function `Π = (p/p₀)^(R_m/cp_m)`, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -80,7 +80,7 @@ end
 The Exner function `Π = (p/p₀)^(R_m/cp_m)`, where `p₀` is the reference pressure,
 given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity

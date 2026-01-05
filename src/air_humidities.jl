@@ -40,7 +40,7 @@ end
     vol_vapor_mixing_ratio(param_set, q_tot=0, q_liq=0, q_ice=0)
 
 The molar (volume) mixing ratio of water vapor, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
@@ -62,7 +62,7 @@ end
     partial_pressure_dry(param_set, p, q_tot=0, q_liq=0, q_ice=0)
 
 The partial pressure of dry air, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
@@ -86,7 +86,7 @@ end
     partial_pressure_vapor(param_set, p, q_tot=0, q_liq=0, q_ice=0)
 
 The partial pressure of water vapor, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
@@ -122,7 +122,7 @@ end
 
 The vapor specific humidity, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature,
  - `ρ` (moist-)air density
  - `p_v` partial pressure of vapor
@@ -136,7 +136,7 @@ end
     q_vap_from_RH(param_set, p, T, RH, phase)
 
 The water vapor specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
  - `RH` relative humidity with respect to `phase`
@@ -154,7 +154,7 @@ end
 
 The water vapor specific humidity, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
  - `RH` relative humidity with respect to liquid water
@@ -170,7 +170,7 @@ end
 
 The relative humidity (clipped between 0 and 1), given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `p` pressure
  - `q_tot` total specific humidity
@@ -181,6 +181,10 @@ The relative humidity (clipped between 0 and 1), given
  to saturation over ice below freezing and over liquid above freezing. If condensate is
  present, the relative humidity is computed relative to saturation over a mixture of liquid
  and ice, with the liquid fraction given by the ratio `q_liq / (q_liq + q_ice)`.
+
+Note: `relative_humidity` uses `saturation_vapor_pressure(param_set, T, q_liq, q_ice)`. In
+particular, for `q_liq == q_ice == 0` it includes a small smooth transition around freezing
+(via `liquid_fraction(param_set, T, q_liq, q_ice)`).
 """
 @inline function relative_humidity(
     param_set::APS,

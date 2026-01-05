@@ -72,7 +72,7 @@ like `liquid_fraction` and to robustly handle numerical noise.
 
 The saturation vapor pressure over a plane surface of condensate, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `Liquid()` or `Ice()` to dispatch over the condensate type
 
@@ -100,7 +100,7 @@ end
 Internal function. Computes the saturation vapor pressure using the Rankine-Kirchhoff
 approximation, given:
 
- - `param_set` an `AbstractParameterSet`
+ - `param_set` thermodynamics parameter set
  - `T` temperature
  - `LH_0` latent heat at reference temperature `T_0`
  - `Δcp` difference in isobaric specific heat capacity between the two phases
@@ -133,7 +133,7 @@ saturation_vapor_pressure_calc(param_set, T, LH_0, Δcp) =
     saturation_vapor_pressure(param_set, T, q_liq, q_ice)
 
 The saturation vapor pressure over liquid, ice, or a mixture of liquid and ice, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
@@ -190,7 +190,7 @@ end
 
 The saturation specific humidity, given
 
-- `param_set`: an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+- `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
 - `T`: temperature
 - `ρ`: air density
 - (optional) `q_liq`: liquid specific humidity
@@ -222,7 +222,7 @@ end
     q_vap_saturation(param_set, T, ρ, phase::Phase)
 
 The saturation specific humidity, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
  - `phase` the phase to compute saturation over (either `Liquid()` or `Ice()`)
@@ -238,7 +238,7 @@ end
 
 The saturation specific humidity, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q_tot` total water specific humidity,
  - `p` air pressure,
  - `T` air temperature
@@ -305,7 +305,7 @@ end
     supersaturation(param_set, q_vap, ρ, T[, phase::Phase = Liquid()])
 
 The supersaturation (pv/pv_sat -1) over water or ice, given
- - `param_set` - abstract set with earth parameters
+ - `param_set` - thermodynamics parameter set
  - `q_vap` - vapor specific humidity
  - `ρ` - air density,
  - `T` - air temperature
@@ -346,7 +346,7 @@ end
 
 The saturation excess in equilibrium, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -393,7 +393,7 @@ end
 Compute the equilibrium liquid and ice specific humidities from the condensate
 in thermodynamic equilibrium, returning a tuple `(q_liq, q_ice)`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -416,7 +416,7 @@ The vapor pressure deficit (saturation vapor pressure minus actual
 vapor pressure, truncated to be non-negative) over liquid water for temperatures 
 above freezing and over ice for temperatures below freezing, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
  - `p` air pressure
  - `q_tot` total specific humidity

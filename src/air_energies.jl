@@ -23,7 +23,7 @@ export virtual_dry_static_energy
 
 The internal energy per unit mass, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
@@ -52,7 +52,7 @@ end
 
 The dry air internal energy, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
 @inline function internal_energy_dry(param_set::APS, T)
@@ -67,7 +67,7 @@ end
 
 The water vapor internal energy, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
 @inline function internal_energy_vapor(param_set::APS, T)
@@ -83,7 +83,7 @@ end
 
 The liquid water internal energy, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
 @inline function internal_energy_liquid(param_set::APS, T)
@@ -98,7 +98,7 @@ end
 
 The ice internal energy, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
 @inline function internal_energy_ice(param_set::APS, T)
@@ -114,7 +114,7 @@ end
 
 The internal energy per unit mass in thermodynamic equilibrium at saturation, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -145,7 +145,7 @@ end
 
 The specific enthalpy, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
@@ -168,7 +168,7 @@ end
 
 The specific enthalpy of dry air, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
 @inline function enthalpy_dry(param_set::APS, T)
@@ -182,7 +182,7 @@ end
 
 The specific enthalpy of vapor, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 """
 @inline function enthalpy_vapor(param_set::APS, T)
@@ -197,7 +197,7 @@ end
 
 The specific enthalpy of liquid, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 
  The specific enthalpy of liquid is equal to the internal energy of liquid because the
@@ -211,7 +211,7 @@ The specific enthalpy of liquid, given
 
 The specific enthalpy of ice, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 
  The specific enthalpy of ice is equal to the internal energy of ice because the
@@ -224,7 +224,7 @@ The specific enthalpy of ice, given
 
 The specific enthalpy in thermodynamic equilibrium at saturation, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -242,7 +242,7 @@ end
 
 The total energy per unit mass, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `e_kin` kinetic energy per unit mass
  - `e_pot` gravitational potential energy per unit mass
  - `T` temperature
@@ -282,7 +282,7 @@ end
 
 The dry static energy, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `e_pot` gravitational potential energy per unit mass (geopotential)
 """
@@ -295,7 +295,7 @@ end
 
 The static energy (sensible heat only) of water vapor, `cp_v * (T - T_0) + e_pot`, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `e_pot` gravitational potential energy per unit mass (geopotential)
 """
@@ -310,7 +310,7 @@ end
 
 The moist static energy, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `e_pot` gravitational potential energy per unit mass (geopotential)
  - `q_tot` total specific humidity
@@ -336,7 +336,7 @@ end
 
 The virtual dry static energy, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `e_pot` gravitational potential energy per unit mass (geopotential)
  - `q_tot` total specific humidity

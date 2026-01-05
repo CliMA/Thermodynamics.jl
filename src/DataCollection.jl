@@ -54,6 +54,7 @@ function reset_stats()
     ref_call_counter[] = 0
     ref_converged_counter[] = 0
     ref_non_converged_counter[] = 0
+    ref_iter_performed[] = 0
     return nothing
 end
 
@@ -62,16 +63,28 @@ function get_data()
     call_counter = ref_call_counter[]
     converged_counter = ref_converged_counter[]
     non_converged_counter = ref_non_converged_counter[]
-    return (; max_iter, call_counter, converged_counter, non_converged_counter)
+    iter_performed = ref_iter_performed[]
+    return (;
+        max_iter,
+        call_counter,
+        iter_performed,
+        converged_counter,
+        non_converged_counter,
+    )
+end
+
+function print_summary()
+    return print_summary(get_data())
 end
 
 function print_summary(data)
     max_iter = data.max_iter
     call_counter = data.call_counter
+    iter_performed = data.iter_performed
     converged_counter = data.converged_counter
     non_converged_counter = data.non_converged_counter
-    average_max_iter = max_iter / call_counter
-    @info "Thermodynamics `saturation_adjustment` statistics:" max_iter call_counter average_max_iter converged_counter non_converged_counter
+    mean_iter_performed = ifelse(call_counter > 0, iter_performed / call_counter, NaN)
+    @info "Thermodynamics `saturation_adjustment` statistics:" max_iter call_counter mean_iter_performed converged_counter non_converged_counter
 end
 
 end # module

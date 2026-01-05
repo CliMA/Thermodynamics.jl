@@ -9,7 +9,7 @@ export entropy_vapor
 
 The specific entropy in thermodynamic equilibrium, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `T` temperature
  - `q_tot` total specific humidity
@@ -34,7 +34,7 @@ end
 
 The specific entropy of dry air at its partial pressure, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` total air pressure
  - `T` temperature
  - `q_tot` total specific humidity
@@ -66,7 +66,7 @@ end
 
 The specific entropy of water vapor at its partial pressure, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` total air pressure
  - `T` temperature
  - `q_tot` total specific humidity

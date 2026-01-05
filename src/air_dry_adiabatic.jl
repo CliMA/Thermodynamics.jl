@@ -15,7 +15,7 @@ struct DryAdiabaticProcess end
     air_pressure_given_θ(param_set, ::DryAdiabaticProcess, θ, Φ)
 
 The air pressure for an isentropic process, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `θ` potential temperature
  - `Φ` gravitational potential
 
@@ -40,7 +40,7 @@ end
     air_pressure(param_set, ::DryAdiabaticProcess, T, T∞, p∞)
 
 The air pressure for an isentropic process, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` current temperature
  - `T∞` reference temperature
  - `p∞` reference pressure
@@ -58,7 +58,7 @@ end
     air_temperature(param_set, ::DryAdiabaticProcess, p, θ)
 
 The air temperature, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `θ` potential temperature
 

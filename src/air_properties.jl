@@ -19,7 +19,7 @@ export soundspeed_air
 
 The specific gas constant of moist air `R_m`, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
@@ -43,7 +43,7 @@ end
 
 The isobaric specific heat capacity of moist air `cp_m`, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q_tot` total specific humidity of water
  - `q_liq` specific humidity of liquid
  - `q_ice` specific humidity of ice
@@ -68,7 +68,7 @@ end
 
 The isochoric specific heat capacity of moist air `cv_m`, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
@@ -92,7 +92,7 @@ end
 
 The specific latent heat of vaporization `L_v`, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 
  Because the specific heats are assumed constant, the latent heats are linear functions of
@@ -110,7 +110,7 @@ end
 
 The specific latent heat of sublimation `L_s`, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 
  Because the specific heats are assumed constant, the latent heats are linear functions of
@@ -128,7 +128,7 @@ end
 
 The specific latent heat of fusion `L_f`, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
 
  Because the specific heats are assumed constant, the latent heats are linear functions of
@@ -147,7 +147,7 @@ end
 Internal function. The specific latent heat of a generic phase transition between
 two phases, computed using Kirchhoff's law, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `LH_0` latent heat at the reference temperature `T_0`
  - `Δcp` difference in isobaric specific heat capacities between the two phases
@@ -168,7 +168,7 @@ latent_heat_generic(param_set, T, LH_0, Δcp) =
 
 The specific latent heat of a mixed phase, weighted by the liquid fraction `λ`, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
  - `λ` liquid fraction
 
@@ -186,7 +186,7 @@ end
 
 Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference
 temperature `T_0`, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
 
@@ -207,7 +207,7 @@ end
 
 The speed of sound in unstratified air, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity

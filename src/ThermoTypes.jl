@@ -14,7 +14,7 @@ export Ice
     IndepVars
 
 Abstract type to dispatch over the independent variables used to compute
-a thermodynamic quantity (e.g., in [`air_temperature](@ref)).
+a thermodynamic quantity (e.g., in [`air_temperature`](@ref)).
 """
 abstract type IndepVars end
 

@@ -23,7 +23,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
 # Arguments
 - `sat_adjust_method`: The numerical method for root-finding. Supported:
   `SecantMethod`, `BrentsMethod`, `NewtonsMethod`, `NewtonsMethodAD`.
-- `param_set`: An `AbstractParameterSet` containing thermodynamic parameters.
+- `param_set`: Thermodynamics parameter set.
 - `ρ`: Density of moist air.
 - `e_int`: Specific internal energy.
 - `q_tot`: Total specific humidity.
@@ -197,7 +197,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
 # Arguments
 - `sat_adjust_method`: The numerical method for root-finding. Supported types:
   `SecantMethod`, `BrentsMethod`, `NewtonsMethod`, `NewtonsMethodAD`.
-- `param_set`: An `AbstractParameterSet` containing thermodynamic parameters.
+- `param_set`: Thermodynamics parameter set.
 - `p`: Pressure of moist air.
 - `h`: Specific enthalpy.
 - `q_tot`: Total specific humidity.

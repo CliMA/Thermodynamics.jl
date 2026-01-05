@@ -11,7 +11,7 @@ export liquid_ice_pottemp_given_pressure
 
 The air temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `e_int` specific internal energy of moist air
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
@@ -54,7 +54,7 @@ end
 
 The air temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `h` specific enthalpy of moist air
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
@@ -83,7 +83,7 @@ end
 
 The air temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
  - `ρ` air density
  - `q_tot` total specific humidity
@@ -118,7 +118,7 @@ end
 
 The air temperature obtained by inverting the liquid-ice potential temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
@@ -148,7 +148,7 @@ end
 
 The air temperature obtained by inverting the liquid-ice potential temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
  - `θ_liq_ice` liquid-ice potential temperature
  - `q_tot` total specific humidity
@@ -185,7 +185,7 @@ end
 
 The dry potential temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -193,6 +193,9 @@ The dry potential temperature, given
  - `q_ice` ice specific humidity
 
 If the specific humidities are not given, the result is for dry air.
+
+Note: if any of `q_tot`, `q_liq`, or `q_ice` are nonzero, the Exner function uses the
+moist exponent `R_m/cp_m` (reducing to the dry exponent `R_d/cp_d` in the dry limit).
 """
 @inline function dry_pottemp(
     param_set::APS,
@@ -210,7 +213,7 @@ end
 
 The dry potential temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `p` pressure
  - `q_tot` total specific humidity
@@ -218,6 +221,9 @@ The dry potential temperature, given
  - `q_ice` ice specific humidity
 
 If the specific humidities are not given, the result is for dry air.
+
+Note: if any of `q_tot`, `q_liq`, or `q_ice` are nonzero, the Exner function uses the
+moist exponent `R_m/cp_m` (reducing to the dry exponent `R_d/cp_d` in the dry limit).
 """
 @inline function dry_pottemp_given_pressure(
     param_set::APS,
@@ -235,7 +241,7 @@ end
 
 The virtual temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `q_tot` total specific humidity
  - `q_liq` liquid specific humidity
@@ -260,7 +266,7 @@ end
 
 The virtual potential temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -287,7 +293,7 @@ end
 
 The liquid-ice potential temperature, given
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `ρ` (moist-)air density
  - `q_tot` total specific humidity
@@ -318,7 +324,7 @@ end
     liquid_ice_pottemp_given_pressure(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
 The liquid-ice potential temperature, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `p` pressure
  - `q_tot` total specific humidity
