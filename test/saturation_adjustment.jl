@@ -18,7 +18,7 @@ Focus:
         @testset "Unsaturated returns zero condensate ($FT)" begin
             q_tot = FT(1e-3)
             e_int = TD.internal_energy(param_set, T0, q_tot)
-            (T, q_liq, q_ice) = TD.saturation_adjustment(
+            (; T, q_liq, q_ice) = TD.saturation_adjustment(
                 RS.SecantMethod,
                 param_set,
                 TD.ρe(),
@@ -51,7 +51,7 @@ Focus:
             θ_liq_ice_ρ = TD.liquid_ice_pottemp(param_set, T0, ρ0, q_tot, q_liq0, q_ice0)
 
             # ρeq
-            let (T, q_liq, q_ice) = TD.saturation_adjustment(
+            let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.NewtonsMethod,
                     param_set,
                     TD.ρe(),
@@ -72,7 +72,7 @@ Focus:
             end
 
             # peq
-            let (T, q_liq, q_ice) = TD.saturation_adjustment(
+            let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
                     TD.pe(),
@@ -93,7 +93,7 @@ Focus:
             end
 
             # phq
-            let (T, q_liq, q_ice) = TD.saturation_adjustment(
+            let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
                     TD.ph(),
@@ -114,7 +114,7 @@ Focus:
             end
 
             # pρq (solve for T at saturation such that computed pressure matches)
-            let (T, q_liq, q_ice) = TD.saturation_adjustment(
+            let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
                     TD.pρ(),
@@ -133,7 +133,7 @@ Focus:
             end
 
             # pθ_liq_ice_q
-            let (T, q_liq, q_ice) = TD.saturation_adjustment(
+            let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
                     TD.pθ_li(),
@@ -156,7 +156,7 @@ Focus:
             end
 
             # ρθ_liq_ice_q
-            let (T, q_liq, q_ice) = TD.saturation_adjustment(
+            let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
                     TD.ρθ_li(),

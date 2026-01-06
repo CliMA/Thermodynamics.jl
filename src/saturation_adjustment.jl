@@ -57,7 +57,7 @@ function saturation_adjustment(
 
     # Check if unsaturated
     if q_tot <= q_vap_saturation(param_set, T_unsat, ρ)
-        return (T_unsat, zero(T_unsat), zero(T_unsat))
+        return (; T = T_unsat, q_liq = zero(T_unsat), q_ice = zero(T_unsat))
     end
 
     # Root function: e_int - internal_energy_sat(T, ρ, q_tot) = 0
@@ -102,7 +102,7 @@ function saturation_adjustment(
 
     # Compute equilibrium phase partition
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return (T, q_liq, q_ice)
+    return (; T, q_liq, q_ice)
 end
 
 """
@@ -121,7 +121,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, specific internal energy `e_int`, and total specific humidity `q_tot`.
 
-Returns a tuple `(T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
     sat_adjust_method::Type,
@@ -167,7 +167,7 @@ function saturation_adjustment(
     )
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
-    return (T, q_liq, q_ice)
+    return (; T, q_liq, q_ice)
 end
 
 """
@@ -186,7 +186,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, specific enthalpy `h`, and total specific humidity `q_tot`.
 
-Returns a tuple `(T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 
 # Arguments
 - `sat_adjust_method`: The numerical method for root-finding. Supported types:
@@ -249,7 +249,7 @@ function saturation_adjustment(
     )
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
-    return (T, q_liq, q_ice)
+    return (; T, q_liq, q_ice)
 end
 
 """
@@ -268,7 +268,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
 
-Returns a tuple `(T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
     sat_adjust_method::Type,
@@ -323,7 +323,7 @@ function saturation_adjustment(
 
     # Compute equilibrium phase partition
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
-    return (T, q_liq, q_ice)
+    return (; T, q_liq, q_ice)
 end
 
 """
@@ -342,7 +342,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given density `ρ`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
 
-Returns a tuple `(T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
     sat_adjust_method::Type,
@@ -394,7 +394,7 @@ function saturation_adjustment(
     )
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return (T, q_liq, q_ice)
+    return (; T, q_liq, q_ice)
 end
 
 
@@ -414,7 +414,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, density `ρ`, and total specific humidity `q_tot`.
 
-Returns a tuple `(T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
     sat_adjust_method::Type,
@@ -467,7 +467,7 @@ function saturation_adjustment(
     )
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return (T, q_liq, q_ice)
+    return (; T, q_liq, q_ice)
 end
 
 # Defaults:

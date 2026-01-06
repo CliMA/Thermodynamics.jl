@@ -117,9 +117,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             tol,
         )
     end
-    d_T[1, :] .= first.(results)
-    d_ql[1, :] .= getindex.(results, 2)
-    d_qi[1, :] .= last.(results)
+    d_T[1, :] .= getproperty.(results, :T)
+    d_ql[1, :] .= getproperty.(results, :q_liq)
+    d_qi[1, :] .= getproperty.(results, :q_ice)
 
     # 2) pe
     results = broadcast(d_p, d_e_int_p, d_q) do p, e_int, q
@@ -134,9 +134,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             tol,
         )
     end
-    d_T[2, :] .= first.(results)
-    d_ql[2, :] .= getindex.(results, 2)
-    d_qi[2, :] .= last.(results)
+    d_T[2, :] .= getproperty.(results, :T)
+    d_ql[2, :] .= getproperty.(results, :q_liq)
+    d_qi[2, :] .= getproperty.(results, :q_ice)
 
     # 3) ph
     results = broadcast(d_p, d_h_p, d_q) do p, h, q
@@ -151,9 +151,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             tol,
         )
     end
-    d_T[3, :] .= first.(results)
-    d_ql[3, :] .= getindex.(results, 2)
-    d_qi[3, :] .= last.(results)
+    d_T[3, :] .= getproperty.(results, :T)
+    d_ql[3, :] .= getproperty.(results, :q_liq)
+    d_qi[3, :] .= getproperty.(results, :q_ice)
 
     # 4) pρ
     results = broadcast(d_p_ρ, d_ρ, d_q) do p, ρ, q
@@ -168,9 +168,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             tol,
         )
     end
-    d_T[4, :] .= first.(results)
-    d_ql[4, :] .= getindex.(results, 2)
-    d_qi[4, :] .= last.(results)
+    d_T[4, :] .= getproperty.(results, :T)
+    d_ql[4, :] .= getproperty.(results, :q_liq)
+    d_qi[4, :] .= getproperty.(results, :q_ice)
 
     # 5) ρθ_li
     results = broadcast(d_ρ, d_θ_ρ, d_q) do ρ, θ, q
@@ -185,9 +185,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             tol,
         )
     end
-    d_T[5, :] .= first.(results)
-    d_ql[5, :] .= getindex.(results, 2)
-    d_qi[5, :] .= last.(results)
+    d_T[5, :] .= getproperty.(results, :T)
+    d_ql[5, :] .= getproperty.(results, :q_liq)
+    d_qi[5, :] .= getproperty.(results, :q_ice)
 
     # 6) pθ_li
     results = broadcast(d_p, d_θ_p, d_q) do p, θ, q
@@ -202,9 +202,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             tol,
         )
     end
-    d_T[6, :] .= first.(results)
-    d_ql[6, :] .= getindex.(results, 2)
-    d_qi[6, :] .= last.(results)
+    d_T[6, :] .= getproperty.(results, :T)
+    d_ql[6, :] .= getproperty.(results, :q_liq)
+    d_qi[6, :] .= getproperty.(results, :q_ice)
 
     # Compare device results with CPU reference, and check correctness invariants.
     T_gpu = Array(d_T)
@@ -216,7 +216,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
 
     for i in 1:n
         # CPU reference for each formulation
-        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+        res = TD.saturation_adjustment(
             RS.NewtonsMethod,
             param_set,
             TD.ρe(),
@@ -226,6 +226,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             80,
             FT(1e-10),
         )
+        T_ref = res.T
+        ql_ref = res.q_liq
+        qi_ref = res.q_ice
         @test isapprox(T_gpu[1, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[1, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[1, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
@@ -240,7 +243,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
             @test approx_tight(qi_gpu[1, i], qi_chk)
         end
 
-        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+        res = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
             TD.pe(),
@@ -250,6 +253,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             80,
             FT(1e-10),
         )
+        T_ref = res.T
+        ql_ref = res.q_liq
+        qi_ref = res.q_ice
         @test isapprox(T_gpu[2, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[2, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[2, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
@@ -267,7 +273,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
             end
         end
 
-        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+        res = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
             TD.ph(),
@@ -277,6 +283,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             80,
             FT(1e-10),
         )
+        T_ref = res.T
+        ql_ref = res.q_liq
+        qi_ref = res.q_ice
         @test isapprox(T_gpu[3, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[3, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[3, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
@@ -294,7 +303,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
             end
         end
 
-        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+        res = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
             TD.pρ(),
@@ -304,6 +313,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             80,
             FT(1e-10),
         )
+        T_ref = res.T
+        ql_ref = res.q_liq
+        qi_ref = res.q_ice
         @test isapprox(T_gpu[4, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[4, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[4, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
@@ -325,7 +337,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
             @test approx_tight(qi_gpu[4, i], qi_chk)
         end
 
-        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+        res = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
             TD.ρθ_li(),
@@ -335,6 +347,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             80,
             FT(1e-10),
         )
+        T_ref = res.T
+        ql_ref = res.q_liq
+        qi_ref = res.q_ice
         @test isapprox(T_gpu[5, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[5, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[5, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
@@ -356,7 +371,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
             @test approx_tight(qi_gpu[5, i], qi_chk)
         end
 
-        (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
+        res = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
             TD.pθ_li(),
@@ -366,6 +381,9 @@ parameter_set(::Type{Float32}) = param_set_Float32
             80,
             FT(1e-10),
         )
+        T_ref = res.T
+        ql_ref = res.q_liq
+        qi_ref = res.q_ice
         @test isapprox(T_gpu[6, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[6, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[6, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))

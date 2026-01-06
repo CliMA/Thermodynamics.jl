@@ -13,7 +13,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `ρeq()` dispatch instead.
     tol::Real,
     T_guess = nothing,
 )
-    return saturation_adjustment(
+    res = saturation_adjustment(
         sat_adjust_method,
         param_set,
         ρe(),
@@ -24,6 +24,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `ρeq()` dispatch instead.
         tol,
         T_guess,
     )
+    return values(res)
 end
 
 @inline function saturation_adjustment_ρeq(
@@ -35,7 +36,7 @@ end
     tol::Real,
     T_guess = nothing,
 )
-    return saturation_adjustment(
+    res = saturation_adjustment(
         SecantMethod,
         param_set,
         ρe(),
@@ -46,6 +47,7 @@ end
         tol,
         T_guess,
     )
+    return values(res)
 end
 
 """
@@ -63,7 +65,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `phq()` dispatch instead.
     tol::Real,
     T_guess = nothing,
 )
-    return saturation_adjustment(
+    res = saturation_adjustment(
         sat_adjust_method,
         param_set,
         ph(),
@@ -74,6 +76,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `phq()` dispatch instead.
         tol,
         T_guess,
     )
+    return values(res)
 end
 
 """
@@ -93,7 +96,7 @@ Forwards to `saturation_adjustment(..., ::ρeq, ...)` with arguments `(ρ, e_int
     tol::Real,
     T_guess = nothing,
 )
-    (T, _...) = saturation_adjustment(
+    res = saturation_adjustment(
         sat_adjust_method,
         param_set,
         ρe(),
@@ -104,6 +107,7 @@ Forwards to `saturation_adjustment(..., ::ρeq, ...)` with arguments `(ρ, e_int
         tol,
         T_guess,
     )
+    T = res.T
     return T
 end
 
@@ -123,7 +127,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `phq()` dispatch instead.
     tol::Real,
     T_guess = nothing,
 )
-    (T, _...) = saturation_adjustment(
+    res = saturation_adjustment(
         sat_adjust_method,
         param_set,
         ph(),
@@ -134,6 +138,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `phq()` dispatch instead.
         tol,
         T_guess,
     )
+    T = res.T
     return T
 end
 
@@ -153,7 +158,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `peq()` dispatch instead.
     tol,
     T_guess = nothing,
 )
-    (T, _...) = saturation_adjustment(
+    res = saturation_adjustment(
         sat_adjust_method,
         param_set,
         pe(),
@@ -164,6 +169,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `peq()` dispatch instead.
         tol,
         T_guess,
     )
+    T = res.T
     return T
 end
 
@@ -183,7 +189,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `pθ_liq_ice_q()` dispatch 
     tol::Real,
     T_guess = nothing,
 )
-    (T, _...) = saturation_adjustment(
+    res = saturation_adjustment(
         sat_adjust_method,
         param_set,
         pθ_li(),
@@ -194,6 +200,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `pθ_liq_ice_q()` dispatch 
         tol,
         T_guess,
     )
+    T = res.T
     return T
 end
 
@@ -213,7 +220,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `ρθ_liq_ice_q()` dispatch
     T_guess = nothing,
     sat_adjust_method::Type = RS.SecantMethod,
 )
-    (T, _...) = saturation_adjustment(
+    res = saturation_adjustment(
         sat_adjust_method,
         param_set,
         ρθ_li(),
@@ -224,6 +231,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `ρθ_liq_ice_q()` dispatch
         tol,
         T_guess,
     )
+    T = res.T
     return T
 end
 
@@ -243,7 +251,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `pρq()` dispatch instead.
     tol::Real,
     T_guess = nothing,
 )
-    (T, _...) = saturation_adjustment(
+    res = saturation_adjustment(
         sat_adjust_method,
         param_set,
         pρ(),
@@ -254,5 +262,6 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `pρq()` dispatch instead.
         tol,
         T_guess,
     )
+    T = res.T
     return T
 end

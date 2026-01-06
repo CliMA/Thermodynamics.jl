@@ -87,7 +87,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     inp = targets(i)
 
                     # ρeq
-                    let (Tsol, ql, qi) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.ρe(),
@@ -97,18 +97,18 @@ const TDTP_SA = TD.TemperatureProfiles
                             maxiter,
                             tol,
                         )
-                        @test isfinite(Tsol)
+                        @test isfinite(T)
                         @test isapprox(
-                            Tsol,
+                            T,
                             inp.T0;
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        check_partition(Tsol, inp.ρ0, inp.q0, ql, qi)
+                        check_partition(T, inp.ρ0, inp.q0, q_liq, q_ice)
                     end
 
                     # peq
-                    let (Tsol, ql, qi) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.pe(),
@@ -118,19 +118,19 @@ const TDTP_SA = TD.TemperatureProfiles
                             maxiter,
                             tol,
                         )
-                        @test isfinite(Tsol)
+                        @test isfinite(T)
                         @test isapprox(
-                            Tsol,
+                            T,
                             inp.T0;
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        ρ_eff = TD.air_density(param_set, Tsol, inp.p0, inp.q0)
-                        check_partition(Tsol, ρ_eff, inp.q0, ql, qi)
+                        ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
+                        check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
                     end
 
                     # phq
-                    let (Tsol, ql, qi) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.ph(),
@@ -140,19 +140,19 @@ const TDTP_SA = TD.TemperatureProfiles
                             maxiter,
                             tol,
                         )
-                        @test isfinite(Tsol)
+                        @test isfinite(T)
                         @test isapprox(
-                            Tsol,
+                            T,
                             inp.T0;
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        ρ_eff = TD.air_density(param_set, Tsol, inp.p0, inp.q0)
-                        check_partition(Tsol, ρ_eff, inp.q0, ql, qi)
+                        ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
+                        check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
                     end
 
                     # pρ (uses ρ-based equilibrium; p target is p_ρ)
-                    let (Tsol, ql, qi) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.pρ(),
@@ -162,18 +162,18 @@ const TDTP_SA = TD.TemperatureProfiles
                             maxiter,
                             tol,
                         )
-                        @test isfinite(Tsol)
+                        @test isfinite(T)
                         @test isapprox(
-                            Tsol,
+                            T,
                             inp.T0;
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        check_partition(Tsol, inp.ρ0, inp.q0, ql, qi)
+                        check_partition(T, inp.ρ0, inp.q0, q_liq, q_ice)
                     end
 
                     # pθ_li (p-based)
-                    let (Tsol, ql, qi) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.pθ_li(),
@@ -183,19 +183,19 @@ const TDTP_SA = TD.TemperatureProfiles
                             maxiter,
                             tol,
                         )
-                        @test isfinite(Tsol)
+                        @test isfinite(T)
                         @test isapprox(
-                            Tsol,
+                            T,
                             inp.T0;
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        ρ_eff = TD.air_density(param_set, Tsol, inp.p0, inp.q0)
-                        check_partition(Tsol, ρ_eff, inp.q0, ql, qi)
+                        ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
+                        check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
                     end
 
                     # ρθ_li (ρ-based)
-                    let (Tsol, ql, qi) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.ρθ_li(),
@@ -205,14 +205,14 @@ const TDTP_SA = TD.TemperatureProfiles
                             maxiter,
                             tol,
                         )
-                        @test isfinite(Tsol)
+                        @test isfinite(T)
                         @test isapprox(
-                            Tsol,
+                            T,
                             inp.T0;
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        check_partition(Tsol, inp.ρ0, inp.q0, ql, qi)
+                        check_partition(T, inp.ρ0, inp.q0, q_liq, q_ice)
                     end
                 end
             end
@@ -240,7 +240,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     elapsed = @elapsed begin
                         for i in timing_idxs
                             inp = targets(i)
-                            (Tsol, ql, qi) = TD.saturation_adjustment(
+                            res = TD.saturation_adjustment(
                                 solver,
                                 param_set,
                                 TD.ρe(),
@@ -250,8 +250,8 @@ const TDTP_SA = TD.TemperatureProfiles
                                 maxiter,
                                 tol,
                             )
-                            @test isfinite(Tsol)
-                            @test ql ≥ zero(FT) && qi ≥ zero(FT)
+                            @test isfinite(res.T)
+                            @test res.q_liq ≥ zero(FT) && res.q_ice ≥ zero(FT)
                         end
                     end
 
@@ -294,7 +294,7 @@ const TDTP_SA = TD.TemperatureProfiles
                 h_p = TD.enthalpy_sat(param_set, T0, ρ_p, q0)
 
                 # Quick smoke: ensure each IndepVars converges and returns a self-consistent partition
-                let (Tsol, ql, qi) = TD.saturation_adjustment(
+                let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                         RS.SecantMethod,
                         param_set,
                         TD.ρe(),
@@ -304,11 +304,11 @@ const TDTP_SA = TD.TemperatureProfiles
                         maxiter,
                         tol,
                     )
-                    @test isfinite(Tsol)
-                    check_partition(Tsol, ρ0, q0, ql, qi)
+                    @test isfinite(T)
+                    check_partition(T, ρ0, q0, q_liq, q_ice)
                 end
 
-                let (Tsol, ql, qi) = TD.saturation_adjustment(
+                let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                         RS.SecantMethod,
                         param_set,
                         TD.pe(),
@@ -318,12 +318,12 @@ const TDTP_SA = TD.TemperatureProfiles
                         maxiter,
                         tol,
                     )
-                    @test isfinite(Tsol)
-                    ρ_eff = TD.air_density(param_set, Tsol, p0, q0)
-                    check_partition(Tsol, ρ_eff, q0, ql, qi)
+                    @test isfinite(T)
+                    ρ_eff = TD.air_density(param_set, T, p0, q0)
+                    check_partition(T, ρ_eff, q0, q_liq, q_ice)
                 end
 
-                let (Tsol, ql, qi) = TD.saturation_adjustment(
+                let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                         RS.SecantMethod,
                         param_set,
                         TD.ph(),
@@ -333,9 +333,9 @@ const TDTP_SA = TD.TemperatureProfiles
                         maxiter,
                         tol,
                     )
-                    @test isfinite(Tsol)
-                    ρ_eff = TD.air_density(param_set, Tsol, p0, q0)
-                    check_partition(Tsol, ρ_eff, q0, ql, qi)
+                    @test isfinite(T)
+                    ρ_eff = TD.air_density(param_set, T, p0, q0)
+                    check_partition(T, ρ_eff, q0, q_liq, q_ice)
                 end
             end
         end
