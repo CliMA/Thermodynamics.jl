@@ -18,5 +18,5 @@ Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 [compat]
 CUDA = "4, 5"
 ChainRulesCore = "1"
-JET = "0.8"
+JET = "0.8, 0.9"
 julia = "1.7"
