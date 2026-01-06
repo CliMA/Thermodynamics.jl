@@ -19,10 +19,10 @@ steps:
     command:
       - "echo $JULIA_DEPOT_PATH"
       - "rm -rf test/Manifest.toml"
-      - "julia --project=test -e 'using Pkg; Pkg.resolve(); Pkg.instantiate(;verbose=true)'"
-      - "julia --project=test -e 'using Pkg; Pkg.develop(path=\".\"); Pkg.resolve(); Pkg.instantiate(;verbose=true); Pkg.precompile()'"
-      - "julia --project=test -e 'using CUDA; CUDA.precompile_runtime()'"
-      - "julia --project=test -e 'using Pkg; Pkg.status()'"
+      - "julia --project=test/ -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
+      - "julia --project=test/ -e 'using Pkg; Pkg.develop(path=\".\"); Pkg.instantiate(;verbose=true); Pkg.precompile(); '"
+      - "julia --project=test/ -e 'using CUDA; CUDA.precompile_runtime()'"
+      - "julia --project=test/ -e 'using Pkg; Pkg.status()'"
     agents:
       slurm_ntasks: 1
       slurm_gpus: 1
@@ -31,14 +31,14 @@ steps:
 
   - label: "CPU tests"
     command:
-      - "THERMODYNAMICS_INCLUDE_DEPRECATED=false julia --project=test --color=yes test/runtests.jl"
+      - "THERMODYNAMICS_INCLUDE_DEPRECATED=false julia --project=test/ --color=yes test/runtests.jl"
     agents:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
   - label: "GPU tests"
     command:
-      - "julia --project=test --color=yes test/runtests_gpu.jl"
+      - "julia --project=test/ --color=yes test/runtests_gpu.jl"
     agents:
       slurm_ntasks: 1
       slurm_gpus: 1
