@@ -16,7 +16,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 
 [compat]
-CUDA = "3.5, 4, 5"
+CUDA = "4"
 ChainRulesCore = "1"
 JET = "0.8"
 julia = "1.7"
