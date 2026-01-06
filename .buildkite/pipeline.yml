@@ -18,9 +18,9 @@ steps:
     concurrency_group: 'depot/thermodynamics-ci'
     command:
       - "echo $JULIA_DEPOT_PATH"
-      - "rm -f Manifest.toml test/Manifest.toml"
-      - "julia --project=test -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
-      - "julia --project=test -e 'using Pkg; Pkg.develop(path=\".\"); Pkg.instantiate(;verbose=true); Pkg.precompile()'"
+      - "rm -rf test/Manifest.toml"
+      - "julia --project=test -e 'using Pkg; Pkg.resolve(); Pkg.instantiate(;verbose=true)'"
+      - "julia --project=test -e 'using Pkg; Pkg.develop(path=\".\"); Pkg.resolve(); Pkg.instantiate(;verbose=true); Pkg.precompile()'"
       - "julia --project=test -e 'using CUDA; CUDA.precompile_runtime()'"
       - "julia --project=test -e 'using Pkg; Pkg.status()'"
     agents:

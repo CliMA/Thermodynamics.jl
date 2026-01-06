@@ -19,10 +19,14 @@ export soundspeed_air
 
 The specific gas constant of moist air `R_m`, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `R_m`: specific gas constant of moist air [J/(kg·K)]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
@@ -43,10 +47,14 @@ end
 
 The isobaric specific heat capacity of moist air `cp_m`, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total specific humidity of water
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `q_tot`: total specific humidity of water [kg/kg]
+ - `q_liq`: specific humidity of liquid [kg/kg]
+ - `q_ice`: specific humidity of ice [kg/kg]
+
+# Returns
+ - `cp_m`: isobaric specific heat capacity [J/(kg·K)]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 The specific heat capacities are assumed to be constant (calorically perfect air).
@@ -68,10 +76,14 @@ end
 
 The isochoric specific heat capacity of moist air `cv_m`, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `cv_m`: isochoric specific heat capacity [J/(kg·K)]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 The specific heat capacities are assumed to be constant (calorically perfect air).
@@ -92,11 +104,15 @@ end
 
 The specific latent heat of vaporization `L_v`, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
 
- Because the specific heats are assumed constant, the latent heats are linear functions of
- temperature by Kirchhoff's law.
+# Returns
+ - `L_v`: latent heat of vaporization [J/kg]
+
+Because the specific heats are assumed constant, the latent heats are linear functions of
+temperature by Kirchhoff's law.
 """
 @inline function latent_heat_vapor(param_set::APS, T)
     cp_l = TP.cp_l(param_set)
@@ -110,11 +126,15 @@ end
 
 The specific latent heat of sublimation `L_s`, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
 
- Because the specific heats are assumed constant, the latent heats are linear functions of
- temperature by Kirchhoff's law.
+# Returns
+ - `L_s`: latent heat of sublimation [J/kg]
+
+Because the specific heats are assumed constant, the latent heats are linear functions of
+temperature by Kirchhoff's law.
 """
 @inline function latent_heat_sublim(param_set::APS, T)
     LH_s0 = TP.LH_s0(param_set)
@@ -128,11 +148,15 @@ end
 
 The specific latent heat of fusion `L_f`, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
 
- Because the specific heats are assumed constant, the latent heats are linear functions of
- temperature by Kirchhoff's law.
+# Returns
+ - `L_f`: latent heat of fusion [J/kg]
+
+Because the specific heats are assumed constant, the latent heats are linear functions of
+temperature by Kirchhoff's law.
 """
 @inline function latent_heat_fusion(param_set::APS, T)
     LH_f0 = TP.LH_f0(param_set)
@@ -207,13 +231,18 @@ end
 
 The speed of sound in unstratified air, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `c`: speed of sound [m/s]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The formula is `c = √(γ R_m T)` where `γ = cp_m/cv_m`.
 """
 @inline function soundspeed_air(
     param_set::APS,

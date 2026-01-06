@@ -11,13 +11,18 @@ export liquid_ice_pottemp_given_pressure
 
 The air temperature, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `e_int` specific internal energy of moist air
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `e_int`: specific internal energy of moist air [J/kg]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `T`: air temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
+This method inverts [`internal_energy`](@ref) by solving for `T` given `e_int`.
 """
 @inline function air_temperature(
     param_set::APS,
@@ -54,13 +59,18 @@ end
 
 The air temperature, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `h` specific enthalpy of moist air
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `h`: specific enthalpy of moist air [J/kg]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `T`: air temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
+This method inverts [`enthalpy`](@ref) by solving for `T` given `h`.
 """
 @inline function air_temperature(
     param_set::APS,
@@ -83,14 +93,19 @@ end
 
 The air temperature, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` air pressure
- - `ρ` air density
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `p`: air pressure [Pa]
+ - `ρ`: air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `T`: air temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
+This directly applies the ideal gas law: `T = p / (R_m ρ)`.
 """
 @inline function air_temperature(
     param_set::APS,
@@ -118,15 +133,20 @@ end
 
 The air temperature obtained by inverting the liquid-ice potential temperature, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
- - `θ_liq_ice` liquid-ice potential temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `p`: pressure [Pa]
+ - `θ_liq_ice`: liquid-ice potential temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `T`: air temperature [K]
 
 If the specific humidities are not given, the `θ_liq_ice` is assumed to be the dry-air
 potential temperature.
+This inverts [`liquid_ice_pottemp_given_pressure`](@ref) by solving for `T`.
 """
 @inline function air_temperature(
     param_set::APS,
@@ -148,14 +168,23 @@ end
 
 The air temperature obtained by inverting the liquid-ice potential temperature, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `ρ` (moist-)air density
- - `θ_liq_ice` liquid-ice potential temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `ρ`: (moist-)air density [kg/m³]
+ - `θ_liq_ice`: liquid-ice potential temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `T`: air temperature [K]
 
 If the specific humidities are not given, the results are for dry air.
+
+# Method
+This function uses a second-order Taylor expansion to avoid an iterative inversion.
+The unsaturated temperature `T_unsat` is first computed assuming the ideal gas law with
+potential temperature, then latent heat corrections are applied.
 """
 @inline function air_temperature(
     param_set::APS,
@@ -189,12 +218,16 @@ end
 
 The dry potential temperature, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `θ`: dry potential temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
 
@@ -245,13 +278,19 @@ end
 
 The virtual temperature, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `T_v`: virtual temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
+The virtual temperature is defined such that dry air at `T_v` has the same density
+as moist air at `T`, i.e., `T_v = T (R_m / R_d)`.
 """
 @inline function virtual_temperature(
     param_set::APS,
@@ -297,14 +336,23 @@ end
 
 The liquid-ice potential temperature, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `θ_liq_ice`: liquid-ice potential temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
+
+# Reference
+Betts (1973), "Non-precipitating cumulus convection and its parameterization," 
+*Quarterly Journal of the Royal Meteorological Society*, **99**, 178-196,
+doi:[10.1002/qj.49709941915](https://doi.org/10.1002/qj.49709941915).
 """
 @inline function liquid_ice_pottemp(
     param_set::APS,
@@ -328,14 +376,25 @@ end
     liquid_ice_pottemp_given_pressure(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
 The liquid-ice potential temperature, given
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `p` pressure
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `p`: pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `θ_liq_ice`: liquid-ice potential temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
+The latent heats of phase transitions are approximated as constants.
+
+# Reference
+Betts (1973), "Non-precipitating cumulus convection and its parameterization," 
+*Quarterly Journal of the Royal Meteorological Society*, **99**, 178-196,
+doi:[10.1002/qj.49709941915](https://doi.org/10.1002/qj.49709941915).
 """
 @inline function liquid_ice_pottemp_given_pressure(
     param_set::APS,

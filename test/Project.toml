@@ -1,10 +1,12 @@
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 ClimaParams = "5c42b081-d73a-476f-9059-fd94b934656c"
-CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+InlineStrings = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+Parsers = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 RootSolvers = "7181ea78-2dcb-4de3-ab41-2b8ab5a31e74"

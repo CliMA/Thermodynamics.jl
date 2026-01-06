@@ -14,19 +14,32 @@ export vapor_pressure_deficit
 
 The fraction of condensate that is liquid.
 
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - (optional) `q_liq`: liquid specific humidity [kg/kg]
+ - (optional) `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `λ`: liquid fraction [dimensionless], 0 ≤ λ ≤ 1
+
 If `q_liq` and `q_ice` are provided, the liquid fraction is computed from them.
 If `q_liq + q_ice` exceeds a small threshold (see [`has_condensate`](@ref)), `q_liq / (q_liq + q_ice)`
 is returned. If there is effectively no condensate, a smooth temperature-dependent partitioning is used
 (linear ramp from 0 to 1 over ±0.1 K around freezing).
 
 If `q_liq` and `q_ice` are not provided, the liquid fraction is computed from
-temperature using a power law interpolation between `T_icenuc` and `T_freeze`,
-following Kaul et al. (2015), doi: [10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
+temperature using a power law interpolation between `T_icenuc` and `T_freeze`.
 
 Edge cases:
 - For `T > T_freeze`, this returns `1`; for `T ≤ T_icenuc`, it returns `0`.
 - The temperature-only form uses a (generally broader) supercooled-liquid transition between `T_icenuc` and `T_freeze`,
   whereas the `(T, q_liq, q_ice)` form uses the narrow ±0.1 K transition *only* when `q_liq ≈ q_ice ≈ 0`.
+
+# Reference
+Kaul et al. (2015), "Sensitivities in large-eddy simulations of mixed-phase Arctic stratocumulus
+clouds using a simple microphysics approach," *Monthly Weather Review*, **143**, 4393-4421,
+doi:[10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
 """
 @inline function liquid_fraction(param_set::APS, T, q_liq, q_ice)
     FT = eltype(param_set)
@@ -74,11 +87,15 @@ like `liquid_fraction` and to robustly handle numerical noise.
     saturation_vapor_pressure(param_set, T, ::Liquid)
     saturation_vapor_pressure(param_set, T, ::Ice)
 
-The saturation vapor pressure over a plane surface of condensate, given
+The saturation vapor pressure over a plane surface of condensate.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
  - `Liquid()` or `Ice()` to dispatch over the condensate type
+
+# Returns
+ - `p_v^*`: saturation vapor pressure [Pa]
 
 The saturation vapor pressure is computed by integration of the Clausius-Clapeyron
 relation, assuming constant specific heat capacities in the so-called Rankine-Kirchhoff
@@ -102,12 +119,16 @@ end
     saturation_vapor_pressure_calc(param_set, T, LH_0, Δcp)
 
 Internal function. Computes the saturation vapor pressure using the Rankine-Kirchhoff
-approximation, given:
+approximation.
 
- - `param_set` thermodynamics parameter set
- - `T` temperature
- - `LH_0` latent heat at reference temperature `T_0`
- - `Δcp` difference in isobaric specific heat capacity between the two phases
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `LH_0`: latent heat at reference temperature `T_0` [J/kg]
+ - `Δcp`: difference in isobaric specific heat capacity between the two phases [J/(kg·K)]
+
+# Returns
+ - `p_v^*`: saturation vapor pressure [Pa]
 
 The computed value is:
 
@@ -136,15 +157,20 @@ saturation_vapor_pressure_calc(param_set, T, LH_0, Δcp) =
     saturation_vapor_pressure(param_set, T)
     saturation_vapor_pressure(param_set, T, q_liq, q_ice)
 
-The saturation vapor pressure over liquid, ice, or a mixture of liquid and ice, given
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+The saturation vapor pressure over liquid, ice, or a mixture of liquid and ice.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `q_liq`: (optional) liquid specific humidity [kg/kg]
+ - `q_ice`: (optional) ice specific humidity [kg/kg]
+
+# Returns
+ - `p_v^*`: saturation vapor pressure [Pa]
 
 If `q_liq` and `q_ice` are provided, the saturation vapor pressure is computed
 from a weighted mean of the latent heats of vaporization and sublimation, with
-the weights given by the liquid fraction `liquid_fraction(param_set, T, q_liq, q_ice)`.
+the weights given by the liquid fraction (see [`liquid_fraction`](@ref)).
 If `q_liq` and `q_ice` are 0, the saturation vapor pressure is that over liquid
 above freezing and over ice below freezing.
 
@@ -195,25 +221,34 @@ end
     q_vap_saturation(param_set, T, ρ)
     q_vap_saturation(param_set, T, ρ, q_liq, q_ice)
 
-The saturation specific humidity, given
+The saturation specific humidity.
 
-- `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
-- `T`: temperature
-- `ρ`: air density
-- (optional) `q_liq`: liquid specific humidity
-- (optional) `q_ice`: ice specific humidity
+# Arguments
+- `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+- `T`: temperature [K]
+- `ρ`: air density [kg/m³]
+- (optional) `q_liq`: liquid specific humidity [kg/kg]
+- (optional) `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+- `q_v^*`: saturation specific humidity [kg/kg]
 
 If `q_liq` and `q_ice` are provided, the saturation specific humidity is that over a
 mixture of liquid and ice, computed in a thermodynamically consistent way from the
-weighted sum of the latent heats of the respective phase transitions (Pressel et al.,
-JAMES, 2015). That is, the saturation vapor pressure and from it the saturation specific
-humidity are computed from a weighted mean of the latent heats of vaporization and
-sublimation, with the weights given by the liquid fraction. If `q_liq` and `q_ice` are 0, 
-the saturation specific humidity is that over liquid above freezing and over ice below 
-freezing.
+weighted sum of the latent heats of the respective phase transitions. That is, the 
+saturation vapor pressure and from it the saturation specific humidity are computed 
+from a weighted mean of the latent heats of vaporization and sublimation, with the 
+weights given by the liquid fraction (see [`liquid_fraction`](@ref)). If `q_liq` and 
+`q_ice` are 0, the saturation specific humidity is that over liquid above freezing and 
+over ice below freezing.
  
 Otherwise, the fraction of liquid is given by the temperature dependent
 `liquid_fraction(param_set, T)`.
+
+# Reference
+Pressel et al. (2015), "Numerics and subgrid-scale modeling in large eddy simulations of
+stratocumulus clouds," *Journal of Advances in Modeling Earth Systems*, **7**(3), 1199-1220,
+doi:[10.1002/2014MS000376](https://doi.org/10.1002/2014MS000376).
 """
 @inline function q_vap_saturation(param_set::APS, T, ρ, q_liq, q_ice)
     p_v_sat = saturation_vapor_pressure(param_set, T, q_liq, q_ice)
@@ -228,11 +263,16 @@ end
 """
     q_vap_saturation(param_set, T, ρ, phase::Phase)
 
-The saturation specific humidity, given
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `phase` the phase to compute saturation over (either `Liquid()` or `Ice()`)
+The saturation specific humidity.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `phase`: the phase to compute saturation over (either `Liquid()` or `Ice()`)
+
+# Returns
+ - `q_v^*`: saturation specific humidity [kg/kg]
 """
 @inline function q_vap_saturation(param_set::APS, T, ρ, phase::Phase)
     p_v_sat = saturation_vapor_pressure(param_set, T, phase)
@@ -243,18 +283,22 @@ end
     q_vap_saturation_from_pressure(param_set, q_tot, p, T)
     q_vap_saturation_from_pressure(param_set, q_tot, p, T, q_liq, q_ice)
 
-The saturation specific humidity, given
+The saturation specific humidity.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total water specific humidity,
- - `p` air pressure,
- - `T` air temperature
- - (optional) `q_liq` liquid specific humidity
- - (optional) `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `q_tot`: total water specific humidity [kg/kg]
+ - `p`: air pressure [Pa]
+ - `T`: air temperature [K]
+ - (optional) `q_liq`: liquid specific humidity [kg/kg]
+ - (optional) `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `q_v^*`: saturation specific humidity [kg/kg]
 
 If `q_liq` and `q_ice` are provided, the saturation vapor pressure is computed
 from a weighted mean of the latent heats of vaporization and sublimation, with
-the weights given by the liquid fraction `liquid_fraction(param_set, T, q_liq, q_ice)`.
+the weights given by the liquid fraction (see [`liquid_fraction`](@ref)).
 If `q_liq` and `q_ice` are 0, the saturation vapor pressure is that over liquid
 above freezing and over ice below freezing.
 
@@ -287,7 +331,16 @@ end
 """
     q_vap_saturation_from_pressure_calc(param_set, q_tot, p, p_v_sat)
 
-Compute the saturation specific humidity from the saturation vapor pressure `p_v_sat`.
+Internal function. Compute the saturation specific humidity from the saturation vapor pressure.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `q_tot`: total specific humidity [kg/kg]
+ - `p`: air pressure [Pa]
+ - `p_v_sat`: saturation vapor pressure [Pa]
+
+# Returns
+ - `q_v^*`: saturation specific humidity [kg/kg]
 
 The saturation specific humidity is computed as:
 ``q_v^* = (R_d / R_v) * (1 - q_{tot}) * p_v^* / (p - p_v^*)``
@@ -313,12 +366,17 @@ end
 """
     supersaturation(param_set, q_vap, ρ, T[, phase::Phase = Liquid()])
 
-The supersaturation (pv/pv_sat -1) over water or ice, given
- - `param_set` - thermodynamics parameter set
- - `q_vap` - vapor specific humidity
- - `ρ` - air density,
- - `T` - air temperature
- - `phase` - (optional) liquid or ice phase to dispatch over (default: `Liquid()`).
+The supersaturation over water or ice.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `q_vap`: vapor specific humidity [kg/kg]
+ - `ρ`: air density [kg/m³]
+ - `T`: air temperature [K]
+ - `phase`: (optional) liquid or ice phase to dispatch over (default: `Liquid()`)
+
+# Returns
+ - `S`: supersaturation [dimensionless], defined as `p_v/p_v^* - 1`
 """
 @inline function supersaturation(
     param_set::APS,
@@ -335,13 +393,17 @@ end
 """
     supersaturation(param_set, q_vap, ρ, T, p_v_sat)
 
-The supersaturation (pv/pv_sat - 1) given the saturation vapor pressure `p_v_sat`:
+The supersaturation given the saturation vapor pressure.
 
-- `param_set`: Thermodynamic parameter set
-- `q_vap`: Vapor specific humidity
-- `ρ`: Air density
-- `T`: Temperature
-- `p_v_sat`: Saturation vapor pressure
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `q_vap`: vapor specific humidity [kg/kg]
+ - `ρ`: air density [kg/m³]
+ - `T`: temperature [K]
+ - `p_v_sat`: saturation vapor pressure [Pa]
+
+# Returns
+ - `S`: supersaturation [dimensionless], defined as `p_v/p_v_sat - 1`
 """
 @inline function supersaturation(param_set::APS, q_vap, ρ, T, p_v_sat)
     p_v = q_vap * (ρ * TP.R_v(param_set) * T)
@@ -353,18 +415,22 @@ end
     saturation_excess(param_set, T, ρ, q_tot)
     saturation_excess(param_set, T, ρ, q_tot, q_liq, q_ice)
 
-The saturation excess in equilibrium, given
+The saturation excess in equilibrium.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
- - (optional) `q_liq` liquid specific humidity
- - (optional) `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - (optional) `q_liq`: liquid specific humidity [kg/kg]
+ - (optional) `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `q_ex`: saturation excess [kg/kg]
 
 The saturation excess is the difference between the total specific humidity `q_tot`
 and the saturation specific humidity in equilibrium, and it is defined to be
-nonzero only if this difference is positive.
+nonzero only if this difference is positive: `q_ex = max(0, q_tot - q_v^*)`.
 """
 @inline function saturation_excess(param_set::APS, T, ρ, q_tot, q_liq, q_ice)
     p_vap_sat = saturation_vapor_pressure(param_set, T, q_liq, q_ice)
@@ -379,17 +445,21 @@ end
 """
     saturation_excess(param_set, T, ρ, q_tot, p_vap_sat)
 
-The saturation excess given the saturation vapor pressure `p_vap_sat`:
+The saturation excess given the saturation vapor pressure.
 
-- `param_set`: Thermodynamic parameter set
-- `T`: Temperature
-- `ρ`: Air density
-- `q_tot`: Total specific humidity
-- `p_vap_sat`: Saturation vapor pressure
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `ρ`: air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `p_vap_sat`: saturation vapor pressure [Pa]
+
+# Returns
+ - `q_ex`: saturation excess [kg/kg]
 
 The saturation excess is the difference between the total specific humidity `q_tot`
 and the saturation specific humidity, and it is defined to be nonzero only if
-this difference is positive.
+this difference is positive: `q_ex = max(0, q_tot - q_v^*)`.
 """
 @inline function saturation_excess(param_set::APS, T, ρ, q_tot, p_vap_sat)
     q_vap_sat = q_vap_from_p_vap(param_set, T, ρ, p_vap_sat)
@@ -402,13 +472,18 @@ end
 Compute the equilibrium liquid and ice specific humidities from the condensate
 in thermodynamic equilibrium, returning a tuple `(q_liq, q_ice)`.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+
+# Returns
+ - `(q_liq, q_ice)`: tuple of liquid and ice specific humidities [kg/kg]
 
 The condensate is partitioned into liquid and ice using the temperature-dependent
-liquid fraction.
+liquid fraction (see [`liquid_fraction`](@ref)) and the saturation excess (see 
+[`saturation_excess`](@ref)).
 """
 @inline function condensate_partition(param_set::APS, T, ρ, q_tot)
     λ = liquid_fraction(param_set, T)
@@ -421,16 +496,20 @@ end
 """
     vapor_pressure_deficit(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
-The vapor pressure deficit (saturation vapor pressure minus actual 
-vapor pressure, truncated to be non-negative) over liquid water for temperatures 
-above freezing and over ice for temperatures below freezing, given
+The vapor pressure deficit (saturation vapor pressure minus actual vapor pressure, 
+truncated to be non-negative) over liquid water for temperatures above freezing 
+and over ice for temperatures below freezing.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` air temperature
- - `p` air pressure
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: air temperature [K]
+ - `p`: air pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `VPD`: vapor pressure deficit [Pa]
 
 If the specific humidities are not given, the result is the saturation vapor pressure.
 """

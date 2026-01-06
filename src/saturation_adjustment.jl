@@ -18,22 +18,25 @@ export saturation_adjustment
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`.
 
-Returns a tuple `(T, q_liq, q_ice)`.
-
 # Arguments
 - `sat_adjust_method`: The numerical method for root-finding. Supported:
-  `SecantMethod`, `BrentsMethod`, `NewtonsMethod`, `NewtonsMethodAD`.
-- `param_set`: Thermodynamics parameter set.
-- `ρ`: Density of moist air.
-- `e_int`: Specific internal energy.
-- `q_tot`: Total specific humidity.
-- `maxiter`: Maximum iterations for the solver.
+  `SecantMethod`, `BrentsMethod`, `NewtonsMethod`, `NewtonsMethodAD` (from RootSolvers.jl).
+- `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
+- `ρ`: Density of moist air [kg/m³].
+- `e_int`: Specific internal energy [J/kg].
+- `q_tot`: Total specific humidity [kg/kg].
+- `maxiter`: Maximum iterations for the solver [dimensionless integer].
 - `tol`: Relative tolerance for the temperature solution (or a `RootSolvers.RelativeSolutionTolerance`).
-- `T_guess`: Optional initial guess for the temperature.
+- `T_guess`: Optional initial guess for the temperature [K].
 
-Notes:
+# Returns
+- `(T, q_liq, q_ice)`: tuple of temperature [K] and phase partitions [kg/kg]
+
+# Notes
 - When calling the overload **without** an explicit `sat_adjust_method` (i.e. `saturation_adjustment(param_set, ρeq(), ...)`),
   the default method is `NewtonsMethod`.
+- This function solves for `T` such that `e_int = internal_energy_sat(param_set, T, ρ, q_tot)` using
+  root-finding, then computes `(q_liq, q_ice)` from [`condensate_partition`](@ref).
 """
 function saturation_adjustment(
     sat_adjust_method::Type,
@@ -97,7 +100,6 @@ function saturation_adjustment(
 
     # Compute equilibrium phase partition
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-
     return (T, q_liq, q_ice)
 end
 
@@ -174,9 +176,7 @@ function saturation_adjustment(
         q_tot,
     )
 
-    ρ = air_density(param_set, T, p, q_tot)
-    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-
+    (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
     return (T, q_liq, q_ice)
 end
 
@@ -254,9 +254,7 @@ function saturation_adjustment(
         T_guess,
     )
 
-    ρ = air_density(param_set, T, p, q_tot)
-    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-
+    (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
     return (T, q_liq, q_ice)
 end
 
@@ -342,9 +340,7 @@ function saturation_adjustment(
     )
 
     # Compute equilibrium phase partition
-    ρ = air_density(param_set, T, p, q_tot)
-    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-
+    (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
     return (T, q_liq, q_ice)
 end
 
@@ -421,7 +417,6 @@ function saturation_adjustment(
     )
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-
     return (T, q_liq, q_ice)
 end
 
@@ -505,7 +500,6 @@ function saturation_adjustment(
     )
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-
     return (T, q_liq, q_ice)
 end
 
@@ -558,6 +552,18 @@ end
 # ---------------------------------------------
 # Helper functions 
 # ---------------------------------------------
+
+"""
+    _phase_partition_from_T_p(param_set, T, p, q_tot)
+
+Helper to compute equilibrium phase partition given temperature, pressure, and total humidity.
+Returns `(ρ, q_liq, q_ice)` tuple.
+"""
+@inline function _phase_partition_from_T_p(param_set::APS, T, p, q_tot)
+    ρ = air_density(param_set, T, p, q_tot)
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    return (ρ, q_liq, q_ice)
+end
 
 """
     _find_zero_with_convergence_check(

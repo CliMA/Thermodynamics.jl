@@ -9,14 +9,19 @@ export exner_given_pressure
 
 The air pressure from the equation of state (ideal gas law), given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` air temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: air temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `p`: air pressure [Pa]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The formula is `p = ρ R_m T` where `R_m` is the gas constant of moist air (see [`gas_constant_air`](@ref)).
 """
 @inline function air_pressure(
     param_set::APS,
@@ -34,14 +39,19 @@ end
 
 The (moist-)air density from the equation of state (ideal gas law), given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` air temperature
- - `p` pressure
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: air temperature [K]
+ - `p`: pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `ρ`: (moist-)air density [kg/m³]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The formula is `ρ = p / (R_m T)` where `R_m` is the gas constant of moist air (see [`gas_constant_air`](@ref)).
 """
 @inline function air_density(
     param_set::APS,
@@ -59,15 +69,19 @@ end
 
 The Exner function `Π = (p/p₀)^(R_m/cp_m)`, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `Π`: Exner function [dimensionless]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
-The pressure is computed internally from the equation of state.
+The pressure is computed internally from the equation of state (see [`air_pressure`](@ref)).
 """
 @inline function exner(param_set::APS, T, ρ, q_tot = 0, q_liq = 0, q_ice = 0)
     p = air_pressure(param_set, T, ρ, q_tot, q_liq, q_ice)
@@ -80,13 +94,18 @@ end
 The Exner function `Π = (p/p₀)^(R_m/cp_m)`, where `p₀` is the reference pressure,
 given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `p`: pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `Π`: Exner function [dimensionless]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The reference pressure `p₀` is `p_ref_theta` from the parameter set.
 """
 @inline function exner_given_pressure(
     param_set::APS,

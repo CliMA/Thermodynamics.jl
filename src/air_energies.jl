@@ -21,15 +21,21 @@ export virtual_dry_static_energy
 """
     internal_energy(param_set, T, q_tot=0, q_liq=0, q_ice=0)
 
-The internal energy per unit mass, given
+The internal energy per unit mass.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `e_int`: specific internal energy [J/kg]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The internal energy is computed as a mass-weighted sum of the internal energies of each component
+(dry air, vapor, liquid, ice), referenced to `T_0`.
 """
 @inline function internal_energy(
     param_set::APS,
@@ -50,10 +56,14 @@ end
 """
     internal_energy_dry(param_set, T)
 
-The dry air internal energy, given
+The dry air internal energy.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+
+# Returns
+ - `e_d`: specific internal energy of dry air [J/kg]
 """
 @inline function internal_energy_dry(param_set::APS, T)
     T_0 = TP.T_0(param_set)
@@ -65,10 +75,14 @@ end
 """
     internal_energy_vapor(param_set, T)
 
-The water vapor internal energy, given
+The water vapor internal energy.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+
+# Returns
+ - `e_v`: specific internal energy of water vapor [J/kg]
 """
 @inline function internal_energy_vapor(param_set::APS, T)
     T_0 = TP.T_0(param_set)
@@ -81,10 +95,14 @@ end
 """
     internal_energy_liquid(param_set, T)
 
-The liquid water internal energy, given
+The liquid water internal energy.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+
+# Returns
+ - `e_l`: specific internal energy of liquid water [J/kg]
 """
 @inline function internal_energy_liquid(param_set::APS, T)
     T_0 = TP.T_0(param_set)
@@ -96,10 +114,14 @@ end
 """
     internal_energy_ice(param_set, T)
 
-The ice internal energy, given
+The ice internal energy.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+
+# Returns
+ - `e_i`: specific internal energy of ice [J/kg]
 """
 @inline function internal_energy_ice(param_set::APS, T)
     T_0 = TP.T_0(param_set)
@@ -112,15 +134,20 @@ end
 """
     internal_energy_sat(param_set, T, ρ, q_tot)
 
-The internal energy per unit mass in thermodynamic equilibrium at saturation, given
+The internal energy per unit mass in thermodynamic equilibrium at saturation.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+
+# Returns
+ - `e_int`: specific internal energy [J/kg]
 
 The phase partition into liquid and ice is computed internally from `q_tot` using the 
-temperature-dependent liquid fraction and saturation excess.
+temperature-dependent liquid fraction (see [`liquid_fraction`](@ref)) and saturation 
+excess (see [`saturation_excess`](@ref)).
 """
 @inline function internal_energy_sat(param_set::APS, T, ρ, q_tot)
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
@@ -132,9 +159,16 @@ end
 
 The specific enthalpy, given
 
- - `e_int` internal specific energy
- - `R_m` [`gas_constant_air`](@ref)
- - `T` air temperature
+# Arguments
+ - `e_int`: internal specific energy [J/kg]
+ - `R_m`: gas constant of moist air [J/(kg·K)], see [`gas_constant_air`](@ref)
+ - `T`: air temperature [K]
+
+# Returns
+ - `h`: specific enthalpy [J/kg]
+
+The enthalpy is computed as `h = e_int + R_m T`, which follows from `h = e_int + p v`
+with the ideal gas law `p v = R_m T` (specific volume v = 1/ρ).
 """
 @inline function enthalpy(e_int, R_m, T)
     return e_int + R_m * T
@@ -143,15 +177,20 @@ end
 """
     enthalpy(param_set, T, q_tot=0, q_liq=0, q_ice=0)
 
-The specific enthalpy, given
+The specific enthalpy.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `h`: specific enthalpy [J/kg]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The enthalpy is computed as a mass-weighted sum of the enthalpies of each component (dry air, vapor, liquid, ice).
 """
 @inline function enthalpy(param_set::APS, T, q_tot = 0, q_liq = 0, q_ice = 0)
     q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
@@ -166,10 +205,14 @@ end
 """
     enthalpy_dry(param_set, T)
 
-The specific enthalpy of dry air, given
+The specific enthalpy of dry air.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+
+# Returns
+ - `h_d`: specific enthalpy of dry air [J/kg]
 """
 @inline function enthalpy_dry(param_set::APS, T)
     cp_d = TP.cp_d(param_set)
@@ -180,10 +223,14 @@ end
 """
     enthalpy_vapor(param_set, T)
 
-The specific enthalpy of vapor, given
+The specific enthalpy of water vapor.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+
+# Returns
+ - `h_v`: specific enthalpy of water vapor [J/kg]
 """
 @inline function enthalpy_vapor(param_set::APS, T)
     cp_v = TP.cp_v(param_set)
@@ -197,11 +244,15 @@ end
 
 The specific enthalpy of liquid, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
 
- The specific enthalpy of liquid is equal to the internal energy of liquid because the
- specific volume of condensed water is neglected.
+# Returns
+ - `h_l`: specific enthalpy of liquid [J/kg]
+
+The specific enthalpy of liquid is equal to the internal energy of liquid because the
+specific volume of condensed water is neglected (i.e., `p v_l ≈ 0`).
 """
 @inline enthalpy_liquid(param_set::APS, T) =
     internal_energy_liquid(param_set, T)
@@ -211,26 +262,35 @@ The specific enthalpy of liquid, given
 
 The specific enthalpy of ice, given
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
 
- The specific enthalpy of ice is equal to the internal energy of ice because the
- specific volume of condensed water is neglected.
+# Returns
+ - `h_i`: specific enthalpy of ice [J/kg]
+
+The specific enthalpy of ice is equal to the internal energy of ice because the
+specific volume of condensed water is neglected (i.e., `p v_i ≈ 0`).
 """
 @inline enthalpy_ice(param_set::APS, T) = internal_energy_ice(param_set, T)
 
 """
     enthalpy_sat(param_set, T, ρ, q_tot)
 
-The specific enthalpy in thermodynamic equilibrium at saturation, given
+The specific enthalpy in thermodynamic equilibrium at saturation.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+
+# Returns
+ - `h`: specific enthalpy [J/kg]
 
 The phase partition into liquid and ice is computed internally from `q_tot` using the 
-temperature-dependent liquid fraction and saturation excess.
+temperature-dependent liquid fraction (see [`liquid_fraction`](@ref)) and saturation 
+excess (see [`saturation_excess`](@ref)).
 """
 @inline function enthalpy_sat(param_set::APS, T, ρ, q_tot)
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
@@ -240,17 +300,22 @@ end
 """
     total_energy(param_set, e_kin, e_pot, T, q_tot=0, q_liq=0, q_ice=0)
 
-The total energy per unit mass, given
+The total energy per unit mass.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `e_kin` kinetic energy per unit mass
- - `e_pot` gravitational potential energy per unit mass
- - `T` temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `e_kin`: kinetic energy per unit mass [J/kg]
+ - `e_pot`: gravitational potential energy per unit mass [J/kg] (geopotential)
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `e_tot`: total specific energy [J/kg]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The total energy is `e_tot = e_int + e_kin + e_pot`.
 """
 @inline function total_energy(
     param_set::APS,
@@ -267,11 +332,17 @@ end
 """
     total_enthalpy(e_tot, R_m, T)
 
-The total specific enthalpy, given
+The total specific enthalpy.
 
- - `e_tot` total specific energy
- - `R_m` [`gas_constant_air`](@ref)
- - `T` air temperature
+# Arguments
+ - `e_tot`: total specific energy [J/kg]
+ - `R_m`: gas constant of moist air [J/(kg·K)], see [`gas_constant_air`](@ref)
+ - `T`: air temperature [K]
+
+# Returns
+ - `h_tot`: total specific enthalpy [J/kg]
+
+The total enthalpy is computed as `h_tot = e_tot + R_m T`.
 """
 @inline function total_enthalpy(e_tot, R_m, T)
     return e_tot + R_m * T
@@ -280,11 +351,17 @@ end
 """
     dry_static_energy(param_set, T, e_pot)
 
-The dry static energy, given
+The dry static energy.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `e_pot` gravitational potential energy per unit mass (geopotential)
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `e_pot`: gravitational potential energy per unit mass (geopotential) [J/kg]
+
+# Returns
+ - `s_d`: dry static energy [J/kg]
+
+The dry static energy is the sum of the dry enthalpy and geopotential: `s_d = h_d + e_pot`.
 """
 @inline function dry_static_energy(param_set::APS, T, e_pot)
     return enthalpy_dry(param_set, T) + e_pot
@@ -293,11 +370,17 @@ end
 """
     vapor_static_energy(param_set, T, e_pot)
 
-The static energy (sensible heat only) of water vapor, `cp_v * (T - T_0) + e_pot`, given
+The static energy (sensible heat only) of water vapor.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `e_pot` gravitational potential energy per unit mass (geopotential)
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `e_pot`: gravitational potential energy per unit mass (geopotential) [J/kg]
+
+# Returns
+ - `s_v`: vapor static energy [J/kg]
+
+The formula is `s_v = cp_v * (T - T_0) + e_pot`, where `T_0` is the reference temperature.
 """
 @inline function vapor_static_energy(param_set::APS, T, e_pot)
     cp_v = TP.cp_v(param_set)
@@ -308,16 +391,22 @@ end
 """
     moist_static_energy(param_set, T, e_pot, q_tot=0, q_liq=0, q_ice=0)
 
-The moist static energy, given
+The moist static energy.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `e_pot` gravitational potential energy per unit mass (geopotential)
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `e_pot`: gravitational potential energy per unit mass (geopotential) [J/kg]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `s_m`: moist static energy [J/kg]
 
 If the specific humidities are not given, the result is for dry air.
+The moist static energy is the sum of the moist enthalpy and geopotential: `s_m = h + e_pot`,
+where `h` is computed from [`enthalpy`](@ref).
 """
 @inline function moist_static_energy(
     param_set::APS,
@@ -334,16 +423,22 @@ end
 """
     virtual_dry_static_energy(param_set, T, e_pot, q_tot=0, q_liq=0, q_ice=0)
 
-The virtual dry static energy, given
+The virtual dry static energy.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `e_pot` gravitational potential energy per unit mass (geopotential)
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `e_pot`: gravitational potential energy per unit mass (geopotential) [J/kg]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `s_vd`: virtual dry static energy [J/kg]
 
 If the specific humidities are not given, the result is for dry air.
+The virtual dry static energy is `s_vd = cp_d * T_virt + e_pot`, where `T_virt` is
+the virtual temperature (see [`virtual_temperature`](@ref)).
 """
 @inline function virtual_dry_static_energy(
     param_set::APS,

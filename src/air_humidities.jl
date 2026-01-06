@@ -12,12 +12,18 @@ export relative_humidity
 """
     vapor_specific_humidity(q_tot=0, q_liq=0, q_ice=0)
 
-The vapor specific humidity (clamped to be non-negative), given
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+The vapor specific humidity (clamped to be non-negative).
+
+# Arguments
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `q_vap`: vapor specific humidity [kg/kg]
 
 If the specific humidities are not given, the result is zero.
+The formula is `q_vap = max(0, q_tot - q_liq - q_ice)`.
 """
 @inline function vapor_specific_humidity(q_tot = 0, q_liq = 0, q_ice = 0)
     return max(0, q_tot - q_liq - q_ice)
@@ -26,11 +32,17 @@ end
 """
     condensate_specific_humidity(q_liq=0, q_ice=0)
 
-The condensate specific humidity, given
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+The condensate specific humidity.
+
+# Arguments
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `q_cond`: condensate specific humidity [kg/kg]
 
 If the specific humidities are not given, the result is zero.
+The formula is `q_cond = q_liq + q_ice`.
 """
 @inline function condensate_specific_humidity(q_liq = 0, q_ice = 0)
     return q_liq + q_ice
@@ -39,11 +51,16 @@ end
 """
     vol_vapor_mixing_ratio(param_set, q_tot=0, q_liq=0, q_ice=0)
 
-The molar (volume) mixing ratio of water vapor, given
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+The molar (volume) mixing ratio of water vapor.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `r_v`: molar mixing ratio of water vapor [mol/mol]
 
 If the specific humidities are not given, the result is zero.
 """
@@ -61,14 +78,19 @@ end
 """
     partial_pressure_dry(param_set, p, q_tot=0, q_liq=0, q_ice=0)
 
-The partial pressure of dry air, given
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` air pressure
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+The partial pressure of dry air.
 
-If the specific humidities are not given, the partial pressure is the total pressure.
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `p`: air pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `p_d`: partial pressure of dry air [Pa]
+
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this equals the total pressure.
 """
 @inline function partial_pressure_dry(
     param_set::APS,
@@ -85,12 +107,17 @@ end
 """
     partial_pressure_vapor(param_set, p, q_tot=0, q_liq=0, q_ice=0)
 
-The partial pressure of water vapor, given
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` air pressure
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+The partial pressure of water vapor.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `p`: air pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `p_v`: partial pressure of water vapor [Pa]
 
 If the specific humidities are not given, the partial pressure is zero.
 """
@@ -109,9 +136,17 @@ end
 """
     shum_to_mixing_ratio(q, q_tot)
 
-The mixing ratio, given
- - `q` specific humidity
- - `q_tot` total specific humidity
+Converts specific humidity to mixing ratio (total basis).
+
+# Arguments
+ - `q`: specific humidity of interest [kg/kg]
+ - `q_tot`: total specific humidity [kg/kg]
+
+# Returns
+ - `r`: mixing ratio [kg/kg]
+
+Note that this function is singular when `q_tot = 1`.
+The formula is `r = q / (1 - q_tot)`.
 """
 @inline function shum_to_mixing_ratio(q, q_tot)
     return q / (1 - q_tot)
@@ -120,12 +155,16 @@ end
 """
     q_vap_from_p_vap(param_set, T, ρ, p_v)
 
-The vapor specific humidity, given
+Compute the vapor specific humidity from the vapor partial pressure.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature,
- - `ρ` (moist-)air density
- - `p_v` partial pressure of vapor
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: air temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `p_v`: partial pressure of water vapor [Pa]
+
+# Returns
+ - `q_vap`: vapor specific humidity [kg/kg]
 """
 @inline function q_vap_from_p_vap(param_set::APS, T, ρ, p_v)
     R_v = TP.R_v(param_set)
@@ -135,12 +174,17 @@ end
 """
     q_vap_from_RH(param_set, p, T, RH, phase)
 
-The water vapor specific humidity, given
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
- - `T` temperature
- - `RH` relative humidity with respect to `phase`
- - `phase` the phase to compute saturation over (either `Liquid()` or `Ice()`)
+Compute the vapor specific humidity from the relative humidity.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `p`: pressure [Pa]
+ - `T`: temperature [K]
+ - `RH`: relative humidity [dimensionless], 0 ≤ RH ≤ 1
+ - `phase`: the phase to compute saturation over (either `Liquid()` or `Ice()`)
+
+# Returns
+ - `q_vap`: vapor specific humidity [kg/kg]
 """
 @inline function q_vap_from_RH(param_set::APS, p, T, RH, phase::Phase)
     p_vap_sat = saturation_vapor_pressure(param_set, T, phase)
@@ -152,14 +196,18 @@ end
 """
     q_vap_from_RH_liquid(param_set, p, T, RH)
 
-The water vapor specific humidity, given
+Compute the vapor specific humidity from the relative humidity over liquid.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
- - `T` temperature
- - `RH` relative humidity with respect to liquid water
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `p`: pressure [Pa]
+ - `T`: temperature [K]
+ - `RH`: relative humidity [dimensionless], 0 ≤ RH ≤ 1
 
- This function is deprecated. Use `q_vap_from_RH` with `Liquid()` instead.
+# Returns
+ - `q_vap`: vapor specific humidity [kg/kg]
+
+This function is deprecated. Use `q_vap_from_RH` with `Liquid()` instead.
 """
 @inline function q_vap_from_RH_liquid(param_set::APS, p, T, RH)
     return q_vap_from_RH(param_set, p, T, RH, Liquid())
@@ -168,19 +216,23 @@ end
 """
     relative_humidity(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
-The relative humidity (clipped between 0 and 1), given
+The relative humidity (clipped between 0 and 1).
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `p` pressure
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `p`: pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
- If `q_liq` and `q_ice` are zero (or not given), the relative humidity is computed relative
- to saturation over ice below freezing and over liquid above freezing. If condensate is
- present, the relative humidity is computed relative to saturation over a mixture of liquid
- and ice, with the liquid fraction given by the ratio `q_liq / (q_liq + q_ice)`.
+# Returns
+ - `RH`: relative humidity [dimensionless], 0 ≤ RH ≤ 1
+
+If `q_liq` and `q_ice` are zero (or not given), the relative humidity is computed relative
+to saturation over ice below freezing and over liquid above freezing. If condensate is
+present, the relative humidity is computed relative to saturation over a mixture of liquid
+and ice, with the liquid fraction given by the ratio `q_liq / (q_liq + q_ice)`.
 
 Note: `relative_humidity` uses `saturation_vapor_pressure(param_set, T, q_liq, q_ice)`. In
 particular, for `q_liq == q_ice == 0` it includes a small smooth transition around freezing

@@ -7,19 +7,26 @@ export entropy_vapor
 """
     entropy(param_set, p, T, q_tot=0, q_liq=0, q_ice=0)
 
-The specific entropy in thermodynamic equilibrium, given
+The specific entropy in thermodynamic equilibrium.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
- - `T` temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `p`: pressure [Pa]
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `s`: specific entropy [J/(kg·K)]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The entropy is computed as a mass-weighted sum of the entropies of each component (dry air, vapor, liquid, ice).
 
-The specific entropy is computed from equations (29)-(33) of
-Pressel et al. (2015), doi: [10.1002/2015MS000496](https://doi.org/10.1002/2015MS000496).
+# Reference
+Pressel et al. (2015), "Numerics and subgrid-scale modeling in large eddy simulations of
+stratocumulus clouds," *Journal of Advances in Modeling Earth Systems*, **7**(3), 1199-1220,
+doi:[10.1002/2015MS000496](https://doi.org/10.1002/2015MS000496). (Their Eqs. (29)-(33))
 """
 @inline function entropy(param_set::APS, p, T, q_tot = 0, q_liq = 0, q_ice = 0)
     L_v = latent_heat_vapor(param_set, T)
@@ -32,14 +39,18 @@ end
 """
     entropy_dry(param_set, p, T, q_tot=0, q_liq=0, q_ice=0)
 
-The specific entropy of dry air at its partial pressure, given
+The specific entropy of dry air at its partial pressure.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` total air pressure
- - `T` temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `p`: total air pressure [Pa]
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `s_d`: specific entropy of dry air [J/(kg·K)]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), the dry-air partial pressure equals the total pressure.
 """
@@ -64,14 +75,18 @@ end
 """
     entropy_vapor(param_set, p, T, q_tot=0, q_liq=0, q_ice=0)
 
-The specific entropy of water vapor at its partial pressure, given
+The specific entropy of water vapor at its partial pressure.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `p` total air pressure
- - `T` temperature
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `p`: total air pressure [Pa]
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `s_v`: specific entropy of water vapor [J/(kg·K)]
 
 Note: the entropy of water vapor diverges logarithmically as `q_tot → 0` (since `p_v → 0`).
 """
