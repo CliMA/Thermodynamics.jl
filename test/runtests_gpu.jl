@@ -54,7 +54,11 @@ parameter_set(::Type{Float32}) = param_set_Float32
 
 @show ArrayType
 
-
+if ArrayType == Array
+    @info "Running GPU tests on CPU (ArrayType = Array)"
+else
+    @info "Running GPU tests on GPU (ArrayType = $ArrayType)"
+end
 
 @testset "Thermodynamics - kernels" begin
     FT = Float32  # Use Float32 for GPU compatibility
@@ -96,126 +100,122 @@ parameter_set(::Type{Float32}) = param_set_Float32
     d_θ_ρ = ArrayType(θ_ρ)
     d_θ_p = ArrayType(θ_p)
 
-    d_T = ArrayType(zeros(FT, 6, n))
-    d_ql = ArrayType(zeros(FT, 6, n))
-    d_qi = ArrayType(zeros(FT, 6, n))
-
     maxiter = 80
     tol = FT(1e-10)
 
-    # 1) ρeq
-    # 1) ρeq
-    results = broadcast(d_ρ, d_e_int_ρ, d_q) do ρ, e_int, q
-        TD.saturation_adjustment(
-            RS.NewtonsMethod,
-            param_set,
-            TD.ρe(),
-            ρ,
-            e_int,
-            q,
-            maxiter,
-            tol,
-        )
-    end
-    d_T[1, :] .= getproperty.(results, :T)
-    d_ql[1, :] .= getproperty.(results, :q_liq)
-    d_qi[1, :] .= getproperty.(results, :q_ice)
+    # GPU tests ensure that the GPU path produces the same physical outputs as the 
+    # CPU reference implementation for the same states.
+    # Use default methods (no method type parameter) to avoid dynamic dispatch issues on GPU.
 
-    # 2) pe
-    results = broadcast(d_p, d_e_int_p, d_q) do p, e_int, q
-        TD.saturation_adjustment(
-            RS.SecantMethod,
-            param_set,
-            TD.pe(),
-            p,
-            e_int,
-            q,
-            maxiter,
-            tol,
-        )
-    end
-    d_T[2, :] .= getproperty.(results, :T)
-    d_ql[2, :] .= getproperty.(results, :q_liq)
-    d_qi[2, :] .= getproperty.(results, :q_ice)
+    # 1) ρeq - uses NewtonsMethod by default
+    gpu_results_ρe = TD.saturation_adjustment.(
+        Ref(param_set),
+        Ref(TD.ρe()),
+        d_ρ,
+        d_e_int_ρ,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    T_ρe = map(x -> x.T, gpu_results_ρe)
+    ql_ρe = map(x -> x.q_liq, gpu_results_ρe)
+    qi_ρe = map(x -> x.q_ice, gpu_results_ρe)
 
-    # 3) ph
-    results = broadcast(d_p, d_h_p, d_q) do p, h, q
-        TD.saturation_adjustment(
-            RS.SecantMethod,
-            param_set,
-            TD.ph(),
-            p,
-            h,
-            q,
-            maxiter,
-            tol,
-        )
-    end
-    d_T[3, :] .= getproperty.(results, :T)
-    d_ql[3, :] .= getproperty.(results, :q_liq)
-    d_qi[3, :] .= getproperty.(results, :q_ice)
+    # 2) pe - uses SecantMethod by default
+    gpu_results_pe = TD.saturation_adjustment.(
+        Ref(param_set),
+        Ref(TD.pe()),
+        d_p,
+        d_e_int_p,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    T_pe = map(x -> x.T, gpu_results_pe)
+    ql_pe = map(x -> x.q_liq, gpu_results_pe)
+    qi_pe = map(x -> x.q_ice, gpu_results_pe)
 
-    # 4) pρ
-    results = broadcast(d_p_ρ, d_ρ, d_q) do p, ρ, q
-        TD.saturation_adjustment(
-            RS.SecantMethod,
-            param_set,
-            TD.pρ(),
-            p,
-            ρ,
-            q,
-            maxiter,
-            tol,
-        )
-    end
-    d_T[4, :] .= getproperty.(results, :T)
-    d_ql[4, :] .= getproperty.(results, :q_liq)
-    d_qi[4, :] .= getproperty.(results, :q_ice)
+    # 3) ph - uses SecantMethod by default
+    gpu_results_ph = TD.saturation_adjustment.(
+        Ref(param_set),
+        Ref(TD.ph()),
+        d_p,
+        d_h_p,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    T_ph = map(x -> x.T, gpu_results_ph)
+    ql_ph = map(x -> x.q_liq, gpu_results_ph)
+    qi_ph = map(x -> x.q_ice, gpu_results_ph)
 
-    # 5) ρθ_li
-    results = broadcast(d_ρ, d_θ_ρ, d_q) do ρ, θ, q
-        TD.saturation_adjustment(
-            RS.SecantMethod,
-            param_set,
-            TD.ρθ_li(),
-            ρ,
-            θ,
-            q,
-            maxiter,
-            tol,
-        )
-    end
-    d_T[5, :] .= getproperty.(results, :T)
-    d_ql[5, :] .= getproperty.(results, :q_liq)
-    d_qi[5, :] .= getproperty.(results, :q_ice)
+    # 4) pρ - uses SecantMethod by default
+    gpu_results_pρ = TD.saturation_adjustment.(
+        Ref(param_set),
+        Ref(TD.pρ()),
+        d_p_ρ,
+        d_ρ,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    T_pρ = map(x -> x.T, gpu_results_pρ)
+    ql_pρ = map(x -> x.q_liq, gpu_results_pρ)
+    qi_pρ = map(x -> x.q_ice, gpu_results_pρ)
 
-    # 6) pθ_li
-    results = broadcast(d_p, d_θ_p, d_q) do p, θ, q
-        TD.saturation_adjustment(
-            RS.SecantMethod,
-            param_set,
-            TD.pθ_li(),
-            p,
-            θ,
-            q,
-            maxiter,
-            tol,
-        )
-    end
-    d_T[6, :] .= getproperty.(results, :T)
-    d_ql[6, :] .= getproperty.(results, :q_liq)
-    d_qi[6, :] .= getproperty.(results, :q_ice)
+    # 5) ρθ_li - uses SecantMethod by default
+    gpu_results_ρθ_li = TD.saturation_adjustment.(
+        Ref(param_set),
+        Ref(TD.ρθ_li()),
+        d_ρ,
+        d_θ_ρ,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    T_ρθ_li = map(x -> x.T, gpu_results_ρθ_li)
+    ql_ρθ_li = map(x -> x.q_liq, gpu_results_ρθ_li)
+    qi_ρθ_li = map(x -> x.q_ice, gpu_results_ρθ_li)
 
-    # Compare device results with CPU reference, and check correctness invariants.
-    T_gpu = Array(d_T)
-    ql_gpu = Array(d_ql)
-    qi_gpu = Array(d_qi)
+    # 6) pθ_li - uses SecantMethod by default
+    gpu_results_pθ_li = TD.saturation_adjustment.(
+        Ref(param_set),
+        Ref(TD.pθ_li()),
+        d_p,
+        d_θ_p,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    T_pθ_li = map(x -> x.T, gpu_results_pθ_li)
+    ql_pθ_li = map(x -> x.q_liq, gpu_results_pθ_li)
+    qi_pθ_li = map(x -> x.q_ice, gpu_results_pθ_li)
+
+    # Convert GPU results to CPU arrays for comparison
+    T_ρe_cpu = Array(T_ρe)
+    ql_ρe_cpu = Array(ql_ρe)
+    qi_ρe_cpu = Array(qi_ρe)
+    T_pe_cpu = Array(T_pe)
+    ql_pe_cpu = Array(ql_pe)
+    qi_pe_cpu = Array(qi_pe)
+    T_ph_cpu = Array(T_ph)
+    ql_ph_cpu = Array(ql_ph)
+    qi_ph_cpu = Array(qi_ph)
+    T_pρ_cpu = Array(T_pρ)
+    ql_pρ_cpu = Array(ql_pρ)
+    qi_pρ_cpu = Array(qi_pρ)
+    T_ρθ_li_cpu = Array(T_ρθ_li)
+    ql_ρθ_li_cpu = Array(ql_ρθ_li)
+    qi_ρθ_li_cpu = Array(qi_ρθ_li)
+    T_pθ_li_cpu = Array(T_pθ_li)
+    ql_pθ_li_cpu = Array(ql_pθ_li)
+    qi_pθ_li_cpu = Array(qi_pθ_li)
 
     # Helper for tight-but-robust phase partition comparison.
     approx_tight(a, b) = isapprox(a, b; rtol = FT(100) * eps(FT), atol = FT(100) * eps(FT))
 
     for i in 1:n
-        # CPU reference for each formulation
+        # CPU reference for each formulation (using explicit methods for CPU)
         res = TD.saturation_adjustment(
             RS.NewtonsMethod,
             param_set,
@@ -223,24 +223,24 @@ parameter_set(::Type{Float32}) = param_set_Float32
             ρ0[i],
             e_int_ρ[i],
             q0[i],
-            80,
-            FT(1e-10),
+            maxiter,
+            tol,
         )
         T_ref = res.T
         ql_ref = res.q_liq
         qi_ref = res.q_ice
-        @test isapprox(T_gpu[1, i], T_ref; rtol = FT(5e-6))
-        @test isapprox(ql_gpu[1, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        @test isapprox(qi_gpu[1, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(T_ρe_cpu[i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_ρe_cpu[i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_ρe_cpu[i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
         # Invariance checks (ρe): internal energy and phase partition at saturation
         @test isapprox(
-            TD.internal_energy_sat(param_set, T_gpu[1, i], ρ0[i], q0[i]),
+            TD.internal_energy_sat(param_set, T_ρe_cpu[i], ρ0[i], q0[i]),
             e_int_ρ[i];
             rtol = FT(5e-6),
         )
-        let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[1, i], ρ0[i], q0[i])
-            @test approx_tight(ql_gpu[1, i], ql_chk)
-            @test approx_tight(qi_gpu[1, i], qi_chk)
+        let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_ρe_cpu[i], ρ0[i], q0[i])
+            @test approx_tight(ql_ρe_cpu[i], ql_chk)
+            @test approx_tight(qi_ρe_cpu[i], qi_chk)
         end
 
         res = TD.saturation_adjustment(
@@ -250,26 +250,26 @@ parameter_set(::Type{Float32}) = param_set_Float32
             p0[i],
             e_int_p[i],
             q0[i],
-            80,
-            FT(1e-10),
+            maxiter,
+            tol,
         )
         T_ref = res.T
         ql_ref = res.q_liq
         qi_ref = res.q_ice
-        @test isapprox(T_gpu[2, i], T_ref; rtol = FT(5e-6))
-        @test isapprox(ql_gpu[2, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        @test isapprox(qi_gpu[2, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(T_pe_cpu[i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_pe_cpu[i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_pe_cpu[i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
         # Invariance checks (pe): energy and partition using ρ(T,p,q_tot)
-        let ρ_eff = TD.air_density(param_set, T_gpu[2, i], p0[i], q0[i])
+        let ρ_eff = TD.air_density(param_set, T_pe_cpu[i], p0[i], q0[i])
             @test isapprox(
-                TD.internal_energy_sat(param_set, T_gpu[2, i], ρ_eff, q0[i]),
+                TD.internal_energy_sat(param_set, T_pe_cpu[i], ρ_eff, q0[i]),
                 e_int_p[i];
                 rtol = FT(5e-6),
             )
             let (ql_chk, qi_chk) =
-                    TD.condensate_partition(param_set, T_gpu[2, i], ρ_eff, q0[i])
-                @test approx_tight(ql_gpu[2, i], ql_chk)
-                @test approx_tight(qi_gpu[2, i], qi_chk)
+                    TD.condensate_partition(param_set, T_pe_cpu[i], ρ_eff, q0[i])
+                @test approx_tight(ql_pe_cpu[i], ql_chk)
+                @test approx_tight(qi_pe_cpu[i], qi_chk)
             end
         end
 
@@ -280,26 +280,26 @@ parameter_set(::Type{Float32}) = param_set_Float32
             p0[i],
             h_p[i],
             q0[i],
-            80,
-            FT(1e-10),
+            maxiter,
+            tol,
         )
         T_ref = res.T
         ql_ref = res.q_liq
         qi_ref = res.q_ice
-        @test isapprox(T_gpu[3, i], T_ref; rtol = FT(5e-6))
-        @test isapprox(ql_gpu[3, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        @test isapprox(qi_gpu[3, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(T_ph_cpu[i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_ph_cpu[i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_ph_cpu[i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
         # Invariance checks (ph): enthalpy and partition using ρ(T,p,q_tot)
-        let ρ_eff = TD.air_density(param_set, T_gpu[3, i], p0[i], q0[i])
+        let ρ_eff = TD.air_density(param_set, T_ph_cpu[i], p0[i], q0[i])
             @test isapprox(
-                TD.enthalpy_sat(param_set, T_gpu[3, i], ρ_eff, q0[i]),
+                TD.enthalpy_sat(param_set, T_ph_cpu[i], ρ_eff, q0[i]),
                 h_p[i];
                 rtol = FT(5e-6),
             )
             let (ql_chk, qi_chk) =
-                    TD.condensate_partition(param_set, T_gpu[3, i], ρ_eff, q0[i])
-                @test approx_tight(ql_gpu[3, i], ql_chk)
-                @test approx_tight(qi_gpu[3, i], qi_chk)
+                    TD.condensate_partition(param_set, T_ph_cpu[i], ρ_eff, q0[i])
+                @test approx_tight(ql_ph_cpu[i], ql_chk)
+                @test approx_tight(qi_ph_cpu[i], qi_chk)
             end
         end
 
@@ -310,31 +310,31 @@ parameter_set(::Type{Float32}) = param_set_Float32
             p_ρ[i],
             ρ0[i],
             q0[i],
-            80,
-            FT(1e-10),
+            maxiter,
+            tol,
         )
         T_ref = res.T
         ql_ref = res.q_liq
         qi_ref = res.q_ice
-        @test isapprox(T_gpu[4, i], T_ref; rtol = FT(5e-6))
-        @test isapprox(ql_gpu[4, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        @test isapprox(qi_gpu[4, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(T_pρ_cpu[i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_pρ_cpu[i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_pρ_cpu[i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
         # Invariance checks (pρ): pressure target and partition at saturation
         @test isapprox(
             TD.air_pressure(
                 param_set,
-                T_gpu[4, i],
+                T_pρ_cpu[i],
                 ρ0[i],
                 q0[i],
-                ql_gpu[4, i],
-                qi_gpu[4, i],
+                ql_pρ_cpu[i],
+                qi_pρ_cpu[i],
             ),
             p_ρ[i];
             rtol = FT(5e-6),
         )
-        let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[4, i], ρ0[i], q0[i])
-            @test approx_tight(ql_gpu[4, i], ql_chk)
-            @test approx_tight(qi_gpu[4, i], qi_chk)
+        let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_pρ_cpu[i], ρ0[i], q0[i])
+            @test approx_tight(ql_pρ_cpu[i], ql_chk)
+            @test approx_tight(qi_pρ_cpu[i], qi_chk)
         end
 
         res = TD.saturation_adjustment(
@@ -344,31 +344,32 @@ parameter_set(::Type{Float32}) = param_set_Float32
             ρ0[i],
             θ_ρ[i],
             q0[i],
-            80,
-            FT(1e-10),
+            maxiter,
+            tol,
         )
         T_ref = res.T
         ql_ref = res.q_liq
         qi_ref = res.q_ice
-        @test isapprox(T_gpu[5, i], T_ref; rtol = FT(5e-6))
-        @test isapprox(ql_gpu[5, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        @test isapprox(qi_gpu[5, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(T_ρθ_li_cpu[i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_ρθ_li_cpu[i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_ρθ_li_cpu[i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
         # Invariance checks (ρθ_li): θ target and partition at saturation
         @test isapprox(
             TD.liquid_ice_pottemp(
                 param_set,
-                T_gpu[5, i],
+                T_ρθ_li_cpu[i],
                 ρ0[i],
                 q0[i],
-                ql_gpu[5, i],
-                qi_gpu[5, i],
+                ql_ρθ_li_cpu[i],
+                qi_ρθ_li_cpu[i],
             ),
             θ_ρ[i];
             rtol = FT(5e-6),
         )
-        let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[5, i], ρ0[i], q0[i])
-            @test approx_tight(ql_gpu[5, i], ql_chk)
-            @test approx_tight(qi_gpu[5, i], qi_chk)
+        let (ql_chk, qi_chk) =
+                TD.condensate_partition(param_set, T_ρθ_li_cpu[i], ρ0[i], q0[i])
+            @test approx_tight(ql_ρθ_li_cpu[i], ql_chk)
+            @test approx_tight(qi_ρθ_li_cpu[i], qi_chk)
         end
 
         res = TD.saturation_adjustment(
@@ -378,25 +379,25 @@ parameter_set(::Type{Float32}) = param_set_Float32
             p0[i],
             θ_p[i],
             q0[i],
-            80,
-            FT(1e-10),
+            maxiter,
+            tol,
         )
         T_ref = res.T
         ql_ref = res.q_liq
         qi_ref = res.q_ice
-        @test isapprox(T_gpu[6, i], T_ref; rtol = FT(5e-6))
-        @test isapprox(ql_gpu[6, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        @test isapprox(qi_gpu[6, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(T_pθ_li_cpu[i], T_ref; rtol = FT(5e-6))
+        @test isapprox(ql_pθ_li_cpu[i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
+        @test isapprox(qi_pθ_li_cpu[i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
         # Invariance checks (pθ_liq_ice_q): θ target and partition using ρ(T,p,q_tot)
-        let ρ_eff = TD.air_density(param_set, T_gpu[6, i], p0[i], q0[i])
+        let ρ_eff = TD.air_density(param_set, T_pθ_li_cpu[i], p0[i], q0[i])
             let (ql_chk, qi_chk) =
-                    TD.condensate_partition(param_set, T_gpu[6, i], ρ_eff, q0[i])
-                @test approx_tight(ql_gpu[6, i], ql_chk)
-                @test approx_tight(qi_gpu[6, i], qi_chk)
+                    TD.condensate_partition(param_set, T_pθ_li_cpu[i], ρ_eff, q0[i])
+                @test approx_tight(ql_pθ_li_cpu[i], ql_chk)
+                @test approx_tight(qi_pθ_li_cpu[i], qi_chk)
                 @test isapprox(
                     TD.liquid_ice_pottemp_given_pressure(
                         param_set,
-                        T_gpu[6, i],
+                        T_pθ_li_cpu[i],
                         p0[i],
                         q0[i],
                         ql_chk,
@@ -409,8 +410,18 @@ parameter_set(::Type{Float32}) = param_set_Float32
         end
 
         # Basic invariants for all formulations
-        @test all(ql_gpu[:, i] .>= 0)
-        @test all(qi_gpu[:, i] .>= 0)
+        @test ql_ρe_cpu[i] >= 0
+        @test qi_ρe_cpu[i] >= 0
+        @test ql_pe_cpu[i] >= 0
+        @test qi_pe_cpu[i] >= 0
+        @test ql_ph_cpu[i] >= 0
+        @test qi_ph_cpu[i] >= 0
+        @test ql_pρ_cpu[i] >= 0
+        @test qi_pρ_cpu[i] >= 0
+        @test ql_ρθ_li_cpu[i] >= 0
+        @test qi_ρθ_li_cpu[i] >= 0
+        @test ql_pθ_li_cpu[i] >= 0
+        @test qi_pθ_li_cpu[i] >= 0
     end
 
     @testset "Broadcasting on ArrayType ($ArrayType)" begin
