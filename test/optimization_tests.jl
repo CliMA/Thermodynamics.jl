@@ -116,7 +116,14 @@ solver_for(::Type) = RS.SecantMethod
 ##### JET Test Logic
 #####
 
-@noinline function check_saturation_adjustment(solver, param_set, method, args, maxiter, tol)
+@noinline function check_saturation_adjustment(
+    solver,
+    param_set,
+    method,
+    args,
+    maxiter,
+    tol,
+)
     TD.saturation_adjustment(solver, param_set, method, args..., maxiter, tol)
 end
 

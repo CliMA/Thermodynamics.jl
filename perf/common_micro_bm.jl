@@ -148,10 +148,12 @@ function tabulate_summary(summary)
     header_row = [
         "IndepVars (+conditions)" "Memory estimate" "allocs estimate" "Time min" "Time max" "Time mean" "Time median" "N-samples"
     ]
-    
+
     final_table = vcat(header_row, table_data)
 
-    println("Summary Table (Columns: IndepVars, Memory, Allocations, Time(min, max, mean, median), N-samples):")
+    println(
+        "Summary Table (Columns: IndepVars, Memory, Allocations, Time(min, max, mean, median), N-samples):",
+    )
     display(final_table)
 end
 

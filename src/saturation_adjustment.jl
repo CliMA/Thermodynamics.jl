@@ -134,14 +134,17 @@ function saturation_adjustment(
     tol,
     T_guess = nothing,
 )
-    e_int_sat_given_p = T ->
-        internal_energy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
+    e_int_sat_given_p =
+        T ->
+            internal_energy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
 
-    q_sat_unsat_p = (param_set, T, q_tot) ->
-        q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
+    q_sat_unsat_p =
+        (param_set, T, q_tot) ->
+            q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    make_numerical_method_p = (sat_method, param_set, target_e, q_tot, T_guess) ->
-        sa_numerical_method(sat_method, param_set, peq(), p, target_e, q_tot, T_guess)
+    make_numerical_method_p =
+        (sat_method, param_set, target_e, q_tot, T_guess) ->
+            sa_numerical_method(sat_method, param_set, peq(), p, target_e, q_tot, T_guess)
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -207,18 +210,22 @@ function saturation_adjustment(
     tol,
     T_guess = nothing,
 )
-    h_sat_given_p = T ->
-        enthalpy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
+    h_sat_given_p =
+        T ->
+            enthalpy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
 
-    q_sat_unsat_p = (param_set, T, q_tot) ->
-        q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
+    q_sat_unsat_p =
+        (param_set, T, q_tot) ->
+            q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    make_numerical_method_p = (sat_method, param_set, h, q_tot, T_guess) ->
-        sa_numerical_method(sat_method, param_set, phq(), p, h, q_tot, T_guess)
+    make_numerical_method_p =
+        (sat_method, param_set, h, q_tot, T_guess) ->
+            sa_numerical_method(sat_method, param_set, phq(), p, h, q_tot, T_guess)
 
     # Unsaturated temperature estimate from (h, q_tot) with zero condensate.
-    temp_from_hq_unsat = (param_set, h, q_tot) ->
-        air_temperature(param_set, phq(), h, q_tot, 0, 0)
+    temp_from_hq_unsat =
+        (param_set, h, q_tot) ->
+            air_temperature(param_set, phq(), h, q_tot, 0, 0)
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -274,20 +281,24 @@ function saturation_adjustment(
     tol,
     T_guess = nothing,
 )
-    θ_liq_ice_sat_given_p = T -> begin
-        _ρ = air_density(param_set, T, p, q_tot)
-        (_q_liq, _q_ice) = condensate_partition(param_set, T, _ρ, q_tot)
-        liquid_ice_pottemp_given_pressure(param_set, T, p, q_tot, _q_liq, _q_ice)
-    end
+    θ_liq_ice_sat_given_p =
+        T -> begin
+            _ρ = air_density(param_set, T, p, q_tot)
+            (_q_liq, _q_ice) = condensate_partition(param_set, T, _ρ, q_tot)
+            liquid_ice_pottemp_given_pressure(param_set, T, p, q_tot, _q_liq, _q_ice)
+        end
 
-    temp_from_θ_liq_ice_func = (param_set, θ_liq_ice, q_tot) ->
-        air_temperature(param_set, pθ_liq_ice_q(), p, θ_liq_ice, q_tot)
+    temp_from_θ_liq_ice_func =
+        (param_set, θ_liq_ice, q_tot) ->
+            air_temperature(param_set, pθ_liq_ice_q(), p, θ_liq_ice, q_tot)
 
-    q_sat_unsat_p = (param_set, T, q_tot) ->
-        q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
+    q_sat_unsat_p =
+        (param_set, T, q_tot) ->
+            q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    make_numerical_method_p = (sat_method, param_set, θ, q_tot, T_guess) ->
-        sa_numerical_method(sat_method, param_set, pθ_liq_ice_q(), p, θ, q_tot, T_guess)
+    make_numerical_method_p =
+        (sat_method, param_set, θ, q_tot, T_guess) ->
+            sa_numerical_method(sat_method, param_set, pθ_liq_ice_q(), p, θ, q_tot, T_guess)
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -344,19 +355,22 @@ function saturation_adjustment(
     tol,
     T_guess = nothing,
 )
-    θ_liq_ice_sat_given_ρ = T -> begin
-        (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-        liquid_ice_pottemp(param_set, T, ρ, q_tot, _q_liq, _q_ice)
-    end
+    θ_liq_ice_sat_given_ρ =
+        T -> begin
+            (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+            liquid_ice_pottemp(param_set, T, ρ, q_tot, _q_liq, _q_ice)
+        end
 
-    temp_from_θ_liq_ice_func = (param_set, θ_liq_ice, q_tot) ->
-        air_temperature(param_set, ρθ_liq_ice_q(), ρ, θ_liq_ice, q_tot)
+    temp_from_θ_liq_ice_func =
+        (param_set, θ_liq_ice, q_tot) ->
+            air_temperature(param_set, ρθ_liq_ice_q(), ρ, θ_liq_ice, q_tot)
 
     q_sat_unsat_ρ = (param_set, T, q_tot) ->
         q_vap_saturation(param_set, T, ρ)
 
-    make_numerical_method_ρ = (sat_method, param_set, θ, q_tot, T_guess) ->
-        sa_numerical_method(sat_method, param_set, ρθ_liq_ice_q(), ρ, θ, q_tot, T_guess)
+    make_numerical_method_ρ =
+        (sat_method, param_set, θ, q_tot, T_guess) ->
+            sa_numerical_method(sat_method, param_set, ρθ_liq_ice_q(), ρ, θ, q_tot, T_guess)
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -413,19 +427,22 @@ function saturation_adjustment(
     tol,
     T_guess = nothing,
 )
-    pressure_sat_given_ρ = T -> begin
-        (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-        air_pressure(param_set, T, ρ, q_tot, _q_liq, _q_ice)
-    end
+    pressure_sat_given_ρ =
+        T -> begin
+            (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+            air_pressure(param_set, T, ρ, q_tot, _q_liq, _q_ice)
+        end
 
-    temp_from_pρq_func = (param_set, p, q_tot) ->
-        air_temperature(param_set, pρq(), p, ρ, q_tot)
+    temp_from_pρq_func =
+        (param_set, p, q_tot) ->
+            air_temperature(param_set, pρq(), p, ρ, q_tot)
 
     q_sat_unsat_ρ = (param_set, T, q_tot) ->
         q_vap_saturation(param_set, T, ρ)
 
-    make_numerical_method_ρ = (sat_method, param_set, target_p, q_tot, T_guess) ->
-        sa_numerical_method(sat_method, param_set, pρq(), target_p, ρ, q_tot, T_guess)
+    make_numerical_method_ρ =
+        (sat_method, param_set, target_p, q_tot, T_guess) ->
+            sa_numerical_method(sat_method, param_set, pρq(), target_p, ρ, q_tot, T_guess)
 
     # Using generic helper with p as target thermo_var
     T = _saturation_adjustment_generic(
