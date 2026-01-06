@@ -1,7 +1,6 @@
 [deps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 ClimaParams = "5c42b081-d73a-476f-9059-fd94b934656c"
-JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 OrderedCollections = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
@@ -11,7 +10,6 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 
 [compat]
-JET = "0.8"
 PrettyTables = "2, 3"
 StatsBase = "0.33, 0.34"
 julia = "1.7"

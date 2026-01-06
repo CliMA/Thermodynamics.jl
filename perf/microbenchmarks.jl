@@ -16,7 +16,7 @@ function benchmark_thermo_states(::Type{FT}) where {FT}
                 $(F)(),
                 $args...,
                 40,
-                FT(1e-10),
+                $FT(1e-10),
             )
             summary[Symbol(nameof(F), :_, cond)] = get_summary(trial)
         end

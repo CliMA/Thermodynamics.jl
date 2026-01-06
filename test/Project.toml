@@ -1,10 +1,12 @@
 [deps]
 Aqua = "4c88cf16-eb10-579e-8560-4a9242c79595"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 CUDA = "052768ef-5323-5732-b1bb-66c8b64840ba"
 ChainRulesCore = "d360d2e6-b24c-11e9-a2a3-2a2ae2dbcce4"
 ClimaParams = "5c42b081-d73a-476f-9059-fd94b934656c"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 InlineStrings = "842dd82b-1e85-43dc-bf29-5d0ee9dffc48"
+JET = "c3a54625-cd67-489e-a8e7-0a5a0ff4e31b"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Parsers = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
 Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
@@ -14,8 +16,7 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 
 [compat]
-ChainRulesCore = "1"
 CUDA = "3.5, 4, 5"
+ChainRulesCore = "1"
+JET = "0.8"
 julia = "1.7"
-
-

@@ -1,7 +1,6 @@
 import StatsBase
 import PrettyTables
 import OrderedCollections
-using JET
 using Test
 import BenchmarkTools
 
@@ -17,7 +16,7 @@ using .TestedProfiles
 ##### Finding indexes in profiles satisfying certain conditions
 #####
 
-function functional_inputs(param_set, ::Type{FT}; n = 256) where {FT}
+function functional_inputs(param_set, ::Type{FT}; n = 1500) where {FT}
     ps = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT})
     n = min(n, length(ps.z))
     sl = 1:n
@@ -58,12 +57,17 @@ function functional_inputs(param_set, ::Type{FT}; n = 256) where {FT}
     )
 end
 
-find_dry(inputs) = something(
-    findfirst(==(zero(eltype(inputs.q_tot))), inputs.q_tot),
-    error("Dry index not found"),
-)
-find_moist_index(inputs) =
-    something(findfirst(>(0.01), inputs.q_tot), error("Moist index not found"))
+function find_dry(inputs)
+    i = findfirst(==(zero(eltype(inputs.q_tot))), inputs.q_tot)
+    isnothing(i) && error("Dry index not found")
+    return i
+end
+
+function find_moist_index(inputs)
+    i = findfirst(>(0.01), inputs.q_tot)
+    isnothing(i) && error("Moist index not found")
+    return i
+end
 
 function find_saturated_index(inputs; use_p_based::Bool)
     q_liq = use_p_based ? inputs.q_liq_p : inputs.q_liq
@@ -140,35 +144,15 @@ function tabulate_summary(summary)
         n_samples,
     )
 
-    header = (
-        [
-            "Constructor",
-            "Memory",
-            "allocs",
-            "Time",
-            "Time",
-            "Time",
-            "Time",
-            "N-samples",
-        ],
-        [
-            "(+conditions)",
-            "estimate",
-            "estimate",
-            "min",
-            "max",
-            "mean",
-            "median",
-            "",
-        ],
-    )
+    # Create a single header row merging the two-row header logic
+    header_row = [
+        "IndepVars (+conditions)" "Memory estimate" "allocs estimate" "Time min" "Time max" "Time mean" "Time median" "N-samples"
+    ]
+    
+    final_table = vcat(header_row, table_data)
 
-    PrettyTables.pretty_table(
-        table_data;
-        header,
-        crop = :none,
-        alignment = vcat(:l, repeat([:r], length(header[1]) - 1)),
-    )
+    println("Summary Table (Columns: IndepVars, Memory, Allocations, Time(min, max, mean, median), N-samples):")
+    display(final_table)
 end
 
 #####
