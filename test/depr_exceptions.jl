@@ -17,8 +17,10 @@ This file contains tests for error handling on failed convergence.
     tol = FT(1e-10)
     T_virt = T
 
-    TD.error_on_non_convergence() = true
-    TD.print_warning() = true
+    old_error = TD.error_on_non_convergence()
+    old_warn = TD.print_warning()
+    TD.set_error_on_non_convergence!(true)
+    TD.set_print_warning!(true)
 
     @testset "Saturation Adjustment" begin
         @test_throws ErrorException TD.saturation_adjustment.(
@@ -111,6 +113,6 @@ This file contains tests for error handling on failed convergence.
     end
 
     # Restore defaults so other test files are not affected by these settings.
-    TD.error_on_non_convergence() = false
-    TD.print_warning() = false
+    TD.set_error_on_non_convergence!(old_error)
+    TD.set_print_warning!(old_warn)
 end

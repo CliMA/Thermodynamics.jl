@@ -2,7 +2,7 @@ include("common_micro_bm.jl")
 
 # JET does not like KernelAbstractions.@print calls,
 # so we disable them here.
-TD.print_warning() = false
+TD.set_print_warning!(false)
 
 function jet_thermo_states(::Type{FT}) where {FT}
     param_set = TP.ThermodynamicsParameters(FT)

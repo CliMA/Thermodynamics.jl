@@ -10,8 +10,10 @@ non-convergence via `Thermodynamics.error_on_non_convergence()`.
         param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
 
         # Configure to throw on non-convergence, and ensure we restore defaults afterwards.
-        Thermodynamics.error_on_non_convergence() = true
-        Thermodynamics.print_warning() = true
+        old_error = TD.error_on_non_convergence()
+        old_warn = TD.print_warning()
+        TD.set_error_on_non_convergence!(true)
+        TD.set_print_warning!(true)
         try
             ρ = FT(1.0)
             T = FT(290)
@@ -41,8 +43,8 @@ non-convergence via `Thermodynamics.error_on_non_convergence()`.
                 FT(1e-12),
             )
         finally
-            Thermodynamics.error_on_non_convergence() = false
-            Thermodynamics.print_warning() = false
+            TD.set_error_on_non_convergence!(old_error)
+            TD.set_print_warning!(old_warn)
         end
     end
 end
