@@ -108,85 +108,91 @@ end
     # Use default methods (no method type parameter) to avoid dynamic dispatch issues on GPU.
 
     # 1) ρeq - uses NewtonsMethod by default
-    gpu_results_ρe = TD.saturation_adjustment.(
-        Ref(param_set),
-        Ref(TD.ρe()),
-        d_ρ,
-        d_e_int_ρ,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    gpu_results_ρe =
+        TD.saturation_adjustment.(
+            Ref(param_set),
+            Ref(TD.ρe()),
+            d_ρ,
+            d_e_int_ρ,
+            d_q,
+            Ref(maxiter),
+            Ref(tol),
+        )
     T_ρe = map(x -> x.T, gpu_results_ρe)
     ql_ρe = map(x -> x.q_liq, gpu_results_ρe)
     qi_ρe = map(x -> x.q_ice, gpu_results_ρe)
 
     # 2) pe - uses SecantMethod by default
-    gpu_results_pe = TD.saturation_adjustment.(
-        Ref(param_set),
-        Ref(TD.pe()),
-        d_p,
-        d_e_int_p,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    gpu_results_pe =
+        TD.saturation_adjustment.(
+            Ref(param_set),
+            Ref(TD.pe()),
+            d_p,
+            d_e_int_p,
+            d_q,
+            Ref(maxiter),
+            Ref(tol),
+        )
     T_pe = map(x -> x.T, gpu_results_pe)
     ql_pe = map(x -> x.q_liq, gpu_results_pe)
     qi_pe = map(x -> x.q_ice, gpu_results_pe)
 
     # 3) ph - uses SecantMethod by default
-    gpu_results_ph = TD.saturation_adjustment.(
-        Ref(param_set),
-        Ref(TD.ph()),
-        d_p,
-        d_h_p,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    gpu_results_ph =
+        TD.saturation_adjustment.(
+            Ref(param_set),
+            Ref(TD.ph()),
+            d_p,
+            d_h_p,
+            d_q,
+            Ref(maxiter),
+            Ref(tol),
+        )
     T_ph = map(x -> x.T, gpu_results_ph)
     ql_ph = map(x -> x.q_liq, gpu_results_ph)
     qi_ph = map(x -> x.q_ice, gpu_results_ph)
 
     # 4) pρ - uses SecantMethod by default
-    gpu_results_pρ = TD.saturation_adjustment.(
-        Ref(param_set),
-        Ref(TD.pρ()),
-        d_p_ρ,
-        d_ρ,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    gpu_results_pρ =
+        TD.saturation_adjustment.(
+            Ref(param_set),
+            Ref(TD.pρ()),
+            d_p_ρ,
+            d_ρ,
+            d_q,
+            Ref(maxiter),
+            Ref(tol),
+        )
     T_pρ = map(x -> x.T, gpu_results_pρ)
     ql_pρ = map(x -> x.q_liq, gpu_results_pρ)
     qi_pρ = map(x -> x.q_ice, gpu_results_pρ)
 
     # 5) ρθ_li - uses SecantMethod by default
-    gpu_results_ρθ_li = TD.saturation_adjustment.(
-        Ref(param_set),
-        Ref(TD.ρθ_li()),
-        d_ρ,
-        d_θ_ρ,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    gpu_results_ρθ_li =
+        TD.saturation_adjustment.(
+            Ref(param_set),
+            Ref(TD.ρθ_li()),
+            d_ρ,
+            d_θ_ρ,
+            d_q,
+            Ref(maxiter),
+            Ref(tol),
+        )
     T_ρθ_li = map(x -> x.T, gpu_results_ρθ_li)
     ql_ρθ_li = map(x -> x.q_liq, gpu_results_ρθ_li)
     qi_ρθ_li = map(x -> x.q_ice, gpu_results_ρθ_li)
 
     # 6) pθ_li - uses SecantMethod by default
-    gpu_results_pθ_li = TD.saturation_adjustment.(
-        Ref(param_set),
-        Ref(TD.pθ_li()),
-        d_p,
-        d_θ_p,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    gpu_results_pθ_li =
+        TD.saturation_adjustment.(
+            Ref(param_set),
+            Ref(TD.pθ_li()),
+            d_p,
+            d_θ_p,
+            d_q,
+            Ref(maxiter),
+            Ref(tol),
+        )
     T_pθ_li = map(x -> x.T, gpu_results_pθ_li)
     ql_pθ_li = map(x -> x.q_liq, gpu_results_pθ_li)
     qi_pθ_li = map(x -> x.q_ice, gpu_results_pθ_li)
