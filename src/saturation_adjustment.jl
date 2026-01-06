@@ -1,6 +1,20 @@
 # Saturation adjustment functions for various combinations of input variables
 
 export saturation_adjustment
+export UseNewtonMethod, UseSecantMethod, UseBrentMethod
+
+# Singleton types for method selection (GPU-compatible)
+struct UseNewtonMethod end
+struct UseSecantMethod end
+struct UseBrentMethod end
+
+# Convert singleton method markers to Type-based dispatch (GPU-compatible wrappers)
+@inline saturation_adjustment(::UseNewtonMethod, args...) =
+    saturation_adjustment(RS.NewtonsMethod, args...)
+@inline saturation_adjustment(::UseSecantMethod, args...) =
+    saturation_adjustment(RS.SecantMethod, args...)
+@inline saturation_adjustment(::UseBrentMethod, args...) =
+    saturation_adjustment(RS.BrentsMethod, args...)
 
 """
     saturation_adjustment(
@@ -33,10 +47,10 @@ given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`
 - `(T, q_liq, q_ice)`: tuple of temperature [K] and phase partitions [kg/kg]
 
 # Notes
-- When calling the overload **without** an explicit `sat_adjust_method` (i.e. `saturation_adjustment(param_set, ρe(), ...)`),
-  the default method is `NewtonsMethod`.
 - This function solves for `T` such that `e_int = internal_energy_sat(param_set, T, ρ, q_tot)` using
   root-finding, then computes `(q_liq, q_ice)` from [`condensate_partition`](@ref).
+- For `ρe` formulation, `NewtonsMethod` is recommended (fast + analytic derivative available).
+- For other formulations, `SecantMethod` or `BrentsMethod` are recommended.
 """
 function saturation_adjustment(
     sat_adjust_method::Type,
@@ -469,52 +483,6 @@ function saturation_adjustment(
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice)
 end
-
-# Defaults:
-# - For `ρeq()`, use `NewtonsMethod` (fast + analytic derivative available).
-# - For other formulations, default to `SecantMethod`.
-@inline saturation_adjustment(
-    param_set::APS,
-    ::ρe,
-    ρ,
-    e_int,
-    q_tot,
-    maxiter::Int,
-    tol,
-    T_guess = nothing,
-) = saturation_adjustment(
-    NewtonsMethod,
-    param_set,
-    ρe(),
-    ρ,
-    e_int,
-    q_tot,
-    maxiter,
-    tol,
-    T_guess,
-)
-
-# Default to secant method for the remaining IndepVars
-@inline saturation_adjustment(
-    param_set::APS,
-    iv::IndepVars,
-    arg1,
-    arg2,
-    arg3,
-    maxiter::Int,
-    tol,
-    T_guess = nothing,
-) = saturation_adjustment(
-    SecantMethod,
-    param_set,
-    iv,
-    arg1,
-    arg2,
-    arg3,
-    maxiter,
-    tol,
-    T_guess,
-)
 
 # ---------------------------------------------
 # Helper functions 
