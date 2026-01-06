@@ -54,253 +54,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
 
 @show ArrayType
 
-"""
-    sat_adjust!(dst_T, dst_ql, dst_qi, inputs..., maxiter, tol, param_set)
 
-CPU/GPU implementation for testing the functional `saturation_adjustment` API.
-
-For each point, this kernel runs `saturation_adjustment` for multiple independent-variable
-formulations and stores `(T, q_liq, q_ice)` for each.
-"""
-@inline function sat_adjust_point!(
-    param_set,
-    dst_T,
-    dst_ql,
-    dst_qi,
-    ρ,
-    p,
-    p_ρ,
-    q_tot,
-    e_int_ρ,
-    e_int_p,
-    h_p,
-    θ_ρ,
-    θ_p,
-    i,
-    maxiter,
-    tol,
-)
-    # 1) ρeq
-    (T, ql, qi) = TD.saturation_adjustment(
-        RS.NewtonsMethod,
-        param_set,
-        TD.ρeq(),
-        ρ[i],
-        e_int_ρ[i],
-        q_tot[i],
-        maxiter,
-        tol,
-    )
-    dst_T[1, i] = T
-    dst_ql[1, i] = ql
-    dst_qi[1, i] = qi
-
-    # 2) peq
-    (T, ql, qi) = TD.saturation_adjustment(
-        RS.SecantMethod,
-        param_set,
-        TD.peq(),
-        p[i],
-        e_int_p[i],
-        q_tot[i],
-        maxiter,
-        tol,
-    )
-    dst_T[2, i] = T
-    dst_ql[2, i] = ql
-    dst_qi[2, i] = qi
-
-    # 3) phq
-    (T, ql, qi) = TD.saturation_adjustment(
-        RS.SecantMethod,
-        param_set,
-        TD.phq(),
-        p[i],
-        h_p[i],
-        q_tot[i],
-        maxiter,
-        tol,
-    )
-    dst_T[3, i] = T
-    dst_ql[3, i] = ql
-    dst_qi[3, i] = qi
-
-    # 4) pρq
-    (T, ql, qi) = TD.saturation_adjustment(
-        RS.SecantMethod,
-        param_set,
-        TD.pρq(),
-        p_ρ[i],
-        ρ[i],
-        q_tot[i],
-        maxiter,
-        tol,
-    )
-    dst_T[4, i] = T
-    dst_ql[4, i] = ql
-    dst_qi[4, i] = qi
-
-    # 5) ρθ_liq_ice_q
-    (T, ql, qi) = TD.saturation_adjustment(
-        RS.SecantMethod,
-        param_set,
-        TD.ρθ_liq_ice_q(),
-        ρ[i],
-        θ_ρ[i],
-        q_tot[i],
-        maxiter,
-        tol,
-    )
-    dst_T[5, i] = T
-    dst_ql[5, i] = ql
-    dst_qi[5, i] = qi
-
-    # 6) pθ_liq_ice_q
-    (T, ql, qi) = TD.saturation_adjustment(
-        RS.SecantMethod,
-        param_set,
-        TD.pθ_liq_ice_q(),
-        p[i],
-        θ_p[i],
-        q_tot[i],
-        maxiter,
-        tol,
-    )
-    dst_T[6, i] = T
-    dst_ql[6, i] = ql
-    dst_qi[6, i] = qi
-
-    return nothing
-end
-
-function sat_adjust_cpu!(
-    param_set,
-    dst_T,
-    dst_ql,
-    dst_qi,
-    ρ,
-    p,
-    p_ρ,
-    q_tot,
-    e_int_ρ,
-    e_int_p,
-    h_p,
-    θ_ρ,
-    θ_p,
-    maxiter,
-    tol,
-)
-    n = length(q_tot)
-    @inbounds for i in 1:n
-        sat_adjust_point!(
-            param_set,
-            dst_T,
-            dst_ql,
-            dst_qi,
-            ρ,
-            p,
-            p_ρ,
-            q_tot,
-            e_int_ρ,
-            e_int_p,
-            h_p,
-            θ_ρ,
-            θ_p,
-            i,
-            maxiter,
-            tol,
-        )
-    end
-    return nothing
-end
-
-if get(ARGS, 1, "Array") == "CuArray"
-    import CUDA
-    # Define CUDA-kernel code only when CUDA is actually available.
-    # (`CUDA.@cuda` is a macro and must not be expanded unless CUDA is loaded.)
-    @eval begin
-        function sat_adjust_cuda!(
-            param_set,
-            dst_T,
-            dst_ql,
-            dst_qi,
-            ρ,
-            p,
-            p_ρ,
-            q_tot,
-            e_int_ρ,
-            e_int_p,
-            h_p,
-            θ_ρ,
-            θ_p,
-            maxiter,
-            tol,
-        )
-            function kernel!(
-                param_set,
-                dst_T,
-                dst_ql,
-                dst_qi,
-                ρ,
-                p,
-                p_ρ,
-                q_tot,
-                e_int_ρ,
-                e_int_p,
-                h_p,
-                θ_ρ,
-                θ_p,
-                maxiter,
-                tol,
-            )
-                i = (CUDA.blockIdx().x - 1) * CUDA.blockDim().x + CUDA.threadIdx().x
-                if i <= length(q_tot)
-                    @inbounds sat_adjust_point!(
-                        param_set,
-                        dst_T,
-                        dst_ql,
-                        dst_qi,
-                        ρ,
-                        p,
-                        p_ρ,
-                        q_tot,
-                        e_int_ρ,
-                        e_int_p,
-                        h_p,
-                        θ_ρ,
-                        θ_p,
-                        i,
-                        maxiter,
-                        tol,
-                    )
-                end
-                return nothing
-            end
-
-            threads = 256
-            blocks = cld(length(q_tot), threads)
-            CUDA.@cuda threads = threads blocks = blocks kernel!(
-                param_set,
-                dst_T,
-                dst_ql,
-                dst_qi,
-                ρ,
-                p,
-                p_ρ,
-                q_tot,
-                e_int_ρ,
-                e_int_p,
-                h_p,
-                θ_ρ,
-                θ_p,
-                maxiter,
-                tol,
-            )
-            CUDA.synchronize()
-            return nothing
-        end
-    end
-end
 
 @testset "Thermodynamics - kernels" begin
     FT = Float32  # Use Float32 for GPU compatibility
@@ -346,43 +100,98 @@ end
     d_ql = ArrayType(zeros(FT, 6, n))
     d_qi = ArrayType(zeros(FT, 6, n))
 
-    if ArrayType === Array
-        sat_adjust_cpu!(
-            param_set,
-            d_T,
-            d_ql,
-            d_qi,
-            d_ρ,
-            d_p,
-            d_p_ρ,
-            d_q,
-            d_e_int_ρ,
-            d_e_int_p,
-            d_h_p,
-            d_θ_ρ,
-            d_θ_p,
-            80,
-            FT(1e-10),
-        )
-    else
-        sat_adjust_cuda!(
-            param_set,
-            d_T,
-            d_ql,
-            d_qi,
-            d_ρ,
-            d_p,
-            d_p_ρ,
-            d_q,
-            d_e_int_ρ,
-            d_e_int_p,
-            d_h_p,
-            d_θ_ρ,
-            d_θ_p,
-            80,
-            FT(1e-10),
-        )
-    end
+    maxiter = 80
+    tol = FT(1e-10)
+
+    # 1) ρeq
+    results = TD.saturation_adjustment.(
+        Ref(RS.NewtonsMethod),
+        Ref(param_set),
+        Ref(TD.ρeq()),
+        d_ρ,
+        d_e_int_ρ,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    d_T[1, :] .= first.(results)
+    d_ql[1, :] .= getindex.(results, 2)
+    d_qi[1, :] .= last.(results)
+
+    # 2) peq
+    results = TD.saturation_adjustment.(
+        Ref(RS.SecantMethod),
+        Ref(param_set),
+        Ref(TD.peq()),
+        d_p,
+        d_e_int_p,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    d_T[2, :] .= first.(results)
+    d_ql[2, :] .= getindex.(results, 2)
+    d_qi[2, :] .= last.(results)
+
+    # 3) phq
+    results = TD.saturation_adjustment.(
+        Ref(RS.SecantMethod),
+        Ref(param_set),
+        Ref(TD.phq()),
+        d_p,
+        d_h_p,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    d_T[3, :] .= first.(results)
+    d_ql[3, :] .= getindex.(results, 2)
+    d_qi[3, :] .= last.(results)
+
+    # 4) pρq
+    results = TD.saturation_adjustment.(
+        Ref(RS.SecantMethod),
+        Ref(param_set),
+        Ref(TD.pρq()),
+        d_p_ρ,
+        d_ρ,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    d_T[4, :] .= first.(results)
+    d_ql[4, :] .= getindex.(results, 2)
+    d_qi[4, :] .= last.(results)
+
+    # 5) ρθ_liq_ice_q
+    results = TD.saturation_adjustment.(
+        Ref(RS.SecantMethod),
+        Ref(param_set),
+        Ref(TD.ρθ_liq_ice_q()),
+        d_ρ,
+        d_θ_ρ,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    d_T[5, :] .= first.(results)
+    d_ql[5, :] .= getindex.(results, 2)
+    d_qi[5, :] .= last.(results)
+
+    # 6) pθ_liq_ice_q
+    results = TD.saturation_adjustment.(
+        Ref(RS.SecantMethod),
+        Ref(param_set),
+        Ref(TD.pθ_liq_ice_q()),
+        d_p,
+        d_θ_p,
+        d_q,
+        Ref(maxiter),
+        Ref(tol),
+    )
+    d_T[6, :] .= first.(results)
+    d_ql[6, :] .= getindex.(results, 2)
+    d_qi[6, :] .= last.(results)
 
     # Compare device results with CPU reference, and check correctness invariants.
     T_gpu = Array(d_T)
