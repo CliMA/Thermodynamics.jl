@@ -6,23 +6,21 @@ TD.print_warning() = false
 
 function jet_thermo_states(::Type{FT}) where {FT}
     param_set = TP.ThermodynamicsParameters(FT)
-    ArrayType = Array{FT}
-    profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
+    inputs = functional_inputs(param_set, FT)
 
     @testset "JET tests" begin
-        for C in (
-            TD.PhaseEquil_ρeq,
-            TD.PhaseEquil_ρTq,
-            TD.PhaseEquil_pTq,
-            TD.PhaseEquil_peq,
-            TD.PhaseEquil_phq,
-            TD.PhaseEquil_ρθq,
-            TD.PhaseEquil_pθq,
-            TD.PhaseEquil_ρpq,
-        )
-            for cond in conditions(C)
-                args = sample_args(profiles, param_set, cond, C)
-                JET.@test_opt C(param_set, args...)
+        for F in (TD.ρeq, TD.peq, TD.phq, TD.pρq, TD.ρθ_liq_ice_q, TD.pθ_liq_ice_q)
+            for cond in conditions(F)
+                args = sample_args(inputs, param_set, cond, F)
+                solver = solver_for(F)
+                JET.@test_opt TD.saturation_adjustment(
+                    solver,
+                    param_set,
+                    F(),
+                    args...,
+                    40,
+                    FT(1e-10),
+                )
             end
         end
     end

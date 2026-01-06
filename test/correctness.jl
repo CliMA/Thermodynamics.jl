@@ -52,11 +52,42 @@ using the non-deprecated functional API (no `PhasePartition`/state types).
             @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
         end
 
+        @testset "cp_m - cv_m = R_m ($FT)" begin
+            # Calorically-perfect ideal-gas mixture identity, with condensed phases contributing no R.
+            q_tot = FT(0.02)
+            q_liq = FT(0.003)
+            q_ice = FT(0.001)
+            R_m = TD.gas_constant_air(param_set, q_tot, q_liq, q_ice)
+            @test TD.cp_m(param_set, q_tot, q_liq, q_ice) -
+                  TD.cv_m(param_set, q_tot, q_liq, q_ice) ≈
+                  R_m
+        end
+
+        @testset "h = e_int + R_m T ($FT)" begin
+            # Ideal-gas mixture identity (condensed-phase specific volume neglected).
+            T = FT(295)
+            q_tot = FT(0.017)
+            q_liq = FT(0.002)
+            q_ice = FT(0.001)
+            e_int = TD.internal_energy(param_set, T, q_tot, q_liq, q_ice)
+            h = TD.enthalpy(param_set, T, q_tot, q_liq, q_ice)
+            R_m = TD.gas_constant_air(param_set, q_tot, q_liq, q_ice)
+            @test h ≈ e_int + R_m * T
+        end
+
         @testset "Latent heats are consistent at T0 ($FT)" begin
             T_0 = TP.T_0(param_set)
             @test TD.latent_heat_vapor(param_set, T_0) ≈ TP.LH_v0(param_set)
             @test TD.latent_heat_sublim(param_set, T_0) ≈ TP.LH_s0(param_set)
             @test TD.latent_heat_fusion(param_set, T_0) ≈ TP.LH_f0(param_set)
+        end
+
+        @testset "Latent heat identity: L_s = L_v + L_f ($FT)" begin
+            for T in (FT(240), FT(273.15), FT(300))
+                @test TD.latent_heat_sublim(param_set, T) ≈
+                      TD.latent_heat_vapor(param_set, T) +
+                      TD.latent_heat_fusion(param_set, T)
+            end
         end
 
         @testset "Saturation vapor pressure at triple point ($FT)" begin
@@ -76,7 +107,45 @@ using the non-deprecated functional API (no `PhasePartition`/state types).
             dlog_es_dT_cc = L / (R_v * T^2)
             @test isapprox(dlog_es_dT_fd, dlog_es_dT_cc; rtol = FT(rtol_temperature_fd))
         end
+
+        @testset "Entropy reduces to dry-air form in the dry limit ($FT)" begin
+            T1 = FT(280)
+            T2 = FT(310)
+            p1 = FT(9e4)
+            p2 = FT(8e4)
+
+            # Full entropy reduces to dry-air entropy when q_tot=q_liq=q_ice=0
+            @test TD.entropy(param_set, p1, T1) ≈ TD.entropy_dry(param_set, p1, T1)
+
+            # Difference form matches the ideal-gas entropy change for dry air
+            Δs = TD.entropy_dry(param_set, p2, T2) - TD.entropy_dry(param_set, p1, T1)
+            Δs_expected =
+                TP.cp_d(param_set) * log(T2 / T1) - TP.R_d(param_set) * log(p2 / p1)
+            @test isapprox(Δs, Δs_expected; rtol = FT(5e-6), atol = FT(5e-6))
+        end
+
+        @testset "Saturation equilibrium partitioning constraints ($FT)" begin
+            T = FT(270)
+            ρ = FT(1.1)
+
+            q_sat = TD.q_vap_saturation(param_set, T, ρ)
+
+            # Unsaturated: no condensate
+            q_tot = FT(0.8) * q_sat
+            (q_liq, q_ice) = TD.condensate_partition(param_set, T, ρ, q_tot)
+            @test q_liq == 0
+            @test q_ice == 0
+
+            # Saturated: vapor is at saturation and condensate is nonnegative
+            q_tot = FT(1.3) * q_sat
+            (q_liq, q_ice) = TD.condensate_partition(param_set, T, ρ, q_tot)
+            @test q_liq ≥ 0
+            @test q_ice ≥ 0
+            @test q_liq + q_ice ≤ q_tot + FT(100) * eps(FT)
+
+            q_vap = TD.vapor_specific_humidity(q_tot, q_liq, q_ice)
+            q_vap_sat = TD.q_vap_saturation(param_set, T, ρ, q_liq, q_ice)
+            @test isapprox(q_vap, q_vap_sat; rtol = FT(1e-6), atol = FT(50) * eps(FT))
+        end
     end
 end
-
-

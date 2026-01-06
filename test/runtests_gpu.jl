@@ -8,14 +8,28 @@ import ClimaParams as CP
 
 include("TestedProfiles.jl")
 
-# Determine array type based on command line argument
-# This allows testing on both CPU (Array) and GPU (CuArray)
-if get(ARGS, 1, "Array") == "CuArray"
+# Determine array type.
+# - If ARGS[1] is "CuArray" or "Array", honor it.
+# - Otherwise, default to GPU when CUDA is available and functional.
+arg = get(ARGS, 1, "")
+if arg == "Array"
+    ArrayType = Array
+elseif arg == "CuArray"
     import CUDA
     ArrayType = CUDA.CuArray
-    CUDA.allowscalar(false)  # Prevent scalar operations on GPU for performance
+    CUDA.allowscalar(false)
 else
-    ArrayType = Array
+    ArrayType = try
+        import CUDA
+        if CUDA.functional()
+            CUDA.allowscalar(false)
+            CUDA.CuArray
+        else
+            Array
+        end
+    catch
+        Array
+    end
 end
 
 # Pre-allocate parameter sets for different floating-point types.
@@ -424,7 +438,8 @@ end
                 e_int_p[i];
                 rtol = FT(5e-6),
             )
-            let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[2, i], ρ_eff, q0[i])
+            let (ql_chk, qi_chk) =
+                    TD.condensate_partition(param_set, T_gpu[2, i], ρ_eff, q0[i])
                 @test approx_tight(ql_gpu[2, i], ql_chk)
                 @test approx_tight(qi_gpu[2, i], qi_chk)
             end
@@ -450,7 +465,8 @@ end
                 h_p[i];
                 rtol = FT(5e-6),
             )
-            let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[3, i], ρ_eff, q0[i])
+            let (ql_chk, qi_chk) =
+                    TD.condensate_partition(param_set, T_gpu[3, i], ρ_eff, q0[i])
                 @test approx_tight(ql_gpu[3, i], ql_chk)
                 @test approx_tight(qi_gpu[3, i], qi_chk)
             end
@@ -471,7 +487,14 @@ end
         @test isapprox(qi_gpu[4, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
         # Invariance checks (pρq): pressure target and partition at saturation
         @test isapprox(
-            TD.air_pressure(param_set, T_gpu[4, i], ρ0[i], q0[i], ql_gpu[4, i], qi_gpu[4, i]),
+            TD.air_pressure(
+                param_set,
+                T_gpu[4, i],
+                ρ0[i],
+                q0[i],
+                ql_gpu[4, i],
+                qi_gpu[4, i],
+            ),
             p_ρ[i];
             rtol = FT(5e-6),
         )
@@ -526,7 +549,8 @@ end
         @test isapprox(qi_gpu[6, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
         # Invariance checks (pθ_liq_ice_q): θ target and partition using ρ(T,p,q_tot)
         let ρ_eff = TD.air_density(param_set, T_gpu[6, i], p0[i], q0[i])
-            let (ql_chk, qi_chk) = TD.condensate_partition(param_set, T_gpu[6, i], ρ_eff, q0[i])
+            let (ql_chk, qi_chk) =
+                    TD.condensate_partition(param_set, T_gpu[6, i], ρ_eff, q0[i])
                 @test approx_tight(ql_gpu[6, i], ql_chk)
                 @test approx_tight(qi_gpu[6, i], qi_chk)
                 @test isapprox(

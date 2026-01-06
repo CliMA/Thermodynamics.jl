@@ -30,6 +30,10 @@ Returns a tuple `(T, q_liq, q_ice)`.
 - `maxiter`: Maximum iterations for the solver.
 - `tol`: Relative tolerance for the temperature solution (or a `RootSolvers.RelativeSolutionTolerance`).
 - `T_guess`: Optional initial guess for the temperature.
+
+Notes:
+- When calling the overload **without** an explicit `sat_adjust_method` (i.e. `saturation_adjustment(param_set, ρeq(), ...)`),
+  the default method is `NewtonsMethod`.
 """
 function saturation_adjustment(
     sat_adjust_method::Type,
@@ -505,7 +509,31 @@ function saturation_adjustment(
     return (T, q_liq, q_ice)
 end
 
-# Default to secant method
+# Defaults:
+# - For `ρeq()`, use `NewtonsMethod` (fast + analytic derivative available).
+# - For other formulations, default to `SecantMethod`.
+@inline saturation_adjustment(
+    param_set::APS,
+    ::ρeq,
+    ρ,
+    e_int,
+    q_tot,
+    maxiter::Int,
+    tol,
+    T_guess = nothing,
+) = saturation_adjustment(
+    NewtonsMethod,
+    param_set,
+    ρeq(),
+    ρ,
+    e_int,
+    q_tot,
+    maxiter,
+    tol,
+    T_guess,
+)
+
+# Default to secant method for the remaining IndepVars
 @inline saturation_adjustment(
     param_set::APS,
     iv::IndepVars,

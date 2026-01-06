@@ -9,8 +9,16 @@ for rsm in (:NewtonsMethod, :NewtonsMethodAD, :SecantMethod, :BrentsMethod)
         (phq, "hpq", (:h, :p, :q_tot, :T_guess, :T, :maxiter, :tol)),
         (peq, "peq", (:p, :e_int, :q_tot, :T, :maxiter, :tol)),
         (pρq, "ρpq", (:ρ, :p, :q_tot, :T, :maxiter, :tol)),
-        (ρθ_liq_ice_q, "ρθ_liq_ice_q", (:ρ, :θ_liq_ice, :q_tot, :T_guess, :T, :maxiter, :tol)),
-        (pθ_liq_ice_q, "pθ_liq_ice_q", (:p, :θ_liq_ice, :q_tot, :T_guess, :T, :maxiter, :tol)),
+        (
+            ρθ_liq_ice_q,
+            "ρθ_liq_ice_q",
+            (:ρ, :θ_liq_ice, :q_tot, :T_guess, :T, :maxiter, :tol),
+        ),
+        (
+            pθ_liq_ice_q,
+            "pθ_liq_ice_q",
+            (:p, :θ_liq_ice, :q_tot, :T_guess, :T, :maxiter, :tol),
+        ),
     )
         @eval function print_warning(::Type{<:$(rsm)}, ::$IV, args...)
             ($(args...),) = args

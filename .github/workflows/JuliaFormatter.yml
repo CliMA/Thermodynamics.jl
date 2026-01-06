@@ -2,8 +2,6 @@ name: JuliaFormatter
 
 on:
   push:
-    branches:
-      - main
     tags: '*'
   pull_request:
   merge_group:
@@ -11,33 +9,7 @@ on:
 jobs:
   format:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.4.0
-      with:
-        access_token: ${{ github.token }}
-
-    - uses: actions/checkout@v4
-
-    - uses: dorny/paths-filter@v2
-      id: filter
-      with:
-        filters: |
-          julia_file_change:
-            - added|modified: '**.jl'
-
-    - uses: julia-actions/setup-julia@latest
-      if: steps.filter.outputs.julia_file_change == 'true'
-      with:
-        version: '1.10'
-
-    - name: Apply JuliaFormatter
-      if: steps.filter.outputs.julia_file_change == 'true'
-      run: |
-        julia --project=.dev .dev/climaformat.jl .
-
-    - name: Check formatting diff
-      if: steps.filter.outputs.julia_file_change == 'true'
-      run: |
-        git diff --color=always --exit-code
+      - uses: julia-actions/julia-format@v4
+        with:
+          suggestion-label: 'format-suggest' # leave this unset or empty to show suggestions for all PRs

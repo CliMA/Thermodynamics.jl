@@ -4,25 +4,24 @@ agents:
   modules: climacommon/2025_03_18
 
 env:
+  JULIA_LOAD_PATH: "${JULIA_LOAD_PATH}:${BUILDKITE_BUILD_CHECKOUT_PATH}/.buildkite"
   OPENBLAS_NUM_THREADS: 1
+  JULIA_NVTX_CALLBACKS: gc
   OMPI_MCA_opal_warn_on_missing_libcuda: 0
   JULIA_MAX_NUM_PRECOMPILE_FILES: 100
   JULIA_DEPOT_PATH: "${BUILDKITE_BUILD_PATH}/${BUILDKITE_PIPELINE_SLUG}/depot/default"
 
 steps:
-  - label: "init environment :computer:"
+  - label: "init env"
     key: "init_env"
     concurrency: 1
     concurrency_group: 'depot/thermodynamics-ci'
     command:
-      - echo "--- Instantiate test env"
-      - julia --project=test -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate(;verbose=true); Pkg.precompile(;strict=true); Pkg.status()'
-
-      - echo "--- Instantiate perf env"
-      - julia --project=perf -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate(;verbose=true); Pkg.precompile(;strict=true); Pkg.status()'
-
-      - echo "--- Instantiate gpu env"
-      - julia --project=gpuenv -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate(;verbose=true); Pkg.precompile(;strict=true); using CUDA; CUDA.precompile_runtime(); Pkg.status()'
+      - "echo $JULIA_DEPOT_PATH"
+      - "julia --project=test -e 'using Pkg; Pkg.instantiate(;verbose=true)'"
+      - "julia --project=test -e 'using Pkg; Pkg.develop(path=\".\"); Pkg.instantiate(;verbose=true); Pkg.precompile()'"
+      - "julia --project=test -e 'using CUDA; CUDA.precompile_runtime()'"
+      - "julia --project=test -e 'using Pkg; Pkg.status()'"
     agents:
       slurm_ntasks: 1
       slurm_gpus: 1
@@ -31,75 +30,14 @@ steps:
 
   - label: "CPU tests"
     command:
-      - "julia --project=test test/runtests.jl"
+      - "THERMODYNAMICS_INCLUDE_DEPRECATED=false julia --project=test --color=yes test/runtests.jl"
     agents:
       slurm_ntasks: 1
     timeout_in_minutes: 60
 
-  - label: ":scales: Allocation monitoring"
+  - label: "GPU tests"
     command:
-      - "julia --project=perf perf/allocs.jl"
-    artifact_paths:
-      - "perf/allocations_output/*"
-    agents:
-      slurm_ntasks: 1
-    timeout_in_minutes: 60
-
-  - label: ":mag::rocket: Constructor benchmarks"
-    command:
-      - "julia --project=perf perf/benchmark.jl"
-    agents:
-      slurm_ntasks: 1
-    timeout_in_minutes: 60
-
-  - label: ":mag::rocket: Constructor micro-benchmarks"
-    command:
-      - "julia --project=perf perf/microbenchmarks.jl"
-    agents:
-      slurm_ntasks: 1
-    timeout_in_minutes: 60
-
-  - label: ":mag::rocket: Constructor flop measurements"
-    command:
-      - "julia --project=perf perf/flops.jl"
-    agents:
-      slurm_ntasks: 1
-    timeout_in_minutes: 60
-
-  - label: ":mag::rocket: JET tests"
-    command:
-      - "julia --project=perf perf/jet.jl"
-    agents:
-      slurm_ntasks: 1
-    timeout_in_minutes: 60
-
-  - label: "KernelAbstraction GPU tests"
-    command:
-      - "julia --project=gpuenv test/runtests_gpu.jl CuArray"
-    agents:
-      slurm_ntasks: 1
-      slurm_gpus: 1
-    timeout_in_minutes: 60
-
-  - label: "KernelAbstraction CPU tests"
-    command:
-      - "julia --project=gpuenv test/runtests_gpu.jl"
-    agents:
-      slurm_ntasks: 1
-      slurm_gpus: 1
-    timeout_in_minutes: 60
-
-  - label: "KernelAbstraction GPU kernel benchmarks"
-    command:
-      - "julia --project=gpuenv perf/kernel_bm.jl CuArray"
-    agents:
-      slurm_ntasks: 1
-      slurm_gpus: 1
-    timeout_in_minutes: 60
-
-  - label: "KernelAbstraction CPU kernel benchmarks"
-    command:
-      - "julia --project=gpuenv perf/kernel_bm.jl"
+      - "julia --project=test --color=yes test/runtests_gpu.jl"
     agents:
       slurm_ntasks: 1
       slurm_gpus: 1

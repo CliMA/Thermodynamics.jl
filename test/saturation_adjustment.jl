@@ -64,7 +64,11 @@ Focus:
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
                 @test isapprox(q_liq, q_liq0; atol = FT(0), rtol = FT(1e-6))
                 @test isapprox(q_ice, q_ice0; atol = FT(0), rtol = FT(1e-6))
-                @test isapprox(TD.internal_energy_sat(param_set, T, ρ0, q_tot), e_int_sat; rtol = FT(1e-6))
+                @test isapprox(
+                    TD.internal_energy_sat(param_set, T, ρ0, q_tot),
+                    e_int_sat;
+                    rtol = FT(1e-6),
+                )
             end
 
             # peq
@@ -80,7 +84,11 @@ Focus:
                 )
                 ρ = TD.air_density(param_set, T, p0, q_tot)
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
-                @test isapprox(TD.internal_energy_sat(param_set, T, ρ, q_tot), e_int_sat; rtol = FT(1e-6))
+                @test isapprox(
+                    TD.internal_energy_sat(param_set, T, ρ, q_tot),
+                    e_int_sat;
+                    rtol = FT(1e-6),
+                )
                 @test q_liq + q_ice ≈ TD.saturation_excess(param_set, T, ρ, q_tot)
             end
 
@@ -97,7 +105,11 @@ Focus:
                 )
                 ρ = TD.air_density(param_set, T, p0, q_tot)
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
-                @test isapprox(TD.enthalpy_sat(param_set, T, ρ, q_tot), h_sat; rtol = FT(1e-6))
+                @test isapprox(
+                    TD.enthalpy_sat(param_set, T, ρ, q_tot),
+                    h_sat;
+                    rtol = FT(1e-6),
+                )
                 @test q_liq + q_ice ≈ TD.saturation_excess(param_set, T, ρ, q_tot)
             end
 
@@ -113,7 +125,11 @@ Focus:
                     FT(1e-10),
                 )
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
-                @test isapprox(TD.air_pressure(param_set, T, ρ0, q_tot, q_liq, q_ice), p0; rtol = FT(1e-6))
+                @test isapprox(
+                    TD.air_pressure(param_set, T, ρ0, q_tot, q_liq, q_ice),
+                    p0;
+                    rtol = FT(1e-6),
+                )
             end
 
             # pθ_liq_ice_q
@@ -128,7 +144,14 @@ Focus:
                     FT(1e-10),
                 )
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
-                θ_chk = TD.liquid_ice_pottemp_given_pressure(param_set, T, p0, q_tot, q_liq, q_ice)
+                θ_chk = TD.liquid_ice_pottemp_given_pressure(
+                    param_set,
+                    T,
+                    p0,
+                    q_tot,
+                    q_liq,
+                    q_ice,
+                )
                 @test isapprox(θ_chk, θ_liq_ice_p; rtol = FT(1e-6))
             end
 
@@ -150,5 +173,3 @@ Focus:
         end
     end
 end
-
-

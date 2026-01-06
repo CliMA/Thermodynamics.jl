@@ -28,5 +28,3 @@ rtol_temperature = 1e-6
 # Generic tolerances used throughout the functional tests
 atol_temperature = 1e-1
 rtol_temperature_fd = 5e-4
-
-

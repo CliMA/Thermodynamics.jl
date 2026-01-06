@@ -116,5 +116,3 @@ function extract_thermodynamic_parameters(param_set)
         _kappa_d,
     )
 end
-
-

@@ -59,7 +59,14 @@ const TDTP_SA = TD.TemperatureProfiles
                 e_int_p = TD.internal_energy_sat(param_set, T0, ρ_p, q0)
                 h_p = TD.enthalpy_sat(param_set, T0, ρ_p, q0)
                 θ_p =
-                    TD.liquid_ice_pottemp_given_pressure(param_set, T0, p0, q0, q_liq_p, q_ice_p)
+                    TD.liquid_ice_pottemp_given_pressure(
+                        param_set,
+                        T0,
+                        p0,
+                        q0,
+                        q_liq_p,
+                        q_ice_p,
+                    )
 
                 return (;
                     T0,
@@ -91,7 +98,12 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(Tsol)
-                        @test isapprox(Tsol, inp.T0; atol = FT(atol_temperature), rtol = FT(0))
+                        @test isapprox(
+                            Tsol,
+                            inp.T0;
+                            atol = FT(atol_temperature),
+                            rtol = FT(0),
+                        )
                         check_partition(Tsol, inp.ρ0, inp.q0, ql, qi)
                     end
 
@@ -107,7 +119,12 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(Tsol)
-                        @test isapprox(Tsol, inp.T0; atol = FT(atol_temperature), rtol = FT(0))
+                        @test isapprox(
+                            Tsol,
+                            inp.T0;
+                            atol = FT(atol_temperature),
+                            rtol = FT(0),
+                        )
                         ρ_eff = TD.air_density(param_set, Tsol, inp.p0, inp.q0)
                         check_partition(Tsol, ρ_eff, inp.q0, ql, qi)
                     end
@@ -124,7 +141,12 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(Tsol)
-                        @test isapprox(Tsol, inp.T0; atol = FT(atol_temperature), rtol = FT(0))
+                        @test isapprox(
+                            Tsol,
+                            inp.T0;
+                            atol = FT(atol_temperature),
+                            rtol = FT(0),
+                        )
                         ρ_eff = TD.air_density(param_set, Tsol, inp.p0, inp.q0)
                         check_partition(Tsol, ρ_eff, inp.q0, ql, qi)
                     end
@@ -141,7 +163,12 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(Tsol)
-                        @test isapprox(Tsol, inp.T0; atol = FT(atol_temperature), rtol = FT(0))
+                        @test isapprox(
+                            Tsol,
+                            inp.T0;
+                            atol = FT(atol_temperature),
+                            rtol = FT(0),
+                        )
                         check_partition(Tsol, inp.ρ0, inp.q0, ql, qi)
                     end
 
@@ -157,7 +184,12 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(Tsol)
-                        @test isapprox(Tsol, inp.T0; atol = FT(atol_temperature), rtol = FT(0))
+                        @test isapprox(
+                            Tsol,
+                            inp.T0;
+                            atol = FT(atol_temperature),
+                            rtol = FT(0),
+                        )
                         ρ_eff = TD.air_density(param_set, Tsol, inp.p0, inp.q0)
                         check_partition(Tsol, ρ_eff, inp.q0, ql, qi)
                     end
@@ -174,14 +206,20 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(Tsol)
-                        @test isapprox(Tsol, inp.T0; atol = FT(atol_temperature), rtol = FT(0))
+                        @test isapprox(
+                            Tsol,
+                            inp.T0;
+                            atol = FT(atol_temperature),
+                            rtol = FT(0),
+                        )
                         check_partition(Tsol, inp.ρ0, inp.q0, ql, qi)
                     end
                 end
             end
 
             @testset "ρeq solver variants are timed ($FT)" begin
-                solvers = (RS.SecantMethod, RS.BrentsMethod, RS.NewtonsMethod, RS.NewtonsMethodAD)
+                solvers =
+                    (RS.SecantMethod, RS.BrentsMethod, RS.NewtonsMethod, RS.NewtonsMethodAD)
                 timing_idxs = idxs[1:min(end, 80)]
 
                 for solver in solvers
@@ -303,5 +341,3 @@ const TDTP_SA = TD.TemperatureProfiles
         end
     end
 end
-
-

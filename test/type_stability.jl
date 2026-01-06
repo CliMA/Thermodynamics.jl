@@ -28,13 +28,19 @@ These tests focus on the functional API
             @test @inferred(TD.saturation_vapor_pressure(param_set, T, TD.Liquid())) isa FT
             @test @inferred(TD.saturation_vapor_pressure(param_set, T, TD.Ice())) isa FT
             @test @inferred(TD.q_vap_saturation(param_set, T, ρ)) isa FT
-            @test @inferred(TD.q_vap_saturation_from_pressure(param_set, q_tot, p, T)) isa FT
-            @test @inferred(TD.relative_humidity(param_set, T, p, q_tot, q_liq, q_ice)) isa FT
-            @test @inferred(TD.air_temperature(param_set, TD.ρeq(), e_int, q_tot, q_liq, q_ice)) isa FT
-            @test @inferred(TD.air_temperature(param_set, TD.phq(), h, q_tot, q_liq, q_ice)) isa FT
-            @test @inferred(TD.air_temperature(param_set, TD.pρq(), p, ρ, q_tot, q_liq, q_ice)) isa FT
+            @test @inferred(TD.q_vap_saturation_from_pressure(param_set, q_tot, p, T)) isa
+                  FT
+            @test @inferred(TD.relative_humidity(param_set, T, p, q_tot, q_liq, q_ice)) isa
+                  FT
+            @test @inferred(
+                TD.air_temperature(param_set, TD.ρeq(), e_int, q_tot, q_liq, q_ice)
+            ) isa FT
+            @test @inferred(
+                TD.air_temperature(param_set, TD.phq(), h, q_tot, q_liq, q_ice)
+            ) isa FT
+            @test @inferred(
+                TD.air_temperature(param_set, TD.pρq(), p, ρ, q_tot, q_liq, q_ice)
+            ) isa FT
         end
     end
 end
-
-

@@ -46,5 +46,3 @@ non-convergence via `Thermodynamics.error_on_non_convergence()`.
         end
     end
 end
-
-

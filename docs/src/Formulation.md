@@ -29,7 +29,7 @@
 
 The thermodynamics of moist air is often subject to empirical approximations, which usually are opaque, internally inconsistent, and/or inconsistent across model components. For example, microphysical process models often use different approximations for thermodynamic quantities such as saturation vapor pressures than the dynamical core. The often bewildering array of approximations makes it difficult to achieve global conservation, e.g., of energy, and it complicates the use of models for other planetary atmospheres, with different thermodynamic parameters.
 
-Here we introduce one consistent set of thermodynamic approximations for all model components. The key to thermodynamic consistency at reasonable accuracy is to take the specific heat capacities of the constituents of moist air (dry air, water vapor, liquid water, and ice) to be constant, i.e., to assume the gases to be **calorically perfect**. We discuss how to derive all other thermodynamic quantities that are needed on the basis of this one approximation ([Romps2008](@cite),[Bott2008](@cite), [Marquet2016](@cite),[Yatunin2025](@cite)). This includes:
+Here we introduce one consistent set of thermodynamic approximations for all model components. The key to thermodynamic consistency at reasonable accuracy is to take the specific heat capacities of the constituents of moist air (dry air, water vapor, liquid water, and ice) to be constant, i.e., to assume the gases to be **calorically perfect**. We discuss how to derive all other thermodynamic quantities that are needed on the basis of this one approximation ([Romps2008](@cite),[Bott2008](@cite), [Marquet2016](@cite),[Yatunin2026](@cite)). This includes:
 
 - Giving accurate and easily adaptable closed-form expressions for internal energies, enthalpies, specific latent heats, and saturation vapor pressures
 - Showing how to construct consistent sets of thermodynamic equations that either (i) assume equilibrium of the phases and require only one prognostic water variable, or (ii) do not assume equilibrium of the phases and require prognostic variables for all water phases
@@ -61,7 +61,7 @@ The working fluid of the atmosphere model is **moist air including precipitation
     Unlike many atmospheric models that treat precipitation as a separate component, this framework includes precipitation as part of the working fluid. This means:
     - Mass and energy conservation are maintained across all phases (including precipitation)
     - Thermodynamic consistency is preserved throughout the system
-    - All condensed water phases (cloud and precipitation) are assumed to be in thermal equilibrium with the surrounding air (which is an approximation, see [Yatunin2025](@cite) for discussion)
+    - All condensed water phases (cloud and precipitation) are assumed to be in thermal equilibrium with the surrounding air (which is an approximation, see [Yatunin2026](@cite) for discussion)
 
 Dry air and water vapor are taken to be ideal gases. The specific volume of all condensed phases (cloud liquid, cloud ice, and precipitation) is neglected relative to that of the gas phases (it is a factor $10^3$ less than that of the gas phases). All phases are assumed to have the same temperature, and are advected with the same velocity. The condensates may be sedimenting or falling relative to the gas phases; nonetheless, they are assumed to be in thermal equilibrium with the surrounding fluid. However, the condensates do not need to be in thermodynamic equilibrium with the other fluid constituents; out-of-equilibrium phases such as supercooled liquid can exist.
 
@@ -79,7 +79,7 @@ Dry air and water vapor are taken to be ideal gases. The specific volume of all 
     **Cons:**
     - Assumes precipitation is in thermal equilibrium with air, which may not always be true (e.g., large raindrops or hail)
     
-    See [Yatunin2025](@cite) for further discussion and justification of this modeling choice.
+    See [Yatunin2026](@cite) for further discussion and justification of this modeling choice.
 
 ---
 
@@ -795,4 +795,4 @@ Thermodynamics.jl contains a battery of unit tests that check for consistency of
     The Thermodynamics.jl package provides a complete implementation of this framework with comprehensive testing and validation. See the [API documentation](API.md) for detailed function signatures and usage examples.
 
 !!! note "References"
-    This formulation is described in [Yatunin2025](@cite), building on the theoretical framework described in [Romps2008](@cite), [Bott2008](@cite), and [Marquet2016](@cite), with additional developments for mixed-phase conditions from [Pressel2015](@cite).
+    This formulation is described in [Yatunin2026](@cite), building on the theoretical framework described in [Romps2008](@cite), [Bott2008](@cite), and [Marquet2016](@cite), with additional developments for mixed-phase conditions from [Pressel2015](@cite).
