@@ -104,91 +104,104 @@ parameter_set(::Type{Float32}) = param_set_Float32
     tol = FT(1e-10)
 
     # 1) ρeq
-    results = TD.saturation_adjustment.(
-        Ref(RS.NewtonsMethod),
-        Ref(param_set),
-        Ref(TD.ρeq()),
-        d_ρ,
-        d_e_int_ρ,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    # 1) ρeq
+    results = broadcast(d_ρ, d_e_int_ρ, d_q) do ρ, e_int, q
+        TD.saturation_adjustment(
+            RS.NewtonsMethod,
+            param_set,
+            TD.ρeq(),
+            ρ,
+            e_int,
+            q,
+            maxiter,
+            tol,
+        )
+    end
     d_T[1, :] .= first.(results)
     d_ql[1, :] .= getindex.(results, 2)
     d_qi[1, :] .= last.(results)
 
     # 2) peq
-    results = TD.saturation_adjustment.(
-        Ref(RS.SecantMethod),
-        Ref(param_set),
-        Ref(TD.peq()),
-        d_p,
-        d_e_int_p,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    results = broadcast(d_p, d_e_int_p, d_q) do p, e_int, q
+        TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.peq(),
+            p,
+            e_int,
+            q,
+            maxiter,
+            tol,
+        )
+    end
     d_T[2, :] .= first.(results)
     d_ql[2, :] .= getindex.(results, 2)
     d_qi[2, :] .= last.(results)
 
     # 3) phq
-    results = TD.saturation_adjustment.(
-        Ref(RS.SecantMethod),
-        Ref(param_set),
-        Ref(TD.phq()),
-        d_p,
-        d_h_p,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    results = broadcast(d_p, d_h_p, d_q) do p, h, q
+        TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.phq(),
+            p,
+            h,
+            q,
+            maxiter,
+            tol,
+        )
+    end
     d_T[3, :] .= first.(results)
     d_ql[3, :] .= getindex.(results, 2)
     d_qi[3, :] .= last.(results)
 
     # 4) pρq
-    results = TD.saturation_adjustment.(
-        Ref(RS.SecantMethod),
-        Ref(param_set),
-        Ref(TD.pρq()),
-        d_p_ρ,
-        d_ρ,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    results = broadcast(d_p_ρ, d_ρ, d_q) do p, ρ, q
+        TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.pρq(),
+            p,
+            ρ,
+            q,
+            maxiter,
+            tol,
+        )
+    end
     d_T[4, :] .= first.(results)
     d_ql[4, :] .= getindex.(results, 2)
     d_qi[4, :] .= last.(results)
 
     # 5) ρθ_liq_ice_q
-    results = TD.saturation_adjustment.(
-        Ref(RS.SecantMethod),
-        Ref(param_set),
-        Ref(TD.ρθ_liq_ice_q()),
-        d_ρ,
-        d_θ_ρ,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    results = broadcast(d_ρ, d_θ_ρ, d_q) do ρ, θ, q
+        TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.ρθ_liq_ice_q(),
+            ρ,
+            θ,
+            q,
+            maxiter,
+            tol,
+        )
+    end
     d_T[5, :] .= first.(results)
     d_ql[5, :] .= getindex.(results, 2)
     d_qi[5, :] .= last.(results)
 
     # 6) pθ_liq_ice_q
-    results = TD.saturation_adjustment.(
-        Ref(RS.SecantMethod),
-        Ref(param_set),
-        Ref(TD.pθ_liq_ice_q()),
-        d_p,
-        d_θ_p,
-        d_q,
-        Ref(maxiter),
-        Ref(tol),
-    )
+    results = broadcast(d_p, d_θ_p, d_q) do p, θ, q
+        TD.saturation_adjustment(
+            RS.SecantMethod,
+            param_set,
+            TD.pθ_liq_ice_q(),
+            p,
+            θ,
+            q,
+            maxiter,
+            tol,
+        )
+    end
     d_T[6, :] .= first.(results)
     d_ql[6, :] .= getindex.(results, 2)
     d_qi[6, :] .= last.(results)
