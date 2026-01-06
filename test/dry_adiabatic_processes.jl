@@ -20,7 +20,7 @@ using Random
             T_idgl =
                 TD.air_temperature.(
                     Ref(param_set),
-                    Ref(TD.pρq()),
+                    Ref(TD.pρ()),
                     p,
                     ρ,
                     q_tot,

@@ -58,15 +58,15 @@ end
 @inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
-    ::ρeq,
+    ::ρe,
     ρ,
     e_int,
     q_tot,
     T_guess,
 ) where {NM}
     FT = eltype(param_set)
-    T_unsat = air_temperature(param_set, ρeq(), e_int, q_tot)
-    T_ice = air_temperature(param_set, ρeq(), e_int, q_tot, FT(0), q_tot)
+    T_unsat = air_temperature(param_set, ρe(), e_int, q_tot)
+    T_ice = air_temperature(param_set, ρe(), e_int, q_tot, FT(0), q_tot)
     return _make_sa_solver(NM, param_set, T_unsat, T_ice, T_guess)
 end
 
@@ -78,15 +78,15 @@ end
 @inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
-    ::pρq,
+    ::pρ,
     p,
     ρ,
     q_tot,
     T_guess,
 ) where {NM}
     FT = eltype(param_set)
-    T_unsat = air_temperature(param_set, pρq(), p, ρ, q_tot)
-    T_ice = air_temperature(param_set, pρq(), p, ρ, q_tot, FT(0), q_tot)
+    T_unsat = air_temperature(param_set, pρ(), p, ρ, q_tot)
+    T_ice = air_temperature(param_set, pρ(), p, ρ, q_tot, FT(0), q_tot)
     return _make_sa_solver(NM, param_set, T_unsat, T_ice, T_guess)
 end
 
@@ -97,7 +97,7 @@ end
 @inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
-    ::peq,
+    ::pe,
     p,
     e_int,
     q_tot,
@@ -117,15 +117,15 @@ end
 @inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
-    ::phq,
+    ::ph,
     p,
     h,
     q_tot,
     T_guess,
 ) where {NM}
     FT = eltype(param_set)
-    T_unsat = air_temperature(param_set, phq(), h, q_tot)
-    T_ice = air_temperature(param_set, phq(), h, q_tot, FT(0), q_tot)
+    T_unsat = air_temperature(param_set, ph(), h, q_tot)
+    T_ice = air_temperature(param_set, ph(), h, q_tot, FT(0), q_tot)
     return _make_sa_solver(NM, param_set, T_unsat, T_ice, T_guess)
 end
 
@@ -136,17 +136,17 @@ end
 @inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
-    ::pθ_liq_ice_q,
+    ::pθ_li,
     p,
     θ_liq_ice,
     q_tot,
     T_guess,
 ) where {NM}
     FT = eltype(param_set)
-    T_unsat = air_temperature(param_set, pθ_liq_ice_q(), p, θ_liq_ice, q_tot)
+    T_unsat = air_temperature(param_set, pθ_li(), p, θ_liq_ice, q_tot)
     T_ice = air_temperature(
         param_set,
-        pθ_liq_ice_q(),
+        pθ_li(),
         p,
         θ_liq_ice,
         q_tot,
@@ -163,17 +163,17 @@ end
 @inline function sa_numerical_method(
     ::Type{NM},
     param_set::APS,
-    ::ρθ_liq_ice_q,
+    ::ρθ_li,
     ρ,
     θ_liq_ice,
     q_tot,
     T_guess,
 ) where {NM}
     FT = eltype(param_set)
-    T_unsat = air_temperature(param_set, ρθ_liq_ice_q(), ρ, θ_liq_ice, q_tot)
+    T_unsat = air_temperature(param_set, ρθ_li(), ρ, θ_liq_ice, q_tot)
     T_ice = air_temperature(
         param_set,
-        ρθ_liq_ice_q(),
+        ρθ_li(),
         ρ,
         θ_liq_ice,
         q_tot,

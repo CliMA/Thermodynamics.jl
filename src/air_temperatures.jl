@@ -31,12 +31,12 @@ This method inverts [`internal_energy`](@ref) by solving for `T` given `e_int`.
     q_liq::Real = 0,
     q_ice::Real = 0,
 )
-    return air_temperature(param_set, ρeq(), e_int, q_tot, q_liq, q_ice)
+    return air_temperature(param_set, ρe(), e_int, q_tot, q_liq, q_ice)
 end
 
 @inline function air_temperature(
     param_set::APS,
-    ::ρeq,
+    ::ρe,
     e_int::Real,
     q_tot::Real = 0,
     q_liq::Real = 0,
@@ -55,7 +55,7 @@ end
 end
 
 """
-    air_temperature(param_set, ::phq, h, q_tot=0, q_liq=0, q_ice=0)
+    air_temperature(param_set, ::ph, h, q_tot=0, q_liq=0, q_ice=0)
 
 The air temperature, given
 
@@ -74,7 +74,7 @@ This method inverts [`enthalpy`](@ref) by solving for `T` given `h`.
 """
 @inline function air_temperature(
     param_set::APS,
-    ::phq,
+    ::ph,
     h::Real,
     q_tot::Real = 0,
     q_liq::Real = 0,
@@ -89,7 +89,7 @@ This method inverts [`enthalpy`](@ref) by solving for `T` given `h`.
 end
 
 """
-    air_temperature(param_set, ::pρq, p, ρ, q_tot=0, q_liq=0, q_ice=0)
+    air_temperature(param_set, ::pρ, p, ρ, q_tot=0, q_liq=0, q_ice=0)
 
 The air temperature, given
 
@@ -109,7 +109,7 @@ This directly applies the ideal gas law: `T = p / (R_m ρ)`.
 """
 @inline function air_temperature(
     param_set::APS,
-    ::pρq,
+    ::pρ,
     p::Real,
     ρ::Real,
     q_tot::Real = 0,
@@ -123,7 +123,7 @@ end
 """
     air_temperature(
         param_set,
-        ::pθ_liq_ice_q,
+        ::pθ_li,
         p,
         θ_liq_ice,
         q_tot=0,
@@ -150,7 +150,7 @@ This inverts [`liquid_ice_pottemp_given_pressure`](@ref) by solving for `T`.
 """
 @inline function air_temperature(
     param_set::APS,
-    ::pθ_liq_ice_q,
+    ::pθ_li,
     p::Real,
     θ_liq_ice::Real,
     q_tot::Real = 0,
@@ -164,7 +164,7 @@ end
 
 
 """
-    air_temperature(param_set, ::ρθ_liq_ice_q, ρ, θ_liq_ice, q_tot=0, q_liq=0, q_ice=0)
+    air_temperature(param_set, ::ρθ_li, ρ, θ_liq_ice, q_tot=0, q_liq=0, q_ice=0)
 
 The air temperature obtained by inverting the liquid-ice potential temperature, given
 
@@ -188,7 +188,7 @@ potential temperature, then latent heat corrections are applied.
 """
 @inline function air_temperature(
     param_set::APS,
-    ::ρθ_liq_ice_q,
+    ::ρθ_li,
     ρ::Real,
     θ_liq_ice::Real,
     q_tot::Real = 0,

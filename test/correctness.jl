@@ -48,7 +48,7 @@ using the non-deprecated functional API (no `PhasePartition`/state types).
             q_liq = FT(0.0)
             q_ice = FT(0.0)
             e_int = TD.internal_energy(param_set, T0, q_tot, q_liq, q_ice)
-            T = TD.air_temperature(param_set, TD.ρeq(), e_int, q_tot, q_liq, q_ice)
+            T = TD.air_temperature(param_set, TD.ρe(), e_int, q_tot, q_liq, q_ice)
             @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
         end
 

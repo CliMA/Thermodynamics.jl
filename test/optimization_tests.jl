@@ -77,9 +77,9 @@ function find_saturated_index(inputs; use_p_based::Bool)
     return i
 end
 
-use_p_based(::Type{TD.peq}) = true
-use_p_based(::Type{TD.phq}) = true
-use_p_based(::Type{TD.pθ_liq_ice_q}) = true
+use_p_based(::Type{TD.pe}) = true
+use_p_based(::Type{TD.ph}) = true
+use_p_based(::Type{TD.pθ_li}) = true
 use_p_based(::Type) = false
 
 function conditions_index(inputs, sym, ftype::Type)
@@ -94,12 +94,12 @@ function conditions_index(inputs, sym, ftype::Type)
     end
 end
 
-get_kwargs(x, ::Type{TD.ρeq}) = (; ρ = x.ρ, e_int = x.e_int_ρ, q_tot = x.q_tot)
-get_kwargs(x, ::Type{TD.peq}) = (; p = x.p, e_int = x.e_int_p, q_tot = x.q_tot)
-get_kwargs(x, ::Type{TD.phq}) = (; p = x.p, h = x.h_p, q_tot = x.q_tot)
-get_kwargs(x, ::Type{TD.pρq}) = (; p = x.p, ρ = x.ρ, q_tot = x.q_tot)
-get_kwargs(x, ::Type{TD.ρθ_liq_ice_q}) = (; ρ = x.ρ, θ_liq_ice = x.θ_ρ, q_tot = x.q_tot)
-get_kwargs(x, ::Type{TD.pθ_liq_ice_q}) = (; p = x.p, θ_liq_ice = x.θ_p, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.ρe}) = (; ρ = x.ρ, e_int = x.e_int_ρ, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.pe}) = (; p = x.p, e_int = x.e_int_p, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.ph}) = (; p = x.p, h = x.h_p, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.pρ}) = (; p = x.p, ρ = x.ρ, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.ρθ_li}) = (; ρ = x.ρ, θ_liq_ice = x.θ_ρ, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.pθ_li}) = (; p = x.p, θ_liq_ice = x.θ_p, q_tot = x.q_tot)
 
 conditions(::Type) = (:dry, :saturated)
 
@@ -109,7 +109,7 @@ function sample_args(inputs, param_set, sym, ftype::Type)
     return getindex.(values(kwargs), i)
 end
 
-solver_for(::Type{TD.ρeq}) = RS.NewtonsMethod
+solver_for(::Type{TD.ρe}) = RS.NewtonsMethod
 solver_for(::Type) = RS.SecantMethod
 
 #####
@@ -133,7 +133,7 @@ function jet_thermo_states(::Type{FT}) where {FT}
 
     @testset "JET optimization tests" begin
         # Test for allocation-free / type-stable saturation adjustment
-        for F in (TD.ρeq, TD.peq, TD.phq, TD.pρq, TD.ρθ_liq_ice_q, TD.pθ_liq_ice_q)
+        for F in (TD.ρe, TD.pe, TD.ph, TD.pρ, TD.ρθ_li, TD.pθ_li)
             for cond in conditions(F)
                 args = sample_args(inputs, param_set, cond, F)
                 solver = solver_for(F)

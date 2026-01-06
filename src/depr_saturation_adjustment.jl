@@ -16,7 +16,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `ρeq()` dispatch instead.
     return saturation_adjustment(
         sat_adjust_method,
         param_set,
-        ρeq(),
+        ρe(),
         ρ,
         e_int,
         q_tot,
@@ -38,7 +38,7 @@ end
     return saturation_adjustment(
         SecantMethod,
         param_set,
-        ρeq(),
+        ρe(),
         ρ,
         e_int,
         q_tot,
@@ -66,7 +66,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `phq()` dispatch instead.
     return saturation_adjustment(
         sat_adjust_method,
         param_set,
-        phq(),
+        ph(),
         p,
         h,
         q_tot,
@@ -96,7 +96,7 @@ Forwards to `saturation_adjustment(..., ::ρeq, ...)` with arguments `(ρ, e_int
     (T, _...) = saturation_adjustment(
         sat_adjust_method,
         param_set,
-        ρeq(),
+        ρe(),
         ρ,
         e_int,
         q_tot,
@@ -126,7 +126,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `phq()` dispatch instead.
     (T, _...) = saturation_adjustment(
         sat_adjust_method,
         param_set,
-        phq(),
+        ph(),
         p,
         h,
         q_tot,
@@ -156,7 +156,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `peq()` dispatch instead.
     (T, _...) = saturation_adjustment(
         sat_adjust_method,
         param_set,
-        peq(),
+        pe(),
         p,
         e_int,
         q_tot,
@@ -186,7 +186,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `pθ_liq_ice_q()` dispatch 
     (T, _...) = saturation_adjustment(
         sat_adjust_method,
         param_set,
-        pθ_liq_ice_q(),
+        pθ_li(),
         p,
         θ_liq_ice,
         q_tot,
@@ -216,7 +216,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `ρθ_liq_ice_q()` dispatch
     (T, _...) = saturation_adjustment(
         sat_adjust_method,
         param_set,
-        ρθ_liq_ice_q(),
+        ρθ_li(),
         ρ,
         θ_liq_ice,
         q_tot,
@@ -246,7 +246,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `pρq()` dispatch instead.
     (T, _...) = saturation_adjustment(
         sat_adjust_method,
         param_set,
-        pρq(),
+        pρ(),
         p,
         ρ,
         q_tot,

@@ -17,7 +17,7 @@ export air_temperature_given_ρθq
     q_liq = 0,
     q_ice = 0,
 )
-    return air_temperature(param_set, phq(), h, q_tot, q_liq, q_ice)
+    return air_temperature(param_set, ph(), h, q_tot, q_liq, q_ice)
 end
 
 """
@@ -35,7 +35,7 @@ end
     q_liq = 0,
     q_ice = 0,
 )
-    return air_temperature(param_set, pρq(), p, ρ, q_tot, q_liq, q_ice)
+    return air_temperature(param_set, pρ(), p, ρ, q_tot, q_liq, q_ice)
 end
 
 """
@@ -55,7 +55,7 @@ end
 )
     return air_temperature(
         param_set,
-        pθ_liq_ice_q(),
+        pθ_li(),
         p,
         θ_liq_ice,
         q_tot,
@@ -81,7 +81,7 @@ end
 )
     return air_temperature(
         param_set,
-        ρθ_liq_ice_q(),
+        ρθ_li(),
         ρ,
         θ_liq_ice,
         q_tot,

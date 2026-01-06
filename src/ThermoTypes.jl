@@ -1,10 +1,10 @@
 export IndepVars
-export ρeq
-export peq
-export phq
-export pρq
-export pθ_liq_ice_q
-export ρθ_liq_ice_q
+export ρe
+export pe
+export ph
+export pρ
+export pθ_li
+export ρθ_li
 
 export Phase
 export Liquid
@@ -19,46 +19,46 @@ a thermodynamic quantity (e.g., in [`air_temperature`](@ref)).
 abstract type IndepVars end
 
 """
-    ρeq <: IndepVars
+    ρe <: IndepVars
 
 Density, internal energy, and total specific humidity.
 """
-struct ρeq <: IndepVars end
+struct ρe <: IndepVars end
 
 """
-    peq <: IndepVars
+    pe <: IndepVars
 
 Pressure, internal energy, and total specific humidity.
 """
-struct peq <: IndepVars end
+struct pe <: IndepVars end
 
 """
-    phq <: IndepVars
+    ph <: IndepVars
 
 Pressure, enthalpy, and total specific humidity.
 """
-struct phq <: IndepVars end
+struct ph <: IndepVars end
 
 """
-    pρq <: IndepVars
+    pρ <: IndepVars
 
 Pressure, density, and total specific humidity.
 """
-struct pρq <: IndepVars end
+struct pρ <: IndepVars end
 
 """
-    pθ_liq_ice_q <: IndepVars
+    pθ_li <: IndepVars
 
 Pressure, liquid-ice potential temperature, and total specific humidity.
 """
-struct pθ_liq_ice_q <: IndepVars end
+struct pθ_li <: IndepVars end
 
 """
-    ρθ_liq_ice_q <: IndepVars
+    ρθ_li <: IndepVars
 
 Density, liquid-ice potential temperature, and total specific humidity.
 """
-struct ρθ_liq_ice_q <: IndepVars end
+struct ρθ_li <: IndepVars end
 
 """
     Phase

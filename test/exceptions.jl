@@ -24,7 +24,7 @@ non-convergence via `Thermodynamics.error_on_non_convergence()`.
             @test_throws ErrorException TD.saturation_adjustment(
                 RS.NewtonsMethod,
                 param_set,
-                TD.ρeq(),
+                TD.ρe(),
                 ρ,
                 e_int_sat,
                 q_tot,
@@ -35,7 +35,7 @@ non-convergence via `Thermodynamics.error_on_non_convergence()`.
             @test_throws ErrorException TD.saturation_adjustment(
                 RS.SecantMethod,
                 param_set,
-                TD.ρeq(),
+                TD.ρe(),
                 ρ,
                 e_int_sat,
                 q_tot,

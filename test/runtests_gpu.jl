@@ -75,7 +75,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
     p_ρ = TD.air_pressure.(Ref(param_set), T0, ρ0, q0, q_liq0, q_ice0)
     θ_ρ = TD.liquid_ice_pottemp.(Ref(param_set), T0, ρ0, q0, q_liq0, q_ice0)
 
-    # p-based targets (match peq/phq/pθ internals: ρ(T) = air_density(T,p,q_tot))
+    # p-based targets (match pe/ph/pθ internals: ρ(T) = air_density(T,p,q_tot))
     p0 = profiles.p[sl]
     ρ_p = TD.air_density.(Ref(param_set), T0, p0, q0)
     (q_liq_p, q_ice_p) =
@@ -109,7 +109,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         TD.saturation_adjustment(
             RS.NewtonsMethod,
             param_set,
-            TD.ρeq(),
+            TD.ρe(),
             ρ,
             e_int,
             q,
@@ -121,12 +121,12 @@ parameter_set(::Type{Float32}) = param_set_Float32
     d_ql[1, :] .= getindex.(results, 2)
     d_qi[1, :] .= last.(results)
 
-    # 2) peq
+    # 2) pe
     results = broadcast(d_p, d_e_int_p, d_q) do p, e_int, q
         TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.peq(),
+            TD.pe(),
             p,
             e_int,
             q,
@@ -138,12 +138,12 @@ parameter_set(::Type{Float32}) = param_set_Float32
     d_ql[2, :] .= getindex.(results, 2)
     d_qi[2, :] .= last.(results)
 
-    # 3) phq
+    # 3) ph
     results = broadcast(d_p, d_h_p, d_q) do p, h, q
         TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.phq(),
+            TD.ph(),
             p,
             h,
             q,
@@ -155,12 +155,12 @@ parameter_set(::Type{Float32}) = param_set_Float32
     d_ql[3, :] .= getindex.(results, 2)
     d_qi[3, :] .= last.(results)
 
-    # 4) pρq
+    # 4) pρ
     results = broadcast(d_p_ρ, d_ρ, d_q) do p, ρ, q
         TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.pρq(),
+            TD.pρ(),
             p,
             ρ,
             q,
@@ -172,12 +172,12 @@ parameter_set(::Type{Float32}) = param_set_Float32
     d_ql[4, :] .= getindex.(results, 2)
     d_qi[4, :] .= last.(results)
 
-    # 5) ρθ_liq_ice_q
+    # 5) ρθ_li
     results = broadcast(d_ρ, d_θ_ρ, d_q) do ρ, θ, q
         TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.ρθ_liq_ice_q(),
+            TD.ρθ_li(),
             ρ,
             θ,
             q,
@@ -189,12 +189,12 @@ parameter_set(::Type{Float32}) = param_set_Float32
     d_ql[5, :] .= getindex.(results, 2)
     d_qi[5, :] .= last.(results)
 
-    # 6) pθ_liq_ice_q
+    # 6) pθ_li
     results = broadcast(d_p, d_θ_p, d_q) do p, θ, q
         TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.pθ_liq_ice_q(),
+            TD.pθ_li(),
             p,
             θ,
             q,
@@ -219,7 +219,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
             RS.NewtonsMethod,
             param_set,
-            TD.ρeq(),
+            TD.ρe(),
             ρ0[i],
             e_int_ρ[i],
             q0[i],
@@ -229,7 +229,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         @test isapprox(T_gpu[1, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[1, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[1, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        # Invariance checks (ρeq): internal energy and phase partition at saturation
+        # Invariance checks (ρe): internal energy and phase partition at saturation
         @test isapprox(
             TD.internal_energy_sat(param_set, T_gpu[1, i], ρ0[i], q0[i]),
             e_int_ρ[i];
@@ -243,7 +243,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.peq(),
+            TD.pe(),
             p0[i],
             e_int_p[i],
             q0[i],
@@ -253,7 +253,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         @test isapprox(T_gpu[2, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[2, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[2, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        # Invariance checks (peq): energy and partition using ρ(T,p,q_tot)
+        # Invariance checks (pe): energy and partition using ρ(T,p,q_tot)
         let ρ_eff = TD.air_density(param_set, T_gpu[2, i], p0[i], q0[i])
             @test isapprox(
                 TD.internal_energy_sat(param_set, T_gpu[2, i], ρ_eff, q0[i]),
@@ -270,7 +270,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.phq(),
+            TD.ph(),
             p0[i],
             h_p[i],
             q0[i],
@@ -280,7 +280,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         @test isapprox(T_gpu[3, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[3, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[3, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        # Invariance checks (phq): enthalpy and partition using ρ(T,p,q_tot)
+        # Invariance checks (ph): enthalpy and partition using ρ(T,p,q_tot)
         let ρ_eff = TD.air_density(param_set, T_gpu[3, i], p0[i], q0[i])
             @test isapprox(
                 TD.enthalpy_sat(param_set, T_gpu[3, i], ρ_eff, q0[i]),
@@ -297,7 +297,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.pρq(),
+            TD.pρ(),
             p_ρ[i],
             ρ0[i],
             q0[i],
@@ -307,7 +307,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         @test isapprox(T_gpu[4, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[4, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[4, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        # Invariance checks (pρq): pressure target and partition at saturation
+        # Invariance checks (pρ): pressure target and partition at saturation
         @test isapprox(
             TD.air_pressure(
                 param_set,
@@ -328,7 +328,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.ρθ_liq_ice_q(),
+            TD.ρθ_li(),
             ρ0[i],
             θ_ρ[i],
             q0[i],
@@ -338,7 +338,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         @test isapprox(T_gpu[5, i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_gpu[5, i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_gpu[5, i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        # Invariance checks (ρθ_liq_ice_q): θ target and partition at saturation
+        # Invariance checks (ρθ_li): θ target and partition at saturation
         @test isapprox(
             TD.liquid_ice_pottemp(
                 param_set,
@@ -359,7 +359,7 @@ parameter_set(::Type{Float32}) = param_set_Float32
         (T_ref, ql_ref, qi_ref) = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.pθ_liq_ice_q(),
+            TD.pθ_li(),
             p0[i],
             θ_p[i],
             q0[i],

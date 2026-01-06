@@ -6,7 +6,7 @@ export saturation_adjustment
     saturation_adjustment(
         sat_adjust_method::Type,
         param_set,
-        ::ρeq,
+        ::ρe,
         ρ::Real,
         e_int::Real,
         q_tot::Real,
@@ -33,7 +33,7 @@ given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`
 - `(T, q_liq, q_ice)`: tuple of temperature [K] and phase partitions [kg/kg]
 
 # Notes
-- When calling the overload **without** an explicit `sat_adjust_method` (i.e. `saturation_adjustment(param_set, ρeq(), ...)`),
+- When calling the overload **without** an explicit `sat_adjust_method` (i.e. `saturation_adjustment(param_set, ρe(), ...)`),
   the default method is `NewtonsMethod`.
 - This function solves for `T` such that `e_int = internal_energy_sat(param_set, T, ρ, q_tot)` using
   root-finding, then computes `(q_liq, q_ice)` from [`condensate_partition`](@ref).
@@ -41,7 +41,7 @@ given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`
 function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
-    ::ρeq,
+    ::ρe,
     ρ,
     e_int,
     q_tot,
@@ -78,7 +78,7 @@ function saturation_adjustment(
     numerical_method = sa_numerical_method(
         sat_adjust_method,
         param_set,
-        ρeq(),
+        ρe(),
         ρ,
         e_int,
         q_tot,
@@ -94,7 +94,7 @@ function saturation_adjustment(
         maxiter,
         print_warning,
         sat_adjust_method,
-        ρeq(),
+        ρe(),
         ρ,
         e_int,
         q_tot,
@@ -109,7 +109,7 @@ end
     saturation_adjustment(
         sat_adjust_method::Type,
         param_set,
-        ::peq,
+        ::pe,
         p,
         e_int,
         q_tot,
@@ -126,7 +126,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
 function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
-    ::peq,
+    ::pe,
     p,
     e_int,
     q_tot,
@@ -144,7 +144,7 @@ function saturation_adjustment(
 
     make_numerical_method_p =
         (sat_method, param_set, target_e, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, peq(), p, target_e, q_tot, T_guess)
+            sa_numerical_method(sat_method, param_set, pe(), p, target_e, q_tot, T_guess)
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -158,9 +158,9 @@ function saturation_adjustment(
         q_sat_unsat_p,
         e_int_sat_given_p,
         make_numerical_method_p,
-        print_warning, # Reuse ρeq warning for now (e_int based)
+        print_warning, # Reuse ρe warning for now (e_int based)
         sat_adjust_method,
-        peq(),
+        pe(),
         p,
         e_int,
         q_tot,
@@ -174,7 +174,7 @@ end
     saturation_adjustment(
         sat_adjust_method::Type,
         param_set,
-        ::phq,
+        ::ph,
         p::Real,
         h::Real,
         q_tot::Real,
@@ -202,7 +202,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
 function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
-    ::phq,
+    ::ph,
     p,
     h,
     q_tot,
@@ -220,12 +220,12 @@ function saturation_adjustment(
 
     make_numerical_method_p =
         (sat_method, param_set, h, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, phq(), p, h, q_tot, T_guess)
+            sa_numerical_method(sat_method, param_set, ph(), p, h, q_tot, T_guess)
 
     # Unsaturated temperature estimate from (h, q_tot) with zero condensate.
     temp_from_hq_unsat =
         (param_set, h, q_tot) ->
-            air_temperature(param_set, phq(), h, q_tot, 0, 0)
+            air_temperature(param_set, ph(), h, q_tot, 0, 0)
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -241,7 +241,7 @@ function saturation_adjustment(
         make_numerical_method_p,
         print_warning,
         sat_adjust_method,
-        phq(),
+        ph(),
         h,
         p,
         q_tot,
@@ -256,7 +256,7 @@ end
     saturation_adjustment(
         sat_adjust_method::Type,
         param_set,
-        ::pθ_liq_ice_q,
+        ::pθ_li,
         p::Real,
         θ_liq_ice::Real,
         q_tot::Real,
@@ -273,7 +273,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
 function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
-    ::pθ_liq_ice_q,
+    ::pθ_li,
     p,
     θ_liq_ice,
     q_tot,
@@ -290,7 +290,7 @@ function saturation_adjustment(
 
     temp_from_θ_liq_ice_func =
         (param_set, θ_liq_ice, q_tot) ->
-            air_temperature(param_set, pθ_liq_ice_q(), p, θ_liq_ice, q_tot)
+            air_temperature(param_set, pθ_li(), p, θ_liq_ice, q_tot)
 
     q_sat_unsat_p =
         (param_set, T, q_tot) ->
@@ -298,7 +298,7 @@ function saturation_adjustment(
 
     make_numerical_method_p =
         (sat_method, param_set, θ, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, pθ_liq_ice_q(), p, θ, q_tot, T_guess)
+            sa_numerical_method(sat_method, param_set, pθ_li(), p, θ, q_tot, T_guess)
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -314,7 +314,7 @@ function saturation_adjustment(
         make_numerical_method_p,
         print_warning,
         sat_adjust_method,
-        pθ_liq_ice_q(),
+        pθ_li(),
         p,
         θ_liq_ice,
         q_tot,
@@ -330,7 +330,7 @@ end
     saturation_adjustment(
         sat_adjust_method::Type,
         param_set,
-        ::ρθ_liq_ice_q,
+        ::ρθ_li,
         ρ::Real,
         θ_liq_ice::Real,
         q_tot::Real,
@@ -347,7 +347,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
 function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
-    ::ρθ_liq_ice_q,
+    ::ρθ_li,
     ρ,
     θ_liq_ice,
     q_tot,
@@ -363,14 +363,14 @@ function saturation_adjustment(
 
     temp_from_θ_liq_ice_func =
         (param_set, θ_liq_ice, q_tot) ->
-            air_temperature(param_set, ρθ_liq_ice_q(), ρ, θ_liq_ice, q_tot)
+            air_temperature(param_set, ρθ_li(), ρ, θ_liq_ice, q_tot)
 
     q_sat_unsat_ρ = (param_set, T, q_tot) ->
         q_vap_saturation(param_set, T, ρ)
 
     make_numerical_method_ρ =
         (sat_method, param_set, θ, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, ρθ_liq_ice_q(), ρ, θ, q_tot, T_guess)
+            sa_numerical_method(sat_method, param_set, ρθ_li(), ρ, θ, q_tot, T_guess)
 
     T = _saturation_adjustment_generic(
         sat_adjust_method,
@@ -386,7 +386,7 @@ function saturation_adjustment(
         make_numerical_method_ρ,
         print_warning,
         sat_adjust_method,
-        ρθ_liq_ice_q(),
+        ρθ_li(),
         ρ,
         θ_liq_ice,
         q_tot,
@@ -402,7 +402,7 @@ end
     saturation_adjustment(
         sat_adjust_method::Type,
         param_set,
-        ::pρq,
+        ::pρ,
         p::Real,
         ρ::Real,
         q_tot::Real,
@@ -419,7 +419,7 @@ Returns a tuple `(T, q_liq, q_ice)`.
 function saturation_adjustment(
     sat_adjust_method::Type,
     param_set::APS,
-    ::pρq,
+    ::pρ,
     p,
     ρ,
     q_tot,
@@ -435,14 +435,14 @@ function saturation_adjustment(
 
     temp_from_pρq_func =
         (param_set, p, q_tot) ->
-            air_temperature(param_set, pρq(), p, ρ, q_tot)
+            air_temperature(param_set, pρ(), p, ρ, q_tot)
 
     q_sat_unsat_ρ = (param_set, T, q_tot) ->
         q_vap_saturation(param_set, T, ρ)
 
     make_numerical_method_ρ =
         (sat_method, param_set, target_p, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, pρq(), target_p, ρ, q_tot, T_guess)
+            sa_numerical_method(sat_method, param_set, pρ(), target_p, ρ, q_tot, T_guess)
 
     # Using generic helper with p as target thermo_var
     T = _saturation_adjustment_generic(
@@ -459,7 +459,7 @@ function saturation_adjustment(
         make_numerical_method_ρ,
         print_warning,
         sat_adjust_method,
-        pρq(),
+        pρ(),
         ρ,
         p,
         q_tot,
@@ -475,7 +475,7 @@ end
 # - For other formulations, default to `SecantMethod`.
 @inline saturation_adjustment(
     param_set::APS,
-    ::ρeq,
+    ::ρe,
     ρ,
     e_int,
     q_tot,
@@ -485,7 +485,7 @@ end
 ) = saturation_adjustment(
     NewtonsMethod,
     param_set,
-    ρeq(),
+    ρe(),
     ρ,
     e_int,
     q_tot,

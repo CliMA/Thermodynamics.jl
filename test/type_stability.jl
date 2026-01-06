@@ -33,13 +33,13 @@ These tests focus on the functional API
             @test @inferred(TD.relative_humidity(param_set, T, p, q_tot, q_liq, q_ice)) isa
                   FT
             @test @inferred(
-                TD.air_temperature(param_set, TD.ρeq(), e_int, q_tot, q_liq, q_ice)
+                TD.air_temperature(param_set, TD.ρe(), e_int, q_tot, q_liq, q_ice)
             ) isa FT
             @test @inferred(
-                TD.air_temperature(param_set, TD.phq(), h, q_tot, q_liq, q_ice)
+                TD.air_temperature(param_set, TD.ph(), h, q_tot, q_liq, q_ice)
             ) isa FT
             @test @inferred(
-                TD.air_temperature(param_set, TD.pρq(), p, ρ, q_tot, q_liq, q_ice)
+                TD.air_temperature(param_set, TD.pρ(), p, ρ, q_tot, q_liq, q_ice)
             ) isa FT
         end
     end

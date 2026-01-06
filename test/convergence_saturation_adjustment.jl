@@ -53,7 +53,7 @@ const TDTP_SA = TD.TemperatureProfiles
                 p_ρ = TD.air_pressure(param_set, T0, ρ0, q0, q_liq_ρ, q_ice_ρ)
                 θ_ρ = TD.liquid_ice_pottemp(param_set, T0, ρ0, q0, q_liq_ρ, q_ice_ρ)
 
-                # p-based targets (matches peq/phq/pθ_liq_ice_q internals: ρ(T) computed from (p,T,q_tot))
+                # p-based targets (matches pe/ph/pθ_li internals: ρ(T) computed from (p,T,q_tot))
                 ρ_p = TD.air_density(param_set, T0, p0, q0)
                 (q_liq_p, q_ice_p) = TD.condensate_partition(param_set, T0, ρ_p, q0)
                 e_int_p = TD.internal_energy_sat(param_set, T0, ρ_p, q0)
@@ -90,7 +90,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     let (Tsol, ql, qi) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
-                            TD.ρeq(),
+                            TD.ρe(),
                             inp.ρ0,
                             inp.e_int_ρ,
                             inp.q0,
@@ -111,7 +111,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     let (Tsol, ql, qi) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
-                            TD.peq(),
+                            TD.pe(),
                             inp.p0,
                             inp.e_int_p,
                             inp.q0,
@@ -133,7 +133,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     let (Tsol, ql, qi) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
-                            TD.phq(),
+                            TD.ph(),
                             inp.p0,
                             inp.h_p,
                             inp.q0,
@@ -151,11 +151,11 @@ const TDTP_SA = TD.TemperatureProfiles
                         check_partition(Tsol, ρ_eff, inp.q0, ql, qi)
                     end
 
-                    # pρq (uses ρ-based equilibrium; p target is p_ρ)
+                    # pρ (uses ρ-based equilibrium; p target is p_ρ)
                     let (Tsol, ql, qi) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
-                            TD.pρq(),
+                            TD.pρ(),
                             inp.p_ρ,
                             inp.ρ0,
                             inp.q0,
@@ -172,11 +172,11 @@ const TDTP_SA = TD.TemperatureProfiles
                         check_partition(Tsol, inp.ρ0, inp.q0, ql, qi)
                     end
 
-                    # pθ_liq_ice_q (p-based)
+                    # pθ_li (p-based)
                     let (Tsol, ql, qi) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
-                            TD.pθ_liq_ice_q(),
+                            TD.pθ_li(),
                             inp.p0,
                             inp.θ_p,
                             inp.q0,
@@ -194,11 +194,11 @@ const TDTP_SA = TD.TemperatureProfiles
                         check_partition(Tsol, ρ_eff, inp.q0, ql, qi)
                     end
 
-                    # ρθ_liq_ice_q (ρ-based)
+                    # ρθ_li (ρ-based)
                     let (Tsol, ql, qi) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
-                            TD.ρθ_liq_ice_q(),
+                            TD.ρθ_li(),
                             inp.ρ0,
                             inp.θ_ρ,
                             inp.q0,
@@ -228,7 +228,7 @@ const TDTP_SA = TD.TemperatureProfiles
                         TD.saturation_adjustment(
                             solver,
                             param_set,
-                            TD.ρeq(),
+                            TD.ρe(),
                             inp.ρ0,
                             inp.e_int_ρ,
                             inp.q0,
@@ -243,7 +243,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             (Tsol, ql, qi) = TD.saturation_adjustment(
                                 solver,
                                 param_set,
-                                TD.ρeq(),
+                                TD.ρe(),
                                 inp.ρ0,
                                 inp.e_int_ρ,
                                 inp.q0,
@@ -297,7 +297,7 @@ const TDTP_SA = TD.TemperatureProfiles
                 let (Tsol, ql, qi) = TD.saturation_adjustment(
                         RS.SecantMethod,
                         param_set,
-                        TD.ρeq(),
+                        TD.ρe(),
                         ρ0,
                         e_int_ρ,
                         q0,
@@ -311,7 +311,7 @@ const TDTP_SA = TD.TemperatureProfiles
                 let (Tsol, ql, qi) = TD.saturation_adjustment(
                         RS.SecantMethod,
                         param_set,
-                        TD.peq(),
+                        TD.pe(),
                         p0,
                         e_int_p,
                         q0,
@@ -326,7 +326,7 @@ const TDTP_SA = TD.TemperatureProfiles
                 let (Tsol, ql, qi) = TD.saturation_adjustment(
                         RS.SecantMethod,
                         param_set,
-                        TD.phq(),
+                        TD.ph(),
                         p0,
                         h_p,
                         q0,

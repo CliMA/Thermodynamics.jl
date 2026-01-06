@@ -5,18 +5,18 @@ import RootSolvers: NewtonsMethod, NewtonsMethodAD, SecantMethod, BrentsMethod
 
 for rsm in (:NewtonsMethod, :NewtonsMethodAD, :SecantMethod, :BrentsMethod)
     for (IV, name, args) in (
-        (ρeq, "ρeq", (:ρ, :e_int, :q_tot, :T, :maxiter, :tol)),
-        (phq, "hpq", (:h, :p, :q_tot, :T_guess, :T, :maxiter, :tol)),
-        (peq, "peq", (:p, :e_int, :q_tot, :T, :maxiter, :tol)),
-        (pρq, "ρpq", (:ρ, :p, :q_tot, :T, :maxiter, :tol)),
+        (ρe, "ρe", (:ρ, :e_int, :q_tot, :T, :maxiter, :tol)),
+        (ph, "ph", (:h, :p, :q_tot, :T_guess, :T, :maxiter, :tol)),
+        (pe, "pe", (:p, :e_int, :q_tot, :T, :maxiter, :tol)),
+        (pρ, "pρ", (:ρ, :p, :q_tot, :T, :maxiter, :tol)),
         (
-            ρθ_liq_ice_q,
-            "ρθ_liq_ice_q",
+            ρθ_li,
+            "ρθ_li",
             (:ρ, :θ_liq_ice, :q_tot, :T_guess, :T, :maxiter, :tol),
         ),
         (
-            pθ_liq_ice_q,
-            "pθ_liq_ice_q",
+            pθ_li,
+            "pθ_li",
             (:p, :θ_liq_ice, :q_tot, :T_guess, :T, :maxiter, :tol),
         ),
     )
@@ -35,7 +35,7 @@ for rsm in (:NewtonsMethod, :NewtonsMethodAD, :SecantMethod, :BrentsMethod)
                                 push!(parts, ", ")
                             end
                         end
-                        push!(parts, ")" * (name == "ρeq" ? "" : " ="))
+                        push!(parts, ")" * (name == "ρe" ? "" : " ="))
                         Expr(:string, parts...)
                     end
                 ),

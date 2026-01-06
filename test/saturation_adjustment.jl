@@ -21,7 +21,7 @@ Focus:
             (T, q_liq, q_ice) = TD.saturation_adjustment(
                 RS.SecantMethod,
                 param_set,
-                TD.ρeq(),
+                TD.ρe(),
                 ρ0,
                 e_int,
                 q_tot,
@@ -54,7 +54,7 @@ Focus:
             let (T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.NewtonsMethod,
                     param_set,
-                    TD.ρeq(),
+                    TD.ρe(),
                     ρ0,
                     e_int_sat,
                     q_tot,
@@ -75,7 +75,7 @@ Focus:
             let (T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
-                    TD.peq(),
+                    TD.pe(),
                     p0,
                     e_int_sat,
                     q_tot,
@@ -96,7 +96,7 @@ Focus:
             let (T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
-                    TD.phq(),
+                    TD.ph(),
                     p0,
                     h_sat,
                     q_tot,
@@ -117,7 +117,7 @@ Focus:
             let (T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
-                    TD.pρq(),
+                    TD.pρ(),
                     p0,
                     ρ0,
                     q_tot,
@@ -136,7 +136,7 @@ Focus:
             let (T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
-                    TD.pθ_liq_ice_q(),
+                    TD.pθ_li(),
                     p0,
                     θ_liq_ice_p,
                     q_tot,
@@ -159,7 +159,7 @@ Focus:
             let (T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
-                    TD.ρθ_liq_ice_q(),
+                    TD.ρθ_li(),
                     ρ0,
                     θ_liq_ice_ρ,
                     q_tot,
