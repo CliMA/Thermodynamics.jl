@@ -1,21 +1,14 @@
-# AD (Automatic Differentiation) Tests
-#
-# Tests for compatibility with ForwardDiff automatic differentiation.
-# Validates that derivatives from ForwardDiff match finite difference approximations.
+"""
+Automatic differentiation tests for Thermodynamics.jl
+"""
 
-using Test
 using ForwardDiff
-using Thermodynamics
 using Thermodynamics: ρe, pe, ph
-import Thermodynamics.Parameters as TP
-import RootSolvers as RS
-import ClimaParams as CP
-
-# Create parameter set with ClimaParams
-param_set = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
 
 @testset "Thermodynamics - AD compatibility" begin
+    # Use Float64 parameter set from test_common.jl
     FT = Float64
+    param_set = param_set_Float64
     
     # Test conditions
     T_test = FT(280)  # Temperature [K]
@@ -32,14 +25,18 @@ param_set = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
         
         for q_tot in [q_tot_dry, q_tot_moist]
             @testset "dp/de_int with q_tot=$q_tot" begin
+                # Partition for consistency
+                (q_liq, q_ice) = TD.condensate_partition(param_set, T_test, ρ_test, q_tot)
+
                 # Function: given e_int, compute p
+                # Note: assumes q_liq and q_ice are fixed (frozen composition derivative)
                 function p_from_e_int(e_int)
-                    T = Thermodynamics.air_temperature(param_set, e_int, q_tot)
-                    return Thermodynamics.air_pressure(param_set, T, ρ_test, q_tot)
+                    T = TD.air_temperature(param_set, e_int, q_tot, q_liq, q_ice)
+                    return TD.air_pressure(param_set, T, ρ_test, q_tot, q_liq, q_ice)
                 end
                 
                 # Reference e_int
-                e_int_ref = Thermodynamics.internal_energy(param_set, T_test, q_tot)
+                e_int_ref = TD.internal_energy(param_set, T_test, q_tot, q_liq, q_ice)
                 
                 # ForwardDiff derivative
                 dp_de_ad = ForwardDiff.derivative(p_from_e_int, e_int_ref)
@@ -58,23 +55,23 @@ param_set = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
         
         # Unsaturated case: low q_tot
         q_tot_unsat = FT(0.001)
-        e_int_unsat = Thermodynamics.internal_energy(param_set, T_test, q_tot_unsat)
+        e_int_unsat = TD.internal_energy(param_set, T_test, q_tot_unsat)
         
         # Saturated case (Liquid): high q_tot (at saturation)
         T_sat_liq = FT(290)
-        q_vap_sat_liq = Thermodynamics.q_vap_saturation(param_set, T_sat_liq, ρ_test)
+        q_vap_sat_liq = TD.q_vap_saturation(param_set, T_sat_liq, ρ_test)
         q_tot_sat_liq = q_vap_sat_liq * FT(1.5)  # Supersaturated
         # Compute equilibrium partition first to get consistent e_int
-        (q_liq_sat_liq, q_ice_sat_liq) = Thermodynamics.condensate_partition(param_set, T_sat_liq, ρ_test, q_tot_sat_liq)
-        e_int_sat_liq = Thermodynamics.internal_energy(param_set, T_sat_liq, q_tot_sat_liq, q_liq_sat_liq, q_ice_sat_liq)
+        (q_liq_sat_liq, q_ice_sat_liq) = TD.condensate_partition(param_set, T_sat_liq, ρ_test, q_tot_sat_liq)
+        e_int_sat_liq = TD.internal_energy(param_set, T_sat_liq, q_tot_sat_liq, q_liq_sat_liq, q_ice_sat_liq)
 
         # Saturated case (Ice): cold temperature
         T_sat_ice = FT(230)
-        q_vap_sat_ice = Thermodynamics.q_vap_saturation(param_set, T_sat_ice, ρ_test)
+        q_vap_sat_ice = TD.q_vap_saturation(param_set, T_sat_ice, ρ_test)
         q_tot_sat_ice = q_vap_sat_ice * FT(1.5)
         # Compute equilibrium partition first
-        (q_liq_sat_ice, q_ice_sat_ice) = Thermodynamics.condensate_partition(param_set, T_sat_ice, ρ_test, q_tot_sat_ice)
-        e_int_sat_ice = Thermodynamics.internal_energy(param_set, T_sat_ice, q_tot_sat_ice, q_liq_sat_ice, q_ice_sat_ice)
+        (q_liq_sat_ice, q_ice_sat_ice) = TD.condensate_partition(param_set, T_sat_ice, ρ_test, q_tot_sat_ice)
+        e_int_sat_ice = TD.internal_energy(param_set, T_sat_ice, q_tot_sat_ice, q_liq_sat_ice, q_ice_sat_ice)
         
         for (name, e_int, q_tot) in [
             ("unsaturated", e_int_unsat, q_tot_unsat),
@@ -83,7 +80,7 @@ param_set = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
         ]
             @testset "dq_liq/de_int and dq_ice/de_int ($name, ρe)" begin
                 function q_liq_from_e_int(e_int)
-                    sol = Thermodynamics.saturation_adjustment(
+                    sol = TD.saturation_adjustment(
                         RS.SecantMethod,
                         param_set,
                         ρe(),
@@ -97,7 +94,7 @@ param_set = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
                 end
                 
                 function q_ice_from_e_int(e_int)
-                    sol = Thermodynamics.saturation_adjustment(
+                    sol = TD.saturation_adjustment(
                         RS.SecantMethod,
                         param_set,
                         ρe(),
@@ -130,7 +127,7 @@ param_set = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
                     @test isapprox(dq_ice_de_ad, dq_ice_de_fd, rtol=1e-2, atol=1e-10)
                     
                     # Verify we actually have condensate in the reference solution
-                    sol = Thermodynamics.saturation_adjustment(RS.SecantMethod, param_set, ρe(), ρ_test, e_int, q_tot, maxiter, tol)
+                    sol = TD.saturation_adjustment(RS.SecantMethod, param_set, ρe(), ρ_test, e_int, q_tot, maxiter, tol)
                     if name == "saturated_liq"
                         @test sol.q_liq > 0
                         @test sol.q_ice == 0
@@ -149,16 +146,16 @@ param_set = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
         
         # Unsaturated case
         q_tot_unsat = FT(0.001)
-        e_int_unsat = Thermodynamics.internal_energy(param_set, T_test, q_tot_unsat)
+        e_int_unsat = TD.internal_energy(param_set, T_test, q_tot_unsat)
         
         # Saturated case
         T_sat = FT(290)
-        ρ_sat = Thermodynamics.air_density(param_set, T_sat, p_test, q_tot_unsat) # approx rho
-        q_vap_sat = Thermodynamics.q_vap_saturation(param_set, T_sat, ρ_sat)
+        ρ_sat = TD.air_density(param_set, T_sat, p_test, q_tot_unsat) # approx rho
+        q_vap_sat = TD.q_vap_saturation(param_set, T_sat, ρ_sat)
         q_tot_sat = q_vap_sat * FT(1.5)
         # Partition for correct e_int
-        (q_liq_sat, q_ice_sat) = Thermodynamics.condensate_partition(param_set, T_sat, ρ_sat, q_tot_sat)
-        e_int_sat = Thermodynamics.internal_energy(param_set, T_sat, q_tot_sat, q_liq_sat, q_ice_sat)
+        (q_liq_sat, q_ice_sat) = TD.condensate_partition(param_set, T_sat, ρ_sat, q_tot_sat)
+        e_int_sat = TD.internal_energy(param_set, T_sat, q_tot_sat, q_liq_sat, q_ice_sat)
         
         for (name, e_int, q_tot) in [
             ("unsaturated", e_int_unsat, q_tot_unsat),
@@ -166,7 +163,7 @@ param_set = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
         ]
             @testset "dT/de_int ($name, pe)" begin
                 function T_from_e_int(e_int)
-                    sol = Thermodynamics.saturation_adjustment(
+                    sol = TD.saturation_adjustment(
                         RS.SecantMethod,
                         param_set,
                         pe(),
@@ -196,11 +193,11 @@ param_set = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
         
         # Test with enthalpy
         q_tot = FT(0.005)
-        h_test = Thermodynamics.enthalpy(param_set, T_test, q_tot)
+        h_test = TD.enthalpy(param_set, T_test, q_tot)
         
         @testset "dT/dh (ph)" begin
             function T_from_h(h)
-                sol = Thermodynamics.saturation_adjustment(
+                sol = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
                     ph(),
