@@ -55,58 +55,134 @@ function saturation_adjustment(
     tol,
     T_guess = nothing,
 ) where {M}
-    T_init_min = TP.T_init_min(param_set)
-    sol_tol = tol isa Real ? RS.RelativeSolutionTolerance(tol) : tol
+    temp_unsat_func = (param_set, e_int, q_tot) -> air_temperature(param_set, e_int, q_tot)
 
-    # Temperature for unsaturated case (always computed)
-    T_unsat = max(T_init_min, air_temperature(param_set, e_int, q_tot))
+    q_sat_unsat_func = (param_set, T, q_tot) -> q_vap_saturation(param_set, T, ρ)
 
-    # Check if unsaturated
-    if q_tot <= q_vap_saturation(param_set, T_unsat, ρ)
-        return (;
-            T = T_unsat,
-            q_liq = zero(T_unsat),
-            q_ice = zero(T_unsat),
-            converged = true,
-        )
-    end
+    # For T_ice upper bound: all water is ice
+    temp_ice_func = (param_set, e_int, q_tot) -> 
+        air_temperature(param_set, ρe(), e_int, q_tot, eltype(param_set)(0), q_tot)
 
-    # Root function: e_int - internal_energy_sat(T, ρ, q_tot) = 0
-    roots = _make_roots_function(M, param_set, ρ, e_int, q_tot)
+    # Root function (supports analytic derivative if M=NewtonsMethod)
+    roots_func = _make_roots_function(M, param_set, ρ, e_int, q_tot)
 
-    # Construct numerical method based on type
-    numerical_method = sa_numerical_method(
+    (T, converged) = _saturation_adjustment_generic(
         M,
         param_set,
-        ρe(),
-        ρ,
         e_int,
         q_tot,
-        T_guess, # Use T_guess here, it will handle initialization internally
-    )
-
-    # Solve for temperature and check convergence
-    (T, converged) = _find_zero_and_convergence(
-        roots,
-        numerical_method,
-        solution_type(),
-        sol_tol,
         maxiter,
+        tol,
+        T_guess,
+        temp_unsat_func,
+        q_sat_unsat_func,
+        temp_ice_func,
+        roots_func,
     )
-
+    
     # Compute equilibrium phase partition
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice, converged)
 end
+"""
+    bound_upper_temperature(param_set, T_lo, T_hi)
+
+Internal function. Bounds the upper temperature guess `T_hi` for bracket methods.
+
+Returns `T_hi` bounded by `T_max`, ensuring it is at least `T_lo + 0.1` for
+valid numerical initialization.
+"""
+@inline function bound_upper_temperature(param_set, T_lo, T_hi)
+    FT = eltype(param_set)
+    T_max = TP.T_max(param_set)
+    # Ensure T_hi is physically valid (<= T_max)
+    T_hi_phys = min(T_max, T_hi)
+    # Ensure T_hi > T_lo for numerical initialization (use relative tolerance)
+    return max(T_lo * (1 + FT(1e-3)), T_hi_phys)
+end
+
+
+"""
+    _make_sa_solver(::Type{M}, param_set, T_unsat, T_ice, T_guess)
+
+Internal helper to construct a root-solving method instance for saturation adjustment.
+
+# Arguments
+- `M`: Root-solving method type (e.g., `RS.NewtonsMethod`, `RS.SecantMethod`, `RS.BrentsMethod`).
+- `param_set`: Thermodynamics parameter set.
+- `T_unsat`: Unsaturated temperature estimate (used for initialization or lower bound) [K].
+- `T_ice`: Temperature with all water as ice (used for upper bound) [K].
+- `T_guess`: Optional user-provided initial guess [K] (or `nothing`).
+
+# Returns
+- Instantiated solver method ready for `RootSolvers.find_zero`.
+
+# Notes
+- For Newton-type methods (`NewtonsMethod`, `NewtonsMethodAD`): Uses `T_guess` if provided,
+  otherwise `max(T_init_min, T_unsat)`.
+- For bracket methods (`SecantMethod`, `BrentsMethod`): Constructs bracket `[T_lo, T_hi]`
+  where `T_hi` is bounded by `T_ice` and `T_max`.
+"""
+@inline function _make_sa_solver(
+    ::Type{RS.NewtonsMethod},
+    param_set::APS,
+    T_unsat,
+    T_ice,
+    T_guess,
+)
+    T_init_min = TP.T_init_min(param_set)
+    T_init = T_guess isa Nothing ? max(T_init_min, T_unsat) : T_guess
+    return RS.NewtonsMethod(T_init)
+end
+
+@inline function _make_sa_solver(
+    ::Type{RS.NewtonsMethodAD},
+    param_set::APS,
+    T_unsat,
+    T_ice,
+    T_guess,
+)
+    T_init_min = TP.T_init_min(param_set)
+    T_init = T_guess isa Nothing ? max(T_init_min, T_unsat) : T_guess
+    return RS.NewtonsMethodAD(T_init)
+end
+
+@inline function _make_sa_solver(
+    ::Type{RS.SecantMethod},
+    param_set::APS,
+    T_unsat,
+    T_ice,
+    T_guess,
+)
+    T_init_min = TP.T_init_min(param_set)
+    T_lo = T_guess isa Nothing ? max(T_init_min, T_unsat) : max(T_init_min, T_guess)
+    T_hi = bound_upper_temperature(param_set, T_lo, T_ice)
+    return RS.SecantMethod(T_lo, T_hi)
+end
+
+@inline function _make_sa_solver(
+    ::Type{RS.BrentsMethod},
+    param_set::APS,
+    T_unsat,
+    T_ice,
+    T_guess,
+)
+    T_init_min = TP.T_init_min(param_set)
+    # BrentsMethod requires strict bracketing - ignore T_guess
+    T_lo = max(T_init_min, T_unsat)
+    T_hi = bound_upper_temperature(param_set, T_lo, T_ice)
+    return RS.BrentsMethod(T_lo, T_hi)
+end
+
 
 """
     saturation_adjustment(
         ::Type{M},  # RS.RootSolvingMethod type
         param_set,
         ::pe,
-        p,
-        e_int,
-        q_tot,
+        p::Real,
+        e_int::Real,
+        q_tot::Real,
         maxiter::Int,
         tol,
         [T_guess::Union{Nothing, Real}]
@@ -115,7 +191,23 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, specific internal energy `e_int`, and total specific humidity `q_tot`.
 
-Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
+# Arguments
+- `M`: Root-solving method type from `RootSolvers.jl`. Supported types:
+  `RS.SecantMethod`, `RS.BrentsMethod`, `RS.NewtonsMethod`, `RS.NewtonsMethodAD`.
+- `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
+- `p`: Pressure of moist air [Pa].
+- `e_int`: Specific internal energy [J/kg].
+- `q_tot`: Total specific humidity [kg/kg].
+- `maxiter`: Maximum iterations for the solver [dimensionless integer].
+- `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
+- `T_guess`: Optional initial guess for the temperature [K].
+
+# Returns
+- `NamedTuple` `(; T, q_liq, q_ice, converged)`:
+    - `T`: Temperature [K]
+    - `q_liq`: Liquid specific humidity [kg/kg]
+    - `q_ice`: Ice specific humidity [kg/kg]
+    - `converged`: Boolean flag indicating if the solver converged
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -132,34 +224,31 @@ function saturation_adjustment(
         T ->
             internal_energy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
 
-    q_sat_unsat_p =
+    q_sat_func =
         (param_set, T, q_tot) ->
             q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    # Construct numerical method for the root solver
-    numerical_method = sa_numerical_method(
-        M,
-        param_set,
-        pe(),
-        p,
-        e_int,
-        q_tot,
-        T_guess,
-    )
+    temp_ice_func =
+        (param_set, e_int, q_tot) ->
+            air_temperature(param_set, e_int, q_tot, eltype(param_set)(0), q_tot)
 
-    temp_from_energy_unsat =
+    roots_func = T -> e_int_sat_given_p(T) - e_int
+
+    temp_unsat_func =
         (param_set, e_int, q_tot) -> air_temperature(param_set, e_int, q_tot)
 
     (T, converged) = _saturation_adjustment_generic(
-        numerical_method,
+        M,
         param_set,
         e_int,
         q_tot,
         maxiter,
         tol,
-        temp_from_energy_unsat,
-        q_sat_unsat_p,
-        e_int_sat_given_p,
+        T_guess,
+        temp_unsat_func,
+        q_sat_func,
+        temp_ice_func,
+        roots_func,
     )
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
@@ -185,15 +274,22 @@ given pressure `p`, specific enthalpy `h`, and total specific humidity `q_tot`.
 Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
 
 # Arguments
-- `M`: The numerical method type for root-finding. Supported types:
+- `M`: Root-solving method type from `RootSolvers.jl`. Supported types:
   `RS.SecantMethod`, `RS.BrentsMethod`, `RS.NewtonsMethod`, `RS.NewtonsMethodAD`.
-- `param_set`: Thermodynamics parameter set.
-- `p`: Pressure of moist air.
-- `h`: Specific enthalpy.
-- `q_tot`: Total specific humidity.
-- `maxiter`: Maximum iterations for the solver.
+- `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
+- `p`: Pressure of moist air [Pa].
+- `h`: Specific enthalpy [J/kg].
+- `q_tot`: Total specific humidity [kg/kg].
+- `maxiter`: Maximum iterations for the solver [dimensionless integer].
 - `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
-- `T_guess`: Optional initial guess for the temperature.
+- `T_guess`: Optional initial guess for the temperature [K].
+
+# Returns
+- `NamedTuple` `(; T, q_liq, q_ice, converged)`:
+    - `T`: Temperature [K]
+    - `q_liq`: Liquid specific humidity [kg/kg]
+    - `q_ice`: Ice specific humidity [kg/kg]
+    - `converged`: Boolean flag indicating if the solver converged
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -210,36 +306,32 @@ function saturation_adjustment(
         T ->
             enthalpy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
 
-    q_sat_unsat_p =
+    q_sat_func =
         (param_set, T, q_tot) ->
             q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    # Unsaturated temperature estimate from (h, q_tot) with zero condensate.
-    temp_from_hq_unsat =
+    temp_unsat_func =
         (param_set, h, q_tot) ->
             air_temperature(param_set, ph(), h, q_tot, 0, 0)
 
-    # Construct numerical method for the root solver
-    numerical_method = sa_numerical_method(
-        M,
-        param_set,
-        ph(),
-        p,
-        h,
-        q_tot,
-        T_guess,
-    )
+    temp_ice_func =
+        (param_set, h, q_tot) ->
+            air_temperature(param_set, ph(), h, q_tot, eltype(param_set)(0), q_tot)
+
+    roots_func = T -> h_sat_given_p(T) - h
 
     (T, converged) = _saturation_adjustment_generic(
-        numerical_method,
+        M,
         param_set,
         h,
         q_tot,
         maxiter,
         tol,
-        temp_from_hq_unsat,
-        q_sat_unsat_p,
-        h_sat_given_p,
+        T_guess,
+        temp_unsat_func,
+        q_sat_func,
+        temp_ice_func,
+        roots_func,
     )
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
@@ -262,7 +354,23 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
 
-Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
+# Arguments
+- `M`: Root-solving method type from `RootSolvers.jl`. Supported types:
+  `RS.SecantMethod`, `RS.BrentsMethod`, `RS.NewtonsMethod`, `RS.NewtonsMethodAD`.
+- `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
+- `p`: Pressure of moist air [Pa].
+- `θ_liq_ice`: Liquid-ice potential temperature [K].
+- `q_tot`: Total specific humidity [kg/kg].
+- `maxiter`: Maximum iterations for the solver [dimensionless integer].
+- `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
+- `T_guess`: Optional initial guess for the temperature [K].
+
+# Returns
+- `NamedTuple` `(; T, q_liq, q_ice, converged)`:
+    - `T`: Temperature [K]
+    - `q_liq`: Liquid specific humidity [kg/kg]
+    - `q_ice`: Ice specific humidity [kg/kg]
+    - `converged`: Boolean flag indicating if the solver converged
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -282,35 +390,32 @@ function saturation_adjustment(
             liquid_ice_pottemp_given_pressure(param_set, T, p, q_tot, _q_liq, _q_ice)
         end
 
-    temp_from_θ_liq_ice_func =
+    temp_unsat_func =
         (param_set, θ_liq_ice, q_tot) ->
             air_temperature(param_set, pθ_li(), p, θ_liq_ice, q_tot)
 
-    q_sat_unsat_p =
+    q_sat_func =
         (param_set, T, q_tot) ->
             q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    # Construct numerical method for the root solver
-    numerical_method = sa_numerical_method(
-        M,
-        param_set,
-        pθ_li(),
-        p,
-        θ_liq_ice,
-        q_tot,
-        T_guess,
-    )
+    temp_ice_func =
+        (param_set, θ_liq_ice, q_tot) ->
+            air_temperature(param_set, pθ_li(), p, θ_liq_ice, q_tot, eltype(param_set)(0), q_tot)
+            
+    roots_func = T -> θ_liq_ice_sat_given_p(T) - θ_liq_ice
 
     (T, converged) = _saturation_adjustment_generic(
-        numerical_method,
+        M,
         param_set,
         θ_liq_ice,
         q_tot,
         maxiter,
         tol,
-        temp_from_θ_liq_ice_func,
-        q_sat_unsat_p,
-        θ_liq_ice_sat_given_p,
+        T_guess,
+        temp_unsat_func,
+        q_sat_func,
+        temp_ice_func,
+        roots_func,
     )
 
     # Compute equilibrium phase partition
@@ -334,7 +439,23 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given density `ρ`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
 
-Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
+# Arguments
+- `M`: Root-solving method type from `RootSolvers.jl`. Supported types:
+  `RS.SecantMethod`, `RS.BrentsMethod`, `RS.NewtonsMethod`, `RS.NewtonsMethodAD`.
+- `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
+- `ρ`: Density of moist air [kg/m³].
+- `θ_liq_ice`: Liquid-ice potential temperature [K].
+- `q_tot`: Total specific humidity [kg/kg].
+- `maxiter`: Maximum iterations for the solver [dimensionless integer].
+- `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
+- `T_guess`: Optional initial guess for the temperature [K].
+
+# Returns
+- `NamedTuple` `(; T, q_liq, q_ice, converged)`:
+    - `T`: Temperature [K]
+    - `q_liq`: Liquid specific humidity [kg/kg]
+    - `q_ice`: Ice specific humidity [kg/kg]
+    - `converged`: Boolean flag indicating if the solver converged
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -353,40 +474,36 @@ function saturation_adjustment(
             liquid_ice_pottemp(param_set, T, ρ, q_tot, _q_liq, _q_ice)
         end
 
-    temp_from_θ_liq_ice_func =
+    temp_unsat_func =
         (param_set, θ_liq_ice, q_tot) ->
             air_temperature(param_set, ρθ_li(), ρ, θ_liq_ice, q_tot)
 
-    q_sat_unsat_ρ = (param_set, T, q_tot) ->
+    q_sat_func = (param_set, T, q_tot) ->
         q_vap_saturation(param_set, T, ρ)
 
-    # Construct numerical method for the root solver
-    numerical_method = sa_numerical_method(
-        M,
-        param_set,
-        ρθ_li(),
-        ρ,
-        θ_liq_ice,
-        q_tot,
-        T_guess,
-    )
+    temp_ice_func =
+        (param_set, θ_liq_ice, q_tot) ->
+            air_temperature(param_set, ρθ_li(), ρ, θ_liq_ice, q_tot, eltype(param_set)(0), q_tot)
+
+    roots_func = T -> θ_liq_ice_sat_given_ρ(T) - θ_liq_ice
 
     (T, converged) = _saturation_adjustment_generic(
-        numerical_method,
+        M,
         param_set,
         θ_liq_ice,
         q_tot,
         maxiter,
         tol,
-        temp_from_θ_liq_ice_func,
-        q_sat_unsat_ρ,
-        θ_liq_ice_sat_given_ρ,
+        T_guess,
+        temp_unsat_func,
+        q_sat_func,
+        temp_ice_func,
+        roots_func,
     )
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice, converged)
 end
-
 
 """
     saturation_adjustment(
@@ -404,7 +521,23 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, density `ρ`, and total specific humidity `q_tot`.
 
-Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
+# Arguments
+- `M`: Root-solving method type from `RootSolvers.jl`. Supported types:
+  `RS.SecantMethod`, `RS.BrentsMethod`, `RS.NewtonsMethod`, `RS.NewtonsMethodAD`.
+- `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
+- `p`: Pressure of moist air [Pa].
+- `ρ`: Density of moist air [kg/m³].
+- `q_tot`: Total specific humidity [kg/kg].
+- `maxiter`: Maximum iterations for the solver [dimensionless integer].
+- `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
+- `T_guess`: Optional initial guess for the temperature [K].
+
+# Returns
+- `NamedTuple` `(; T, q_liq, q_ice, converged)`:
+    - `T`: Temperature [K]
+    - `q_liq`: Liquid specific humidity [kg/kg]
+    - `q_ice`: Ice specific humidity [kg/kg]
+    - `converged`: Boolean flag indicating if the solver converged
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -423,35 +556,32 @@ function saturation_adjustment(
             air_pressure(param_set, T, ρ, q_tot, _q_liq, _q_ice)
         end
 
-    temp_from_pρq_func =
+    temp_unsat_func =
         (param_set, p, q_tot) ->
             air_temperature(param_set, pρ(), p, ρ, q_tot)
 
-    q_sat_unsat_ρ = (param_set, T, q_tot) ->
+    q_sat_func = (param_set, T, q_tot) ->
         q_vap_saturation(param_set, T, ρ)
 
-    # Construct numerical method for the root solver
-    numerical_method = sa_numerical_method(
-        M,
-        param_set,
-        pρ(),
-        p,
-        ρ,
-        q_tot,
-        T_guess,
-    )
+    temp_ice_func =
+        (param_set, p, q_tot) ->
+            air_temperature(param_set, pρ(), p, ρ, q_tot, eltype(param_set)(0), q_tot)
+
+    roots_func = T -> pressure_sat_given_ρ(T) - p
 
     # Using generic helper with p as target thermo_var
     (T, converged) = _saturation_adjustment_generic(
-        numerical_method,
+        M,
         param_set,
         p, # thermo_var (target p)
         q_tot,
         maxiter,
         tol,
-        temp_from_pρq_func,
-        q_sat_unsat_ρ,
-        pressure_sat_given_ρ,
+        T_guess,
+        temp_unsat_func,
+        q_sat_func,
+        temp_ice_func,
+        roots_func,
     )
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
@@ -556,20 +686,18 @@ Returns `(ρ, q_liq, q_ice)` tuple.
 end
 
 """
-    _find_zero_with_convergence_check(
+    _find_zero_and_convergence(
         roots_func,
         numerical_method,
         solution_type,
         tol,
         maxiter,
-        warning_func,
-        warning_args...,
     )
 
-Helper function to find the root of `roots_func` using `numerical_method`,
-checking for convergence and issuing warnings or errors if necessary.
+Helper function to find the root of `roots_func` using `numerical_method`.
+Returns `(root, converged)` tuple.
 
-Used by `saturation_adjustment_*` functions to handle common solver logic.
+Used by `saturation_adjustment` functions to handle common solver logic.
 """
 function _find_zero_and_convergence(
     roots_func,
@@ -586,37 +714,52 @@ end
 
 """
     _saturation_adjustment_generic(
-        numerical_method,
+        ::Type{Method},
         param_set,
         thermo_var,
         q_tot,
         maxiter,
         relative_temperature_tol,
-        temp_from_var_unsat_func,
+        T_guess,
+        temp_unsat_func,
         q_sat_unsat_func,
-        sat_val_func,
-        warning_func,
-        warning_args...,
+        temp_ice_func,
+        roots_func,
     )
 
-Generic kernel for saturation adjustment.
+Generic kernel for saturation adjustment. Handles unsaturated check, solver initialization,
+and root-finding for all `saturation_adjustment` variants.
 
-Encapsulates unsaturated check logic and root-finding for saturation adjustments.
-Arguments `temp_from_var_unsat_func`, `q_sat_unsat_func`, and `sat_val_func`
-are closures that capture any specific independent variables (like p or ρ).
+# Arguments
+- `Method`: Root-solving method type (e.g., `RS.NewtonsMethod`, `RS.SecantMethod`).
+- `param_set`: Thermodynamics parameter set.
+- `thermo_var`: Thermodynamic variable to match (e.g., `e_int`, `h`, `p`, `θ_liq_ice`).
+- `q_tot`: Total specific humidity.
+- `maxiter`: Maximum iterations for the solver.
+- `relative_temperature_tol`: Relative tolerance for temperature solution.
+- `T_guess`: Optional initial temperature guess.
+- `temp_unsat_func`: Closure `(param_set, thermo_var, q_tot) -> T_unsat`.
+- `q_sat_func`: Closure `(param_set, T, q_tot) -> q_vap_sat`.
+- `temp_ice_func`: Closure `(param_set, thermo_var, q_tot) -> T_ice` for upper bound.
+- `roots_func`: Closure `(T) -> residual` or `(T) -> (residual, derivative)`.
+
+# Returns
+- `(T, converged)`: Temperature and convergence flag.
 """
 @inline function _saturation_adjustment_generic(
-    numerical_method,  # Pre-constructed RootSolvers method instance
+    ::Type{Method},  # RootSolvers MethodType
     param_set::APS,
     thermo_var, # This can be e_int or h
     q_tot,
     maxiter,
     relative_temperature_tol,
+    T_guess,
     # The following are functions passed in to customize the behavior
-    temp_from_var_unsat_func,   # (param_set, thermo_var, q_tot) -> T
-    q_sat_unsat_func,           # (param_set, T, q_tot) -> q_sat (for unsaturated check)
-    sat_val_func,               # (T) -> val (to match thermo_var)
-)
+    temp_unsat_func,     # (param_set, thermo_var, q_tot) -> T
+    q_sat_func,          # (param_set, T, q_tot) -> q_sat (for unsaturated check)
+    temp_ice_func,       # (param_set, thermo_var, q_tot) -> T_ice (for upper bound)
+    roots_func,          # (T) -> val or (val, deriv)
+) where {Method}
     _T_min = TP.T_min(param_set)
     tol =
         relative_temperature_tol isa Real ?
@@ -624,26 +767,30 @@ are closures that capture any specific independent variables (like p or ρ).
         relative_temperature_tol
 
     # Encapsulated "Unsaturated Check" logic
-    T_unsat = max(_T_min, temp_from_var_unsat_func(param_set, thermo_var, q_tot))
+    T_unsat = max(_T_min, temp_unsat_func(param_set, thermo_var, q_tot))
 
-    q_v_sat = q_sat_unsat_func(param_set, T_unsat, q_tot)
+    q_v_sat = q_sat_func(param_set, T_unsat, q_tot)
     if q_tot <= q_v_sat
         return (T_unsat, true)
     end
 
-    # Saturated case: find the root
-    function roots(T)
-        T_safe = max(T, _T_min)
-        return sat_val_func(T_safe) - thermo_var
-    end
+    # Saturated case: solve for T
+    T_ice = temp_ice_func(param_set, thermo_var, q_tot)
+    
+    # Initialize solver (logic merged from config_sa_method.jl)
+    solver = _make_sa_solver(Method, param_set, T_unsat, T_ice, T_guess)
 
-    return _find_zero_and_convergence(
-        roots,
-        numerical_method,
+    (T, converged) = _find_zero_and_convergence(
+        roots_func,
+        solver,
         RS.CompactSolution(),
         tol,
         maxiter,
     )
+    
+    # Ensure solution is clamped at T_min
+    T_clamped = max(_T_min, T)
+    return (T_clamped, converged)
 end
 
 # -------------------------------
@@ -657,10 +804,10 @@ Derivative of internal energy with respect to temperature at saturation.
 
 # Arguments
 - `param_set`: Parameter set.
-- `T`: Temperature.
-- `e_int`: Internal energy (unused, for interface consistency).
-- `ρ`: Density.
-- `q_tot`: Total specific humidity.
+- `T`: Temperature [K].
+- `e_int`: Internal energy [J/kg] (unused, for interface consistency).
+- `ρ`: Density [kg/m³].
+- `q_tot`: Total specific humidity [kg/kg].
 """
 @inline function ∂e_int_∂T(
     param_set::APS,

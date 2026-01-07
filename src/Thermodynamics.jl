@@ -65,7 +65,6 @@ include("air_saturation_functions.jl")
 include("saturation_adjustment.jl")
 include("air_entropies.jl")
 include("air_dry_adiabatic.jl")
-include("config_sa_method.jl")
 include("TemperatureProfiles.jl")
 
 # Soon to be removed
