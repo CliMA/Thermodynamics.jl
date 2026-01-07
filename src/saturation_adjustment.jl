@@ -1,12 +1,12 @@
 # Saturation adjustment functions for various combinations of input variables
 
-import RootSolvers
+import RootSolvers as RS
 
 export saturation_adjustment
 
 """
     saturation_adjustment(
-        method_selector,  # RootSolvers.AbstractMethodSelector
+        ::Type{M},  # RS.RootSolvingMethod type
         param_set,
         ::ρe,
         ρ::Real,
@@ -21,14 +21,14 @@ Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, 
 given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`.
 
 # Arguments
-- `method_selector`: Root-solving method selector from RootSolvers.jl. Use `RootSolvers.NewtonsSelector()`,
-  `RootSolvers.SecantSelector()`, `RootSolvers.BrentsSelector()`, or `RootSolvers.NewtonsADSelector()`.
+- `M`: Root-solving method type from RS.jl. Use `RS.NewtonsMethod`,
+  `RS.SecantMethod`, `RS.BrentsMethod`, or `RS.NewtonsMethodAD`.
 - `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
 - `ρ`: Density of moist air [kg/m³].
 - `e_int`: Specific internal energy [J/kg].
 - `q_tot`: Total specific humidity [kg/kg].
 - `maxiter`: Maximum iterations for the solver [dimensionless integer].
-- `tol`: Relative tolerance for the temperature solution (or a `RootSolvers.RelativeSolutionTolerance`).
+- `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
 - `T_guess`: Optional initial guess for the temperature [K].
 
 # Returns
@@ -37,11 +37,11 @@ given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`
 # Notes
 - This function solves for `T` such that `e_int = internal_energy_sat(param_set, T, ρ, q_tot)` using
   root-finding, then computes `(q_liq, q_ice)` from [`condensate_partition`](@ref).
-- For `ρe` formulation, `NewtonsSelector()` is recommended (fast + analytic derivative available).
-- For other formulations, `SecantSelector()` or `BrentsSelector()` are recommended.
+- For `ρe` formulation, `NewtonsMethod` is recommended (fast + analytic derivative available).
+- For other formulations, `SecantMethod` or `BrentsMethod` are recommended.
 """
 function saturation_adjustment(
-    method_selector,  # RootSolvers.AbstractMethodSelector
+    ::Type{M},  # RS.AbstractMethod type
     param_set::APS,
     ::ρe,
     ρ,
@@ -50,7 +50,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-)
+) where {M <: RS.RootSolvingMethod}
     T_init_min = TP.T_init_min(param_set)
     sol_tol = tol isa Real ? RS.RelativeSolutionTolerance(tol) : tol
 
@@ -63,22 +63,11 @@ function saturation_adjustment(
     end
 
     # Root function: e_int - internal_energy_sat(T, ρ, q_tot) = 0
-    roots = if method_selector isa RootSolvers.NewtonsSelector
-        _T -> begin
-            T_val = ReLU(_T)
-            f = e_int - internal_energy_sat(param_set, T_val, ρ, q_tot)
-            (f, -∂e_int_∂T_sat(param_set, T_val, ρ, q_tot))
-        end
-    else
-        _T -> begin
-            T_val = ReLU(_T)
-            e_int - internal_energy_sat(param_set, T_val, ρ, q_tot)
-        end
-    end
+    roots = _make_roots_function(M, param_set, ρ, e_int, q_tot)
 
-    # Construct numerical method based on selector
+    # Construct numerical method based on type
     numerical_method = sa_numerical_method(
-        method_selector,
+        M,
         param_set,
         ρe(),
         ρ,
@@ -95,7 +84,7 @@ function saturation_adjustment(
         sol_tol,
         maxiter,
         print_warning,
-        method_selector,
+        M,
         ρe(),
         ρ,
         e_int,
@@ -109,7 +98,7 @@ end
 
 """
     saturation_adjustment(
-        method_selector,  # RootSolvers.AbstractMethodSelector
+        ::Type{M},  # RS.RootSolvingMethod type
         param_set,
         ::pe,
         p,
@@ -126,7 +115,7 @@ given pressure `p`, specific internal energy `e_int`, and total specific humidit
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
-    method_selector,  # RootSolvers.AbstractMethodSelector
+    ::Type{M},  # RS.AbstractMethod type
     param_set::APS,
     ::pe,
     p,
@@ -135,7 +124,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-)
+) where {M <: RS.RootSolvingMethod}
     e_int_sat_given_p =
         T ->
             internal_energy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
@@ -146,7 +135,7 @@ function saturation_adjustment(
 
     # Construct numerical method for the root solver
     numerical_method = sa_numerical_method(
-        method_selector,
+        M,
         param_set,
         pe(),
         p,
@@ -166,7 +155,7 @@ function saturation_adjustment(
         q_sat_unsat_p,
         e_int_sat_given_p,
         print_warning, # Reuse ρe warning for now (e_int based)
-        method_selector,
+        M,
         pe(),
         p,
         e_int,
@@ -179,7 +168,7 @@ end
 
 """
     saturation_adjustment(
-        method_selector,  # RootSolvers.AbstractMethodSelector
+        ::Type{M},  # RS.RootSolvingMethod type
         param_set,
         ::ph,
         p::Real,
@@ -196,18 +185,18 @@ given pressure `p`, specific enthalpy `h`, and total specific humidity `q_tot`.
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 
 # Arguments
-- `method_selector`: The numerical method for root-finding. Supported types:
-  `SecantMethod`, `BrentsMethod`, `NewtonsMethod`, `NewtonsMethodAD`.
+- `M`: The numerical method type for root-finding. Supported types:
+  `RS.SecantMethod`, `RS.BrentsMethod`, `RS.NewtonsMethod`, `RS.NewtonsMethodAD`.
 - `param_set`: Thermodynamics parameter set.
 - `p`: Pressure of moist air.
 - `h`: Specific enthalpy.
 - `q_tot`: Total specific humidity.
 - `maxiter`: Maximum iterations for the solver.
-- `tol`: Relative tolerance for the temperature solution (or a `RootSolvers.RelativeSolutionTolerance`).
+- `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
 - `T_guess`: Optional initial guess for the temperature.
 """
 function saturation_adjustment(
-    method_selector,  # RootSolvers.AbstractMethodSelector
+    ::Type{M},  # RS.AbstractMethod type
     param_set::APS,
     ::ph,
     p,
@@ -216,7 +205,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-)
+) where {M <: RS.RootSolvingMethod}
     h_sat_given_p =
         T ->
             enthalpy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
@@ -232,7 +221,7 @@ function saturation_adjustment(
 
     # Construct numerical method for the root solver
     numerical_method = sa_numerical_method(
-        method_selector,
+        M,
         param_set,
         ph(),
         p,
@@ -252,7 +241,7 @@ function saturation_adjustment(
         q_sat_unsat_p,
         h_sat_given_p,
         print_warning,
-        method_selector,
+        M,
         ph(),
         h,
         p,
@@ -266,7 +255,7 @@ end
 
 """
     saturation_adjustment(
-        method_selector,  # RootSolvers.AbstractMethodSelector
+        ::Type{M},  # RS.RootSolvingMethod type
         param_set,
         ::pθ_li,
         p::Real,
@@ -283,7 +272,7 @@ given pressure `p`, liquid-ice potential temperature `θ_liq_ice`, and total spe
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
-    method_selector,  # RootSolvers.AbstractMethodSelector
+    ::Type{M},  # RS.AbstractMethod type
     param_set::APS,
     ::pθ_li,
     p,
@@ -292,7 +281,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-)
+) where {M <: RS.RootSolvingMethod}
     θ_liq_ice_sat_given_p =
         T -> begin
             _ρ = air_density(param_set, T, p, q_tot)
@@ -310,7 +299,7 @@ function saturation_adjustment(
 
     # Construct numerical method for the root solver
     numerical_method = sa_numerical_method(
-        method_selector,
+        M,
         param_set,
         pθ_li(),
         p,
@@ -330,7 +319,7 @@ function saturation_adjustment(
         q_sat_unsat_p,
         θ_liq_ice_sat_given_p,
         print_warning,
-        method_selector,
+        M,
         pθ_li(),
         p,
         θ_liq_ice,
@@ -345,7 +334,7 @@ end
 
 """
     saturation_adjustment(
-        method_selector,  # RootSolvers.AbstractMethodSelector
+        ::Type{M},  # RS.RootSolvingMethod type
         param_set,
         ::ρθ_li,
         ρ::Real,
@@ -362,7 +351,7 @@ given density `ρ`, liquid-ice potential temperature `θ_liq_ice`, and total spe
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
-    method_selector,  # RootSolvers.AbstractMethodSelector
+    ::Type{M},  # RS.AbstractMethod type
     param_set::APS,
     ::ρθ_li,
     ρ,
@@ -371,7 +360,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-)
+) where {M <: RS.RootSolvingMethod}
     θ_liq_ice_sat_given_ρ =
         T -> begin
             (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
@@ -387,7 +376,7 @@ function saturation_adjustment(
 
     # Construct numerical method for the root solver
     numerical_method = sa_numerical_method(
-        method_selector,
+        M,
         param_set,
         ρθ_li(),
         ρ,
@@ -407,7 +396,7 @@ function saturation_adjustment(
         q_sat_unsat_ρ,
         θ_liq_ice_sat_given_ρ,
         print_warning,
-        method_selector,
+        M,
         ρθ_li(),
         ρ,
         θ_liq_ice,
@@ -422,7 +411,7 @@ end
 
 """
     saturation_adjustment(
-        method_selector,  # RootSolvers.AbstractMethodSelector
+        ::Type{M},  # RS.RootSolvingMethod type
         param_set,
         ::pρ,
         p::Real,
@@ -439,7 +428,7 @@ given pressure `p`, density `ρ`, and total specific humidity `q_tot`.
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
-    method_selector,  # RootSolvers.AbstractMethodSelector
+    ::Type{M},  # RS.AbstractMethod type
     param_set::APS,
     ::pρ,
     p,
@@ -448,7 +437,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-)
+) where {M <: RS.RootSolvingMethod}
     pressure_sat_given_ρ =
         T -> begin
             (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
@@ -462,30 +451,34 @@ function saturation_adjustment(
     q_sat_unsat_ρ = (param_set, T, q_tot) ->
         q_vap_saturation(param_set, T, ρ)
 
-    make_numerical_method_ρ =
-        (sat_method, param_set, target_p, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, pρ(), target_p, ρ, q_tot, T_guess)
+    # Construct numerical method for the root solver
+    numerical_method = sa_numerical_method(
+        M,
+        param_set,
+        pρ(),
+        p,
+        ρ,
+        q_tot,
+        T_guess,
+    )
 
     # Using generic helper with p as target thermo_var
     T = _saturation_adjustment_generic(
-        method_selector,
+        numerical_method,
         param_set,
         p, # thermo_var (target p)
         q_tot,
         maxiter,
         tol,
-        T_guess,
         temp_from_pρq_func,
         q_sat_unsat_ρ,
         pressure_sat_given_ρ,
-        make_numerical_method_ρ,
         print_warning,
-        method_selector,
+        M,
         pρ(),
         ρ,
         p,
         q_tot,
-        # T_guess removed to match printing.jl signature
     )
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
@@ -495,6 +488,39 @@ end
 # ---------------------------------------------
 # Helper functions 
 # ---------------------------------------------
+
+"""
+    _make_roots_function(::Type{M}, param_set, ρ, e_int, q_tot)
+
+Helper function to create the root function for Newton's method (with derivative) or
+other methods (without derivative), dispatching on the method type.
+"""
+@inline function _make_roots_function(
+    ::Type{RS.NewtonsMethod},
+    param_set::APS,
+    ρ,
+    e_int,
+    q_tot,
+)
+    return _T -> begin
+        T_val = ReLU(_T)
+        f = e_int - internal_energy_sat(param_set, T_val, ρ, q_tot)
+        (f, -∂e_int_∂T_sat(param_set, T_val, ρ, q_tot))
+    end
+end
+
+@inline function _make_roots_function(
+    ::Type{M},
+    param_set::APS,
+    ρ,
+    e_int,
+    q_tot,
+) where {M <: RS.RootSolvingMethod}
+    return _T -> begin
+        T_val = ReLU(_T)
+        e_int - internal_energy_sat(param_set, T_val, ρ, q_tot)
+    end
+end
 
 """
     _phase_partition_from_T_p(param_set, T, p, q_tot)
@@ -540,6 +566,7 @@ function _find_zero_with_convergence_check(
     if !sol.converged
         if print_warning()
             # Pass `sol.root` and `tol.tol` to match original warning signatures
+            # warning_args should start with the method type
             warning_func(warning_args..., sol.root, maxiter, tol.tol)
         end
         if error_on_non_convergence()

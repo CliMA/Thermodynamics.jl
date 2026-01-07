@@ -22,7 +22,7 @@ non-convergence via `Thermodynamics.error_on_non_convergence()`.
             e_int_sat = TD.internal_energy_sat(param_set, T, ρ, q_tot)
 
             @test_throws ErrorException TD.saturation_adjustment(
-                RS.NewtonsSelector(),
+                RS.NewtonsMethod,
                 param_set,
                 TD.ρe(),
                 ρ,
@@ -33,7 +33,7 @@ non-convergence via `Thermodynamics.error_on_non_convergence()`.
             )
 
             @test_throws ErrorException TD.saturation_adjustment(
-                RS.SecantSelector(),
+                RS.SecantMethod,
                 param_set,
                 TD.ρe(),
                 ρ,

@@ -107,10 +107,10 @@ end
     # CPU reference implementation for the same states.
     # Use default methods (no method type parameter) to avoid dynamic dispatch issues on GPU.
 
-    # 1) ρeq - using NewtonsMethod (via singleton for GPU compatibility)
+    # 1) ρeq - using NewtonsMethod (via type dispatch for GPU compatibility)
     gpu_results_ρe =
         TD.saturation_adjustment.(
-            Ref(RS.NewtonsSelector()),
+            Ref(RS.NewtonsMethod),
             Ref(param_set),
             Ref(TD.ρe()),
             d_ρ,
@@ -123,10 +123,10 @@ end
     ql_ρe = map(x -> x.q_liq, gpu_results_ρe)
     qi_ρe = map(x -> x.q_ice, gpu_results_ρe)
 
-    # 2) pe - using SecantMethod (via singleton for GPU compatibility)
+    # 2) pe - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_pe =
         TD.saturation_adjustment.(
-            Ref(RS.SecantSelector()),
+            Ref(RS.SecantMethod),
             Ref(param_set),
             Ref(TD.pe()),
             d_p,
@@ -139,10 +139,10 @@ end
     ql_pe = map(x -> x.q_liq, gpu_results_pe)
     qi_pe = map(x -> x.q_ice, gpu_results_pe)
 
-    # 3) ph - using SecantMethod (via singleton for GPU compatibility)
+    # 3) ph - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_ph =
         TD.saturation_adjustment.(
-            Ref(RS.SecantSelector()),
+            Ref(RS.SecantMethod),
             Ref(param_set),
             Ref(TD.ph()),
             d_p,
@@ -155,10 +155,10 @@ end
     ql_ph = map(x -> x.q_liq, gpu_results_ph)
     qi_ph = map(x -> x.q_ice, gpu_results_ph)
 
-    # 4) pρ - using SecantMethod (via singleton for GPU compatibility)
+    # 4) pρ - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_pρ =
         TD.saturation_adjustment.(
-            Ref(RS.SecantSelector()),
+            Ref(RS.SecantMethod),
             Ref(param_set),
             Ref(TD.pρ()),
             d_p_ρ,
@@ -171,10 +171,10 @@ end
     ql_pρ = map(x -> x.q_liq, gpu_results_pρ)
     qi_pρ = map(x -> x.q_ice, gpu_results_pρ)
 
-    # 5) ρθ_li - using SecantMethod (via singleton for GPU compatibility)
+    # 5) ρθ_li - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_ρθ_li =
         TD.saturation_adjustment.(
-            Ref(RS.SecantSelector()),
+            Ref(RS.SecantMethod),
             Ref(param_set),
             Ref(TD.ρθ_li()),
             d_ρ,
@@ -187,10 +187,10 @@ end
     ql_ρθ_li = map(x -> x.q_liq, gpu_results_ρθ_li)
     qi_ρθ_li = map(x -> x.q_ice, gpu_results_ρθ_li)
 
-    # 6) pθ_li - using SecantMethod (via singleton for GPU compatibility)
+    # 6) pθ_li - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_pθ_li =
         TD.saturation_adjustment.(
-            Ref(RS.SecantSelector()),
+            Ref(RS.SecantMethod),
             Ref(param_set),
             Ref(TD.pθ_li()),
             d_p,
