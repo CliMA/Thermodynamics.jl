@@ -8,7 +8,7 @@ export air_temperature_given_ρθq
 
 !!! warn "Deprecated"
     This function is deprecated and will be removed in a future release.
-    Please use [`air_temperature`](@ref) with the [`phq`](@ref) type instead.
+    Please use [`air_temperature`](@ref) with the [`ph`](@ref) type instead.
 """
 @inline function air_temperature_given_hq(
     param_set::APS,
@@ -25,7 +25,7 @@ end
 
 !!! warn "Deprecated"
     This function is deprecated and will be removed in a future release.
-    Please use [`air_temperature`](@ref) with the [`pρq`](@ref) type instead.
+    Please use [`air_temperature`](@ref) with the [`pρ`](@ref) type instead.
 """
 @inline function air_temperature_given_pρq(
     param_set::APS,
@@ -39,16 +39,16 @@ end
 end
 
 """
-    air_temperature_given_pθq(param_set, p, θ_liq_ice, q_tot=0, q_liq=0, q_ice=0)
+    air_temperature_given_pθq(param_set, p, θ_li, q_tot=0, q_liq=0, q_ice=0)
 
 !!! warn "Deprecated"
     This function is deprecated and will be removed in a future release.
-    Please use [`air_temperature`](@ref) with the [`pθ_liq_ice_q`](@ref) type instead.
+    Please use [`air_temperature`](@ref) with the [`pθ_li`](@ref) type instead.
 """
 @inline function air_temperature_given_pθq(
     param_set::APS,
     p,
-    θ_liq_ice,
+    θ_li,
     q_tot = 0,
     q_liq = 0,
     q_ice = 0,
@@ -57,7 +57,7 @@ end
         param_set,
         pθ_li(),
         p,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         q_liq,
         q_ice,
@@ -65,16 +65,16 @@ end
 end
 
 """
-    air_temperature_given_ρθq(param_set, ρ, θ_liq_ice, q_tot=0, q_liq=0, q_ice=0)
+    air_temperature_given_ρθq(param_set, ρ, θ_li, q_tot=0, q_liq=0, q_ice=0)
 
 !!! warn "Deprecated"
     This function is deprecated and will be removed in a future release.
-    Please use [`air_temperature`](@ref) with the [`ρθ_liq_ice_q`](@ref) type instead.
+    Please use [`air_temperature`](@ref) with the [`ρθ_li`](@ref) type instead.
 """
 @inline function air_temperature_given_ρθq(
     param_set::APS,
     ρ,
-    θ_liq_ice,
+    θ_li,
     q_tot = 0,
     q_liq = 0,
     q_ice = 0,
@@ -83,7 +83,7 @@ end
         param_set,
         ρθ_li(),
         ρ,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         q_liq,
         q_ice,

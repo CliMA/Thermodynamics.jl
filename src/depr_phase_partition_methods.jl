@@ -1175,23 +1175,6 @@ The temperature `T` is found by finding the root of
         tol,
         maxiter,
     )
-    if !sol.converged
-        if print_warning()
-            print_warning_ρθq_nonlinear(
-                RS.SecantMethod,
-                θ_liq_ice,
-                ρ,
-                q.tot,
-                q.liq,
-                q.ice,
-                sol.root,
-                maxiter,
-                tol.tol,
-            )
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
-    end
+
     return sol.root
 end

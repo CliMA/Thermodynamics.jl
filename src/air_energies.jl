@@ -257,7 +257,7 @@ The total energy per unit mass.
 # Arguments
  - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
  - `e_kin`: kinetic energy per unit mass [J/kg]
- - `e_pot`: gravitational potential energy per unit mass [J/kg] (geopotential)
+ - `e_pot`: gravitational potential energy (geopotential)per unit mass [J/kg]
  - `T`: temperature [K]
  - `q_tot`: total specific humidity [kg/kg]
  - `q_liq`: liquid specific humidity [kg/kg]

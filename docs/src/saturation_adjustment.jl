@@ -9,7 +9,10 @@ FT = Float64
 
 const param_set = TP.ThermodynamicsParameters(FT)
 
-profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
+include("../../test/TestedProfiles.jl")
+import .TestedProfiles
+
+profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
 (; ρ, q_tot) = profiles
 T_true = profiles.T
 prof_pts = (ρ, T_true, q_tot)
@@ -55,7 +58,7 @@ ts_no_err = Dict(
             )
 
             @inbounds for NM in numerical_methods
-                TD.set_error_on_non_convergence!(false)
+                # TD.set_error_on_non_convergence!(false)
                 ts_no_err[NM][n] = TD.PhaseEquil_dev_only(
                     param_set,
                     ρ[i],
@@ -64,7 +67,7 @@ ts_no_err = Dict(
                     sat_adjust_method = NM,
                     maxiter = 10,
                 )
-                TD.set_error_on_non_convergence!(true)
+                # TD.set_error_on_non_convergence!(true)
                 # @show n / prod(dims) * 100
                 try
                     ts[NM][n] = TD.PhaseEquil_dev_only(
