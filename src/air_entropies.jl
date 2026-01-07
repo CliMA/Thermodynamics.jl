@@ -69,7 +69,7 @@ In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), the dry-air partial
     R_d = TP.R_d(param_set)
     cp_d = TP.cp_d(param_set)
     p_d = partial_pressure_dry(param_set, p, q_tot, q_liq, q_ice)
-    return s_d_ref + cp_d * log(T / T_ref) - R_d * log((p_d + eps(FT)) / p_ref)
+    return s_d_ref + cp_d * log(T / T_ref) - R_d * log((p_d + ϵ_numerics(FT)) / p_ref)
 end
 
 """
@@ -105,5 +105,5 @@ Note: the entropy of water vapor diverges logarithmically as `q_tot → 0` (sinc
     R_v = TP.R_v(param_set)
     cp_v = TP.cp_v(param_set)
     p_v = partial_pressure_vapor(param_set, p, q_tot, q_liq, q_ice)
-    return s_v_ref + cp_v * log(T / T_ref) - R_v * log((p_v + eps(FT)) / p_ref)
+    return s_v_ref + cp_v * log(T / T_ref) - R_v * log((p_v + ϵ_numerics(FT)) / p_ref)
 end

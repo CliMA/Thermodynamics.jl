@@ -20,3 +20,10 @@ Note: requires `x > 0` since it uses `log(x)`.
 See: https://stackoverflow.com/questions/14687665/very-slow-stdpow-for-bases-very-close-to-1
 """
 @inline fast_power(x, y) = exp(y * log(x))
+
+"""
+    ϵ_numerics(FT)
+
+Smallest acceptable number that is different than zero.
+"""
+ϵ_numerics(FT) = sqrt(floatmin(FT))

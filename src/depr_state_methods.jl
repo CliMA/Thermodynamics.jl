@@ -129,11 +129,11 @@ The Exner function, given a thermodynamic state `ts`.
 )
 
 """
-    dry_pottemp(param_set, ts::ThermodynamicState)
+    potential_temperature(param_set, ts::ThermodynamicState)
 
 The dry potential temperature, given a thermodynamic state `ts`.
 """
-@inline dry_pottemp(param_set::APS, ts::ThermodynamicState) = dry_pottemp(
+@inline potential_temperature(param_set::APS, ts::ThermodynamicState) = potential_temperature(
     param_set,
     air_temperature(param_set, ts),
     air_density(param_set, ts),

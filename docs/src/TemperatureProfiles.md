@@ -48,6 +48,7 @@ p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
 Plots.plot(p1, p2, layout=(1,2), title="Isothermal", ylabel="z [km]");
 Plots.savefig("isothermal.svg");
 ```
+
 ![](isothermal.svg)
 
 ### Decaying Temperature Profile
@@ -73,6 +74,7 @@ p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
 Plots.plot(p1, p2, layout=(1,2), ylabel="z [km]", title="Decaying");
 Plots.savefig("decaying.svg")
 ```
+
 ![](decaying.svg)
 
 ### Dry Adiabatic Profile
@@ -92,7 +94,7 @@ dry_adiabatic = TD.TemperatureProfiles.DryAdiabaticProfile{FT}(param_set);
 args = dry_adiabatic.(Ref(param_set), z)
 T = first.(args)
 p = last.(args)
-θ_dry = TD.dry_pottemp_given_pressure.(Ref(param_set), T, p)
+θ_dry = TD.potential_temperature_given_pressure.(Ref(param_set), T, p)
 
 p1 = Plots.plot(T, z./10^3, xlabel="Temperature [K]");
 p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
@@ -100,6 +102,7 @@ p3 = Plots.plot(θ_dry, z./10^3, xlabel="Potential temperature [K]");
 Plots.plot(p1, p2, p3, layout=(1,3), ylabel="z [km]", title="Dry adiabatic")
 Plots.savefig("dry_adiabatic.svg")
 ```
+
 ![](dry_adiabatic.svg)
 
 ## Applications
@@ -152,4 +155,3 @@ end
     All profiles implement the `TemperatureProfile` interface and return
     temperature-pressure pairs as a function of altitude. The profiles are
     designed to be composable with other thermodynamic calculations.
-

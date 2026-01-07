@@ -32,7 +32,7 @@ This file contains tests for thermodynamic state constructor consistency.
             )
             @test all(air_density.(param_set, ts_ρe) .≈ ρ)
 
-            θ_dry = dry_pottemp.(param_set, T, ρ)
+            θ_dry = potential_temperature.(param_set, T, ρ)
             ts_pθ = PhaseDry_pθ.(param_set, p, θ_dry)
             @test all(
                 internal_energy.(param_set, ts_pθ) .≈

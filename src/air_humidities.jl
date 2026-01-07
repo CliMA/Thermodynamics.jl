@@ -249,5 +249,5 @@ particular, for `q_liq == q_ice == 0` it includes a small smooth transition arou
     FT = eltype(param_set)
     p_vap = partial_pressure_vapor(param_set, p, q_tot, q_liq, q_ice)
     p_vap_sat = saturation_vapor_pressure(param_set, T, q_liq, q_ice)
-    return max(0, min(1, p_vap / (p_vap_sat + eps(FT(0)))))
+    return max(0, min(1, p_vap / (p_vap_sat + ϵ_numerics(FT))))
 end

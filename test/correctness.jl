@@ -154,37 +154,79 @@ using the non-deprecated functional API (no `PhasePartition`/state types).
             q_tot = FT(0.01)
             q_liq = FT(0)
             q_ice = FT(0)
-            
+
             # Temperatures
             T_warm = FT(300) # > T_freeze 
             T_cold = FT(250) # < T_freeze
 
             # 1. Test explicit Phase methods
-            vpd_liq_warm = TD.vapor_pressure_deficit(param_set, T_warm, p, q_tot, q_liq, q_ice, TD.Liquid())
-            vpd_ice_warm = TD.vapor_pressure_deficit(param_set, T_warm, p, q_tot, q_liq, q_ice, TD.Ice())
-            
+            vpd_liq_warm = TD.vapor_pressure_deficit(
+                param_set,
+                T_warm,
+                p,
+                q_tot,
+                q_liq,
+                q_ice,
+                TD.Liquid(),
+            )
+            vpd_ice_warm = TD.vapor_pressure_deficit(
+                param_set,
+                T_warm,
+                p,
+                q_tot,
+                q_liq,
+                q_ice,
+                TD.Ice(),
+            )
+
             es_liq_warm = TD.saturation_vapor_pressure(param_set, T_warm, TD.Liquid())
             es_ice_warm = TD.saturation_vapor_pressure(param_set, T_warm, TD.Ice())
             ea_warm = TD.partial_pressure_vapor(param_set, p, q_tot, q_liq, q_ice)
-            
+
             @test vpd_liq_warm ≈ max(0, es_liq_warm - ea_warm)
             @test vpd_ice_warm ≈ max(0, es_ice_warm - ea_warm)
 
             # 2. Test automatic selection (Liquid above freezing)
-            vpd_auto_warm = TD.vapor_pressure_deficit(param_set, T_warm, p, q_tot, q_liq, q_ice)
+            vpd_auto_warm =
+                TD.vapor_pressure_deficit(param_set, T_warm, p, q_tot, q_liq, q_ice)
             @test vpd_auto_warm ≈ vpd_liq_warm
-            
+
             # 3. Test automatic selection (Ice below freezing)
-            vpd_liq_cold = TD.vapor_pressure_deficit(param_set, T_cold, p, q_tot, q_liq, q_ice, TD.Liquid())
-            vpd_ice_cold = TD.vapor_pressure_deficit(param_set, T_cold, p, q_tot, q_liq, q_ice, TD.Ice())
-            vpd_auto_cold = TD.vapor_pressure_deficit(param_set, T_cold, p, q_tot, q_liq, q_ice)
-            
+            vpd_liq_cold = TD.vapor_pressure_deficit(
+                param_set,
+                T_cold,
+                p,
+                q_tot,
+                q_liq,
+                q_ice,
+                TD.Liquid(),
+            )
+            vpd_ice_cold = TD.vapor_pressure_deficit(
+                param_set,
+                T_cold,
+                p,
+                q_tot,
+                q_liq,
+                q_ice,
+                TD.Ice(),
+            )
+            vpd_auto_cold =
+                TD.vapor_pressure_deficit(param_set, T_cold, p, q_tot, q_liq, q_ice)
+
             @test vpd_auto_cold ≈ vpd_ice_cold
-            
+
             # 4. Test non-negative behavior
             # Force high humidity to make ea > es
-            q_tot_high = FT(0.1) 
-            vpd_sat_warm = TD.vapor_pressure_deficit(param_set, T_warm, p, q_tot_high, q_liq, q_ice, TD.Liquid())
+            q_tot_high = FT(0.1)
+            vpd_sat_warm = TD.vapor_pressure_deficit(
+                param_set,
+                T_warm,
+                p,
+                q_tot_high,
+                q_liq,
+                q_ice,
+                TD.Liquid(),
+            )
             @test vpd_sat_warm == 0
         end
     end

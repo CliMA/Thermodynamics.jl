@@ -15,7 +15,7 @@ function test_type_stability_for_type(FT)
     (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
     h = e_int + p ./ ρ
 
-    θ_dry = dry_pottemp.(param_set, T, ρ)
+    θ_dry = potential_temperature.(param_set, T, ρ)
     ts_dry = PhaseDry.(param_set, e_int, ρ)
     ts_dry_ρp = PhaseDry_ρp.(param_set, ρ, p)
     ts_dry_pT = PhaseDry_pT.(param_set, p, T)
@@ -132,7 +132,7 @@ function test_type_stability_for_type(FT)
         @test typeof.(air_temperature.(param_set, ts)) == typeof.(e_int)
 
         # Internal energy functions
-        @test typeof.(internal_energy_sat.(param_set, ts)) == typeof.(e_int)
+        @test typeof.(TD.internal_energy_sat.(param_set, ts)) == typeof.(e_int)
         @test typeof.(internal_energy.(param_set, ts)) == typeof.(e_int)
         @test typeof.(internal_energy_dry.(param_set, ts)) == typeof.(e_int)
         @test typeof.(internal_energy_vapor.(param_set, ts)) == typeof.(e_int)
@@ -155,7 +155,7 @@ function test_type_stability_for_type(FT)
 
         # Potential temperature functions
         @test typeof.(liquid_ice_pottemp.(param_set, ts)) == typeof.(e_int)
-        @test typeof.(dry_pottemp.(param_set, ts)) == typeof.(e_int)
+        @test typeof.(potential_temperature.(param_set, ts)) == typeof.(e_int)
         @test typeof.(exner.(param_set, ts)) == typeof.(e_int)
         @test typeof.(liquid_ice_pottemp_sat.(param_set, ts)) == typeof.(e_int)
         @test typeof.(virtual_pottemp.(param_set, ts)) == typeof.(e_int)

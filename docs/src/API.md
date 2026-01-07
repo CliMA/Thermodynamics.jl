@@ -68,7 +68,7 @@ air_temperature_given_pθq
 condensate_specific_humidity
 cp_m
 cv_m
-dry_pottemp
+potential_temperature
 exner
 gas_constant_air
 has_condensate

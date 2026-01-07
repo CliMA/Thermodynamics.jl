@@ -1,6 +1,6 @@
 export air_temperature
-export dry_pottemp
-export dry_pottemp_given_pressure
+export potential_temperature
+export potential_temperature_given_pressure
 export virtual_temperature
 export virtual_pottemp
 export liquid_ice_pottemp
@@ -214,7 +214,7 @@ end
 
 
 """
-    dry_pottemp(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
+    potential_temperature(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
 The dry potential temperature, given
 
@@ -234,7 +234,7 @@ If the specific humidities are not given, the result is for dry air.
 Note: if any of `q_tot`, `q_liq`, or `q_ice` are nonzero, the Exner function uses the
 moist exponent `R_m/cp_m` (reducing to the dry exponent `R_d/cp_d` in the dry limit).
 """
-@inline function dry_pottemp(
+@inline function potential_temperature(
     param_set::APS,
     T,
     ρ,
@@ -246,7 +246,7 @@ moist exponent `R_m/cp_m` (reducing to the dry exponent `R_d/cp_d` in the dry li
 end
 
 """
-    dry_pottemp_given_pressure(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
+    potential_temperature_given_pressure(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
 The dry potential temperature, given
 
@@ -262,7 +262,7 @@ If the specific humidities are not given, the result is for dry air.
 Note: if any of `q_tot`, `q_liq`, or `q_ice` are nonzero, the Exner function uses the
 moist exponent `R_m/cp_m` (reducing to the dry exponent `R_d/cp_d` in the dry limit).
 """
-@inline function dry_pottemp_given_pressure(
+@inline function potential_temperature_given_pressure(
     param_set::APS,
     T,
     p,
@@ -328,7 +328,7 @@ If the specific humidities are not given, the result is for dry air.
 )
     R_d = TP.R_d(param_set)
     R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
-    return dry_pottemp(param_set, T, ρ, q_tot, q_liq, q_ice) * R_m / R_d
+    return potential_temperature(param_set, T, ρ, q_tot, q_liq, q_ice) * R_m / R_d
 end
 
 """
@@ -407,7 +407,7 @@ doi:[10.1002/qj.49709941915](https://doi.org/10.1002/qj.49709941915).
     # liquid-ice potential temperature, approximating latent heats
     # of phase transitions as constants
     cpm = cp_m(param_set, q_tot, q_liq, q_ice)
-    return dry_pottemp_given_pressure(param_set, T, p, q_tot, q_liq, q_ice) * (
+    return potential_temperature_given_pressure(param_set, T, p, q_tot, q_liq, q_ice) * (
         1 - humidity_weighted_latent_heat(param_set, q_liq, q_ice) / (cpm * T)
     )
 end

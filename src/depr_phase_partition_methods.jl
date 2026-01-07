@@ -862,7 +862,7 @@ When `q` is not provided, the results are for dry air.
 end
 
 """
-    dry_pottemp(param_set, T, ρ[, q::PhasePartition])
+    potential_temperature(param_set, T, ρ[, q::PhasePartition])
 
 The dry potential temperature, given
 
@@ -876,12 +876,12 @@ and, optionally,
  
 When `q` is not provided, the results are for dry air.
 """
-@inline function dry_pottemp(param_set::APS, T, ρ, q::PhasePartition)
-    return dry_pottemp(param_set, T, ρ, q.tot, q.liq, q.ice)
+@inline function potential_temperature(param_set::APS, T, ρ, q::PhasePartition)
+    return potential_temperature(param_set, T, ρ, q.tot, q.liq, q.ice)
 end
 
 """
-    dry_pottemp_given_pressure(param_set, T, p[, q::PhasePartition])
+    potential_temperature_given_pressure(param_set, T, p[, q::PhasePartition])
 
 The dry potential temperature, given
 
@@ -896,13 +896,13 @@ and, optionally,
 When `q` is not provided, the results are for dry air, i.e., using the adiabatic exponent 
  for dry air.
 """
-@inline function dry_pottemp_given_pressure(
+@inline function potential_temperature_given_pressure(
     param_set::APS,
     T,
     p,
     q::PhasePartition,
 )
-    return dry_pottemp_given_pressure(param_set, T, p, q.tot, q.liq, q.ice)
+    return potential_temperature_given_pressure(param_set, T, p, q.tot, q.liq, q.ice)
 end
 
 """

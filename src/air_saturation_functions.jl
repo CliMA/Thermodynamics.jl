@@ -81,7 +81,7 @@ Bool indicating if condensate exists, i.e., q_c > eps.
 We use a threshold of `eps` rather than `0` to avoid division by zero in functions
 like `liquid_fraction` and to robustly handle numerical noise.
 """
-@inline has_condensate(q_c) = q_c > eps(typeof(q_c))
+@inline has_condensate(q_c) = q_c > ϵ_numerics(typeof(q_c))
 
 """
     saturation_vapor_pressure(param_set, T, ::Liquid)
@@ -356,7 +356,7 @@ and is set to 1 if `p - p_v_sat` is less than machine epsilon.
     R_v = TP.R_v(param_set)
     R_d = TP.R_d(param_set)
     q_v_sat = ifelse(
-        p - p_v_sat ≥ eps(FT),
+        p - p_v_sat ≥ ϵ_numerics(FT),
         R_d / R_v * (1 - q_tot) * p_v_sat / (p - p_v_sat),
         FT(1),
     )

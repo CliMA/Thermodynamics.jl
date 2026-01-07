@@ -98,15 +98,15 @@ This file contains tests for saturation adjustment accuracy and convergence.
             _T_freeze = FT(TP.T_freeze(param_set))
 
             # Test around approximate freezing temperature with tolerance
-            T_freeze_plus = _T_freeze + sqrt(eps(FT))
-            T_freeze_minus = _T_freeze - sqrt(eps(FT))
+            T_freeze_plus = _T_freeze + TD.ϵ_numerics(FT)
+            T_freeze_minus = _T_freeze - TD.ϵ_numerics(FT)
 
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
             (; ρ, q_tot) = profiles
             e_int_upper =
-                internal_energy_sat.(param_set, Ref(T_freeze_plus), ρ, q_tot)
+                TD.internal_energy_sat.(param_set, Ref(T_freeze_plus), ρ, q_tot)
             e_int_lower =
-                internal_energy_sat.(param_set, Ref(T_freeze_minus), ρ, q_tot)
+                TD.internal_energy_sat.(param_set, Ref(T_freeze_minus), ρ, q_tot)
             _e_int = (e_int_upper .+ e_int_lower) / 2
             ts = PhaseEquil_ρeq.(param_set, ρ, _e_int, q_tot)
             @test all(
@@ -445,8 +445,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
             phase_type = PhaseEquil{FT}
 
             # Test around approximate freezing temperature with tolerance
-            T_freeze_plus = _T_freeze + sqrt(eps(FT))
-            T_freeze_minus = _T_freeze - sqrt(eps(FT))
+            T_freeze_plus = _T_freeze + TD.ϵ_numerics(FT)
+            T_freeze_minus = _T_freeze - TD.ϵ_numerics(FT)
 
             θ_liq_ice_upper =
                 TD.liquid_ice_pottemp_given_pressure.(
