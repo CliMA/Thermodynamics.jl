@@ -110,7 +110,7 @@ end
     # 1) ρeq - using NewtonsMethod (via type dispatch for GPU compatibility)
     gpu_results_ρe =
         TD.saturation_adjustment.(
-            Ref(RS.NewtonsMethod),
+            RS.NewtonsMethod,
             Ref(param_set),
             Ref(TD.ρe()),
             d_ρ,
@@ -126,7 +126,7 @@ end
     # 2) pe - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_pe =
         TD.saturation_adjustment.(
-            Ref(RS.SecantMethod),
+            RS.SecantMethod,
             Ref(param_set),
             Ref(TD.pe()),
             d_p,
@@ -142,7 +142,7 @@ end
     # 3) ph - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_ph =
         TD.saturation_adjustment.(
-            Ref(RS.SecantMethod),
+            RS.SecantMethod,
             Ref(param_set),
             Ref(TD.ph()),
             d_p,
@@ -158,7 +158,7 @@ end
     # 4) pρ - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_pρ =
         TD.saturation_adjustment.(
-            Ref(RS.SecantMethod),
+            RS.SecantMethod,
             Ref(param_set),
             Ref(TD.pρ()),
             d_p_ρ,
@@ -174,7 +174,7 @@ end
     # 5) ρθ_li - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_ρθ_li =
         TD.saturation_adjustment.(
-            Ref(RS.SecantMethod),
+            RS.SecantMethod,
             Ref(param_set),
             Ref(TD.ρθ_li()),
             d_ρ,
@@ -190,7 +190,7 @@ end
     # 6) pθ_li - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_pθ_li =
         TD.saturation_adjustment.(
-            Ref(RS.SecantMethod),
+            RS.SecantMethod,
             Ref(param_set),
             Ref(TD.pθ_li()),
             d_p,
