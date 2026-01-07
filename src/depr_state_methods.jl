@@ -133,12 +133,13 @@ The Exner function, given a thermodynamic state `ts`.
 
 The dry potential temperature, given a thermodynamic state `ts`.
 """
-@inline potential_temperature(param_set::APS, ts::ThermodynamicState) = potential_temperature(
-    param_set,
-    air_temperature(param_set, ts),
-    air_density(param_set, ts),
-    PhasePartition(param_set, ts),
-)
+@inline potential_temperature(param_set::APS, ts::ThermodynamicState) =
+    potential_temperature(
+        param_set,
+        air_temperature(param_set, ts),
+        air_density(param_set, ts),
+        PhasePartition(param_set, ts),
+    )
 
 """
     entropy(param_set, ts)

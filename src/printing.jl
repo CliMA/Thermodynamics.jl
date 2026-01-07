@@ -27,24 +27,23 @@ for rsm in (
     )
         @eval function print_warning(::Type{<:$(rsm)}, ::$IV, args...)
             ($(args...),) = args
-            return KA.@print(
-                $("maxiter reached in saturation_adjustment($name):\n"),
-                $(string(rsm)),
-                $(
-                    let
-                        parts = Any["("]
-                        for (i, a) in enumerate(args)
-                            push!(parts, "$(string(a))=")
-                            push!(parts, a)
-                            if i < length(args)
-                                push!(parts, ", ")
-                            end
+            $(
+                let
+                    call_args = Any[]
+                    push!(call_args, "maxiter reached in saturation_adjustment($name):\n")
+                    push!(call_args, string(rsm))
+                    push!(call_args, "(")
+                    for (i, a) in enumerate(args)
+                        push!(call_args, "$(string(a))=")
+                        push!(call_args, a) # Symbol representing variable
+                        if i < length(args)
+                            push!(call_args, ", ")
                         end
-                        push!(parts, ")" * (name == "ρe" ? "" : " ="))
-                        Expr(:string, parts...)
                     end
-                ),
-                "\n"
+                    push!(call_args, ")" * (name == "ρe" ? "" : " ="))
+                    push!(call_args, "\n")
+                    Expr(:macrocall, GlobalRef(KA, Symbol("@print")), LineNumberNode(@__LINE__), call_args...)
+                end
             )
         end
     end
@@ -55,7 +54,7 @@ for rsm in (
         return KA.@print(
             "maxiter reached in saturation_adjustment(ρθq_nonlinear):\n",
             $(string(rsm)),
-            "(θ_liq_ice=$θ_liq_ice, ρ=$ρ, q_tot=$q_tot, q_liq=$q_liq, q_ice=$q_ice, T=$T, maxiter=$maxiter, tol=$tol) =",
+            "(θ_liq_ice=", θ_liq_ice, ", ρ=", ρ, ", q_tot=", q_tot, ", q_liq=", q_liq, ", q_ice=", q_ice, ", T=", T, ", maxiter=", maxiter, ", tol=", tol, ") =",
             "\n"
         )
     end
