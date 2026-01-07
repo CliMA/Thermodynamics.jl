@@ -60,8 +60,9 @@ function saturation_adjustment(
     q_sat_unsat_func = (param_set, T, q_tot) -> q_vap_saturation(param_set, T, ρ)
 
     # For T_ice upper bound: all water is ice
-    temp_ice_func = (param_set, e_int, q_tot) -> 
-        air_temperature(param_set, ρe(), e_int, q_tot, eltype(param_set)(0), q_tot)
+    temp_ice_func =
+        (param_set, e_int, q_tot) ->
+            air_temperature(param_set, ρe(), e_int, q_tot, eltype(param_set)(0), q_tot)
 
     # Root function (supports analytic derivative if M=NewtonsMethod)
     roots_func = _make_roots_function(M, param_set, ρ, e_int, q_tot)
@@ -79,7 +80,7 @@ function saturation_adjustment(
         temp_ice_func,
         roots_func,
     )
-    
+
     # Compute equilibrium phase partition
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice, converged)
@@ -400,8 +401,16 @@ function saturation_adjustment(
 
     temp_ice_func =
         (param_set, θ_liq_ice, q_tot) ->
-            air_temperature(param_set, pθ_li(), p, θ_liq_ice, q_tot, eltype(param_set)(0), q_tot)
-            
+            air_temperature(
+                param_set,
+                pθ_li(),
+                p,
+                θ_liq_ice,
+                q_tot,
+                eltype(param_set)(0),
+                q_tot,
+            )
+
     roots_func = T -> θ_liq_ice_sat_given_p(T) - θ_liq_ice
 
     (T, converged) = _saturation_adjustment_generic(
@@ -483,7 +492,15 @@ function saturation_adjustment(
 
     temp_ice_func =
         (param_set, θ_liq_ice, q_tot) ->
-            air_temperature(param_set, ρθ_li(), ρ, θ_liq_ice, q_tot, eltype(param_set)(0), q_tot)
+            air_temperature(
+                param_set,
+                ρθ_li(),
+                ρ,
+                θ_liq_ice,
+                q_tot,
+                eltype(param_set)(0),
+                q_tot,
+            )
 
     roots_func = T -> θ_liq_ice_sat_given_ρ(T) - θ_liq_ice
 
@@ -776,7 +793,7 @@ and root-finding for all `saturation_adjustment` variants.
 
     # Saturated case: solve for T
     T_ice = temp_ice_func(param_set, thermo_var, q_tot)
-    
+
     # Initialize solver (logic merged from config_sa_method.jl)
     solver = _make_sa_solver(Method, param_set, T_unsat, T_ice, T_guess)
 
@@ -787,10 +804,8 @@ and root-finding for all `saturation_adjustment` variants.
         tol,
         maxiter,
     )
-    
-    # Ensure solution is clamped at T_min
-    T_clamped = max(_T_min, T)
-    return (T_clamped, converged)
+
+    return (T, converged)
 end
 
 # -------------------------------
