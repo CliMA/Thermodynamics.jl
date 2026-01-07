@@ -648,7 +648,7 @@ Encapsulates unsaturated check logic and root-finding for saturation adjustments
 Arguments `temp_from_var_unsat_func`, `q_sat_unsat_func`, and `sat_val_func`
 are closures that capture any specific independent variables (like p or ρ).
 """
-function _saturation_adjustment_generic(
+@inline function _saturation_adjustment_generic(
     numerical_method,  # Pre-constructed RootSolvers method instance
     param_set::APS,
     thermo_var, # This can be e_int or h
