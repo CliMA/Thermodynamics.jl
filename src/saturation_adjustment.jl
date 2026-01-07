@@ -50,7 +50,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     T_init_min = TP.T_init_min(param_set)
     sol_tol = tol isa Real ? RS.RelativeSolutionTolerance(tol) : tol
 
@@ -124,7 +124,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     e_int_sat_given_p =
         T ->
             internal_energy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
@@ -205,7 +205,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     h_sat_given_p =
         T ->
             enthalpy_sat(param_set, T, air_density(param_set, T, p, q_tot), q_tot)
@@ -281,7 +281,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     θ_liq_ice_sat_given_p =
         T -> begin
             _ρ = air_density(param_set, T, p, q_tot)
@@ -360,7 +360,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     θ_liq_ice_sat_given_ρ =
         T -> begin
             (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
@@ -437,7 +437,7 @@ function saturation_adjustment(
     maxiter::Int,
     tol,
     T_guess = nothing,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     pressure_sat_given_ρ =
         T -> begin
             (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
@@ -515,7 +515,7 @@ end
     ρ,
     e_int,
     q_tot,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     return _T -> begin
         T_val = ReLU(_T)
         e_int - internal_energy_sat(param_set, T_val, ρ, q_tot)

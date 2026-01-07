@@ -69,7 +69,7 @@ end
     e_int,
     q_tot,
     T_guess,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     FT = eltype(param_set)
     T_unsat = air_temperature(param_set, ρe(), e_int, q_tot)
     T_ice = air_temperature(param_set, ρe(), e_int, q_tot, FT(0), q_tot)
@@ -89,7 +89,7 @@ end
     ρ,
     q_tot,
     T_guess,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     FT = eltype(param_set)
     T_unsat = air_temperature(param_set, pρ(), p, ρ, q_tot)
     T_ice = air_temperature(param_set, pρ(), p, ρ, q_tot, FT(0), q_tot)
@@ -108,7 +108,7 @@ end
     e_int,
     q_tot,
     T_guess,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     FT = eltype(param_set)
     T_unsat = air_temperature(param_set, e_int, q_tot)
     T_ice = air_temperature(param_set, e_int, q_tot, FT(0), q_tot)
@@ -128,7 +128,7 @@ end
     h,
     q_tot,
     T_guess,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     FT = eltype(param_set)
     T_unsat = air_temperature(param_set, ph(), h, q_tot)
     T_ice = air_temperature(param_set, ph(), h, q_tot, FT(0), q_tot)
@@ -147,7 +147,7 @@ end
     θ_liq_ice,
     q_tot,
     T_guess,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     FT = eltype(param_set)
     T_unsat = air_temperature(param_set, pθ_li(), p, θ_liq_ice, q_tot)
     T_ice = air_temperature(
@@ -174,7 +174,7 @@ end
     θ_liq_ice,
     q_tot,
     T_guess,
-) where {M <: RS.RootSolvingMethod}
+) where {M}
     FT = eltype(param_set)
     T_unsat = air_temperature(param_set, ρθ_li(), ρ, θ_liq_ice, q_tot)
     T_ice = air_temperature(
