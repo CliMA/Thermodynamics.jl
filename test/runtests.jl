@@ -26,6 +26,7 @@ include("saturation_adjustment.jl")
 include("convergence_saturation_adjustment.jl")
 include("type_stability.jl")
 include("optimization_tests.jl")
+include("ad_tests.jl")
 
 const _include_deprecated =
     lowercase(get(ENV, "THERMODYNAMICS_INCLUDE_DEPRECATED", "true")) ∉ ("0", "false", "no")

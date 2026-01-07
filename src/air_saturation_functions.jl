@@ -49,7 +49,7 @@ doi:[10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
     Tᶠ = TP.T_freeze(param_set)
     ΔT = FT(0.1) # Smooth over +/- 0.1 K
     # Linear ramp from 0 to 1 over [Tᶠ - ΔT, Tᶠ + ΔT]
-    λ_T = clamp((T - (Tᶠ - ΔT)) / (2 * ΔT), zero(FT), one(FT))
+    λ_T = clamp((T - (Tᶠ - ΔT)) / (2 * ΔT), zero(T), one(T))
 
     return ifelse(has_condensate(q_c), q_liq / q_c, λ_T)
 end
@@ -68,8 +68,8 @@ end
 
     return ifelse(
         above_freezing,
-        one(FT),
-        ifelse(supercooled_liquid, λᵖ, zero(FT)),
+        one(T),
+        ifelse(supercooled_liquid, λᵖ, zero(T)),
     )
 end
 

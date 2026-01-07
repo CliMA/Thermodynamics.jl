@@ -62,7 +62,7 @@ function saturation_adjustment(
     # For T_ice upper bound: all water is ice
     temp_ice_func =
         (param_set, e_int, q_tot) ->
-            air_temperature(param_set, ρe(), e_int, q_tot, eltype(param_set)(0), q_tot)
+            air_temperature(param_set, ρe(), e_int, q_tot, zero(q_tot), q_tot)
 
     # Root function (supports analytic derivative if M=NewtonsMethod)
     roots_func = _make_roots_function(M, param_set, ρ, e_int, q_tot)
@@ -231,7 +231,7 @@ function saturation_adjustment(
 
     temp_ice_func =
         (param_set, e_int, q_tot) ->
-            air_temperature(param_set, e_int, q_tot, eltype(param_set)(0), q_tot)
+            air_temperature(param_set, e_int, q_tot, zero(q_tot), q_tot)
 
     roots_func = T -> e_int_sat_given_p(T) - e_int
 
@@ -317,7 +317,7 @@ function saturation_adjustment(
 
     temp_ice_func =
         (param_set, h, q_tot) ->
-            air_temperature(param_set, ph(), h, q_tot, eltype(param_set)(0), q_tot)
+            air_temperature(param_set, ph(), h, q_tot, zero(q_tot), q_tot)
 
     roots_func = T -> h_sat_given_p(T) - h
 
@@ -407,7 +407,7 @@ function saturation_adjustment(
                 p,
                 θ_liq_ice,
                 q_tot,
-                eltype(param_set)(0),
+                zero(q_tot),
                 q_tot,
             )
 
@@ -498,7 +498,7 @@ function saturation_adjustment(
                 ρ,
                 θ_liq_ice,
                 q_tot,
-                eltype(param_set)(0),
+                zero(q_tot),
                 q_tot,
             )
 
@@ -582,7 +582,7 @@ function saturation_adjustment(
 
     temp_ice_func =
         (param_set, p, q_tot) ->
-            air_temperature(param_set, pρ(), p, ρ, q_tot, eltype(param_set)(0), q_tot)
+            air_temperature(param_set, pρ(), p, ρ, q_tot, zero(q_tot), q_tot)
 
     roots_func = T -> pressure_sat_given_ρ(T) - p
 
@@ -846,7 +846,7 @@ Derivative of internal energy with respect to temperature at saturation.
     ∂λ_∂T = ifelse(
         Tⁱ < T < Tᶠ,
         n / (Tᶠ - Tⁱ) * ((T - Tⁱ) / (Tᶠ - Tⁱ))^(n - 1),
-        FT(0),
+        zero(T),
     )
 
     # ∂q_vap_sat/∂T from Clausius-Clapeyron
