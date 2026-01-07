@@ -3,7 +3,7 @@ export condensate_specific_humidity
 export vol_vapor_mixing_ratio
 export partial_pressure_dry
 export partial_pressure_vapor
-export shum_to_mixing_ratio
+export specific_humidity_to_mixing_ratio
 export q_vap_from_p_vap
 export q_vap_from_RH
 export q_vap_from_RH_liquid
@@ -23,10 +23,10 @@ The vapor specific humidity (clamped to be non-negative).
  - `q_vap`: vapor specific humidity [kg/kg]
 
 If the specific humidities are not given, the result is zero.
-The formula is `q_vap = max(0, q_tot - q_liq - q_ice)`.
+The formula is `q_vap = q_tot - q_liq - q_ice`.
 """
 @inline function vapor_specific_humidity(q_tot = 0, q_liq = 0, q_ice = 0)
-    return max(0, q_tot - q_liq - q_ice)
+    return q_tot - q_liq - q_ice
 end
 
 """
@@ -72,7 +72,7 @@ If the specific humidities are not given, the result is zero.
 )
     Rv_over_Rd = TP.Rv_over_Rd(param_set)
     q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
-    return Rv_over_Rd * shum_to_mixing_ratio(q_vap, q_tot)
+    return Rv_over_Rd * specific_humidity_to_mixing_ratio(q_vap, q_tot)
 end
 
 """
@@ -134,7 +134,7 @@ If the specific humidities are not given, the partial pressure is zero.
 end
 
 """
-    shum_to_mixing_ratio(q, q_tot)
+    specific_humidity_to_mixing_ratio(q, q_tot)
 
 Converts specific humidity to mixing ratio (total basis).
 
@@ -148,7 +148,7 @@ Converts specific humidity to mixing ratio (total basis).
 Note that this function is singular when `q_tot = 1`.
 The formula is `r = q / (1 - q_tot)`.
 """
-@inline function shum_to_mixing_ratio(q, q_tot)
+@inline function specific_humidity_to_mixing_ratio(q, q_tot)
     return q / (1 - q_tot)
 end
 

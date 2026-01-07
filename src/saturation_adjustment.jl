@@ -144,6 +144,9 @@ function saturation_adjustment(
         T_guess,
     )
 
+    temp_from_energy_unsat =
+        (param_set, e_int, q_tot) -> air_temperature(param_set, e_int, q_tot)
+
     T = _saturation_adjustment_generic(
         numerical_method,
         param_set,
@@ -151,7 +154,7 @@ function saturation_adjustment(
         q_tot,
         maxiter,
         tol,
-        air_temperature,
+        temp_from_energy_unsat,
         q_sat_unsat_p,
         e_int_sat_given_p,
         print_warning, # Reuse ρe warning for now (e_int based)
@@ -488,6 +491,54 @@ end
 # ---------------------------------------------
 # Helper functions 
 # ---------------------------------------------
+
+"""
+    internal_energy_sat(param_set, T, ρ, q_tot)
+
+The internal energy per unit mass in thermodynamic equilibrium at saturation.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+
+# Returns
+ - `e_int`: specific internal energy [J/kg]
+
+The phase partition into liquid and ice is computed internally from `q_tot` using the 
+temperature-dependent liquid fraction (see [`liquid_fraction`](@ref)) and saturation 
+excess (see [`saturation_excess`](@ref)).
+"""
+@inline function internal_energy_sat(param_set::APS, T, ρ, q_tot)
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    return internal_energy(param_set, T, q_tot, q_liq, q_ice)
+end
+
+"""
+    enthalpy_sat(param_set, T, ρ, q_tot)
+
+The specific enthalpy in thermodynamic equilibrium at saturation.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+
+# Returns
+ - `h`: specific enthalpy [J/kg]
+
+The phase partition into liquid and ice is computed internally from `q_tot` using the 
+temperature-dependent liquid fraction (see [`liquid_fraction`](@ref)) and saturation 
+excess (see [`saturation_excess`](@ref)).
+"""
+@inline function enthalpy_sat(param_set::APS, T, ρ, q_tot)
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    return enthalpy(param_set, T, q_tot, q_liq, q_ice)
+end
+
+
 
 """
     _make_roots_function(::Type{M}, param_set, ρ, e_int, q_tot)

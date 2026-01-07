@@ -38,11 +38,8 @@ Supported methods in RootSolvers.jl:
 """
 module Thermodynamics
 
-import RootSolvers
-const RS = RootSolvers
-
-import KernelAbstractions
-const KA = KernelAbstractions
+import RootSolvers as RS
+import KernelAbstractions as KA
 
 include("Parameters.jl")
 import .Parameters

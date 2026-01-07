@@ -126,7 +126,7 @@ entropy
 ## Internal Methods
 
 ```@docs
-shum_to_mixing_ratio
+specific_humidity_to_mixing_ratio
 q_vap_saturation_from_pressure
 PhasePartition_equil
 PhasePartition_equil_given_p

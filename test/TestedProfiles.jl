@@ -12,8 +12,7 @@ Notes:
 """
 module TestedProfiles
 
-using Thermodynamics
-const TD = Thermodynamics
+import Thermodynamics as TD
 import Thermodynamics.Parameters as TP
 const APS = TP.ThermodynamicsParameters
 const TDTP = TD.TemperatureProfiles
@@ -336,7 +335,7 @@ function NonEquilMoistProfiles(
     )
 end
 
-# Backwards compatibility aliases
+# Backwards compatibility aliases (deprecatedto be removed)
 const PhaseDryProfiles = DryProfiles
 const PhaseEquilProfiles = EquilMoistProfiles
 

@@ -43,7 +43,7 @@ doi:[10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
 """
 @inline function liquid_fraction(param_set::APS, T, q_liq, q_ice)
     FT = eltype(param_set)
-    q_c = q_liq + q_ice
+    q_c = condensate_specific_humidity(q_liq, q_ice)
 
     # If no condensate, use sharp temperature dependent partitioning
     Tᶠ = TP.T_freeze(param_set)
@@ -494,6 +494,38 @@ liquid fraction (see [`liquid_fraction`](@ref)) and the saturation excess (see
 end
 
 """
+    vapor_pressure_deficit(param_set, T, p, q_tot, q_liq, q_ice, phase::Phase)
+
+The vapor pressure deficit (saturation vapor pressure minus actual vapor pressure, 
+truncated to be non-negative) over a specific phase (Liquid or Ice).
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: air temperature [K]
+ - `p`: air pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+ - `phase`: phase to compute saturation over (`Liquid()` or `Ice()`)
+
+# Returns
+ - `VPD`: vapor pressure deficit [Pa]
+"""
+@inline function vapor_pressure_deficit(
+    param_set::APS,
+    T,
+    p,
+    q_tot,
+    q_liq,
+    q_ice,
+    phase::Phase,
+)
+    es = saturation_vapor_pressure(param_set, T, phase)
+    ea = partial_pressure_vapor(param_set, p, q_tot, q_liq, q_ice)
+    return ReLU(es - ea)
+end
+
+"""
     vapor_pressure_deficit(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
 The vapor pressure deficit (saturation vapor pressure minus actual vapor pressure, 
@@ -523,12 +555,9 @@ If the specific humidities are not given, the result is the saturation vapor pre
 )
     Tᶠ = TP.T_freeze(param_set)
     above_freezing = T > Tᶠ
-    es = ifelse(
+    return ifelse(
         above_freezing,
-        saturation_vapor_pressure(param_set, T, Liquid()),
-        saturation_vapor_pressure(param_set, T, Ice()),
+        vapor_pressure_deficit(param_set, T, p, q_tot, q_liq, q_ice, Liquid()),
+        vapor_pressure_deficit(param_set, T, p, q_tot, q_liq, q_ice, Ice()),
     )
-
-    ea = partial_pressure_vapor(param_set, p, q_tot, q_liq, q_ice)
-    return ReLU(es - ea)
 end

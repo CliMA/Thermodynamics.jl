@@ -36,7 +36,7 @@ end
 
 @inline function air_temperature(
     param_set::APS,
-    ::ρe,
+    ::Union{ρe, pe},
     e_int::Real,
     q_tot::Real = 0,
     q_liq::Real = 0,

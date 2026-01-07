@@ -3,13 +3,11 @@ export internal_energy_dry
 export internal_energy_vapor
 export internal_energy_liquid
 export internal_energy_ice
-export internal_energy_sat
 export enthalpy
 export enthalpy_dry
 export enthalpy_vapor
 export enthalpy_liquid
 export enthalpy_ice
-export enthalpy_sat
 export total_energy
 export total_enthalpy
 export dry_static_energy
@@ -132,29 +130,6 @@ The ice internal energy.
 end
 
 """
-    internal_energy_sat(param_set, T, ρ, q_tot)
-
-The internal energy per unit mass in thermodynamic equilibrium at saturation.
-
-# Arguments
- - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
- - `T`: temperature [K]
- - `ρ`: (moist-)air density [kg/m³]
- - `q_tot`: total specific humidity [kg/kg]
-
-# Returns
- - `e_int`: specific internal energy [J/kg]
-
-The phase partition into liquid and ice is computed internally from `q_tot` using the 
-temperature-dependent liquid fraction (see [`liquid_fraction`](@ref)) and saturation 
-excess (see [`saturation_excess`](@ref)).
-"""
-@inline function internal_energy_sat(param_set::APS, T, ρ, q_tot)
-    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return internal_energy(param_set, T, q_tot, q_liq, q_ice)
-end
-
-"""
     enthalpy(e_int, R_m, T)
 
 The specific enthalpy, given
@@ -273,29 +248,6 @@ The specific enthalpy of ice is equal to the internal energy of ice because the
 specific volume of condensed water is neglected (i.e., `p v_i ≈ 0`).
 """
 @inline enthalpy_ice(param_set::APS, T) = internal_energy_ice(param_set, T)
-
-"""
-    enthalpy_sat(param_set, T, ρ, q_tot)
-
-The specific enthalpy in thermodynamic equilibrium at saturation.
-
-# Arguments
- - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
- - `T`: temperature [K]
- - `ρ`: (moist-)air density [kg/m³]
- - `q_tot`: total specific humidity [kg/kg]
-
-# Returns
- - `h`: specific enthalpy [J/kg]
-
-The phase partition into liquid and ice is computed internally from `q_tot` using the 
-temperature-dependent liquid fraction (see [`liquid_fraction`](@ref)) and saturation 
-excess (see [`saturation_excess`](@ref)).
-"""
-@inline function enthalpy_sat(param_set::APS, T, ρ, q_tot)
-    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return enthalpy(param_set, T, q_tot, q_liq, q_ice)
-end
 
 """
     total_energy(param_set, e_kin, e_pot, T, q_tot=0, q_liq=0, q_ice=0)

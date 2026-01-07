@@ -221,9 +221,9 @@ The mixing ratios, given a specific humidity phase partition, `q`, returned in a
 """
 @inline function mixing_ratios(q::PhasePartition)
     return PhasePartition(
-        shum_to_mixing_ratio(q.tot, q.tot),
-        shum_to_mixing_ratio(q.liq, q.tot),
-        shum_to_mixing_ratio(q.ice, q.tot),
+        specific_humidity_to_mixing_ratio(q.tot, q.tot),
+        specific_humidity_to_mixing_ratio(q.liq, q.tot),
+        specific_humidity_to_mixing_ratio(q.ice, q.tot),
     )
 end
 
