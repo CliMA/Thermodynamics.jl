@@ -73,8 +73,8 @@ include("printing.jl")
 const _error_on_non_convergence_ref = Ref(false)
 const _print_warning_ref = Ref(false)
 
-@inline error_on_non_convergence() = _error_on_non_convergence_ref[]
-@inline print_warning() = _print_warning_ref[]
+@inline error_on_non_convergence() = false # _error_on_non_convergence_ref[]
+@inline print_warning() = false # _print_warning_ref[]
 
 set_error_on_non_convergence!(x::Bool) = (_error_on_non_convergence_ref[] = x; nothing)
 set_print_warning!(x::Bool) = (_print_warning_ref[] = x; nothing)
