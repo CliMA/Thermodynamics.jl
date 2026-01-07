@@ -118,7 +118,7 @@ The working fluid is **moist air** (dry air + water vapor + liquid water + ice, 
 
 ### **Consistent Formulation**
 
-All quantities are derived from the **calorically perfect gas** assumption with constant specific heat capacities. This provides a consistent, closed consistency set of equations for saturation vapor pressures (the so-called Rankine-Kirchhoff approximation), latent heats, and other derived quantities.
+All quantities are derived from the **calorically perfect gas** assumption with constant specific heat capacities. This provides a consistent, closed set of equations for saturation vapor pressures (the so-called Rankine-Kirchhoff approximation), latent heats, and other derived quantities.
 
 ## Documentation
 

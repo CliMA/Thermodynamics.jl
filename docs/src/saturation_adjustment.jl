@@ -9,7 +9,8 @@ FT = Float64
 
 const param_set = TP.ThermodynamicsParameters(FT)
 
-include("../../test/TestedProfiles.jl")
+# Use joinpath and @__DIR__ to robustly locate the test file regardless of CWD
+include(joinpath(@__DIR__, "../../test/TestedProfiles.jl"))
 import .TestedProfiles
 
 profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});

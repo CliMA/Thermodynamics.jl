@@ -127,8 +127,13 @@ T_pairs = profile.(Ref(param_set), z)
 T = first.(T_pairs)
 p = last.(T_pairs)
 
-# Create thermodynamic states
-ts_states = [TD.PhaseDry_pT(param_set, p[i], T[i]) for i in 1:length(z)]
+# Compute density from temperature and pressure using the functional API
+# For dry air: ρ = p / (R_d * T)
+R_d = 287.0  # Specific gas constant for dry air [J/(kg·K)]
+ρ = [p[i] / (R_d * T[i]) for i in 1:length(z)]
+
+# Now compute other properties as needed, e.g., potential temperature
+θ = [TD.potential_temperature_given_pressure(param_set, T[i], p[i]) for i in 1:length(z)]
 ```
 
 ## Extending the Module
