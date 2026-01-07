@@ -32,7 +32,11 @@ given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`
 - `T_guess`: Optional initial guess for the temperature [K].
 
 # Returns
-- `(T, q_liq, q_ice)`: tuple of temperature [K] and phase partitions [kg/kg]
+- `NamedTuple` `(; T, q_liq, q_ice, converged)`:
+    - `T`: Temperature [K]
+    - `q_liq`: Liquid specific humidity [kg/kg]
+    - `q_ice`: Ice specific humidity [kg/kg]
+    - `converged`: Boolean flag indicating if the solver converged
 
 # Notes
 - This function solves for `T` such that `e_int = internal_energy_sat(param_set, T, ρ, q_tot)` using
@@ -59,7 +63,12 @@ function saturation_adjustment(
 
     # Check if unsaturated
     if q_tot <= q_vap_saturation(param_set, T_unsat, ρ)
-        return (; T = T_unsat, q_liq = zero(T_unsat), q_ice = zero(T_unsat))
+        return (;
+            T = T_unsat,
+            q_liq = zero(T_unsat),
+            q_ice = zero(T_unsat),
+            converged = true,
+        )
     end
 
     # Root function: e_int - internal_energy_sat(T, ρ, q_tot) = 0
@@ -77,23 +86,17 @@ function saturation_adjustment(
     )
 
     # Solve for temperature and check convergence
-    T = _find_zero_with_convergence_check(
+    (T, converged) = _find_zero_and_convergence(
         roots,
         numerical_method,
         solution_type(),
         sol_tol,
         maxiter,
-        print_warning,
-        M,
-        ρe(),
-        ρ,
-        e_int,
-        q_tot,
     )
 
     # Compute equilibrium phase partition
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return (; T, q_liq, q_ice)
+    return (; T, q_liq, q_ice, converged)
 end
 
 """
@@ -112,7 +115,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, specific internal energy `e_int`, and total specific humidity `q_tot`.
 
-Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -147,7 +150,7 @@ function saturation_adjustment(
     temp_from_energy_unsat =
         (param_set, e_int, q_tot) -> air_temperature(param_set, e_int, q_tot)
 
-    T = _saturation_adjustment_generic(
+    (T, converged) = _saturation_adjustment_generic(
         numerical_method,
         param_set,
         e_int,
@@ -157,16 +160,10 @@ function saturation_adjustment(
         temp_from_energy_unsat,
         q_sat_unsat_p,
         e_int_sat_given_p,
-        print_warning, # Reuse ρe warning for now (e_int based)
-        M,
-        pe(),
-        p,
-        e_int,
-        q_tot,
     )
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
-    return (; T, q_liq, q_ice)
+    return (; T, q_liq, q_ice, converged)
 end
 
 """
@@ -185,7 +182,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, specific enthalpy `h`, and total specific humidity `q_tot`.
 
-Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
 
 # Arguments
 - `M`: The numerical method type for root-finding. Supported types:
@@ -233,7 +230,7 @@ function saturation_adjustment(
         T_guess,
     )
 
-    T = _saturation_adjustment_generic(
+    (T, converged) = _saturation_adjustment_generic(
         numerical_method,
         param_set,
         h,
@@ -243,17 +240,10 @@ function saturation_adjustment(
         temp_from_hq_unsat,
         q_sat_unsat_p,
         h_sat_given_p,
-        print_warning,
-        M,
-        ph(),
-        h,
-        p,
-        q_tot,
-        T_guess,
     )
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
-    return (; T, q_liq, q_ice)
+    return (; T, q_liq, q_ice, converged)
 end
 
 """
@@ -272,7 +262,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
 
-Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -311,7 +301,7 @@ function saturation_adjustment(
         T_guess,
     )
 
-    T = _saturation_adjustment_generic(
+    (T, converged) = _saturation_adjustment_generic(
         numerical_method,
         param_set,
         θ_liq_ice,
@@ -321,18 +311,11 @@ function saturation_adjustment(
         temp_from_θ_liq_ice_func,
         q_sat_unsat_p,
         θ_liq_ice_sat_given_p,
-        print_warning,
-        M,
-        pθ_li(),
-        p,
-        θ_liq_ice,
-        q_tot,
-        T_guess,
     )
 
     # Compute equilibrium phase partition
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
-    return (; T, q_liq, q_ice)
+    return (; T, q_liq, q_ice, converged)
 end
 
 """
@@ -351,7 +334,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given density `ρ`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
 
-Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -388,7 +371,7 @@ function saturation_adjustment(
         T_guess,
     )
 
-    T = _saturation_adjustment_generic(
+    (T, converged) = _saturation_adjustment_generic(
         numerical_method,
         param_set,
         θ_liq_ice,
@@ -398,17 +381,10 @@ function saturation_adjustment(
         temp_from_θ_liq_ice_func,
         q_sat_unsat_ρ,
         θ_liq_ice_sat_given_ρ,
-        print_warning,
-        M,
-        ρθ_li(),
-        ρ,
-        θ_liq_ice,
-        q_tot,
-        T_guess,
     )
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return (; T, q_liq, q_ice)
+    return (; T, q_liq, q_ice, converged)
 end
 
 
@@ -428,7 +404,7 @@ end
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
 given pressure `p`, density `ρ`, and total specific humidity `q_tot`.
 
-Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
+Returns a `NamedTuple` `(; T, q_liq, q_ice, converged)`.
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -466,7 +442,7 @@ function saturation_adjustment(
     )
 
     # Using generic helper with p as target thermo_var
-    T = _saturation_adjustment_generic(
+    (T, converged) = _saturation_adjustment_generic(
         numerical_method,
         param_set,
         p, # thermo_var (target p)
@@ -476,16 +452,10 @@ function saturation_adjustment(
         temp_from_pρq_func,
         q_sat_unsat_ρ,
         pressure_sat_given_ρ,
-        print_warning,
-        M,
-        pρ(),
-        ρ,
-        p,
-        q_tot,
     )
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return (; T, q_liq, q_ice)
+    return (; T, q_liq, q_ice, converged)
 end
 
 # ---------------------------------------------
@@ -601,30 +571,17 @@ checking for convergence and issuing warnings or errors if necessary.
 
 Used by `saturation_adjustment_*` functions to handle common solver logic.
 """
-function _find_zero_with_convergence_check(
+function _find_zero_and_convergence(
     roots_func,
     numerical_method,
     solution_type,
     tol,
     maxiter,
-    warning_func,
-    warning_args...,
 )
     sol =
         RS.find_zero(roots_func, numerical_method, solution_type, tol, maxiter)
-
     DataCollection.log_meta(sol)
-    if !sol.converged
-        if print_warning()
-            # Pass `sol.root` and `tol.tol` to match original warning signatures
-            # warning_args should start with the method type
-            warning_func(warning_args..., sol.root, maxiter, tol.tol)
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
-    end
-    return sol.root
+    return (sol.root, sol.converged)
 end
 
 """
@@ -659,8 +616,6 @@ are closures that capture any specific independent variables (like p or ρ).
     temp_from_var_unsat_func,   # (param_set, thermo_var, q_tot) -> T
     q_sat_unsat_func,           # (param_set, T, q_tot) -> q_sat (for unsaturated check)
     sat_val_func,               # (T) -> val (to match thermo_var)
-    warning_func,
-    warning_args...,
 )
     _T_min = TP.T_min(param_set)
     tol =
@@ -673,7 +628,7 @@ are closures that capture any specific independent variables (like p or ρ).
 
     q_v_sat = q_sat_unsat_func(param_set, T_unsat, q_tot)
     if q_tot <= q_v_sat
-        return T_unsat
+        return (T_unsat, true)
     end
 
     # Saturated case: find the root
@@ -682,14 +637,12 @@ are closures that capture any specific independent variables (like p or ρ).
         return sat_val_func(T_safe) - thermo_var
     end
 
-    return _find_zero_with_convergence_check(
+    return _find_zero_and_convergence(
         roots,
         numerical_method,
         RS.CompactSolution(),
         tol,
         maxiter,
-        warning_func,
-        warning_args...,
     )
 end
 

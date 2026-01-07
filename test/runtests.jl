@@ -39,7 +39,6 @@ if _include_deprecated
     include("depr_dry_limit.jl")
     include("depr_miscellaneous.jl")
     include("depr_data_tests.jl")
-    include("depr_exceptions.jl")
 end
 
 # Run aqua tests for code quality and performance

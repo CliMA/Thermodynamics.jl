@@ -18,7 +18,7 @@ Focus:
         @testset "Unsaturated returns zero condensate ($FT)" begin
             q_tot = FT(1e-3)
             e_int = TD.internal_energy(param_set, T0, q_tot)
-            (; T, q_liq, q_ice) = TD.saturation_adjustment(
+            (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
                 RS.SecantMethod,
                 param_set,
                 TD.ρe(),
@@ -30,7 +30,9 @@ Focus:
             )
             @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
             @test q_liq == zero(FT)
+            @test q_liq == zero(FT)
             @test q_ice == zero(FT)
+            @test converged
         end
 
         @testset "Saturated equilibrium is a fixed point ($FT)" begin
@@ -51,7 +53,7 @@ Focus:
             θ_liq_ice_ρ = TD.liquid_ice_pottemp(param_set, T0, ρ0, q_tot, q_liq0, q_ice0)
 
             # ρeq
-            let (; T, q_liq, q_ice) = TD.saturation_adjustment(
+            let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
                     RS.NewtonsMethod,
                     param_set,
                     TD.ρe(),
@@ -63,7 +65,9 @@ Focus:
                 )
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
                 @test isapprox(q_liq, q_liq0; atol = FT(0), rtol = FT(1e-6))
+                @test isapprox(q_liq, q_liq0; atol = FT(0), rtol = FT(1e-6))
                 @test isapprox(q_ice, q_ice0; atol = FT(0), rtol = FT(1e-6))
+                @test converged
                 @test isapprox(
                     TD.internal_energy_sat(param_set, T, ρ0, q_tot),
                     e_int_sat;

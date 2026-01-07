@@ -24,7 +24,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `ρeq()` dispatch instead.
         tol,
         T_guess,
     )
-    return values(res)
+    return (res.T, res.q_liq, res.q_ice)
 end
 
 @inline function saturation_adjustment_ρeq(
@@ -47,7 +47,7 @@ end
         tol,
         T_guess,
     )
-    return values(res)
+    return (res.T, res.q_liq, res.q_ice)
 end
 
 """
@@ -76,7 +76,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `phq()` dispatch instead.
         tol,
         T_guess,
     )
-    return values(res)
+    return (res.T, res.q_liq, res.q_ice)
 end
 
 """

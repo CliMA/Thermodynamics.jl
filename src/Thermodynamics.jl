@@ -39,7 +39,6 @@ Supported methods in RootSolvers.jl:
 module Thermodynamics
 
 import RootSolvers as RS
-import KernelAbstractions as KA
 
 include("Parameters.jl")
 import .Parameters
@@ -49,35 +48,6 @@ const APS = TP.AbstractThermodynamicsParameters
 include("ThermoTypes.jl")
 
 include("depr_PhasePartitionTypes.jl")
-
-# For printing literal strings on the gpu
-include("printing.jl")
-
-# Allow users to print warnings and throw errors on non-convergence.
-#
-# Recommended configuration API:
-# ```julia
-# import Thermodynamics
-# Thermodynamics.set_error_on_non_convergence!(true)
-# Thermodynamics.set_print_warning!(true)
-# ```
-#
-# (Advanced) Users can still override these methods directly:
-# ```julia
-# import Thermodynamics
-# Thermodynamics.error_on_non_convergence() = true
-# Thermodynamics.print_warning() = true
-# ```
-#
-# By default, we don't print warnings and don't throw errors on non-convergence.
-const _error_on_non_convergence_ref = Ref(false)
-const _print_warning_ref = Ref(false)
-
-@inline error_on_non_convergence() = false # _error_on_non_convergence_ref[]
-@inline print_warning() = false # _print_warning_ref[]
-
-set_error_on_non_convergence!(x::Bool) = (_error_on_non_convergence_ref[] = x; nothing)
-set_print_warning!(x::Bool) = (_print_warning_ref[] = x; nothing)
 
 @inline solution_type() = RS.CompactSolution()
 include("DataCollection.jl")

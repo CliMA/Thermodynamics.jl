@@ -87,7 +87,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     inp = targets(i)
 
                     # ρeq
-                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.ρe(),
@@ -98,6 +98,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(T)
+                        @test converged
                         @test isapprox(
                             T,
                             inp.T0;
@@ -108,7 +109,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     end
 
                     # peq
-                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.pe(),
@@ -119,6 +120,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(T)
+                        @test converged
                         @test isapprox(
                             T,
                             inp.T0;
@@ -130,7 +132,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     end
 
                     # phq
-                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.ph(),
@@ -141,6 +143,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(T)
+                        @test converged
                         @test isapprox(
                             T,
                             inp.T0;
@@ -152,7 +155,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     end
 
                     # pρ (uses ρ-based equilibrium; p target is p_ρ)
-                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.pρ(),
@@ -163,6 +166,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(T)
+                        @test converged
                         @test isapprox(
                             T,
                             inp.T0;
@@ -173,7 +177,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     end
 
                     # pθ_li (p-based)
-                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.pθ_li(),
@@ -184,6 +188,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(T)
+                        @test converged
                         @test isapprox(
                             T,
                             inp.T0;
@@ -195,7 +200,7 @@ const TDTP_SA = TD.TemperatureProfiles
                     end
 
                     # ρθ_li (ρ-based)
-                    let (; T, q_liq, q_ice) = TD.saturation_adjustment(
+                    let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
                             RS.SecantMethod,
                             param_set,
                             TD.ρθ_li(),
@@ -206,6 +211,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             tol,
                         )
                         @test isfinite(T)
+                        @test converged
                         @test isapprox(
                             T,
                             inp.T0;

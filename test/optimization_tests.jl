@@ -9,9 +9,6 @@ import Thermodynamics as TD
 include(joinpath(@__DIR__, "TestedProfiles.jl"))
 using .TestedProfiles
 
-# Force compiled pruning of warning paths for JET
-TD.print_warning() = false
-
 #####
 ##### Input Generation (in part replicated from perf/common_micro_bm.jl)
 #####
