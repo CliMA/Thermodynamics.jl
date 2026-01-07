@@ -38,7 +38,7 @@ const TDTP_SA = TD.TemperatureProfiles
             (; T, p, ρ, q_tot) = profiles
 
             # Sample ~120 points across the full profile grid.
-            idxs = unique(round.(Int, range(1, length(T), length = 120)))
+            idxs = unique(round.(Int, range(1, length(T), length = 250)))
 
             # For each sampled point, compute reference targets for each formulation.
             function targets(i::Int)
@@ -226,7 +226,7 @@ const TDTP_SA = TD.TemperatureProfiles
             @testset "ρeq solver variants are timed ($FT)" begin
                 solvers =
                     (RS.SecantMethod, RS.BrentsMethod, RS.NewtonsMethod, RS.NewtonsMethodAD)
-                timing_idxs = idxs[1:min(end, 80)]
+                timing_idxs = idxs[1:min(end, 200)]
 
                 for solver in solvers
                     # Warmup compilation for this solver
