@@ -1,24 +1,12 @@
 # Saturation adjustment functions for various combinations of input variables
 
+import RootSolvers
+
 export saturation_adjustment
-export UseNewtonMethod, UseSecantMethod, UseBrentMethod
-
-# Singleton types for method selection (GPU-compatible)
-struct UseNewtonMethod end
-struct UseSecantMethod end
-struct UseBrentMethod end
-
-# Convert singleton method markers to Type-based dispatch (GPU-compatible wrappers)
-@inline saturation_adjustment(::UseNewtonMethod, args...) =
-    saturation_adjustment(RS.NewtonsMethod, args...)
-@inline saturation_adjustment(::UseSecantMethod, args...) =
-    saturation_adjustment(RS.SecantMethod, args...)
-@inline saturation_adjustment(::UseBrentMethod, args...) =
-    saturation_adjustment(RS.BrentsMethod, args...)
 
 """
     saturation_adjustment(
-        sat_adjust_method::Type,
+        method_selector,  # RootSolvers.AbstractMethodSelector
         param_set,
         ::ρe,
         ρ::Real,
@@ -33,8 +21,8 @@ Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, 
 given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`.
 
 # Arguments
-- `sat_adjust_method`: The numerical method for root-finding. Supported:
-  `SecantMethod`, `BrentsMethod`, `NewtonsMethod`, `NewtonsMethodAD` (from RootSolvers.jl).
+- `method_selector`: Root-solving method selector from RootSolvers.jl. Use `RootSolvers.NewtonsSelector()`,
+  `RootSolvers.SecantSelector()`, `RootSolvers.BrentsSelector()`, or `RootSolvers.NewtonsADSelector()`.
 - `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
 - `ρ`: Density of moist air [kg/m³].
 - `e_int`: Specific internal energy [J/kg].
@@ -49,11 +37,11 @@ given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`
 # Notes
 - This function solves for `T` such that `e_int = internal_energy_sat(param_set, T, ρ, q_tot)` using
   root-finding, then computes `(q_liq, q_ice)` from [`condensate_partition`](@ref).
-- For `ρe` formulation, `NewtonsMethod` is recommended (fast + analytic derivative available).
-- For other formulations, `SecantMethod` or `BrentsMethod` are recommended.
+- For `ρe` formulation, `NewtonsSelector()` is recommended (fast + analytic derivative available).
+- For other formulations, `SecantSelector()` or `BrentsSelector()` are recommended.
 """
 function saturation_adjustment(
-    sat_adjust_method::Type,
+    method_selector,  # RootSolvers.AbstractMethodSelector
     param_set::APS,
     ::ρe,
     ρ,
@@ -75,7 +63,7 @@ function saturation_adjustment(
     end
 
     # Root function: e_int - internal_energy_sat(T, ρ, q_tot) = 0
-    roots = if sat_adjust_method <: RS.NewtonsMethod
+    roots = if method_selector isa RootSolvers.NewtonsSelector
         _T -> begin
             T_val = ReLU(_T)
             f = e_int - internal_energy_sat(param_set, T_val, ρ, q_tot)
@@ -88,9 +76,9 @@ function saturation_adjustment(
         end
     end
 
-    # Construct numerical method based on type
+    # Construct numerical method based on selector
     numerical_method = sa_numerical_method(
-        sat_adjust_method,
+        method_selector,
         param_set,
         ρe(),
         ρ,
@@ -107,7 +95,7 @@ function saturation_adjustment(
         sol_tol,
         maxiter,
         print_warning,
-        sat_adjust_method,
+        method_selector,
         ρe(),
         ρ,
         e_int,
@@ -121,7 +109,7 @@ end
 
 """
     saturation_adjustment(
-        sat_adjust_method::Type,
+        method_selector,  # RootSolvers.AbstractMethodSelector
         param_set,
         ::pe,
         p,
@@ -138,7 +126,7 @@ given pressure `p`, specific internal energy `e_int`, and total specific humidit
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
-    sat_adjust_method::Type,
+    method_selector,  # RootSolvers.AbstractMethodSelector
     param_set::APS,
     ::pe,
     p,
@@ -156,24 +144,29 @@ function saturation_adjustment(
         (param_set, T, q_tot) ->
             q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    make_numerical_method_p =
-        (sat_method, param_set, target_e, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, pe(), p, target_e, q_tot, T_guess)
+    # Construct numerical method for the root solver
+    numerical_method = sa_numerical_method(
+        method_selector,
+        param_set,
+        pe(),
+        p,
+        e_int,
+        q_tot,
+        T_guess,
+    )
 
     T = _saturation_adjustment_generic(
-        sat_adjust_method,
+        numerical_method,
         param_set,
         e_int,
         q_tot,
         maxiter,
         tol,
-        T_guess,
         air_temperature,
         q_sat_unsat_p,
         e_int_sat_given_p,
-        make_numerical_method_p,
         print_warning, # Reuse ρe warning for now (e_int based)
-        sat_adjust_method,
+        method_selector,
         pe(),
         p,
         e_int,
@@ -186,7 +179,7 @@ end
 
 """
     saturation_adjustment(
-        sat_adjust_method::Type,
+        method_selector,  # RootSolvers.AbstractMethodSelector
         param_set,
         ::ph,
         p::Real,
@@ -203,7 +196,7 @@ given pressure `p`, specific enthalpy `h`, and total specific humidity `q_tot`.
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 
 # Arguments
-- `sat_adjust_method`: The numerical method for root-finding. Supported types:
+- `method_selector`: The numerical method for root-finding. Supported types:
   `SecantMethod`, `BrentsMethod`, `NewtonsMethod`, `NewtonsMethodAD`.
 - `param_set`: Thermodynamics parameter set.
 - `p`: Pressure of moist air.
@@ -214,7 +207,7 @@ Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 - `T_guess`: Optional initial guess for the temperature.
 """
 function saturation_adjustment(
-    sat_adjust_method::Type,
+    method_selector,  # RootSolvers.AbstractMethodSelector
     param_set::APS,
     ::ph,
     p,
@@ -232,29 +225,34 @@ function saturation_adjustment(
         (param_set, T, q_tot) ->
             q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    make_numerical_method_p =
-        (sat_method, param_set, h, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, ph(), p, h, q_tot, T_guess)
-
     # Unsaturated temperature estimate from (h, q_tot) with zero condensate.
     temp_from_hq_unsat =
         (param_set, h, q_tot) ->
             air_temperature(param_set, ph(), h, q_tot, 0, 0)
 
+    # Construct numerical method for the root solver
+    numerical_method = sa_numerical_method(
+        method_selector,
+        param_set,
+        ph(),
+        p,
+        h,
+        q_tot,
+        T_guess,
+    )
+
     T = _saturation_adjustment_generic(
-        sat_adjust_method,
+        numerical_method,
         param_set,
         h,
         q_tot,
         maxiter,
         tol,
-        T_guess,
         temp_from_hq_unsat,
         q_sat_unsat_p,
         h_sat_given_p,
-        make_numerical_method_p,
         print_warning,
-        sat_adjust_method,
+        method_selector,
         ph(),
         h,
         p,
@@ -268,7 +266,7 @@ end
 
 """
     saturation_adjustment(
-        sat_adjust_method::Type,
+        method_selector,  # RootSolvers.AbstractMethodSelector
         param_set,
         ::pθ_li,
         p::Real,
@@ -285,7 +283,7 @@ given pressure `p`, liquid-ice potential temperature `θ_liq_ice`, and total spe
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
-    sat_adjust_method::Type,
+    method_selector,  # RootSolvers.AbstractMethodSelector
     param_set::APS,
     ::pθ_li,
     p,
@@ -310,24 +308,29 @@ function saturation_adjustment(
         (param_set, T, q_tot) ->
             q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
-    make_numerical_method_p =
-        (sat_method, param_set, θ, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, pθ_li(), p, θ, q_tot, T_guess)
+    # Construct numerical method for the root solver
+    numerical_method = sa_numerical_method(
+        method_selector,
+        param_set,
+        pθ_li(),
+        p,
+        θ_liq_ice,
+        q_tot,
+        T_guess,
+    )
 
     T = _saturation_adjustment_generic(
-        sat_adjust_method,
+        numerical_method,
         param_set,
         θ_liq_ice,
         q_tot,
         maxiter,
         tol,
-        T_guess,
         temp_from_θ_liq_ice_func,
         q_sat_unsat_p,
         θ_liq_ice_sat_given_p,
-        make_numerical_method_p,
         print_warning,
-        sat_adjust_method,
+        method_selector,
         pθ_li(),
         p,
         θ_liq_ice,
@@ -342,7 +345,7 @@ end
 
 """
     saturation_adjustment(
-        sat_adjust_method::Type,
+        method_selector,  # RootSolvers.AbstractMethodSelector
         param_set,
         ::ρθ_li,
         ρ::Real,
@@ -359,7 +362,7 @@ given density `ρ`, liquid-ice potential temperature `θ_liq_ice`, and total spe
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
-    sat_adjust_method::Type,
+    method_selector,  # RootSolvers.AbstractMethodSelector
     param_set::APS,
     ::ρθ_li,
     ρ,
@@ -382,24 +385,29 @@ function saturation_adjustment(
     q_sat_unsat_ρ = (param_set, T, q_tot) ->
         q_vap_saturation(param_set, T, ρ)
 
-    make_numerical_method_ρ =
-        (sat_method, param_set, θ, q_tot, T_guess) ->
-            sa_numerical_method(sat_method, param_set, ρθ_li(), ρ, θ, q_tot, T_guess)
+    # Construct numerical method for the root solver
+    numerical_method = sa_numerical_method(
+        method_selector,
+        param_set,
+        ρθ_li(),
+        ρ,
+        θ_liq_ice,
+        q_tot,
+        T_guess,
+    )
 
     T = _saturation_adjustment_generic(
-        sat_adjust_method,
+        numerical_method,
         param_set,
         θ_liq_ice,
         q_tot,
         maxiter,
         tol,
-        T_guess,
         temp_from_θ_liq_ice_func,
         q_sat_unsat_ρ,
         θ_liq_ice_sat_given_ρ,
-        make_numerical_method_ρ,
         print_warning,
-        sat_adjust_method,
+        method_selector,
         ρθ_li(),
         ρ,
         θ_liq_ice,
@@ -414,7 +422,7 @@ end
 
 """
     saturation_adjustment(
-        sat_adjust_method::Type,
+        method_selector,  # RootSolvers.AbstractMethodSelector
         param_set,
         ::pρ,
         p::Real,
@@ -431,7 +439,7 @@ given pressure `p`, density `ρ`, and total specific humidity `q_tot`.
 Returns a `NamedTuple` `(; T, q_liq, q_ice)`.
 """
 function saturation_adjustment(
-    sat_adjust_method::Type,
+    method_selector,  # RootSolvers.AbstractMethodSelector
     param_set::APS,
     ::pρ,
     p,
@@ -460,7 +468,7 @@ function saturation_adjustment(
 
     # Using generic helper with p as target thermo_var
     T = _saturation_adjustment_generic(
-        sat_adjust_method,
+        method_selector,
         param_set,
         p, # thermo_var (target p)
         q_tot,
@@ -472,7 +480,7 @@ function saturation_adjustment(
         pressure_sat_given_ρ,
         make_numerical_method_ρ,
         print_warning,
-        sat_adjust_method,
+        method_selector,
         pρ(),
         ρ,
         p,
@@ -543,17 +551,15 @@ end
 
 """
     _saturation_adjustment_generic(
-        sat_method,
+        numerical_method,
         param_set,
         thermo_var,
         q_tot,
         maxiter,
         relative_temperature_tol,
-        T_guess,
         temp_from_var_unsat_func,
         q_sat_unsat_func,
         sat_val_func,
-        numerical_method_func,
         warning_func,
         warning_args...,
     )
@@ -561,22 +567,20 @@ end
 Generic kernel for saturation adjustment.
 
 Encapsulates unsaturated check logic and root-finding for saturation adjustments.
-Arguments `temp_from_var_unsat_func`, `q_sat_unsat_func`, `sat_val_func` and `numerical_method_func`
+Arguments `temp_from_var_unsat_func`, `q_sat_unsat_func`, and `sat_val_func`
 are closures that capture any specific independent variables (like p or ρ).
 """
 function _saturation_adjustment_generic(
-    sat_method,
+    numerical_method,  # Pre-constructed RootSolvers method instance
     param_set::APS,
     thermo_var, # This can be e_int or h
     q_tot,
     maxiter,
     relative_temperature_tol,
-    T_guess,
     # The following are functions passed in to customize the behavior
     temp_from_var_unsat_func,   # (param_set, thermo_var, q_tot) -> T
     q_sat_unsat_func,           # (param_set, T, q_tot) -> q_sat (for unsaturated check)
     sat_val_func,               # (T) -> val (to match thermo_var)
-    numerical_method_func,      # (sat_method, param_set, thermo_var, q_tot, T_guess) -> method
     warning_func,
     warning_args...,
 )
@@ -599,9 +603,6 @@ function _saturation_adjustment_generic(
         T_safe = max(T, _T_min)
         return sat_val_func(T_safe) - thermo_var
     end
-
-    numerical_method =
-        numerical_method_func(sat_method, param_set, thermo_var, q_tot, T_guess)
 
     return _find_zero_with_convergence_check(
         roots,

@@ -1,9 +1,29 @@
-import RootSolvers: NewtonsMethod, NewtonsMethodAD, SecantMethod, BrentsMethod
+import RootSolvers
 
 # KA.@print only accepts literal strings, so we must
 # branch to print which method is being used.
 
-for rsm in (:NewtonsMethod, :NewtonsMethodAD, :SecantMethod, :BrentsMethod)
+# Map selectors to method types for printing
+# The @inline ensures the compiler generates specialized code for each concrete selector type,
+# eliminating the runtime type checks. This is GPU-safe because the branching compiles away.
+@inline function _rs_type(selector)
+    if selector isa RootSolvers.NewtonsSelector
+        return RootSolvers.NewtonsMethod
+    elseif selector isa RootSolvers.NewtonsADSelector
+        return RootSolvers.NewtonsMethodAD
+    elseif selector isa RootSolvers.SecantSelector
+        return RootSolvers.SecantMethod
+    else  # selector isa RootSolvers.BrentsSelector
+        return RootSolvers.BrentsMethod
+    end
+end
+
+for rsm in (
+    RootSolvers.NewtonsMethod,
+    RootSolvers.NewtonsMethodAD,
+    RootSolvers.SecantMethod,
+    RootSolvers.BrentsMethod,
+)
     for (IV, name, args) in (
         (ρe, "ρe", (:ρ, :e_int, :q_tot, :T, :maxiter, :tol)),
         (ph, "ph", (:h, :p, :q_tot, :T_guess, :T, :maxiter, :tol)),
@@ -55,3 +75,8 @@ for rsm in (:NewtonsMethod, :NewtonsMethodAD, :SecantMethod, :BrentsMethod)
         )
     end
 end
+
+# Forward selector-based calls to Type-based implementations
+# The _rs_type function handles the conversion and will error if given an unknown type
+print_warning(selector, iv::IndepVars, args...) =
+    print_warning(_rs_type(selector), iv, args...)
