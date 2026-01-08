@@ -271,7 +271,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             )
             @test all(
                 has_condensate.(
-                    condensate_specific_humidity.(q_dry_liq, q_dry_ice)
+                    condensate_specific_humidity.(q_dry_liq, q_dry_ice),
                 ) .== false,
             )
 
@@ -371,7 +371,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             @test all(
                 abs.(
                     internal_energy.(param_set, ts) .-
-                    internal_energy.(param_set, ts_exact)
+                    internal_energy.(param_set, ts_exact),
                 ) .<=
                 (atol_energy_temperature .+ rtol_humidity * _eint_v0 .* q_tot),
             )
@@ -418,7 +418,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             @test all(
                 abs.(
                     internal_energy.(param_set, ts) .-
-                    internal_energy.(param_set, ts_exact)
+                    internal_energy.(param_set, ts_exact),
                 ) .<=
                 (atol_energy_temperature .+ rtol_humidity * _eint_v0 .* q_tot),
             )
@@ -483,7 +483,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             # Test that all states converge to approximately the freezing point
             @test all(
                 abs.(
-                    air_temperature.(param_set, ts_lower) .- T_freeze_minus
+                    air_temperature.(param_set, ts_lower) .- T_freeze_minus,
                 ) .<= atol_temperature,
             )
             @test all(
@@ -515,7 +515,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             @test all(
                 abs.(
                     internal_energy.(param_set, ts) .-
-                    internal_energy.(param_set, ts_exact)
+                    internal_energy.(param_set, ts_exact),
                 ) .<= (
                     atol_energy_temperature .+
                     rtol_humidity * _eint_v0 .* getproperty.(q_pt, :tot)
@@ -525,7 +525,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             pot_temp_errors =
                 abs.(
                     liquid_ice_pottemp.(param_set, ts) .-
-                    liquid_ice_pottemp.(param_set, ts_exact)
+                    liquid_ice_pottemp.(param_set, ts_exact),
                 )
             pot_temp_tolerances = 2.25 * atol_temperature  # Larger tol to allow for condensate effects
             @test all(pot_temp_errors .<= pot_temp_tolerances)

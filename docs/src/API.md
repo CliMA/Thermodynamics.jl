@@ -92,7 +92,6 @@ potential_temperature
 potential_temperature_given_pressure
 liquid_ice_pottemp
 liquid_ice_pottemp_given_pressure
-liquid_ice_pottemp_sat
 virtual_pottemp
 virtual_temperature
 ```
@@ -105,7 +104,6 @@ air_density
 exner
 exner_given_pressure
 air_pressure_given_θ
-specific_volume
 ```
 
 ### Air Saturation Functions
@@ -137,10 +135,10 @@ entropy_vapor
 ## Temperature Profiles
 
 ```@docs
-TemperatureProfiles.IsothermalProfile
 TemperatureProfiles.TemperatureProfile
-TemperatureProfiles.DryAdiabaticProfile
 TemperatureProfiles.DecayingTemperatureProfile
+TemperatureProfiles.IsothermalProfile
+TemperatureProfiles.DryAdiabaticProfile
 ```
 
 ## Data Collection
@@ -164,8 +162,10 @@ total_specific_humidity
 liquid_specific_humidity
 ice_specific_humidity
 mixing_ratios
+specific_volume
 q_vap_from_RH_liquid
 temperature_and_humidity_given_TᵥρRH
+liquid_ice_pottemp_sat
 PhasePartition_equil
 PhasePartition_equil_given_p
 ```

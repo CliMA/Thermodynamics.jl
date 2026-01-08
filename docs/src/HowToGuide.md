@@ -30,10 +30,10 @@ using ClimaParams
 
 ```@example HowToGuide
 # Create thermodynamic parameters for Float64 precision
-params = TD.Parameters.ThermodynamicsParameters(Float64)
+params = TD.Parameters.ThermodynamicsParameters(Float64);
 
 # For Float32 precision (useful for GPU computations)
-params_f32 = TD.Parameters.ThermodynamicsParameters(Float32)
+params_f32 = TD.Parameters.ThermodynamicsParameters(Float32);
 ```
 
 ## Core Workflow
@@ -138,7 +138,7 @@ p_v_sat_l = TD.saturation_vapor_pressure(params, T, TD.Liquid())
 # Saturation vapor pressure over ice
 p_v_sat_i = TD.saturation_vapor_pressure(params, T, TD.Ice())
 
-# Saturation specific humidity (equilibrium w.r.t. density)
+# Saturation specific humidity
 q_v_sat = TD.q_vap_saturation(params, T, ρ)
 
 (p_v_sat_l=p_v_sat_l, p_v_sat_i=p_v_sat_i, q_v_sat=q_v_sat)

@@ -47,6 +47,7 @@ p1 = Plots.scatter(ρ, z./10^3, xlabel="Density [kg/m^3]", ylabel="z [km]", titl
 p2 = Plots.scatter(T, z./10^3, xlabel="Temperature [K]", ylabel="z [km]", title="Temperature");
 Plots.plot(p1, p2, layout=(1,2));
 Plots.savefig("tested_profiles_dry.svg");
+nothing # hide
 ```
 
 ![Dry phase profiles](tested_profiles_dry.svg)
@@ -79,6 +80,7 @@ p2 = Plots.scatter(T, z./10^3, xlabel="Temperature [K]", ylabel="z [km]", title=
 p3 = Plots.scatter(q_tot*1000, z./10^3, xlabel="Total specific\nhumidity [g/kg]", ylabel="z [km]", title="Total specific\nhumidity");
 Plots.plot(p1, p2, p3, layout=(1,3));
 Plots.savefig("tested_profiles_virt_temp.svg");
+nothing # hide
 ```
 
 ![Moist equilibrium profiles](tested_profiles_virt_temp.svg)
@@ -109,6 +111,7 @@ p1 = Plots.scatter(q_liq*1000, z./10^3, xlabel="Liquid specific\nhumidity [g/kg]
 p2 = Plots.scatter(q_ice*1000, z./10^3, xlabel="Ice specific\nhumidity [g/kg]", ylabel="z [km]", title="Ice");
 Plots.plot(p1, p2, layout=(1,2));
 Plots.savefig("tested_profiles_nonequil.svg");
+nothing # hide
 ```
 
 ![Moist non-equilibrium profiles](tested_profiles_nonequil.svg)

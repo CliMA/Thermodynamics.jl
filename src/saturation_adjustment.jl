@@ -857,7 +857,7 @@ Derivative of internal energy with respect to temperature at saturation.
 
     # Unsaturated case: ∂e_int/∂T = cv_d*(1-q_tot) + cv_v*q_tot
     cvm_unsat = cv_m(param_set, q_tot, zero(q_tot), zero(q_tot))
-    
+
     # Saturated case
     # Derivatives of phase fractions (when saturated, ∂q_c/∂T = -∂q_vap_sat/∂T)
     # q_c = q_tot - q_vap_sat

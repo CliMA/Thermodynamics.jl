@@ -4,7 +4,7 @@
 This module is designed to help judge the accuracy and
 performance for a particular formulation, tolerance, and or
 solver configuration, by providing tools to collect various
-statistics when Thermodynamic `saturation_adjustment` is called.
+statistics when `saturation_adjustment` is called.
 
 ## Example:
 ```

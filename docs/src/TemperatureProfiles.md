@@ -47,6 +47,7 @@ p1 = Plots.plot(T, z./10^3, xlabel="Temperature [K]");
 p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
 Plots.plot(p1, p2, layout=(1,2), title="Isothermal", ylabel="z [km]");
 Plots.savefig("isothermal.svg");
+nothing # hide
 ```
 
 ![](isothermal.svg)
@@ -73,13 +74,14 @@ p1 = Plots.plot(T, z./10^3, xlabel="Temperature [K]");
 p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
 Plots.plot(p1, p2, layout=(1,2), ylabel="z [km]", title="Decaying");
 Plots.savefig("decaying.svg");
+nothing # hide
 ```
 
 ![](decaying.svg)
 
 ### Dry Adiabatic Profile
 
-A profile following the dry adiabatic lapse rate, where potential temperature is constant with height.
+A profile following the dry adiabatic lapse rate (potential temperature constant with height) down to some minimum temperature.
 
 ```@example
 import Thermodynamics as TD
@@ -101,6 +103,7 @@ p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
 p3 = Plots.plot(θ_dry, z./10^3, xlabel="Potential temperature [K]");
 Plots.plot(p1, p2, p3, layout=(1,3), ylabel="z [km]", title="Dry adiabatic");
 Plots.savefig("dry_adiabatic.svg");
+nothing # hide
 ```
 
 ![](dry_adiabatic.svg)
