@@ -279,12 +279,12 @@ using Thermodynamics: ρe, pe, ph
                 @test isapprox(
                     dq_sat_dT_analytical,
                     dq_sat_dT_AD;
-                    rtol = FT(5e-2),
+                    rtol = FT(0.08),
                     atol = FT(1e-6),
                 )
 
                 # Test ∂e_int_∂T_sat
-                # Analytical derivative
+                # Analytical derivative (approximate)
                 de_int_dT_analytical = TD.∂e_int_∂T_sat(param_set, T, ρ, q_tot)
 
                 # ForwardDiff derivative

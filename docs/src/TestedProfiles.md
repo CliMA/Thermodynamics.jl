@@ -5,7 +5,7 @@
 
 ## Overview
 
-Thermodynamics.jl is tested using a comprehensive set of thermodynamic profiles specified in `test/TestedProfiles.jl`. These profiles represent a wide range of atmospheric conditions and are used to validate the thermodynamic calculations.
+`Thermodynamics.jl` is tested using a comprehensive set of thermodynamic profiles specified in `test/TestedProfiles.jl`. These profiles represent a wide range of atmospheric conditions and are used to validate the thermodynamic calculations.
 
 The tested profiles serve several important functions:
 
@@ -86,7 +86,7 @@ Plots.savefig("tested_profiles_virt_temp.svg");
 ### Key Features (Moist Equilibrium)
 
 - **Moisture included**: Total specific humidity varies with height
-- **Saturation adjustment**: Phase partitioning ($q_l, q_i$) is determined by thermodynamic equilibrium using `TD.condensate_partition`.
+- **Saturation adjustment**: Phase partitioning ($q_l, q_i$) is determined by thermodynamic equilibrium using [`condensate_partition`](@ref).
 - **Wide humidity range**: From subsaturated ($RS < 1$) to supersaturated ($RS > 1$) reference conditions.
 
 ## Moist Phase Profiles (Thermodynamic Non-Equilibrium)
@@ -127,7 +127,7 @@ The profiles are generated using:
 3. **Total profiles**: 1,500 distinct thermodynamic states (50 altitude points $\times$ 30 saturation values).
 4. **Hydrostatic consistency**: Temperature and pressure are derived from a `DecayingTemperatureProfile`, ensuring they are mutually consistent with hydrostatic balance and the dry-air equation of state.
 5. **Phase Partitioning**:
-    - **Equilibrium**: Uses `TD.condensate_partition` based on $T$ and $\rho$.
+    - **Equilibrium**: Uses [`condensate_partition`](@ref) based on $T$ and $\rho$.
     - **Non-Equilibrium**: Uses a fixed split of excess moisture to test non-equilibrium handling.
 
 ## Usage in Testing

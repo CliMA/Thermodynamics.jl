@@ -35,10 +35,10 @@ params = TD.Parameters.ThermodynamicsParameters(Float64)
 
 # 2. Define your thermodynamic variables
 ρ     = 1.1        # Density [kg/m³]
-e_int = 130000.0   # Internal energy [J/kg] (approx. 290 K)
+e_int = -31673.0   # Internal energy [J/kg] (note: can be negative)
 q_tot = 0.015      # Total specific humidity [kg/kg]
-q_liq = 0.005      # Liquid specific humidity [kg/kg]
-q_ice = 0.001      # Ice specific humidity [kg/kg]
+q_liq = 0.001      # Liquid specific humidity [kg/kg]
+q_ice = 0.0        # Ice specific humidity [kg/kg]
 
 # 3. Compute properties directly
 T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
@@ -104,21 +104,21 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 ### **Functional & Stateless**
 
-Functions in Thermodynamics.jl are pure and stateless. They take a `ThermodynamicsParameters` struct and the necessary thermodynamic variables (e.g., `T`, `ρ`, `q`...) as arguments. This design fits naturally into large-scale simulations (like `ClimaAtmos.jl`) where prognostic variables are managed externally.
+Functions in Thermodynamics.jl are stateless. They take a `ThermodynamicsParameters` struct and the necessary thermodynamic variables (e.g., `T`, `ρ`, `q`...) as arguments. This design fits naturally into large-scale simulations (e.g., with [`ClimaAtmos.jl`](https://github.com/CliMA/ClimaAtmos.jl)).
 
 ### **Working Fluid**
 
-The working fluid is **moist air** (dry air + water vapor + liquid water + ice, which may include precipitation). We treat it as a mixture of ideal gases and condensed phases, ensuring rigorous mass and energy conservation.
+The working fluid is **moist air** (dry air + water vapor + liquid water + ice, which may include precipitation). We treat it as a mixture of ideal gases and condensed phases, ensuring thermodynamic consistency and rigorous mass and energy conservation.
 
 ### **Consistent Formulation**
 
-All quantities are derived from the **calorically perfect gas** assumption with constant specific heat capacities. This provides a consistent, closed consistency set of equations for saturation vapor pressures (the so-called Rankine-Kirchhoff approximation), latent heats, and other derived quantities.
+All quantities are derived from the **calorically perfect gas** assumption with constant specific heat capacities. This provides a consistent, closed set of equations for saturation vapor pressures (the so-called Rankine-Kirchhoff approximation), latent heats, and other derived quantities.
 
 ## Usage Examples
 
 ### **Equilibrium Thermodynamics (Saturation Adjustment)**
 
-To find the equilibrium temperature and phase partition from non-equilibrium variables (e.g., given `ρ`, `e_int`, `q_tot`), use `saturation_adjustment`:
+To find the equilibrium temperature and phase partition from non-equilibrium variables (e.g., given `ρ`, `e_int`, `q_tot`), use [`saturation_adjustment`](@ref):
 
 ```@example Index
 # Define thermodynamic variables: internal energy, density, and total humidity
@@ -158,6 +158,8 @@ T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
 
 # Compute pressure directly
 p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+println("T: ", T)
+println("p: ", p)
 ```
 
 ### **Saturation Calculations**
@@ -210,6 +212,9 @@ e_kin = 0.5 * (u^2 + v^2 + w^2)
 e_int = TD.internal_energy(params, T, q_tot, q_liq, q_ice)
 e_tot = e_int + e_kin + geopotential
 
+println("Initial u: ", u)
+println("Initial e_tot: ", e_tot)
+
 # Timestepping loop (simplified example)
 for timestep in 1:10
     # Advance dynamical variables (simplified)
@@ -242,6 +247,8 @@ for timestep in 1:10
     global u = u_new
     global e_tot = e_tot_new
 end
+println("Final u: ", u)
+println("Final e_tot: ", e_tot)
 ```
 
 ## Next Steps
@@ -253,7 +260,7 @@ end
 ---
 
 !!! note "Citation"
-    If you use Thermodynamics.jl in your research, please cite the relevant papers listed in the [References](References.md) section.
+    If you use `Thermodynamics.jl` in your research, please cite the relevant papers listed in the [References](References.md) section.
 
 !!! tip "Getting Help"
     For questions and issues, please check the documentation or open an issue on the [GitHub repository](https://github.com/CliMA/Thermodynamics.jl).

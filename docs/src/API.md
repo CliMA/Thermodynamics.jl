@@ -21,7 +21,6 @@ Parameters.ThermodynamicsParameters
 Phase
 Liquid
 Ice
-PhasePartition
 IndepVars
 ρe
 pe
@@ -46,11 +45,8 @@ soundspeed_air
 ### Air Humidities
 
 ```@docs
-liquid_specific_humidity
-ice_specific_humidity
 vapor_specific_humidity
 condensate_specific_humidity
-mixing_ratios
 vol_vapor_mixing_ratio
 partial_pressure_dry
 partial_pressure_vapor
@@ -81,12 +77,11 @@ dry_static_energy
 vapor_static_energy
 moist_static_energy
 virtual_dry_static_energy
-internal_energy_sat
 latent_heat_fusion
 latent_heat_sublim
 latent_heat_vapor
-humidity_weighted_latent_heat
 latent_heat_mixed
+humidity_weighted_latent_heat
 ```
 
 ### Air Temperatures
@@ -166,6 +161,9 @@ air_temperature_given_ρθq
 air_temperature_given_ρθq_nonlinear
 saturated
 total_specific_humidity
+liquid_specific_humidity
+ice_specific_humidity
+mixing_ratios
 q_vap_from_RH_liquid
 temperature_and_humidity_given_TᵥρRH
 PhasePartition_equil
@@ -176,6 +174,7 @@ PhasePartition_equil_given_p
 
 ```@docs
 ThermodynamicState
+PhasePartition
 PhaseDry
 PhaseDry_ρe
 PhaseDry_pT

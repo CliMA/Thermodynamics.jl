@@ -24,17 +24,30 @@ Because these parameters are widely used throughout this module,
 
 ## Saturation adjustment
 
-Saturation adjustment functions accept:
-- `sat_adjust_method`: numerical method type (from RootSolvers.jl)
-- A function returning the numerical method instance (e.g.,
-    `sa_numerical_method_ρpq` returns an instance of the numerical
-    method for the `ρ-p-q_tot` formulation)
+One entry point is [`saturation_adjustment`](@ref). It accepts:
+- `method`: A root-solving method type from RootSolvers.jl (e.g., `RS.NewtonsMethod`, `RS.SecantMethod`).
+- `param_set`: The thermodynamics parameter set.
+- `formulation`: The thermodynamic formulation (e.g., [`ρe()`](@ref), [`ph()`](@ref)).
+- Thermodynamic state variables appropriate for the formulation.
 
 Supported methods in RootSolvers.jl:
-- `NewtonsMethod`: Newton method with analytic gradients
-- `NewtonsMethodAD`: Newton method with autodiff
-- `SecantMethod`: Secant method
-- `BrentsMethod`: Brent's method (hybrid root-finding)
+- `NewtonsMethod`: Newton method with analytic gradients (recommended for `ρe`).
+- `NewtonsMethodAD`: Newton method with automatic differentiation.
+- `SecantMethod`: Secant method (derivative-free).
+- `BrentsMethod`: Brent's method (hybrid root-finding).
+
+## Thermodynamic functions
+
+Many thermodynamic functions (e.g., [`air_temperature`](@ref), [`air_pressure`](@ref)) are
+dispatched over the independent variables used to compute them. The available
+independent variable types (subtypes of [`IndepVars`](@ref)) are:
+
+- [`ρe`](@ref): Density, internal energy, and specific humidities
+- [`pe`](@ref): Pressure, internal energy, and specific humidities
+- [`ph`](@ref): Pressure, enthalpy, and specific humidities
+- [`pρ`](@ref): Pressure, density, and specific humidities
+- [`pθ_li`](@ref): Pressure, liquid-ice potential temperature, and specific humidities
+- [`ρθ_li`](@ref): Density, liquid-ice potential temperature, and specific humidities
 """
 module Thermodynamics
 

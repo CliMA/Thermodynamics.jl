@@ -144,7 +144,7 @@ The air temperature obtained by inverting the liquid-ice potential temperature, 
 # Returns
  - `T`: air temperature [K]
 
-If the specific humidities are not given, the `θ_liq_ice` is assumed to be the dry-air
+If the specific humidities are not given, `θ_liq_ice` is assumed to be the dry-air
 potential temperature.
 This inverts [`liquid_ice_pottemp_given_pressure`](@ref) by solving for `T`.
 """

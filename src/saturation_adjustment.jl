@@ -655,8 +655,6 @@ excess (see [`saturation_excess`](@ref)).
     return enthalpy(param_set, T, q_tot, q_liq, q_ice)
 end
 
-
-
 """
     _make_roots_function(::Type{M}, param_set, ρ, e_int, q_tot)
 
@@ -852,12 +850,21 @@ Derivative of internal energy with respect to temperature at saturation.
     # ∂q_vap_sat/∂T from Clausius-Clapeyron
     _∂q_vap_sat_∂T = ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, L)
 
+    # Derivative of internal energy with respect to temperature
+    # Note: we need to handle the unsaturated case explicitly because
+    # `internal_energy_sat` will revert to `cvm * T + (terms independent of T)` 
+    # when q_tot <= q_vap_sat, so that q_vap = q_tot.
+
+    # Unsaturated case: ∂e_int/∂T = cv_d*(1-q_tot) + cv_v*q_tot
+    cvm_unsat = cv_m(param_set, q_tot, zero(q_tot), zero(q_tot))
+    
+    # Saturated case
     # Derivatives of phase fractions (when saturated, ∂q_c/∂T = -∂q_vap_sat/∂T)
     # q_c = q_tot - q_vap_sat
     ∂q_c_∂T = -_∂q_vap_sat_∂T
     ∂q_liq_∂T = ∂λ_∂T * q_cond + λ * ∂q_c_∂T
     ∂q_ice_∂T = -∂λ_∂T * q_cond + (1 - λ) * ∂q_c_∂T
-    ∂q_vap_∂T = _∂q_vap_sat_∂T  # = -∂q_liq_∂T - ∂q_ice_∂T
+    ∂q_vap_∂T = _∂q_vap_sat_∂T
 
     # Component internal energies
     e_vap = internal_energy_vapor(param_set, T)
@@ -865,8 +872,10 @@ Derivative of internal energy with respect to temperature at saturation.
     e_ice = internal_energy_ice(param_set, T)
 
     # Full derivative: ∂e_int/∂T = cv_m + Σ(e_i * ∂q_i/∂T)
-    cvm = cv_m(param_set, q_tot, q_liq, q_ice)
-    return cvm + e_vap * ∂q_vap_∂T + e_liq * ∂q_liq_∂T + e_ice * ∂q_ice_∂T
+    cvm_sat = cv_m(param_set, q_tot, q_liq, q_ice)
+    de_int_dT_sat = cvm_sat + e_vap * ∂q_vap_∂T + e_liq * ∂q_liq_∂T + e_ice * ∂q_ice_∂T
+
+    return ifelse(q_tot <= q_vap_sat, cvm_unsat, de_int_dT_sat)
 end
 
 """

@@ -1,6 +1,6 @@
 # How-To Guide
 
-This guide covers the essential aspects of using Thermodynamics.jl, specifically focusing on its **functional, stateless API**.
+This guide covers the essential aspects of using `Thermodynamics.jl`, specifically focusing on its **functional, stateless API**.
 
 ## Table of Contents
 
@@ -38,7 +38,7 @@ params_f32 = TD.Parameters.ThermodynamicsParameters(Float32)
 
 ## Core Workflow
 
-Thermodynamics.jl operates on **independent thermodynamic variables** directly, rather than wrapping them in a state configuration object. The general pattern is:
+`Thermodynamics.jl` operates on **independent thermodynamic variables** directly, rather than wrapping them in a state configuration object. The general pattern is:
 
 1. **Define your independent variables** (e.g., density `ρ`, internal energy `e_int`, specific humidities `q_...`).
 2. **Pass them to a function** along with the parameter set `params`.
@@ -65,7 +65,7 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 ### **1. Equilibrium Calculations (Saturation Adjustment)**
 
-When you have conservative variables (e.g., `ρ`, `e_int`, `q_tot`) and need to find the temperature `T` and phase partition `(q_liq, q_ice)` that satisfy thermodynamic equilibrium (saturation), use `saturation_adjustment`.
+When you have conservative variables (e.g., `ρ`, `e_int`, `q_tot`) and need to find the temperature `T` and phase partition `(q_liq, q_ice)` that satisfy thermodynamic equilibrium (saturation), use [`saturation_adjustment`](@ref).
 
 ```@example HowToGuide
 # Input variables
@@ -161,7 +161,7 @@ val = TD.air_temperature(params, FT(-7.0e4), FT(0.01))
 
 ### **Vectorized Operations**
 
-Thermodynamics.jl functions broadcast efficiently over arrays.
+`Thermodynamics.jl` functions broadcast efficiently over arrays.
 
 ```@example HowToGuide
 # Arrays of thermodynamic variables
@@ -190,7 +190,7 @@ params_f32 = TD.Parameters.ThermodynamicsParameters(FT)
 
 ### **Prognostic Variable Management**
 
-In a weather or climate model, you typically evolve a state vector. Thermodynamics.jl acts as a kernel to close the system of equations.
+In a weather or climate model, you typically evolve a state vector. `Thermodynamics.jl` acts as a kernel to close the system of equations.
 
 ```@example HowToGuide
 # Example: Computing pressure for the momentum equation
@@ -215,7 +215,7 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 ### **Handling Phase Changes**
 
-If your model handles phase changes (microphysics), you might step `q_liq` and `q_ice` explicitly. If you assume instantaneous equilibrium (saturation adjustment), you use `saturation_adjustment` at the end or beginning of the step.
+If your model handles phase changes (microphysics), you might step `q_liq` and `q_ice` explicitly. If you assume instantaneous equilibrium (saturation adjustment), you use [`saturation_adjustment`](@ref) at the end or beginning of the step.
 
 ```@example HowToGuide
 # Saturation Adjustment Step

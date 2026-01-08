@@ -21,19 +21,25 @@
     - [12.3 Virtual Temperature and Virtual Potential Temperature](#123-virtual-temperature-and-virtual-potential-temperature)
     - [12.4 Liquid-Ice Potential Temperature](#124-liquid-ice-potential-temperature)
     - [12.5 Speed of Sound](#125-speed-of-sound)
+13. [Summary and Implementation Guidelines](#13-summary-and-implementation-guidelines)
+    - [13.1 Key Theoretical Framework](#131-key-theoretical-framework)
+    - [13.2 Core Equations](#132-core-equations)
+    - [13.3 Implementation Strategy](#133-implementation-strategy)
+    - [13.4 Validation and Testing](#134-validation-and-testing)
+    - [13.5 Extensions and Limitations](#135-extensions-and-limitations)
 
 !!! note "Cross-References"
-    This documentation is closely related to the [API documentation](API.md) which provides detailed function signatures and usage examples. The theoretical framework described here is implemented in the [Thermodynamics.jl](https://github.com/CliMA/Thermodynamics.jl) package.
+    This documentation is closely related to the [API documentation](API.md) which provides detailed function signatures and usage examples. The theoretical framework described here is implemented in the [`Thermodynamics.jl`](https://github.com/CliMA/Thermodynamics.jl) package.
 
 ## 1. Introduction
 
-Here we introduce one consistent set of thermodynamic approximations for all model components. The key to thermodynamic consistency at reasonable accuracy is to take the specific heat capacities of the constituents of moist air (dry air, water vapor, liquid water, and ice) to be constant, i.e., to assume the gases to be **calorically perfect**. We discuss how to derive all other thermodynamic quantities that are needed on the basis of this one approximation ([Romps2008](@cite), [Bott2008](@cite), [Marquet2016](@cite), [Romps2021](@cite), [Yatunin2026](@cite)). This includes:
+Here we introduce one consistent set of thermodynamic approximations for all model components. The key to thermodynamic consistency at reasonable accuracy is to take the specific heat capacities of the constituents of moist air (dry air, water vapor, liquid water, and ice) to be constant, i.e., to assume the gases to be **calorically perfect**. We discuss how to derive all other thermodynamic quantities that are needed on the basis of this one approximation ([Romps2008](@cite),[Ambaum2020](@cite), [Romps2021](@cite), [Yatunin2026](@cite)). This includes:
 
 - Giving accurate and easily adaptable closed-form expressions for internal energies, enthalpies, specific latent heats, and saturation vapor pressures
-- Showing how to construct consistent sets of thermodynamic equations that either (i) assume equilibrium of the phases and require only one prognostic water variable, or (ii) do not assume equilibrium of the phases and require prognostic variables for all water phases
+- Showing how to construct consistent sets of thermodynamic equations that either (i) assume thermodynamic equilibrium of the phases and require only one prognostic water variable, or (ii) do not assume thermodynamic equilibrium of the phases (but do assume thermal equilibrium) and require prognostic variables for all water phases
 - Showing how to obtain temperatures from energy variables under either phase equilibrium assumptions (by `saturation adjustment`) or phase non-equilibrium assumptions (by a closed-form expression for temperature).
 
-The resulting thermodynamic functions are implemented in [Thermodynamics.jl](https://github.com/CliMA/Thermodynamics.jl).
+The resulting thermodynamic functions are implemented in [`Thermodynamics.jl`](https://github.com/CliMA/Thermodynamics.jl).
 
 Specific thermodynamic formulations often vary in how they approximate the relevant material properties. The formulation used in `Thermodynamics.jl` balances three criteria:
 
@@ -43,7 +49,7 @@ Specific thermodynamic formulations often vary in how they approximate the relev
 
 The implementation follows the thermodynamic formulation of the CliMA Earth System Model ([Yatunin2026](@cite)). It relies on the **Rankine-Kirchhoff approximations**, which provide a consistent framework for moist thermodynamics ([Romps2021](@cite)).
 
-Specific choices of thermodynamic constants have been made in [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)to maximize accuracy given the Rankine-Kirchhoff approximations ([Ambaum2020](@cite), [Yatunin2026](@cite)).
+Specific choices of thermodynamic constants have been made in [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl) to maximize accuracy given the Rankine-Kirchhoff approximations ([Ambaum2020](@cite), [Yatunin2026](@cite)).
 
 !!! note "Physical Motivation"
     The assumption of calorically perfect gases (constant specific heat capacities) is justified for atmospheric conditions because the error of approximating them as constant is less than 1% for dry air, the main constituent of moist air, and at most a few percent for the water phases. This approximation enables closed-form expressions for all thermodynamic quantities while maintaining sufficient accuracy for atmospheric modeling.
@@ -66,7 +72,7 @@ Our thermodynamic framework is based on the following fundamental assumptions:
 The working fluid is **moist air**. That is, it is an ideal mixture of dry air, water vapor, and condensed water (liquid and ice). Atmospheric models may choose to include precipitation (e.g., rain, snow, graupel) within the definitions of the condensed water specific humidities ($q_{liq}$, $q_{ice}$), or treat them as separate species. The thermodynamic formulation remains valid in either case, provided that the phases included in the working fluid are in thermal equilibrium.
 
 !!! note "Modeling Choice: Precipitation Included in Working Fluid"
-    In the CliMA Earth System Model, precipitation is often included as part of the working fluid. This choice means:
+    In the CliMA Earth System Model, precipitation is included as part of the working fluid. This choice means:
     - Mass and energy conservation are maintained across all phases (including precipitation)
     - Thermodynamic consistency is preserved throughout the system
     - All condensed water phases (cloud and precipitation) are assumed to be in thermal equilibrium with the surrounding air (which is an approximation, see [Yatunin2026](@cite) for discussion)
@@ -74,7 +80,7 @@ The working fluid is **moist air**. That is, it is an ideal mixture of dry air, 
 Dry air and water vapor are taken to be ideal gases. The specific volume of all condensed phases (cloud liquid, cloud ice, and potentially precipitation) is neglected relative to that of the gas phases (it is a factor $10^3$ less than that of the gas phases). All phases are assumed to have the same temperature. However, the condensates do not need to be in thermodynamic equilibrium with the other fluid constituents; out-of-equilibrium phases such as supercooled liquid can exist.
 
 !!! tip "Implementation Note"
-    When precipitation is included in the working fluid, its mass contributes to the total water content $q_t$ and affects the specific heat capacities. This is implemented consistently throughout the Thermodynamics.jl package.
+    When precipitation is included in the working fluid, its mass contributes to the total water content $q_t$ and affects the density and specific heat capacities. This is implemented consistently throughout the `Thermodynamics.jl` package.
 
 ---
 
@@ -114,7 +120,7 @@ Because this enumerates all constituents of the working fluid, we have $q_t + q_
 The pressure $p$ of the working fluid is the sum of the partial pressures of dry air and water vapor, both taken to be ideal gases. Neglecting the volume of the condensed phases (but not their masses), this gives $p = \rho (R_d q_d + R_v q_v) T$, where $R_d$ is the specific gas constant of dry air, and $R_v$ is the specific gas constant of water vapor.
 
 !!! note "Precipitation and the Equation of State"
-    Although precipitation is included in the working fluid, it does **not** contribute to the pressure because its specific volume is neglected. However, precipitation mass affects the gas constant $R_m$ and specific heat capacities through the total water content $q_t$, ensuring thermodynamic consistency.
+    Although precipitation is included in the working fluid, it does **not** contribute to the pressure because its specific volume is neglected. However, precipitation mass affects the density andspecific heat capacity.
 
 This can also be written as
 
@@ -218,7 +224,7 @@ Straightforward substitution shows that the above relation between the specific 
     | $c_{pm}$ (typical moist air, $q_t = 0.01$) | $1008.0$ J/(kg·K) |
 
 !!! tip "Implementation Note"
-    The specific heat capacities are implemented as weighted sums in the `cp_m` and `cv_m` functions. The implementation uses the rearranged form of equation \eqref{e:SpecificHeat} for computational efficiency.
+    The specific heat capacities are implemented as weighted sums in the [`cp_m`](@ref) and [`cv_m`](@ref) functions. The implementation uses the rearranged form of equation \eqref{e:SpecificHeat} for computational efficiency.
 
 ## 5. Latent Heats
 
@@ -275,7 +281,7 @@ With $L_{s,0} = L_{v,0} + L_{f,0}$, this gives $L_s(T) = L_v(T) + L_f(T)$, as it
     | $L_s$ | $2.764 \times 10^6$ J/kg |
 
 !!! tip "Implementation Note"
-    The latent heats are implemented in the `latent_heat_vapor`, `latent_heat_fusion`, and `latent_heat_sublim` functions. The weighted latent heat for mixed-phase conditions is computed in `latent_heat_mixed`.
+    The latent heats are implemented in the [`latent_heat_vapor`](@ref), [`latent_heat_fusion`](@ref), and [`latent_heat_sublim`](@ref) functions. The weighted latent heat for mixed-phase conditions is computed in [`latent_heat_mixed`](@ref).
 
 ## 6. Internal Energies
 
@@ -293,7 +299,7 @@ I_i(T) & = c_{vi} (T - T_0) - I_{i,0}.
 \end{equation}
 ```
 
-Here, the reference specific internal energy $I_{v,0}$ is the difference in specific internal energy between vapor and liquid at the reference temperature $T_0$, and $I_{i,0}$ is the difference in specific internal energy between ice and liquid at $T_0$. We have included an arbitrary constant offset $- R_d T_0$ in the definition of the dry specific internal energy as that simplifies the corresponding specific enthalpies \eqref{e:Enthalpies}.  
+Here, the reference specific internal energy $I_{v,0}$ is the difference in specific internal energy between vapor and liquid at the reference temperature $T_0$, and $I_{i,0}$ is the difference in specific internal energy between ice and liquid at $T_0$. We have included an arbitrary constant offset $- R_d T_0$ in the definition of the dry specific internal energy as that simplifies the corresponding specific enthalpies \eqref{e:Enthalpies}. The formulation is **reference-temperature invariant**, meaning that the physics is independent of the choice of the arbitrary reference temperature $T_0$ used to define enthalpies and entropies, provided that boundary conditions (as implemented in [SurfaceFluxes.jl](https://github.com/CliMA/SurfaceFluxes.jl)) also respect this invariance. Measurable thermodynamic variables such as temperature, pressure, etc. do not depend on a shift in the reference temperature $T_0$.
 
 !!! note "Physical Interpretation"
     The internal energy represents the total energy of a substance excluding kinetic and potential energy. The reference energies $I_{v,0}$ and $I_{i,0}$ represent the energy differences between phases at the reference temperature, accounting for the fact that vapor has higher internal energy than liquid, and ice has lower internal energy than liquid.
@@ -311,7 +317,7 @@ The internal energy of moist air is the weighted sum of that of the constituents
 ```
 
 !!! tip "Implementation Note"
-    The internal energy is implemented as a weighted sum of constituent energies in the `internal_energy` function. The constituent energies are computed separately in `internal_energy_dry`, `internal_energy_vapor`, `internal_energy_liquid`, and `internal_energy_ice`.
+    The internal energy is implemented as a weighted sum of constituent energies in the [`internal_energy`](@ref) function. The constituent energies are computed separately in [`internal_energy_dry`](@ref), [`internal_energy_vapor`](@ref), [`internal_energy_liquid`](@ref), and [`internal_energy_ice`](@ref).
 
 The internal energy can be inverted to obtain the temperature given $I$ and the specific humidities:
 
@@ -369,8 +375,10 @@ The specific enthalpies of the constituents of moist air are obtained by adding 
 \end{equation}
 ```
 
+The formulation is **reference-temperature invariant**, meaning that the physics is independent of the choice of the arbitrary reference temperature $T_0$ used to define enthalpies and entropies, provided that boundary conditions (as implemented in [SurfaceFluxes.jl](https://github.com/CliMA/SurfaceFluxes.jl)) also respect this invariance.
+
 !!! note "Physical Interpretation"
-    Enthalpy represents the total energy of a substance including the work done against pressure. For ideal gases, enthalpy includes the $pV$ term, while for condensed phases this term is neglected due to their small specific volume. Enthalpy is the relevant energy quantity for fluid transport, including at boundaries.
+    Enthalpy represents the total energy of a substance including the work done against pressure. For ideal gases, enthalpy includes the $pv$ term, while for condensed phases this term is neglected due to their small specific volume $v$. Enthalpy is the relevant energy quantity for fluid transport, including at boundaries.
 
 The enthalpy of moist air is the weighted sum of the constituent enthalpies:
 
@@ -387,7 +395,7 @@ The enthalpy of moist air is the weighted sum of the constituent enthalpies:
 where the last equality used $c_{pm} = c_{vm} + R_m$ (Eq. \ref{e:SpecificHeatRelation}).
 
 !!! tip "Implementation Note"
-    The enthalpy is implemented in the `enthalpy` function. The relationship $h = I + R_m T$ is used for efficient computation, avoiding the need to compute individual constituent enthalpies.
+    The enthalpy is implemented in the [`enthalpy`](@ref) function. The relationship $h = I + R_m T$ is used for efficient computation, avoiding the need to compute individual constituent enthalpies.
 
 The enthalpy is the relevant thermodynamic energy quantity in fluid transport. It arises in boundary conditions for energy fluxes and in the modeling of subgrid-scale (SGS) turbulent transport.
 
@@ -431,7 +439,7 @@ Substituting the linear relation \eqref{e:LHTemperature} between latent heat and
 ```
 
 !!! tip "Implementation Note"
-    The saturation vapor pressure is implemented in the `saturation_vapor_pressure` function. The closed-form expression enables efficient computation without numerical integration.
+    The saturation vapor pressure is implemented in the [`saturation_vapor_pressure`](@ref) function. The closed-form expression enables efficient computation without numerical integration.
 
 With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity difference $\Delta c_p$, this gives saturation vapor pressures over liquid or ice that are accurate within 3% for temperatures between 200K and 330K ([Ambaum2020](@cite)). The accuracy of this approximation depends on the choice of thermodynamic constants; the values used in `Thermodynamics.jl` (specified in [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)) are chosen to minimize errors in the Rankine-Kirchhoff approximation ([Yatunin2026](@cite)).
 
@@ -456,7 +464,7 @@ To obtain the saturation vapor pressure over a mixture of liquid and ice (e.g., 
 !!! note "Physical Interpretation"
     The weighted latent heat approach ensures thermodynamic consistency when computing saturation vapor pressure over mixed-phase conditions. This is important for modeling mixed-phase clouds where both liquid and ice coexist.
 
-In thermodynamic equilibrium, the liquid fraction $\lambda_p(T)$ is a function of temperature alone. For temperatures above the freezing temperature $T_{\text{freeze}}$, $\lambda_p(T) = 1$. Below the homogeneous ice nucleation temperature $T_{\text{icenuc}}$, $\lambda_p(T) = 0$. Between these limits, a continuous function is used to model the presence of supercooled liquid. In `Thermodynamics.jl`, this is often parameterized following [Kaul2015](@cite) or using a power-law interpolation, such that:
+In thermodynamic equilibrium, the liquid fraction $\lambda_p(T)$ is a function of temperature alone. For temperatures above the freezing temperature $T_{\text{freeze}}$, $\lambda_p(T) = 1$. In strict thermodynamic equilibrium, $\lambda_p(T) = 0$ below freezing; that is, supercooled liquid does not exist. To parameterize the presence of supercooled liquid in thermodynamic equilibrium, a continuous function is used to represent a nonzero liquid fraction between the temperature of homogeneous ice nucleation $T_{\text{icenuc}}$ and the freezing temperature $T_{\text{freeze}}$. In `Thermodynamics.jl`, this is parameterized following [Kaul2015](@cite) as a power-law ramp interpolation, with some exponent $n$, such that:
 
 ```math
 \lambda_p(T) = 
@@ -478,9 +486,9 @@ Out of thermodynamic equilibrium, when prognostic variables for liquid ($q_{liq}
 This definition makes no assumption about the temperature dependence of the phase partitioning and allows for non-equilibrium states (e.g., supercooled liquid at temperatures where the equilibrium function would force freezing).
 
 !!! tip "Implementation Note"
-    The `liquid_fraction` function in `Thermodynamics.jl` dispatches on the arguments provided.
-    - `liquid_fraction(param_set, T)` computes the equilibrium temperature-dependent fraction.
-    - `liquid_fraction(param_set, T, q_liq, q_ice)` computes the fraction from specific humidities. If no condensate is present (`q_liq + q_ice ≈ 0`), it falls back to a **slightly smoothed Heaviside function** (a linear ramp over $\pm 0.1$ K around freezing) to ensure differentiability of derived quantities like saturation vapor pressure.
+    The [`liquid_fraction`](@ref) function in `Thermodynamics.jl` dispatches on the arguments provided.
+    - [`liquid_fraction(param_set, T)`](@ref) computes the equilibrium temperature-dependent fraction.
+    - [`liquid_fraction(param_set, T, q_liq, q_ice)`](@ref) computes the fraction from specific humidities. If no condensate is present (`q_liq + q_ice ≈ 0`), it falls back to a **slightly smoothed Heaviside function** (a linear ramp over $\pm 0.1$ K around freezing) to ensure differentiability of derived quantities such as saturation vapor pressure.
 
 ## 10. Saturation Specific Humidity
 
@@ -495,7 +503,7 @@ From the saturation vapor pressure $p_v^*$, the saturation specific humidity can
 
 ## 11. Saturation Adjustment
 
-The thermodynamic state of a moist air parcel in local thermodynamic equilibrium is uniquely defined by its density $\rho$, total specific humidity $q_t$, and internal energy $I$ (or temperature $T$). The formulation is **reference-temperature invariant**, meaning that the physics is independent of the choice of the arbitrary reference temperature $T_0$ used to define enthalpies and entropies, provided that boundary conditions (as implemented in [SurfaceFluxes.jl](https://github.com/CliMA/SurfaceFluxes.jl)) also respect this invariance. Thus, a moist dynamical core that assumes equilibrium thermodynamics can be constructed from a dry dynamical core with internal (or total) energy as a prognostic variable by including only a tracer for the total specific humidity $q_t$, and calculating the temperature and condensate specific humidities from $\rho$, $q_t$, and $I$.
+The thermodynamic state of a moist air parcel in local thermodynamic equilibrium is uniquely defined by its density $\rho$, total specific humidity $q_t$, and internal energy $I$ (or temperature $T$ or other thermodynamic variables). Thus, a moist dynamical core that assumes equilibrium thermodynamics can be constructed from a dry dynamical core with internal (or total) energy as a prognostic variable by including only a tracer for the total specific humidity $q_t$, and calculating the temperature and condensate specific humidities from $\rho$, $q_t$, and $I$.
 
 Obtaining the temperature and condensate specific humidities from the state variables $\rho$, $q_t$, and $I$ is the problem of finding the root $T$ of
 
@@ -560,7 +568,7 @@ The derivative ``\partial I^*/\partial T|_{T_n}`` is obtained by differentiation
 \end{equation}
 ```
 
-where $q_{cond}^* = q_t - q_v^*$, $e_{cond} = \lambda_p e_{liq} + (1-\lambda_p) e_{ice}$, and the densities are fixed. The derivative of the saturation specific humidity is given by:
+where $q_{cond}^* = q_t - q_v^*$, and $e_{cond} = \lambda_p e_{liq} + (1-\lambda_p) e_{ice}$. The derivative of the saturation specific humidity is given by
 
 ```math
 \begin{equation}
@@ -568,9 +576,9 @@ where $q_{cond}^* = q_t - q_v^*$, $e_{cond} = \lambda_p e_{liq} + (1-\lambda_p) 
 \end{equation}
 ```
 
-which follows from differentiation of the ideal gas law for vapor and the Clausius-Clapeyron relation. Note the include of the $-1/T$ term which arises from the density dependence. The derivative of the liquid fraction $\partial \lambda_p / \partial T$ is non-zero in the supercooled liquid mixed-phase region.
+which follows from differentiation of the ideal gas law for vapor and the Clausius-Clapeyron relation. Note the inclusion of the $-1/T$ term, which arises from the density dependence. The derivative of the liquid fraction $\partial \lambda_p / \partial T$ is non-zero in the supercooled liquid mixed-phase region.
 
-The resulting successive Newton approximations $T_n$ generally converge quadratically. Because condensate specific humidities are usually small, $T_1$ provides a close initial estimate, and few iterations are needed. Even the first-order approximation $T\approx T_2$ often suffices. To ensure robust convergence near the phase transition at the freezing temperature $T_{\mathrm{freeze}}$, the phase transition is slightly smoothed (see `liquid_fraction`), ensuring that the derivative of $I^*$ with respect to temperature remains continuous. This allows the saturation adjustment to converge reliably without requiring special treatment or limiters.
+The resulting successive Newton approximations $T_n$ generally converge quadratically. Because condensate specific humidities are usually small, $T_1$ provides a close initial estimate, and few iterations are needed. Even the first-order approximation $T\approx T_2$ often suffices. With the smoothed liquid fraction $\lambda_p$ ramp (see [`liquid_fraction`](@ref)), the derivative of $I^*$ with respect to temperature remains continuous across the phase transition, allowing the saturation adjustment to converge reliably without requiring special treatment or limiters.
 
 Using saturation adjustment makes it possible to construct a moist dynamical core that has the total specific humidity $q_t$ as the only prognostic moisture variable. The price for this simplicity is the necessity to solve a nonlinear problem iteratively (or approximately) at each time step, and being confined to an equilibrium thermodynamics framework which cannot adequately account for non-equilibrium processes. Using explicit tracers for the condensates $q_l$ and $q_i$ in addition to $q_t$ avoids iterations at each time step and allows the inclusion of explicit non-equilibrium processes, such as those leading to the formation of supercooled liquid in mixed-phase clouds.
 
@@ -706,7 +714,7 @@ with the appropriate gas constants for moist air. In the presence of stratificat
     For moist air with $q_t = 0.01$ at $T = 300$ K: $c_s ≈ 348$ m/s
 
 !!! tip "Implementation Note"
-    The speed of sound is implemented in the `soundspeed_air` function. It is used in numerical schemes that require the characteristic wave speeds for stability analysis.
+    The speed of sound is implemented in the [`soundspeed_air`](@ref) function. It is used in numerical schemes that require the characteristic wave speeds for stability analysis.
 
 ## 13. Summary and Implementation Guidelines
 
@@ -762,7 +770,7 @@ The implementation should be validated against:
     Comprehensive testing is performed using [Tested Profiles](TestedProfiles.md)
     that cover the full range of atmospheric conditions.
 
-Thermodynamics.jl contains a battery of unit tests that check for consistency of the thermodynamic formulation and convergence of saturation adjustement in a broad range of conditions.
+`Thermodynamics.jl` contains a battery of unit tests that check for consistency of the thermodynamic formulation and convergence of saturation adjustement in a broad range of conditions.
 
 ### 13.5 Extensions and Limitations
 
@@ -777,7 +785,7 @@ Thermodynamics.jl contains a battery of unit tests that check for consistency of
 - Non-ideal gases
 
 !!! tip "Implementation Note"
-    The Thermodynamics.jl package provides a complete implementation of this framework with comprehensive testing and validation. See the [API documentation](API.md) for detailed function signatures and usage examples.
+    The `Thermodynamics.jl` package provides a complete implementation of this framework with comprehensive testing and validation. See the [API documentation](API.md) for detailed function signatures and usage examples.
 
 !!! note "References"
     This formulation is described in [Yatunin2026](@cite), building on the theoretical framework described in [Romps2008](@cite), [Bott2008](@cite), and [Marquet2016](@cite), with additional developments for mixed-phase conditions from [Pressel2015](@cite).

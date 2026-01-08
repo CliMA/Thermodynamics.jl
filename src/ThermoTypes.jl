@@ -21,42 +21,42 @@ abstract type IndepVars end
 """
     ρe <: IndepVars
 
-Density, internal energy, and total specific humidity.
+Density, internal energy, and specific humidity
 """
 struct ρe <: IndepVars end
 
 """
     pe <: IndepVars
 
-Pressure, internal energy, and total specific humidity.
+Pressure, internal energy, and specific humidity
 """
 struct pe <: IndepVars end
 
 """
     ph <: IndepVars
 
-Pressure, enthalpy, and total specific humidity.
+Pressure, enthalpy, and specific humidity
 """
 struct ph <: IndepVars end
 
 """
     pρ <: IndepVars
 
-Pressure, density, and total specific humidity.
+Pressure, density, and specific humidity
 """
 struct pρ <: IndepVars end
 
 """
     pθ_li <: IndepVars
 
-Pressure, liquid-ice potential temperature, and total specific humidity.
+Pressure, liquid-ice potential temperature, and specific humidity
 """
 struct pθ_li <: IndepVars end
 
 """
     ρθ_li <: IndepVars
 
-Density, liquid-ice potential temperature, and total specific humidity.
+Density, liquid-ice potential temperature, and specific humidity
 """
 struct ρθ_li <: IndepVars end
 

@@ -389,8 +389,8 @@ The virtual dry static energy.
  - `s_vd`: virtual dry static energy [J/kg]
 
 If the specific humidities are not given, the result is for dry air.
-The virtual dry static energy is `s_vd = cp_d * T_virt + e_pot`, where `T_virt` is
-the virtual temperature (see [`virtual_temperature`](@ref)).
+The virtual dry static energy is `s_vd = cp_d * (T_virt - T_0) + e_pot`, where `T_virt` is
+the virtual temperature (see [`virtual_temperature`](@ref)) and `T_0` is the reference temperature.
 """
 @inline function virtual_dry_static_energy(
     param_set::APS,
@@ -401,6 +401,7 @@ the virtual temperature (see [`virtual_temperature`](@ref)).
     q_ice = 0,
 )
     cp_d = TP.cp_d(param_set)
+    T_0 = TP.T_0(param_set)
     T_virt = virtual_temperature(param_set, T, q_tot, q_liq, q_ice)
-    return cp_d * T_virt + e_pot
+    return cp_d * (T_virt - T_0) + e_pot
 end
