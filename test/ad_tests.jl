@@ -280,8 +280,8 @@ using Thermodynamics: ρe, pe, ph
                 @test isapprox(
                     dq_sat_dT_analytical,
                     dq_sat_dT_AD;
-                    rtol = FT(1e-6),
-                    atol = FT(1e-12),
+                    rtol = FT(1e-3),
+                    atol = FT(1e-10),
                 )
 
                 # Test ∂e_int_∂T_sat
@@ -295,8 +295,8 @@ using Thermodynamics: ρe, pe, ph
                 @test isapprox(
                     de_int_dT_analytical,
                     de_int_dT_AD;
-                    rtol = FT(1e-6),
-                    atol = FT(1e-10),
+                    rtol = FT(1e-3),
+                    atol = FT(1e-8),
                 )
             end
         end

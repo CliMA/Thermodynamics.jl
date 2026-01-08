@@ -76,10 +76,6 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 - **[Temperature Profiles](TemperatureProfiles.md)** - Pre-defined atmospheric profiles to be used as reference states in atmosphere models and for testing
 - **[Tested Profiles](TestedProfiles.md)** - Thermodynamic profiles used for testing of the package (Internal Use)
 
-### 👨‍💻 **Developer Resources**
-
-- **[Saturation Adjustment Convergence](SaturationAdjustmentConvergence.md)** - Convergence testing for numerical methods
-
 ### 📚 **Published References and Background**
 
 - **[References](References.md)** - Bibliography of theoretical foundations
@@ -253,7 +249,6 @@ end
 1. **Read the [Mathematical Formulation](Formulation.md)** for theoretical background
 2. **Explore the [API Reference](API.md)** for complete function documentation
 3. **Follow the [How-To Guide](HowToGuide.md)** for practical examples
-4. **Check [Saturation Adjustment Convergence](SaturationAdjustmentConvergence.md)** for numerical method testing
 
 ---
 

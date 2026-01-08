@@ -122,6 +122,7 @@ supersaturation
 saturation_excess
 q_vap_from_RH
 q_vap_from_p_vap
+q_vap_saturation_from_pressure
 ```
 
 ### Saturation Adjustment
@@ -167,6 +168,8 @@ saturated
 total_specific_humidity
 q_vap_from_RH_liquid
 temperature_and_humidity_given_TᵥρRH
+PhasePartition_equil
+PhasePartition_equil_given_p
 ```
 
 ## Thermodynamic State Constructors (Deprecated)
@@ -199,12 +202,4 @@ PhaseNonEquil_pθq
 PhaseNonEquil_peq
 PhaseNonEquil_phq
 PhaseNonEquil_ρpq
-```
-
-## Internal Methods
-
-```@docs
-q_vap_saturation_from_pressure
-PhasePartition_equil
-PhasePartition_equil_given_p
 ```
