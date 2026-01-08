@@ -10,7 +10,7 @@
 The tested profiles serve several important functions:
 
 - **Validation**: Ensure thermodynamic calculations are correct across diverse conditions
-- **Coverage**: Test the full range of atmospheric temperatures and humidities, including both **thermodynamic equilibrium** and **intentional non-equilibrium** states.
+- **Coverage**: Test the full range of atmospheric temperatures and humidities, including both **phase equilibrium** and **intentional phase non-equilibrium** states.
 - **Robustness**: Verify numerical stability under various thermodynamic states
 - **Benchmarking**: Provide consistent test cases for performance evaluation
 
@@ -59,9 +59,9 @@ nothing # hide
 - **Temperature variation**: Uses decaying temperature profile
 - **Density calculation**: Computed from ideal gas law
 
-## Moist Phase Profiles (Thermodynamic Equilibrium)
+## Moist Phase Profiles (Phase Equilibrium)
 
-Moist phase profiles test thermodynamic calculations with moisture in thermodynamic equilibrium, including saturation adjustment.
+Moist phase profiles test thermodynamic calculations with moisture in phase equilibrium, including saturation adjustment.
 
 ```@example
 import Thermodynamics as TD
@@ -83,17 +83,17 @@ Plots.savefig("tested_profiles_virt_temp.svg");
 nothing # hide
 ```
 
-![Moist equilibrium profiles](tested_profiles_virt_temp.svg)
+![Moist phase equilibrium profiles](tested_profiles_virt_temp.svg)
 
-### Key Features (Moist Equilibrium)
+### Key Features (Moist Phase Equilibrium)
 
 - **Moisture included**: Total specific humidity varies with height
-- **Saturation adjustment**: Phase partitioning ($q_l, q_i$) is determined by thermodynamic equilibrium using [`condensate_partition`](@ref).
+- **Saturation adjustment**: Phase partitioning ($q_l, q_i$) is determined by phase equilibrium using [`condensate_partition`](@ref).
 - **Wide humidity range**: From subsaturated ($RS < 1$) to supersaturated ($RS > 1$) reference conditions.
 
-## Moist Phase Profiles (Thermodynamic Non-Equilibrium)
+## Moist Phase Profiles (Phase Non-Equilibrium)
 
-Non-equilibrium moist profiles test the package's ability to handle cases where the phase partitioning does not follow equilibrium assumptions.
+Non-equilibrium moist profiles test the package's ability to handle cases where the phase partitioning does not need to follow phase equilibrium assumptions.
 
 ```@example
 import Thermodynamics as TD
@@ -114,9 +114,9 @@ Plots.savefig("tested_profiles_nonequil.svg");
 nothing # hide
 ```
 
-![Moist non-equilibrium profiles](tested_profiles_nonequil.svg)
+![Moist phase non-equilibrium profiles](tested_profiles_nonequil.svg)
 
-### Key Features (Non-Equilibrium)
+### Key Features (Phase Non-Equilibrium)
 
 - **Prescribed partitioning**: Condensed phases $q_l$ and $q_i$ are prescribed as a fixed split (e.g., 60/40) of the excess moisture.
 - **Supersaturation**: Intentionally allows vapor pressure to exceed saturation vapor pressure to test diagnostic functions.
@@ -130,8 +130,8 @@ The profiles are generated using:
 3. **Total profiles**: 1,500 distinct thermodynamic states (50 altitude points $\times$ 30 saturation values).
 4. **Hydrostatic consistency**: Temperature and pressure are derived from a `DecayingTemperatureProfile`, ensuring they are mutually consistent with hydrostatic balance and the dry-air equation of state.
 5. **Phase Partitioning**:
-    - **Equilibrium**: Uses [`condensate_partition`](@ref) based on $T$ and $\rho$.
-    - **Non-Equilibrium**: Uses a fixed split of excess moisture to test non-equilibrium handling.
+    - **Phase Equilibrium**: Uses [`condensate_partition`](@ref) based on $T$ and $\rho$.
+    - **Phase Non-Equilibrium**: Uses a fixed split of excess moisture to test non-equilibrium handling.
 
 ## Usage in Testing
 

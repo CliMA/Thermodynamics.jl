@@ -9,7 +9,7 @@ export liquid_ice_pottemp_given_pressure
 """
     air_temperature(param_set, e_int, q_tot=0, q_liq=0, q_ice=0)
 
-The air temperature, given
+The air temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -57,7 +57,7 @@ end
 """
     air_temperature(param_set, ::ph, h, q_tot=0, q_liq=0, q_ice=0)
 
-The air temperature, given
+The air temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -91,7 +91,7 @@ end
 """
     air_temperature(param_set, ::pρ, p, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The air temperature, given
+The air temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -131,7 +131,7 @@ end
         q_ice=0
     )
 
-The air temperature obtained by inverting the liquid-ice potential temperature, given
+The air temperature obtained by inverting the liquid-ice potential temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -166,7 +166,7 @@ end
 """
     air_temperature(param_set, ::ρθ_li, ρ, θ_li, q_tot=0, q_liq=0, q_ice=0)
 
-The air temperature obtained by inverting the liquid-ice potential temperature, given
+The air temperature obtained by inverting the liquid-ice potential temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -216,7 +216,7 @@ end
 """
     potential_temperature(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The dry potential temperature, given
+The potential temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -227,7 +227,7 @@ The dry potential temperature, given
  - `q_ice`: ice specific humidity [kg/kg]
 
 # Returns
- - `θ`: dry potential temperature [K]
+ - `θ`: potential temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
 
@@ -248,7 +248,7 @@ end
 """
     potential_temperature_given_pressure(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
-The dry potential temperature, given
+The potential temperature.
 
  - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -276,7 +276,7 @@ end
 """
     virtual_temperature(param_set, T, q_tot=0, q_liq=0, q_ice=0)
 
-The virtual temperature, given
+The virtual temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -307,7 +307,7 @@ end
 """
     virtual_pottemp(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The virtual potential temperature, given
+The virtual potential temperature.
 
  - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -334,7 +334,7 @@ end
 """
     liquid_ice_pottemp(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The liquid-ice potential temperature, given
+The liquid-ice potential temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -375,7 +375,7 @@ end
 """
     liquid_ice_pottemp_given_pressure(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
-The liquid-ice potential temperature, given
+The liquid-ice potential temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details

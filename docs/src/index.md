@@ -58,13 +58,6 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
   - Saturation adjustment algorithms
   - Auxiliary thermodynamic functions
 
-- **[API Reference](API.md)** - Complete function documentation
-  - Thermodynamics Parameters
-  - Types
-  - Thermodynamic Functions
-  - Temperature Profiles
-  - Data Collection
-
 ### 🛠️ **User Guides**
 
 - **[How-To Guide](HowToGuide.md)** - Practical usage examples and patterns
@@ -75,6 +68,15 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 - **[Temperature Profiles](TemperatureProfiles.md)** - Pre-defined atmospheric profiles to be used as reference states in atmosphere models and for testing
 - **[Tested Profiles](TestedProfiles.md)** - Thermodynamic profiles used for testing of the package (Internal Use)
+
+### 📖 **Package Reference**
+
+- **[API Reference](API.md)** - Complete function documentation
+  - Thermodynamics Parameters
+  - Types
+  - Thermodynamic Functions
+  - Temperature Profiles
+  - Data Collection
 
 ### 📚 **Published References and Background**
 
@@ -96,7 +98,7 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 ### 🔧 **Flexible Design**
 
-- **Multiple formulations**: Solve for equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc.
+- **Multiple formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc., or using direct functional relationships.
 - **Extensible parameters**: Easily adapt to different planetary atmospheres via `ClimaParams`.
 - **Comprehensive testing** and validation suite.
 
@@ -116,9 +118,9 @@ All quantities are derived from the **calorically perfect gas** assumption with 
 
 ## Usage Examples
 
-### **Equilibrium Thermodynamics (Saturation Adjustment)**
+### **Phase Equilibrium (Saturation Adjustment)**
 
-To find the equilibrium temperature and phase partition from non-equilibrium variables (e.g., given `ρ`, `e_int`, `q_tot`), use [`saturation_adjustment`](@ref):
+To find the phase equilibrium temperature and phase partition from phase non-equilibrium variables (e.g., given `ρ`, `e_int`, `q_tot`), use [`saturation_adjustment`](@ref):
 
 ```@example Index
 # Define thermodynamic variables: internal energy, density, and total humidity
@@ -126,7 +128,7 @@ To find the equilibrium temperature and phase partition from non-equilibrium var
 e_int = -7.0e4
 q_tot = 0.01
 
-# Solve for equilibrium
+# Solve for phase equilibrium
 # (using SecantMethod, but NewtonsMethod is also available for ρe)
 sol = TD.saturation_adjustment(
     RS.SecantMethod, 
@@ -141,9 +143,9 @@ println("q_liq: ", sol.q_liq)
 println("q_ice: ", sol.q_ice)
 ```
 
-### **Non-Equilibrium Thermodynamics**
+### **Phase Non-Equilibrium**
 
-Directly compute properties from thermodynamic variables without saturation adjustment:
+Directly compute properties from thermodynamic variables without assuming equilibrium of phases and using saturation adjustment:
 
 ```@example Index
 # Define variables
@@ -175,7 +177,7 @@ p_v_sat = TD.saturation_vapor_pressure(params, T, TD.Liquid())
 # Saturation specific humidity
 q_v_sat = TD.q_vap_saturation(params, T, ρ)
 
-# Phase partition assuming equilibrium
+# Phase partition assuming phase equilibrium
 (q_liq, q_ice) = TD.condensate_partition(params, T, ρ, q_tot)
 ```
 
@@ -254,8 +256,8 @@ println("Final e_tot: ", e_tot)
 ## Next Steps
 
 1. **Read the [Mathematical Formulation](Formulation.md)** for theoretical background
-2. **Explore the [API Reference](API.md)** for complete function documentation
-3. **Follow the [How-To Guide](HowToGuide.md)** for practical examples
+2. **Follow the [How-To Guide](HowToGuide.md)** for practical examples
+3. **Explore the [API Reference](API.md)** for complete function documentation
 
 ---
 

@@ -41,7 +41,7 @@ end
 """
     DryAdiabaticProfile{FT} <: TemperatureProfile{FT}
 
-Temperature profile with uniform dry potential temperature `θ` up to 
+Temperature profile with uniform potential temperature `θ` up to 
 the height where a minimum temperature is reached.
 
 # Fields

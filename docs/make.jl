@@ -9,10 +9,10 @@ bib = CitationBibliography(joinpath(@__DIR__, "bibliography.bib"))
 pages = Any[
     "Home" => "index.md",
     "Mathematical Formulation" => "Formulation.md",
-    "API Reference" => "API.md",
     "How-To Guide" => "HowToGuide.md",
     "Temperature Profiles" => "TemperatureProfiles.md",
     "Tested Profiles" => "TestedProfiles.md",
+    "API Reference" => "API.md",
     "References" => "References.md",
 ]
 

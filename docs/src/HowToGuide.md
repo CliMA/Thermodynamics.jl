@@ -63,9 +63,9 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 ## Thermodynamic Calculations
 
-### **1. Equilibrium Calculations (Saturation Adjustment)**
+### **1. Phase Equilibrium Calculations (Saturation Adjustment)**
 
-When you have conservative variables (e.g., `ρ`, `e_int`, `q_tot`) and need to find the temperature `T` and phase partition `(q_liq, q_ice)` that satisfy thermodynamic equilibrium (saturation), use [`saturation_adjustment`](@ref).
+When you have conservative variables (e.g., `ρ`, `e_int`, `q_tot`) and need to find the temperature `T` and phase partition `(q_liq, q_ice)` that satisfy phase equilibrium, use [`saturation_adjustment`](@ref).
 
 ```@example HowToGuide
 # Input variables
@@ -73,7 +73,7 @@ When you have conservative variables (e.g., `ρ`, `e_int`, `q_tot`) and need to 
 e_int = -7.0e4
 q_tot = 0.01
 
-# Solve for equilibrium
+# Solve for phase equilibrium
 # We select a root-finding method from RootSolvers.jl (e.g., SecantMethod, NewtonsMethod)
 # We specify the formulation (TD.ρe() means inputs are Density & Internal Energy)
 sol = TD.saturation_adjustment(
@@ -100,7 +100,7 @@ println("Equilibrium T: $T_equil")
 - `TD.ph()`: Inputs: `p`, `h`, `q_tot`
 - `TD.pθ_li()`: Inputs: `p`, `θ_li`, `q_tot`
 
-### **2. Non-Equilibrium Calculations (Explicit Phases)**
+### **2. Phase Non-Equilibrium Calculations (Explicit Phases)**
 
 If you already know the phase partition (e.g., `q_liq` and `q_ice` are prognostic variables in your model), you can compute properties directly without iteration.
 
@@ -206,7 +206,7 @@ e_kin = 0.5 * (u^2 + v^2 + w^2)
 e_pot = 0.0 # arbitrary
 e_int = e_tot - e_kin - e_pot
 
-# 2. Recover temperature (non-equilibrium if q_liq/ice are prognostic)
+# 2. Recover temperature (phase non-equilibrium if q_liq/ice are prognostic)
 T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
 
 # 3. Compute pressure

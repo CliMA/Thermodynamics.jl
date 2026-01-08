@@ -33,10 +33,10 @@
 
 ## 1. Introduction
 
-Here we introduce one consistent set of thermodynamic approximations for all model components. The key to thermodynamic consistency at reasonable accuracy is to take the specific heat capacities of the constituents of moist air (dry air, water vapor, liquid water, and ice) to be constant, i.e., to assume the gases to be **calorically perfect**. We discuss how to derive all other thermodynamic quantities that are needed on the basis of this one approximation ([Romps2008](@cite),[Ambaum2020](@cite), [Romps2021](@cite), [Yatunin2026](@cite)). This includes:
+Here we introduce one consistent set of thermodynamic approximations for all model components. The key to thermodynamic consistency at reasonable accuracy is to take the specific heat capacities of the constituents of moist air (dry air, water vapor, liquid water, and ice) to be constant, i.e., to assume the gases to be **calorically perfect**. We discuss how to derive all other thermodynamic quantities that are needed on the basis of this one approximation ([Yatunin2026](@cite)[Romps2008](@cite),[Ambaum2020](@cite), [Romps2021](@cite)). This includes:
 
 - Giving accurate and easily adaptable closed-form expressions for internal energies, enthalpies, specific latent heats, and saturation vapor pressures
-- Showing how to construct consistent sets of thermodynamic equations that either (i) assume thermodynamic equilibrium of the phases and require only one prognostic water variable, or (ii) do not assume thermodynamic equilibrium of the phases (but do assume thermal equilibrium) and require prognostic variables for all water phases
+- Showing how to construct consistent sets of thermodynamic equations that either (i) assume phase equilibrium and require only one prognostic water variable, or (ii) do not assume phase equilibrium (but do assume thermal equilibrium) and require prognostic variables for all water phases
 - Showing how to obtain temperatures from energy variables under either phase equilibrium assumptions (by `saturation adjustment`) or phase non-equilibrium assumptions (by a closed-form expression for temperature).
 
 The resulting thermodynamic functions are implemented in [`Thermodynamics.jl`](https://github.com/CliMA/Thermodynamics.jl).
@@ -77,7 +77,7 @@ The working fluid is **moist air**. That is, it is an ideal mixture of dry air, 
     - Thermodynamic consistency is preserved throughout the system
     - All condensed water phases (cloud and precipitation) are assumed to be in thermal equilibrium with the surrounding air (which is an approximation, see [Yatunin2026](@cite) for discussion)
 
-Dry air and water vapor are taken to be ideal gases. The specific volume of all condensed phases (cloud liquid, cloud ice, and potentially precipitation) is neglected relative to that of the gas phases (it is a factor $10^3$ less than that of the gas phases). All phases are assumed to have the same temperature. However, the condensates do not need to be in thermodynamic equilibrium with the other fluid constituents; out-of-equilibrium phases such as supercooled liquid can exist.
+Dry air and water vapor are taken to be ideal gases. The specific volume of all condensed phases (cloud liquid, cloud ice, and potentially precipitation) is neglected relative to that of the gas phases (it is a factor $10^3$ less than that of the gas phases). All phases are assumed to have the same temperature. However, the condensates do not need to be in phase equilibrium with the other fluid constituents; out-of-equilibrium phases such as supercooled liquid can exist.
 
 !!! tip "Implementation Note"
     When precipitation is included in the working fluid, its mass contributes to the total water content $q_t$ and affects the density and specific heat capacities. This is implemented consistently throughout the `Thermodynamics.jl` package.
@@ -464,7 +464,7 @@ To obtain the saturation vapor pressure over a mixture of liquid and ice (e.g., 
 !!! note "Physical Interpretation"
     The weighted latent heat approach ensures thermodynamic consistency when computing saturation vapor pressure over mixed-phase conditions. This is important for modeling mixed-phase clouds where both liquid and ice coexist.
 
-In thermodynamic equilibrium, the liquid fraction $\lambda_p(T)$ is a function of temperature alone. For temperatures above the freezing temperature $T_{\text{freeze}}$, $\lambda_p(T) = 1$. In strict thermodynamic equilibrium, $\lambda_p(T) = 0$ below freezing; that is, supercooled liquid does not exist. To parameterize the presence of supercooled liquid in thermodynamic equilibrium, a continuous function is used to represent a nonzero liquid fraction between the temperature of homogeneous ice nucleation $T_{\text{icenuc}}$ and the freezing temperature $T_{\text{freeze}}$. In `Thermodynamics.jl`, this is parameterized following [Kaul2015](@cite) as a power-law ramp interpolation, with some exponent $n$, such that:
+In phase equilibrium, the liquid fraction $\lambda_p(T)$ is a function of temperature alone. For temperatures above the freezing temperature $T_{\text{freeze}}$, $\lambda_p(T) = 1$. In strict phase equilibrium, $\lambda_p(T) = 0$ below freezing; that is, supercooled liquid does not exist. To parameterize the presence of supercooled liquid in phase equilibrium, a continuous function is used to represent a nonzero liquid fraction between the temperature of homogeneous ice nucleation $T_{\text{icenuc}}$ and the freezing temperature $T_{\text{freeze}}$. In `Thermodynamics.jl`, this is parameterized following [Kaul2015](@cite) as a power-law ramp interpolation, with some exponent $n$, such that:
 
 ```math
 \lambda_p(T) = 
@@ -475,19 +475,19 @@ In thermodynamic equilibrium, the liquid fraction $\lambda_p(T)$ is a function o
 \end{cases}
 ```
 
-This smooth transition represents the statistical presence of supercooled liquid in an equilibrium framework.
+This smooth transition represents the statistical presence of supercooled liquid in a phase equilibrium framework.
 
-Out of thermodynamic equilibrium, when prognostic variables for liquid ($q_{liq}$) and ice ($q_{ice}$) specific humidities are available, the liquid fraction is defined simply as the ratio of liquid to total condensate:
+Out of phase equilibrium, when prognostic variables for liquid ($q_{liq}$) and ice ($q_{ice}$) specific humidities are available, the liquid fraction is defined simply as the ratio of liquid to total condensate:
 
 ```math
 \lambda = \frac{q_{liq}}{q_{liq} + q_{ice}}
 ```
 
-This definition makes no assumption about the temperature dependence of the phase partitioning and allows for non-equilibrium states (e.g., supercooled liquid at temperatures where the equilibrium function would force freezing).
+This definition makes no assumption about the temperature dependence of the phase partitioning and allows for phase non-equilibrium states (e.g., supercooled liquid at temperatures where the equilibrium function would force freezing).
 
 !!! tip "Implementation Note"
     The [`liquid_fraction`](@ref) function in `Thermodynamics.jl` dispatches on the arguments provided.
-    - [`liquid_fraction(param_set, T)`](@ref) computes the equilibrium temperature-dependent fraction.
+    - [`liquid_fraction(param_set, T)`](@ref) computes the phase equilibrium temperature-dependent fraction.
     - [`liquid_fraction(param_set, T, q_liq, q_ice)`](@ref) computes the fraction from specific humidities. If no condensate is present (`q_liq + q_ice ≈ 0`), it falls back to a **slightly smoothed Heaviside function** (a linear ramp over $\pm 0.1$ K around freezing) to ensure differentiability of derived quantities such as saturation vapor pressure.
 
 ## 10. Saturation Specific Humidity
@@ -503,7 +503,7 @@ From the saturation vapor pressure $p_v^*$, the saturation specific humidity can
 
 ## 11. Saturation Adjustment
 
-The thermodynamic state of a moist air parcel in local thermodynamic equilibrium is uniquely defined by its density $\rho$, total specific humidity $q_t$, and internal energy $I$ (or temperature $T$ or other thermodynamic variables). Thus, a moist dynamical core that assumes equilibrium thermodynamics can be constructed from a dry dynamical core with internal (or total) energy as a prognostic variable by including only a tracer for the total specific humidity $q_t$, and calculating the temperature and condensate specific humidities from $\rho$, $q_t$, and $I$.
+The thermodynamic state of a moist air parcel in local phase equilibrium is uniquely defined by its density $\rho$, total specific humidity $q_t$, and internal energy $I$ (or temperature $T$ or other thermodynamic variables). Thus, a moist dynamical core that assumes phase equilibrium thermodynamics can be constructed from a dry dynamical core with internal (or total) energy as a prognostic variable by including only a tracer for the total specific humidity $q_t$, and calculating the temperature and condensate specific humidities from $\rho$, $q_t$, and $I$.
 
 Obtaining the temperature and condensate specific humidities from the state variables $\rho$, $q_t$, and $I$ is the problem of finding the root $T$ of
 
@@ -514,7 +514,7 @@ I^*(T; \rho, q_t) - I = 0,
 \end{equation}
 ```
 
-where ``I^*(T; \rho, q_t)`` is the internal energy at equilibrium. In an unsaturated equilibrium, there is no condensate, so ``I^*`` is the internal energy with ``q_l=q_i=0``. At saturation, the internal energy ``I^*`` depends on the vapor specific humidity, ``q_v = q_v^*(T, \rho)``, and on the saturation excess (total condensate)
+where ``I^*(T; \rho, q_t)`` is the internal energy at phase equilibrium. In an unsaturated equilibrium, there is no condensate, so ``I^*`` is the internal energy with ``q_l=q_i=0``. At saturation, the internal energy ``I^*`` depends on the vapor specific humidity, ``q_v = q_v^*(T, \rho)``, and on the saturation excess (total condensate)
 
 ```math
 \begin{equation}
@@ -541,7 +541,7 @@ A zeroth-order approximation of the temperature $T$ satisfying the saturation ad
 \end{equation}
 ```
 
-Here, the isochoric specific heat capacity in equilibrium, $c_{vm}^* = c_{vm}(q^*)$, is the specific heat capacity under equilibrium partitioning $q^*$ of the phases, which here, for unsaturated conditions, means $q^*=(q_t; q_l=0, q_i=0)$. If the total specific humidity $q_t$ is less than the saturation specific humidity at $T_1$ ($q_t \le q_v^*(T_1, \rho)$), the air is indeed unsaturated, and $T=T_1$ is the exact temperature consistent given $I$, $\rho$, and $q_t$.
+Here, the isochoric specific heat capacity in phase equilibrium, $c_{vm}^* = c_{vm}(q^*)$, is the specific heat capacity under phase equilibrium partitioning $q^*$ of the phases, which here, for unsaturated conditions, means $q^*=(q_t; q_l=0, q_i=0)$. If the total specific humidity $q_t$ is less than the saturation specific humidity at $T_1$ ($q_t \le q_v^*(T_1, \rho)$), the air is indeed unsaturated, and $T=T_1$ is the exact temperature consistent given $I$, $\rho$, and $q_t$.
 
 If the air is saturated ($q_t > q_v^*(T_1, \rho)$), successively improved temperature estimates $T_{n+1}$ can be obtained from the temperature $T_n$ ($n=1,\dots$) by Newton's method. Linearizing the saturation internal energy $I^*(T; \rho, q_t)$ around the temperature $T_n$ gives
 
@@ -580,7 +580,7 @@ which follows from differentiation of the ideal gas law for vapor and the Clausi
 
 The resulting successive Newton approximations $T_n$ generally converge quadratically. Because condensate specific humidities are usually small, $T_1$ provides a close initial estimate, and few iterations are needed. Even the first-order approximation $T\approx T_2$ often suffices. With the smoothed liquid fraction $\lambda_p$ ramp (see [`liquid_fraction`](@ref)), the derivative of $I^*$ with respect to temperature remains continuous across the phase transition, allowing the saturation adjustment to converge reliably without requiring special treatment or limiters.
 
-Using saturation adjustment makes it possible to construct a moist dynamical core that has the total specific humidity $q_t$ as the only prognostic moisture variable. The price for this simplicity is the necessity to solve a nonlinear problem iteratively (or approximately) at each time step, and being confined to an equilibrium thermodynamics framework which cannot adequately account for non-equilibrium processes. Using explicit tracers for the condensates $q_l$ and $q_i$ in addition to $q_t$ avoids iterations at each time step and allows the inclusion of explicit non-equilibrium processes, such as those leading to the formation of supercooled liquid in mixed-phase clouds.
+Using saturation adjustment makes it possible to construct a moist dynamical core that has the total specific humidity $q_t$ as the only prognostic moisture variable. The price for this simplicity is the necessity to solve a nonlinear problem iteratively (or approximately) at each time step, and being confined to a phase equilibrium framework which cannot adequately account for phase non-equilibrium processes. Using explicit tracers for the condensates $q_l$ and $q_i$ in addition to $q_t$ avoids iterations at each time step and allows the inclusion of explicit phase non-equilibrium processes, such as those leading to the formation of supercooled liquid in mixed-phase clouds.
 
 ## 12. Auxiliary Thermodynamic Functions
 
@@ -738,14 +738,14 @@ The most important equations for implementation are:
 
 ### 13.3 Implementation Strategy
 
-#### **Equilibrium vs. Non-Equilibrium Approaches**
+#### **Phase Equilibrium vs. Phase Non-Equilibrium Approaches**
 
-1. **Equilibrium Approach** (Saturation Adjustment):
+1. **Phase Equilibrium Approach** (Saturation Adjustment):
     - Prognostic variables: $\rho$, $q_t$, $I$
     - Diagnostic variables: $T$, $q_l$, $q_i$
     - Requires iterative solution for temperature
 
-2. **Non-Equilibrium Approach**:
+2. **Phase Non-Equilibrium Approach**:
     - Prognostic variables: $\rho$, $q_t$, $q_l$, $q_i$, $I$
     - Diagnostic variable: $T$
     - Closed-form temperature recovery

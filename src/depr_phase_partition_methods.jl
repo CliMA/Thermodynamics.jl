@@ -83,7 +83,7 @@ end
     PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
     PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)
 
-Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object, given
+Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -105,7 +105,7 @@ end
 """
     PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
 
-Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object, given
+Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -141,7 +141,7 @@ end
     PhasePartition_equil_given_p(param_set, T, p, q_tot, phase_type)
 
 Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object using the
-[`liquid_fraction`](@ref) function, given
+[`liquid_fraction`](@ref) function.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -176,7 +176,7 @@ end
 """
     liquid_specific_humidity(q::PhasePartition)
 
-The liquid specific humidity, given
+The liquid specific humidity.
 
  - `q` a `PhasePartition`
 """
@@ -185,7 +185,7 @@ The liquid specific humidity, given
 """
     ice_specific_humidity(q::PhasePartition)
 
-The ice specific humidity, given
+The ice specific humidity.
 
  - `q` a `PhasePartition`
 """
@@ -194,7 +194,7 @@ The ice specific humidity, given
 """
     vapor_specific_humidity(q::PhasePartition)
 
-The vapor specific humidity, given a 
+The vapor specific humidity. 
 
 - `q` a `PhasePartition` 
 """
@@ -213,7 +213,7 @@ partition `q`.
 """
     mixing_ratios(q::PhasePartition)
 
-The mixing ratios, given a specific humidity phase partition, `q`, returned in a 
+The mixing ratios returned in a 
 `PhasePartition` with the fields
  - `r.tot` total mixing ratio
  - `r.liq` liquid mixing ratio
@@ -230,7 +230,7 @@ end
 """
     vol_vapor_mixing_ratio(param_set, q::PhasePartition)
 
-The volume mixing ratio of water vapor, given
+The volume mixing ratio of water vapor.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref)
@@ -242,7 +242,7 @@ end
 """
     partial_pressure_dry(param_set, p, q::PhasePartition)
 
-The partial pressure of dry air, given
+The partial pressure of dry air.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
@@ -256,7 +256,7 @@ end
 """
     partial_pressure_vapor(param_set, p, q::PhasePartition)
 
-The partial pressure of water vapor, given
+The partial pressure of water vapor.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
@@ -272,7 +272,7 @@ end
 
 The vapor pressure deficit (saturation vapor pressure minus actual 
 vapor pressure, truncated to be non-negative) over liquid water for temperatures 
-above freezing and over ice for temperatures below freezing, given
+above freezing and over ice for temperatures below freezing.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
@@ -288,7 +288,7 @@ end
 """
     relative_humidity(param_set, T, p, phase_type, q::PhasePartition)
 
-The relative humidity (clipped between 0 and 1), given
+The relative humidity (clipped between 0 and 1).
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -314,7 +314,7 @@ end
 """
     gas_constant_air(param_set[, q::PhasePartition])
 
-The specific gas constant of moist air, given
+The specific gas constant of moist air.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref).
@@ -328,7 +328,7 @@ end
 """
     cp_m(param_set[, q::PhasePartition])
 
-The isobaric specific heat capacity of moist air given
+The isobaric specific heat capacity of moist air.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref).
@@ -342,7 +342,7 @@ end
 """
     cv_m(param_set[, q::PhasePartition])
 
-The isochoric specific heat capacity of moist air, given
+The isochoric specific heat capacity of moist air.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref). Without humidity argument, the results are for dry air.
@@ -354,7 +354,7 @@ end
 """
     soundspeed_air(param_set, T[, q::PhasePartition])
 
-The speed of sound in unstratified air, given
+The speed of sound in unstratified air.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -376,7 +376,7 @@ end
 """
     air_pressure(param_set, T, ρ[, q::PhasePartition])
 
-The air pressure from the equation of state (ideal gas law), given
+The air pressure from the equation of state (ideal gas law).
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
@@ -396,7 +396,7 @@ end
 """
     air_density(param_set, T, p[, q::PhasePartition])
 
-The (moist-)air density from the equation of state (ideal gas law), given
+The (moist-)air density from the equation of state (ideal gas law).
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
@@ -416,7 +416,7 @@ end
 """
     exner(param_set, T, ρ[, q::PhasePartition)])
 
-The Exner function, given
+The Exner function.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -435,7 +435,7 @@ end
 """
     exner_given_pressure(param_set, p[, q::PhasePartition, cpm])
 
-The Exner function, given
+The Exner function.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
@@ -457,7 +457,7 @@ end
 """
     internal_energy(param_set, T[, q::PhasePartition])
 
-The internal energy per unit mass, given 
+The internal energy per unit mass. 
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -478,7 +478,7 @@ end
 """
     total_energy(param_set, e_kin, e_pot, T[, q::PhasePartition])
 
-The total energy per unit mass, given
+The total energy per unit mass.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `e_kin` kinetic energy per unit mass
@@ -504,7 +504,7 @@ end
 """
     enthalpy(param_set, T, q::PhasePartition)
 
-The specific enthalpy, given
+The specific enthalpy.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -519,7 +519,7 @@ end
 """
     moist_static_energy(param_set, T, e_pot, q::PhasePartition)
 
-The moist static energy, given
+The moist static energy.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -539,7 +539,7 @@ end
 """
     virtual_dry_static_energy(param_set, T, e_pot, q::PhasePartition)
 
-The virtual dry static energy, given
+The virtual dry static energy.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -560,7 +560,7 @@ end
     enthalpy_sat(param_set, T, ρ, q_tot, phase_type)
 
 The specific enthalpy in thermodynamic equilibrium at saturation with a fixed temperature 
-and total specific humidity, given
+and total specific humidity.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -585,7 +585,7 @@ end
 """
     total_enthalpy(param_set, e_tot, T[, q::PhasePartition])
 
-The total specific enthalpy, defined as `e_tot + R_m * T`, given
+The total specific enthalpy, defined as `e_tot + R_m * T`.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `e_tot` total specific energy
@@ -614,7 +614,7 @@ end
 """
     entropy(param_set, p, T, q::PhasePartition)
 
-The specific entropy, given
+The specific entropy.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
@@ -630,7 +630,7 @@ end
 """
     entropy_dry(param_set, p, T, q::PhasePartition)
 
-The dry air specific entropy, given
+The dry air specific entropy.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
@@ -644,7 +644,7 @@ end
 """
     entropy_vapor(param_set, p, T, q::PhasePartition)
 
-The specific entropy of water vapor, given
+The specific entropy of water vapor.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
@@ -663,7 +663,7 @@ end
 """
     saturation_vapor_pressure(param_set, T, q::PhasePartition)
 
-The saturation vapor pressure, given
+The saturation vapor pressure.
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `q` [`PhasePartition`](@ref).
@@ -680,7 +680,7 @@ end
 """
     q_vap_saturation(param_set, T, ρ, q::PhasePartition)
 
-The saturation specific humidity, given
+The saturation specific humidity.
 
 - `param_set`: an thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
 - `T`: temperature
@@ -700,7 +700,7 @@ end
     supersaturation(param_set, q, ρ, T, Liquid())
     supersaturation(param_set, q, ρ, T, Ice())
 
-The supersaturation (pv/pv_sat -1) over water or ice, given
+The supersaturation (pv/pv_sat -1) over water or ice.
  - `param_set` - abstract set with earth parameters
  - `q` - phase partition
  - `ρ` - air density,
@@ -748,7 +748,7 @@ end
 """
     saturation_excess(param_set, T, ρ, phase_type, q::PhasePartition)
 
-The saturation excess in equilibrium, given
+The saturation excess in equilibrium.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -804,7 +804,7 @@ end
 """
     air_temperature(param_set, e_int[, q::PhasePartition])
 
-The air temperature, given
+The air temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `e_int` specific internal energy of moist air
@@ -822,7 +822,7 @@ end
 """
     air_temperature_given_hq(param_set, h[, q::PhasePartition]s)
 
-The air temperature, given
+The air temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `h` specific enthalpy of moist air
@@ -840,7 +840,7 @@ end
 """
     air_temperature_given_pρq(param_set, p, ρ[, q::PhasePartition])
 
-The air temperature, where
+The air temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
@@ -864,7 +864,7 @@ end
 """
     potential_temperature(param_set, T, ρ[, q::PhasePartition])
 
-The dry potential temperature, given
+The dry potential temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -883,7 +883,7 @@ end
 """
     potential_temperature_given_pressure(param_set, T, p[, q::PhasePartition])
 
-The dry potential temperature, given
+The dry potential temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -909,7 +909,7 @@ end
     humidity_weighted_latent_heat(param_set[, q::PhasePartition])
 
 Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference temperature 
-`T_0`, given
+`T_0`.
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q` [`PhasePartition`](@ref). 
 
@@ -927,7 +927,7 @@ end
 """
     liquid_ice_pottemp_given_pressure(param_set, T, p[, q::PhasePartition])
 
-The liquid-ice potential temperature, given
+The liquid-ice potential temperature.
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `p` pressure
@@ -957,7 +957,7 @@ end
 """
     liquid_ice_pottemp(param_set, T, ρ[, q::PhasePartition])
 
-The liquid-ice potential temperature, given
+The liquid-ice potential temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -981,7 +981,7 @@ end
         [q::PhasePartition]
     )
 
-The air temperature obtained by inverting the liquid-ice potential temperature, given
+The air temperature obtained by inverting the liquid-ice potential temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
@@ -1011,7 +1011,7 @@ end
 """
     air_temperature_given_ρθq(param_set, ρ, θ_li[, q::PhasePartition])
 
-The air temperature obtained by inverting the liquid-ice potential temperature, given
+The air temperature obtained by inverting the liquid-ice potential temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
@@ -1043,7 +1043,7 @@ end
 """
     liquid_ice_pottemp_sat(param_set, T, ρ, phase_type[, q::PhasePartition, cpm])
 
-The saturated liquid ice potential temperature, given
+The saturated liquid ice potential temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -1071,7 +1071,7 @@ end
 """
     liquid_ice_pottemp_sat(param_set, T, ρ, phase_type, q_tot)
 
-The saturated liquid ice potential temperature, given
+The saturated liquid ice potential temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -1093,7 +1093,7 @@ end
 """
     virtual_pottemp(param_set, T, ρ[, q::PhasePartition])
 
-The virtual potential temperature, given
+The virtual potential temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -1114,7 +1114,7 @@ end
 """
     virtual_temperature(param_set, T, q::PhasePartition)
 
-The virtual temperature, given
+The virtual temperature.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -1132,7 +1132,7 @@ end
 """
     air_temperature_given_ρθq_nonlinear(param_set, ρ, θ_li, maxiter, tol, q::PhasePartition)
 
-Computes temperature `T`, given
+Computes temperature `T`.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
