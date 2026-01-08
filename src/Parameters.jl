@@ -16,7 +16,7 @@ const ATP = AbstractThermodynamicsParameters
 Parameters for Thermodynamics.jl.
 
 # Example
-```
+```julia
 import ClimaParams as CP
 import Thermodynamics.Parameters as TP
 
@@ -24,9 +24,9 @@ FT = Float64;
 param_set = TP.ThermodynamicsParameters(FT)
 
 # Alternatively:
+
 toml_dict = CP.create_toml_dict(FT)
 param_set = TP.ThermodynamicsParameters(toml_dict)
-
 ```
 """
 Base.@kwdef struct ThermodynamicsParameters{FT} <:

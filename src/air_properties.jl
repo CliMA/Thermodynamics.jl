@@ -17,7 +17,7 @@ export soundspeed_air
 """
     gas_constant_air(param_set, q_tot=0, q_liq=0, q_ice=0)
 
-The specific gas constant of moist air `R_m`, given
+The specific gas constant of moist air `R_m`.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -45,7 +45,7 @@ end
 """
     cp_m(param_set, q_tot=0, q_liq=0, q_ice=0)
 
-The isobaric specific heat capacity of moist air `cp_m`, given
+The isobaric specific heat capacity of moist air `cp_m`.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -74,7 +74,7 @@ end
 """
     cv_m(param_set, q_tot=0, q_liq=0, q_ice=0)
 
-The isochoric specific heat capacity of moist air `cv_m`, given
+The isochoric specific heat capacity of moist air `cv_m`.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -102,7 +102,7 @@ end
 """
     latent_heat_vapor(param_set, T)
 
-The specific latent heat of vaporization `L_v`, given
+The specific latent heat of vaporization `L_v`.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -124,7 +124,7 @@ end
 """
     latent_heat_sublim(param_set, T)
 
-The specific latent heat of sublimation `L_s`, given
+The specific latent heat of sublimation `L_s`.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -146,7 +146,7 @@ end
 """
     latent_heat_fusion(param_set, T)
 
-The specific latent heat of fusion `L_f`, given
+The specific latent heat of fusion `L_f`.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -169,7 +169,7 @@ end
     latent_heat_generic(param_set, T, LH_0, Δcp)
 
 Internal function. The specific latent heat of a generic phase transition between
-two phases, computed using Kirchhoff's law, given
+two phases, computed using Kirchhoff's law.
 
  - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
@@ -190,7 +190,7 @@ latent_heat_generic(param_set, T, LH_0, Δcp) =
 """
     latent_heat_mixed(param_set, T, λ)
 
-The specific latent heat of a mixed phase, weighted by the liquid fraction `λ`, given
+The specific latent heat of a mixed phase, weighted by the liquid fraction `λ`.
 
  - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
@@ -209,7 +209,7 @@ end
     humidity_weighted_latent_heat(param_set, q_liq=0, q_ice=0)
 
 Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference
-temperature `T_0`, given
+temperature `T_0`.
  - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `q_liq` liquid specific humidity
  - `q_ice` ice specific humidity
@@ -229,7 +229,7 @@ end
 """
     soundspeed_air(param_set, T, q_tot=0, q_liq=0, q_ice=0)
 
-The speed of sound in unstratified air, given
+The speed of sound in unstratified air.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details

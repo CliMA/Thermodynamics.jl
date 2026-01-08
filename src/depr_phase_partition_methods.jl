@@ -76,7 +76,7 @@ Bool indicating if condensate exists in the phase partition
 ) where {phase_type <: ThermodynamicState}
     return phase_type <: PhaseNonEquil ?
            liquid_fraction(param_set, T, q.liq, q.ice) :
-           liquid_fraction(param_set, T)
+           liquid_fraction_ramp(param_set, T)
 end
 
 """
@@ -116,7 +116,7 @@ Partition the phases in equilibrium, returning a [`PhasePartition`](@ref) object
 If the specific humidity `q_tot` exceeds the saturation specific humidity `q_vap_sat`
 (computed using `ρ`, `T` and the saturation vapor pressure), the condensate
 is partitioned into liquid and ice. The fraction of liquid is given by the
-temperature dependent `liquid_fraction(param_set, T)`.
+temperature dependent `liquid_fraction_ramp(param_set, T)`.
 """
 @inline function PhasePartition_equil(
     param_set::APS,
@@ -128,7 +128,7 @@ temperature dependent `liquid_fraction(param_set, T)`.
     # q_vap_sat and λ are needed in PhasePartition_equil, so we pass
     # the pre-computed values into the function to minimize the
     # number of times they are computed.
-    λ = liquid_fraction(param_set, T)
+    λ = liquid_fraction_ramp(param_set, T)
     FT = eltype(param_set)
     p_vap_sat = saturation_vapor_pressure(param_set, T)
     return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)

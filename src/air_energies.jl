@@ -132,7 +132,7 @@ end
 """
     enthalpy(e_int, R_m, T)
 
-The specific enthalpy, given
+The specific enthalpy.
 
 # Arguments
  - `e_int`: internal specific energy [J/kg]
@@ -217,7 +217,7 @@ end
 """
     enthalpy_liquid(param_set, T)
 
-The specific enthalpy of liquid, given
+The specific enthalpy of liquid.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -235,7 +235,7 @@ specific volume of condensed water is neglected (i.e., `p v_l ≈ 0`).
 """
     enthalpy_ice(param_set, T)
 
-The specific enthalpy of ice, given
+The specific enthalpy of ice.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details

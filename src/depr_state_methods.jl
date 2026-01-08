@@ -637,7 +637,7 @@ Create a PhasePartition for equilibrium thermodynamic state.
     ρ = air_density(param_set, ts)
     q_tot = total_specific_humidity(param_set, ts)
     phase_type = typeof(ts)
-    λ = liquid_fraction(param_set, T) # fraction of condensate that is liquid
+    λ = liquid_fraction_ramp(param_set, T) # fraction of condensate that is liquid
     p_vap_sat = saturation_vapor_pressure(param_set, T)
 
     return PhasePartition_equil(param_set, T, ρ, q_tot, p_vap_sat, λ)

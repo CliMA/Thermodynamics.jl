@@ -7,7 +7,7 @@ export exner_given_pressure
 """
     air_pressure(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The air pressure from the equation of state (ideal gas law), given
+The air pressure from the equation of state (ideal gas law).
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -37,7 +37,7 @@ end
 """
     air_density(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
-The (moist-)air density from the equation of state (ideal gas law), given
+The (moist-)air density from the equation of state (ideal gas law).
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -67,7 +67,7 @@ end
 """
     exner(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The Exner function `Π = (p/p₀)^(R_m/cp_m)`, given
+The Exner function `Π = (p/p₀)^(R_m/cp_m)`.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
@@ -91,8 +91,7 @@ end
 """
     exner_given_pressure(param_set, p, q_tot=0, q_liq=0, q_ice=0)
 
-The Exner function `Π = (p/p₀)^(R_m/cp_m)`, where `p₀` is the reference pressure,
-given
+The Exner function `Π = (p/p₀)^(R_m/cp_m)`, where `p₀` is the reference pressure.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details

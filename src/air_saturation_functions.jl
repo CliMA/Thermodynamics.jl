@@ -1,4 +1,5 @@
 export liquid_fraction
+export liquid_fraction_ramp
 export has_condensate
 export saturation_vapor_pressure
 export q_vap_saturation
@@ -9,7 +10,6 @@ export condensate_partition
 export vapor_pressure_deficit
 
 """
-    liquid_fraction(param_set, T)
     liquid_fraction(param_set, T, q_liq, q_ice)
 
 The fraction of condensate that is liquid.
@@ -17,29 +17,16 @@ The fraction of condensate that is liquid.
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T`: temperature [K]
- - (optional) `q_liq`: liquid specific humidity [kg/kg]
- - (optional) `q_ice`: ice specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
 # Returns
  - `λ`: liquid fraction [dimensionless], 0 ≤ λ ≤ 1
 
-If `q_liq` and `q_ice` are provided, the liquid fraction is computed from them.
+The liquid fraction is computed from `q_liq` and `q_ice`.
 If `q_liq + q_ice` exceeds a small threshold (see [`has_condensate`](@ref)), `q_liq / (q_liq + q_ice)`
 is returned. If there is effectively no condensate, a smooth temperature-dependent partitioning is used
 (linear ramp from 0 to 1 over ±0.1 K around freezing).
-
-If `q_liq` and `q_ice` are not provided, the liquid fraction is computed from
-temperature using a power law interpolation between `T_icenuc` and `T_freeze`.
-
-Edge cases:
-- For `T > T_freeze`, this returns `1`; for `T ≤ T_icenuc`, it returns `0`.
-- The temperature-only form uses a (generally broader) supercooled-liquid transition between `T_icenuc` and `T_freeze`,
-  whereas the `(T, q_liq, q_ice)` form uses the narrow ±0.1 K transition *only* when `q_liq ≈ q_ice ≈ 0`.
-
-# Reference
-Kaul et al. (2015), "Sensitivities in large-eddy simulations of mixed-phase Arctic stratocumulus
-clouds using a simple microphysics approach," *Monthly Weather Review*, **143**, 4393-4421,
-doi:[10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
 """
 @inline function liquid_fraction(param_set::APS, T, q_liq, q_ice)
     FT = eltype(param_set)
@@ -54,7 +41,28 @@ doi:[10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
     return ifelse(has_condensate(q_c), q_liq / q_c, λ_T)
 end
 
-@inline function liquid_fraction(param_set::APS, T)
+"""
+    liquid_fraction_ramp(param_set, T)
+
+The liquid fraction computed from temperature using a power law interpolation
+between `T_icenuc` and `T_freeze`.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+
+# Returns
+ - `λ`: liquid fraction [dimensionless], 0 ≤ λ ≤ 1
+
+Edge cases:
+- For `T > T_freeze`, this returns `1`; for `T ≤ T_icenuc`, it returns `0`.
+
+# Reference
+Kaul et al. (2015), "Sensitivities in large-eddy simulations of mixed-phase Arctic stratocumulus
+clouds using a simple microphysics approach," *Monthly Weather Review*, **143**, 4393-4421,
+doi:[10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
+"""
+@inline function liquid_fraction_ramp(param_set::APS, T)
     FT = eltype(param_set)
 
     # Interpolation between homogeneous nucleation and freezing temperatures
@@ -175,7 +183,7 @@ If `q_liq` and `q_ice` are 0, the saturation vapor pressure is that over liquid
 above freezing and over ice below freezing.
 
 Otherwise, the liquid fraction below freezing is computed from a temperature dependent
-parameterization `liquid_fraction(param_set, T)`.
+parameterization `liquid_fraction_ramp(param_set, T)`.
 
 Edge case: the `saturation_vapor_pressure(param_set, T, q_liq, q_ice)` form includes a small smooth transition
 around freezing when `q_liq == q_ice == 0` (via `liquid_fraction(param_set, T, q_liq, q_ice)`).
@@ -186,7 +194,7 @@ around freezing when `q_liq == q_ice == 0` (via `liquid_fraction(param_set, T, q
 end
 
 @inline function saturation_vapor_pressure(param_set::APS, T)
-    λ = liquid_fraction(param_set, T)
+    λ = liquid_fraction_ramp(param_set, T)
     return saturation_vapor_pressure_mixture(param_set, T, λ)
 end
 
@@ -194,7 +202,7 @@ end
     saturation_vapor_pressure_mixture(param_set, T, λ)
 
 Internal function. Compute the saturation vapor pressure over a mixture of liquid
-and/or ice, given the temperature `T` and liquid fraction `λ`.
+and/or ice.
 
 The computation uses a weighted mean of the temperature-dependent latent heats of
 vaporization and sublimation, weighted by the liquid fraction, following Pressel 
@@ -243,7 +251,7 @@ weights given by the liquid fraction (see [`liquid_fraction`](@ref)). If `q_liq`
 over ice below freezing.
  
 Otherwise, the fraction of liquid is given by the temperature dependent
-`liquid_fraction(param_set, T)`.
+`liquid_fraction_ramp(param_set, T)`.
 
 # Reference
 Pressel et al. (2015), "Numerics and subgrid-scale modeling in large eddy simulations of
@@ -303,7 +311,7 @@ If `q_liq` and `q_ice` are 0, the saturation vapor pressure is that over liquid
 above freezing and over ice below freezing.
 
 Otherwise, the liquid fraction is computed from a temperature dependent parameterization
-`liquid_fraction(param_set, T)`.
+`liquid_fraction_ramp(param_set, T)`.
 
 The saturation specific humidity is computed as:
 ``q_v^* = (R_d / R_v) * (1 - q_{tot}) * p_v^* / (p - p_v^*)``
@@ -486,7 +494,7 @@ liquid fraction (see [`liquid_fraction`](@ref)) and the saturation excess (see
 [`saturation_excess`](@ref)).
 """
 @inline function condensate_partition(param_set::APS, T, ρ, q_tot)
-    λ = liquid_fraction(param_set, T)
+    λ = liquid_fraction_ramp(param_set, T)
     q_c = saturation_excess(param_set, T, ρ, q_tot)
     q_liq = λ * q_c
     q_ice = (1 - λ) * q_c

@@ -624,7 +624,7 @@ The internal energy per unit mass in thermodynamic equilibrium at saturation.
  - `e_int`: specific internal energy [J/kg]
 
 The phase partition into liquid and ice is computed internally from `q_tot` using the 
-temperature-dependent liquid fraction (see [`liquid_fraction`](@ref)) and saturation 
+temperature-dependent liquid fraction (see [`liquid_fraction_ramp`](@ref)) and saturation 
 excess (see [`saturation_excess`](@ref)).
 """
 @inline function internal_energy_sat(param_set::APS, T, ρ, q_tot)
@@ -647,7 +647,7 @@ The specific enthalpy in thermodynamic equilibrium at saturation.
  - `h`: specific enthalpy [J/kg]
 
 The phase partition into liquid and ice is computed internally from `q_tot` using the 
-temperature-dependent liquid fraction (see [`liquid_fraction`](@ref)) and saturation 
+temperature-dependent liquid fraction (see [`liquid_fraction_ramp`](@ref)) and saturation 
 excess (see [`saturation_excess`](@ref)).
 """
 @inline function enthalpy_sat(param_set::APS, T, ρ, q_tot)
@@ -828,7 +828,7 @@ Derivative of internal energy with respect to temperature at saturation.
     e_int,
     ρ,
     q_tot,
-    λ = liquid_fraction(param_set, T),
+    λ = liquid_fraction_ramp(param_set, T),
     p_vap_sat = saturation_vapor_pressure(param_set, T),
 )
     FT = eltype(param_set)
@@ -886,7 +886,7 @@ calculating necessary intermediate variables.
 """
 @inline function ∂e_int_∂T_sat(param_set::APS, T, ρ, q_tot)
     p_vap_sat = saturation_vapor_pressure(param_set, T)
-    λ = liquid_fraction(param_set, T)
+    λ = liquid_fraction_ramp(param_set, T)
     e_int_sat = internal_energy_sat(param_set, T, ρ, q_tot)
     return ∂e_int_∂T(param_set, T, e_int_sat, ρ, q_tot, λ, p_vap_sat)
 end
