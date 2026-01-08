@@ -55,6 +55,7 @@ relative_humidity
 condensate_partition
 has_condensate
 liquid_fraction
+liquid_fraction_ramp
 specific_humidity_to_mixing_ratio
 ```
 
