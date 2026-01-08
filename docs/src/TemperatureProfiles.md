@@ -47,7 +47,9 @@ p1 = Plots.plot(T, z./10^3, xlabel="Temperature [K]");
 p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
 Plots.plot(p1, p2, layout=(1,2), title="Isothermal", ylabel="z [km]");
 Plots.savefig("isothermal.svg");
+nothing # hide
 ```
+
 ![](isothermal.svg)
 
 ### Decaying Temperature Profile
@@ -71,13 +73,15 @@ p = last.(args);
 p1 = Plots.plot(T, z./10^3, xlabel="Temperature [K]");
 p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
 Plots.plot(p1, p2, layout=(1,2), ylabel="z [km]", title="Decaying");
-Plots.savefig("decaying.svg")
+Plots.savefig("decaying.svg");
+nothing # hide
 ```
+
 ![](decaying.svg)
 
 ### Dry Adiabatic Profile
 
-A profile following the dry adiabatic lapse rate, where potential temperature is constant with height.
+A profile following the dry adiabatic lapse rate (potential temperature constant with height) down to some minimum temperature.
 
 ```@example
 import Thermodynamics as TD
@@ -92,14 +96,16 @@ dry_adiabatic = TD.TemperatureProfiles.DryAdiabaticProfile{FT}(param_set);
 args = dry_adiabatic.(Ref(param_set), z)
 T = first.(args)
 p = last.(args)
-θ_dry = TD.dry_pottemp_given_pressure.(Ref(param_set), T, p)
+θ_dry = TD.potential_temperature_given_pressure.(Ref(param_set), T, p)
 
 p1 = Plots.plot(T, z./10^3, xlabel="Temperature [K]");
 p2 = Plots.plot(p./10^3, z./10^3, xlabel="Pressure [kPa]");
 p3 = Plots.plot(θ_dry, z./10^3, xlabel="Potential temperature [K]");
-Plots.plot(p1, p2, p3, layout=(1,3), ylabel="z [km]", title="Dry adiabatic")
-Plots.savefig("dry_adiabatic.svg")
+Plots.plot(p1, p2, p3, layout=(1,3), ylabel="z [km]", title="Dry adiabatic");
+Plots.savefig("dry_adiabatic.svg");
+nothing # hide
 ```
+
 ![](dry_adiabatic.svg)
 
 ## Applications
@@ -107,26 +113,9 @@ Plots.savefig("dry_adiabatic.svg")
 These temperature profiles are useful for:
 
 - **Testing thermodynamic calculations** under controlled conditions
+- **Serving as reference states** in atmosphere models
 - **Benchmarking performance** across different atmospheric conditions
 - **Educational purposes** to understand atmospheric thermodynamics
-
-## Integration with Thermodynamic States
-
-Temperature profiles can be combined with thermodynamic state calculations:
-
-```julia
-# Example: Create thermodynamic states along a temperature profile
-z = range(0, 25e3, length=100)  # 0 to 25 km
-profile = TD.TemperatureProfiles.DryAdiabaticProfile{Float64}(param_set)
-
-# Get temperature and pressure at each altitude
-T_pairs = profile.(Ref(param_set), z)
-T = first.(T_pairs)
-p = last.(T_pairs)
-
-# Create thermodynamic states
-ts_states = [TD.PhaseDry_pT(param_set, p[i], T[i]) for i in 1:length(z)]
-```
 
 ## Extending the Module
 
@@ -152,4 +141,3 @@ end
     All profiles implement the `TemperatureProfile` interface and return
     temperature-pressure pairs as a function of altitude. The profiles are
     designed to be composable with other thermodynamic calculations.
-

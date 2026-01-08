@@ -52,7 +52,7 @@ This file contains tests for behavior when approaching dry air conditions.
             (cv_m, ()),
             (air_temperature, ()),
             (internal_energy, ()),
-            (internal_energy_sat, ()),
+            (TD.internal_energy_sat, ()),
             (internal_energy_dry, ()),
             (internal_energy_vapor, ()),
             (internal_energy_liquid, ()),
@@ -62,14 +62,12 @@ This file contains tests for behavior when approaching dry air conditions.
             (latent_heat_sublim, ()),
             (latent_heat_fusion, ()),
             (q_vap_saturation, ()),
-            (q_vap_saturation_liquid, ()),
-            (q_vap_saturation_ice, ()),
             (saturation_excess, ()),
             (liquid_fraction, ()),
             (liquid_ice_pottemp, ()),
-            (dry_pottemp, ()),
+            (potential_temperature, ()),
             (virtual_pottemp, ()),
-            (specific_entropy, ()),
+            (entropy, ()),
             (liquid_ice_pottemp_sat, ()),
             (exner, ()),
         )
@@ -95,14 +93,6 @@ This file contains tests for behavior when approaching dry air conditions.
         @test all(
             saturation_vapor_pressure.(param_set, ts_eq, Liquid()) .≈
             saturation_vapor_pressure.(param_set, ts_dry, Liquid()),
-        )
-        @test all(
-            first.(gas_constants.(param_set, ts_eq)) .≈
-            first.(gas_constants.(param_set, ts_dry)),
-        )
-        @test all(
-            last.(gas_constants.(param_set, ts_eq)) .≈
-            last.(gas_constants.(param_set, ts_dry)),
         )
     end
 end

@@ -1,6 +1,6 @@
 # Thermodynamics.jl
 
-A comprehensive Julia package for atmospheric thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
+A comprehensive Julia package for atmospheric thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice). `Thermodynamics.jl` implements the thermodynamic formulation of the CliMA Earth System Model ([Yatunin2026](@cite)). It provides a consistent, accurate, and efficient framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** ([Romps2021](@cite)).
 
 ## Table of Contents
 
@@ -8,13 +8,13 @@ A comprehensive Julia package for atmospheric thermodynamics, providing consiste
 2. [Documentation Overview](#documentation-overview)
 3. [Key Features](#key-features)
 4. [Core Design Principles](#core-design-principles)
-5. [Getting Started](#getting-started)
-6. [Usage Examples](#usage-examples)
-7. [Integration with Climate Models](#integration-with-climate-models)
+5. [Usage Examples](#usage-examples)
+6. [Integration with Climate Models](#integration-with-climate-models)
 
 ## Quick Start
 
 ### Installation
+
 ```julia
 using Pkg
 Pkg.add("Thermodynamics")
@@ -22,30 +22,28 @@ Pkg.add("ClimaParams")
 ```
 
 ### Basic Usage
-```julia
+
+```@example Index
 import Thermodynamics as TD
+# Use RootSolvers for the saturation adjustment method
+import RootSolvers as RS
 using ClimaParams
 
-# Create thermodynamic parameters
+# 1. Create thermodynamic parameters
+#    (requires a definition of the parameter set, e.g. from ClimaParams)
 params = TD.Parameters.ThermodynamicsParameters(Float64)
 
-# Create a thermodynamic state
-ρ = 1.0
-e_int = -7.e4
-q_tot = 0.01
-ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
+# 2. Define your thermodynamic variables
+ρ     = 1.1        # Density [kg/m³]
+e_int = -31673.0   # Internal energy [J/kg] (note: can be negative)
+q_tot = 0.015      # Total specific humidity [kg/kg]
+q_liq = 0.001      # Liquid specific humidity [kg/kg]
+q_ice = 0.0        # Ice specific humidity [kg/kg]
 
-# Compute thermodynamic properties from state
-T = TD.air_temperature(params, ts)
-p = TD.air_pressure(params, ts)
-q = TD.PhasePartition(params, ts)
-
-# Or compute directly from independent variables
-q_liq = 0.005
-q_ice = 0.0004
-q = TD.PhasePartition(q_tot, q_liq, q_ice)
-T = TD.air_temperature(params, e_int, q)  # From internal energy and humidity
-p = TD.air_pressure(params, ρ, T, q)      # From density, temperature, and humidity
+# 3. Compute properties directly
+T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
+p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+(T=T, p=p)
 ```
 
 ## Documentation Overview
@@ -60,13 +58,6 @@ p = TD.air_pressure(params, ρ, T, q)      # From density, temperature, and humi
   - Saturation adjustment algorithms
   - Auxiliary thermodynamic functions
 
-- **[API Reference](API.md)** - Complete function documentation
-  - Thermodynamic state constructors
-  - Equation of state functions
-  - Energy and temperature functions
-  - Saturation and phase equilibrium functions
-  - Auxiliary diagnostic functions
-
 ### 🛠️ **User Guides**
 
 - **[How-To Guide](HowToGuide.md)** - Practical usage examples and patterns
@@ -76,14 +67,16 @@ p = TD.air_pressure(params, ρ, T, q)      # From density, temperature, and humi
 ### 🔬 **Advanced Topics**
 
 - **[Temperature Profiles](TemperatureProfiles.md)** - Pre-defined atmospheric profiles to be used as reference states in atmosphere models and for testing
+- **[Tested Profiles](TestedProfiles.md)** - Thermodynamic profiles used for testing of the package (Internal Use)
 
-- **[Tested Profiles](TestedProfiles.md)** - Thermodynamic profiles used for testing of the package
+### 📖 **Package Reference**
 
-- **[Clausius-Clapeyron Validation](Clausius_Clapeyron.md)** - Validation of analytical derivatives
-
-### 👨‍💻 **Developer Resources**
-
-- **[Saturation Adjustment Convergence](SaturationAdjustmentConvergence.md)** - Convergence testing for numerical methods
+- **[API Reference](API.md)** - Complete function documentation
+  - Thermodynamics Parameters
+  - Types
+  - Thermodynamic Functions
+  - Temperature Profiles
+  - Data Collection
 
 ### 📚 **Published References and Background**
 
@@ -92,145 +85,120 @@ p = TD.air_pressure(params, ρ, T, q)      # From density, temperature, and humi
 ## Key Features
 
 ### 🌟 **Comprehensive Thermodynamics**
-- **Complete moist air thermodynamics** including all water phases (vapor, liquid, ice)
-- **Consistent formulation** for use across all model components
-- **Precipitation included** in the atmospheric working fluid for full thermodynamic consistency
-- **Calorically perfect gas approximation** enabling closed-form (Rankine-Kirchhoff) expressions for saturation vapor pressure
+
+- **Complete moist air thermodynamics** including all water phases (vapor, liquid, ice).
+- **Stateless, functional API** for maximum flexibility and ease of integration.
+- **Consistent formulation** assuming a **calorically perfect gas** mixture.
 
 ### ⚡ **High Performance**
-- **Type-stable implementations** for optimal Julia performance
-- **GPU-compatible** implementations
-- **Differentiable implementation** compatible with Julia's automatic differentiation capabilities
-- **Efficient saturation adjustment** with Newton's method and analytical derivatives for equilibrium thermodynamics formulations
+
+- **Type-stable** and **GPU-compatible** (CUDA.jl, AMDGPU.jl, etc.).
+- **AD-compatible** (ForwardDiff.jl, etc.) for differentiable physics.
+- **Zero-allocation** design for core functions.
 
 ### 🔧 **Flexible Design**
-- **Multiple thermodynamic state constructors** for different use cases
-- **Direct function access** for efficient single calculations
-- **Equilibrium and non-equilibrium** phase partitioning
-- **Extensible parameter system** for different planetary atmospheres
-- **Comprehensive testing** and validation suite
+
+- **Multiple formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc., or using direct functional relationships.
+- **Extensible parameters**: Easily adapt to different planetary atmospheres via `ClimaParams`.
+- **Comprehensive testing** and validation suite.
 
 ## Core Design Principles
 
-### **Thermodynamic State Abstraction**
-As an option, the package leverages the fundamental principle that:
-- Given two (or more) independent intrinsic thermodynamic properties, we can establish a thermodynamic state
-- Given a thermodynamic state, we can compute any thermodynamic property
+### **Functional & Stateless**
 
-This abstraction provides a clean, consistent interface for all thermodynamic calculations. 
-However, thermodynamic calculations are also accessible via direct functions. 
+Functions in Thermodynamics.jl are stateless. They take a `ThermodynamicsParameters` struct and the necessary thermodynamic variables (e.g., `T`, `ρ`, `q`...) as arguments. This design fits naturally into large-scale simulations (e.g., with [`ClimaAtmos.jl`](https://github.com/CliMA/ClimaAtmos.jl)).
 
-### **Working Fluid Definition**
-The working fluid includes **moist air with precipitation**, ensuring:
-- Mass and energy conservation across all phases
-- Thermodynamic consistency throughout the system
-- Unified treatment of cloud and precipitation condensate
+### **Working Fluid**
+
+The working fluid is **moist air** (dry air + water vapor + liquid water + ice, which may include precipitation). We treat it as a mixture of ideal gases and condensed phases, ensuring thermodynamic consistency and rigorous mass and energy conservation.
 
 ### **Consistent Formulation**
-All thermodynamic quantities are derived from a single fundamental approximation:
-- **Calorically perfect gases** with constant specific heat capacities
-- **Closed-form expressions** for all thermodynamic quantities
-- **Accuracy within 1-3%** for atmospheric conditions
-- **Computational efficiency** without numerical integration or additional ad-hoc approximations
 
-## Getting Started
-
-### Installation
-```julia
-using Pkg
-Pkg.add("Thermodynamics")
-Pkg.add("ClimaParams")
-```
+All quantities are derived from the **calorically perfect gas** assumption with constant specific heat capacities. This provides a consistent, closed set of equations for saturation vapor pressures (the so-called Rankine-Kirchhoff approximation), latent heats, and other derived quantities.
 
 ## Usage Examples
 
-### **Equilibrium Thermodynamics (Saturation Adjustment)**
-```julia
-import Thermodynamics as TD 
-using ClimaParams
+### **Phase Equilibrium (Saturation Adjustment)**
 
-params = TD.Parameters.ThermodynamicsParameters(Float64)
+To find the phase equilibrium temperature and phase partition from phase non-equilibrium variables (e.g., given `ρ`, `e_int`, `q_tot`), use [`saturation_adjustment`](@ref):
 
-# Create state with internal energy, density, and total humidity
+```@example Index
+# Define thermodynamic variables: internal energy, density, and total humidity
 ρ = 1.0
 e_int = -7.0e4
 q_tot = 0.01
-ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
 
-# Temperature and phase partitioning computed automatically
-T = TD.air_temperature(params, ts)
-q = TD.PhasePartition(params, ts)
+# Solve for phase equilibrium
+# (using SecantMethod, but NewtonsMethod is also available for ρe)
+sol = TD.saturation_adjustment(
+    RS.SecantMethod, 
+    params, 
+    TD.ρe(), 
+    ρ, e_int, q_tot, 
+    10, 1e-4
+)
+
+println("T: ", sol.T)
+println("q_liq: ", sol.q_liq)
+println("q_ice: ", sol.q_ice)
 ```
 
-### **Non-Equilibrium Thermodynamics**
-```julia
-import Thermodynamics as TD
-using ClimaParams
+### **Phase Non-Equilibrium**
 
-params = TD.Parameters.ThermodynamicsParameters(Float64)
+Directly compute properties from thermodynamic variables without assuming equilibrium of phases and using saturation adjustment:
 
-# Explicit phase partitioning
+```@example Index
+# Define variables
 q_tot = 0.01
 q_liq = 0.005
 q_ice = 0.0003
-q = TD.PhasePartition(q_tot, q_liq, q_ice)
 ρ = 1.0
 e_int = -7.0e4
-ts = TD.PhaseNonEquil(params, e_int, ρ, q)
 
-# Temperature computation from thermodynamic state
-T = TD.air_temperature(params, ts)
+# Compute temperature directly
+T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
 
-# Alternative direct computation, avoiding the thermodynamic state
-T = TD.air_temperature(params, e_int, q)
+# Compute pressure directly
+p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+println("T: ", T)
+println("p: ", p)
 ```
 
 ### **Saturation Calculations**
-```julia
-import Thermodynamics as TD
-using ClimaParams
 
-params = TD.Parameters.ThermodynamicsParameters(Float64)
-
-# Create a thermodynamic state for testing
+```@example Index
+T = 280.0
 ρ = 1.0
-e_int = -7.0e4
 q_tot = 0.01
-ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
-T = TD.air_temperature(params, ts)
-p = TD.air_pressure(params, ts)
 
 # Saturation vapor pressure
 p_v_sat = TD.saturation_vapor_pressure(params, T, TD.Liquid())
 
 # Saturation specific humidity
-q_v_sat = TD.q_vap_saturation(params, T, ρ, typeof(ts))
+q_v_sat = TD.q_vap_saturation(params, T, ρ)
 
-# Relative humidity
-RH = TD.relative_humidity(params, ts)
-
-# Alternative, avoiding the thermodynamic state
-q_liq = 0.005
-q_ice = 0.0003
-RH_alt = TD.relative_humidity(params, T, p, typeof(ts), TD.PhasePartition(q_tot, q_liq, q_ice))
+# Phase partition assuming phase equilibrium
+(q_liq, q_ice) = TD.condensate_partition(params, T, ρ, q_tot)
 ```
 
 ## Integration with Climate Models
 
 ### **Dynamical Core Integration**
+
 The package is designed for seamless integration with atmospheric dynamical cores, schematically as follows:
 
-```julia
+```@example Index
 # Initialize
 import Thermodynamics as TD
+import RootSolvers as RS
 using ClimaParams
 
 FT = Float64
 params = TD.Parameters.ThermodynamicsParameters(FT)
 
 # Define physical constants and initial conditions
-grav = 9.81  # m/s²
-cv_d = 718.0  # J/(kg K)
+grav = TD.Parameters.grav(params)
+cv_d = TD.Parameters.cv_d(params)
 z = 1000.0   # m
 geopotential = grav * z
 q_tot = 0.01
@@ -240,39 +208,61 @@ T = 300.0
 # Initial velocity components
 u, v, w = 10.0, 5.0, 1.0
 e_kin = 0.5 * (u^2 + v^2 + w^2)
-e_tot = TD.total_energy(params, e_kin, geopotential, T, TD.PhasePartition(q_tot))
+
+# Specific total energy e_tot = e_int + e_kin + geopotential
+(q_liq, q_ice) = TD.condensate_partition(params, T, ρ, q_tot)
+e_int = TD.internal_energy(params, T, q_tot, q_liq, q_ice)
+e_tot = e_int + e_kin + geopotential
+
+println("Initial u: ", u)
+println("Initial e_tot: ", e_tot)
 
 # Timestepping loop (simplified example)
 for timestep in 1:10
     # Advance dynamical variables (simplified)
-    u += FT(0.1)
-    v += FT(-0.1)
-    w += FT(0.01)
-    e_tot += cv_d * FT(1)
+    # Note: In a real simulation, we would update the state vector.
+    # Here we just re-use the variable names for demonstration.
+    u_new = u + FT(0.1) 
+    e_tot_new = e_tot + cv_d * FT(1)
     
-    # Compute internal energy
-    e_kin = 0.5 * (u^2 + v^2 + w^2)
-    e_int = e_tot - e_kin - geopotential
+    # Compute new internal energy
+    e_kin_new = 0.5 * (u_new^2 + v^2 + w^2)
+    e_int_new = e_tot_new - e_kin_new - geopotential
     
-    # Saturation adjustment
-    ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
-    T = TD.air_temperature(params, ts)
-    q = TD.PhasePartition(params, ts)
-    p = TD.air_pressure(params, ts)
+    # Saturation adjustment to get T, q_liq, q_ice
+    local sol = TD.saturation_adjustment(
+        RS.NewtonsMethod, 
+        params, 
+        TD.ρe(), 
+        ρ, e_int_new, q_tot, 
+        10, 1e-4
+    )
+    
+    T_new = sol.T
+    q_liq_new = sol.q_liq
+    q_ice_new = sol.q_ice
+    
+    # Compute pressure for dynamics
+    p_new = TD.air_pressure(params, T_new, ρ, q_tot, q_liq_new, q_ice_new)
+    
+    # Update state for next iteration (in real code)
+    global u = u_new
+    global e_tot = e_tot_new
 end
+println("Final u: ", u)
+println("Final e_tot: ", e_tot)
 ```
 
 ## Next Steps
 
 1. **Read the [Mathematical Formulation](Formulation.md)** for theoretical background
-2. **Explore the [API Reference](API.md)** for complete function documentation
-3. **Follow the [How-To Guide](HowToGuide.md)** for practical examples
-4. **Check [Saturation Adjustment Convergence](SaturationAdjustmentConvergence.md)** for numerical method testing
+2. **Follow the [How-To Guide](HowToGuide.md)** for practical examples
+3. **Explore the [API Reference](API.md)** for complete function documentation
 
 ---
 
 !!! note "Citation"
-    If you use Thermodynamics.jl in your research, please cite the relevant papers listed in the [References](References.md) section.
+    If you use `Thermodynamics.jl` in your research, please cite the relevant papers listed in the [References](References.md) section.
 
 !!! tip "Getting Help"
     For questions and issues, please check the documentation or open an issue on the [GitHub repository](https://github.com/CliMA/Thermodynamics.jl).

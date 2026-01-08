@@ -10,7 +10,6 @@ dirs = (
     joinpath(root, "test"),
     joinpath(root, "perf"),
     joinpath(root, "docs"),
-    joinpath(root, "gpuenv"),
 )
 
 cd(root) do

@@ -1,63 +1,65 @@
 # Material properties of moist air 
 
-# Specific heats and gas constants of moist air
-export cp_m, cv_m, gas_constant_air
-export gas_constants   # TODO remove
+# Specific heats and gas constant of moist air
+export gas_constant_air
+export cp_m, cv_m
 
-# Latent heats
+# Specific latent heats
 export latent_heat_vapor
 export latent_heat_sublim
 export latent_heat_fusion
-export latent_heat_liq_ice
+export latent_heat_mixed
+export humidity_weighted_latent_heat
 
 # Speed of sound
 export soundspeed_air
 
 """
-    gas_constant_air(param_set, q_tot, q_liq, q_ice)
+    gas_constant_air(param_set, q_tot=0, q_liq=0, q_ice=0)
 
-The specific gas constant of moist air, given
+The specific gas constant of moist air `R_m`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q_tot`, `q_liq`, `q_ice` - specific humidities for total water, liquid water, and ice
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
+# Returns
+ - `R_m`: specific gas constant of moist air [J/(kg·K)]
+
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
-@inline function gas_constant_air(param_set::APS, q_tot, q_liq, q_ice)
+@inline function gas_constant_air(
+    param_set::APS,
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
+)
     R_d = TP.R_d(param_set)
     R_v = TP.R_v(param_set)
-    q_vap = q_tot - q_liq - q_ice
+    q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
     return R_d * (1 - q_tot) + R_v * q_vap
 end
 
 """
-    gas_constant_air(param_set[, q::PhasePartition])
+    cp_m(param_set, q_tot=0, q_liq=0, q_ice=0)
 
-The specific gas constant of moist air, given
+The isobaric specific heat capacity of moist air `cp_m`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref).
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `q_tot`: total specific humidity of water [kg/kg]
+ - `q_liq`: specific humidity of liquid [kg/kg]
+ - `q_ice`: specific humidity of ice [kg/kg]
 
-When `q` is not provided, the results are for dry air.
+# Returns
+ - `cp_m`: isobaric specific heat capacity [J/(kg·K)]
+
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The specific heat capacities are assumed to be constant (calorically perfect air).
 """
-@inline function gas_constant_air(param_set::APS, q::PhasePartition)
-    return gas_constant_air(param_set, q.tot, q.liq, q.ice)
-end
-
-@inline gas_constant_air(param_set::APS) =
-    gas_constant_air(param_set, q_pt_0(param_set))
-
-"""
-    cp_m(param_set, q_tot, q_liq, q_ice)
-
-The isobaric specific heat capacity of moist air, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total specific humidity of water
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
-"""
-@inline function cp_m(param_set::APS, q_tot, q_liq, q_ice)
-
+@inline function cp_m(param_set::APS, q_tot = 0, q_liq = 0, q_ice = 0)
     cp_d = TP.cp_d(param_set)
     cp_v = TP.cp_v(param_set)
     cp_l = TP.cp_l(param_set)
@@ -70,32 +72,23 @@ The isobaric specific heat capacity of moist air, given
 end
 
 """
-    cp_m(param_set[, q::PhasePartition])
+    cv_m(param_set, q_tot=0, q_liq=0, q_ice=0)
 
-The isobaric specific heat capacity of moist air given
+The isochoric specific heat capacity of moist air `cv_m`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref).
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
-When `q` is not provided, the results are for dry air.
+# Returns
+ - `cv_m`: isochoric specific heat capacity [J/(kg·K)]
+
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The specific heat capacities are assumed to be constant (calorically perfect air).
 """
-@inline function cp_m(param_set::APS, q::PhasePartition)
-    return cp_m(param_set, q.tot, q.liq, q.ice)
-end
-
-@inline cp_m(param_set::APS) = cp_m(param_set, q_pt_0(param_set))
-
-"""
-    cv_m(param_set, q_tot, q_liq, q_ice)
-
-The isochoric specific heat capacity of moist air, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q_tot` total specific humidity of water
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
-"""
-@inline function cv_m(param_set::APS, q_tot, q_liq, q_ice)
+@inline function cv_m(param_set::APS, q_tot = 0, q_liq = 0, q_ice = 0)
     cv_d = TP.cv_d(param_set)
     cv_v = TP.cv_v(param_set)
     cv_l = TP.cv_l(param_set)
@@ -107,52 +100,19 @@ The isochoric specific heat capacity of moist air, given
 end
 
 """
-    cv_m(param_set[, q::PhasePartition])
-
-The isochoric specific heat capacity of moist air, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref). Without humidity argument, the results are for dry air.
-"""
-@inline function cv_m(param_set::APS, q::PhasePartition)
-    return cv_m(param_set, q.tot, q.liq, q.ice)
-end
-
-@inline cv_m(param_set::APS) = cv_m(param_set, q_pt_0(param_set))
-
-# TODO remove gas_constants
-"""
-    (R_m, cp_m, cv_m, γ_m) = gas_constants(param_set, q::PhasePartition)
-
-Wrapper to compute the gas constant, specific heat capacities, and their 
-ratio at once, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref)
-
-The function returns a tuple of
- - `R_m` [`gas_constant_air`](@ref)
- - `cp_m` [`cp_m`](@ref)
- - `cv_m` [`cv_m`](@ref)
- - `γ_m = cp_m/cv_m`
-
- This function is deprecated and will be removed in a future release.
-"""
-@inline function gas_constants(param_set::APS, q::PhasePartition)
-    R_gas = gas_constant_air(param_set, q)
-    cp = cp_m(param_set, q)
-    cv = cv_m(param_set, q)
-    γ = cp / cv
-    return (R_gas, cp, cv, γ)
-end
-
-"""
     latent_heat_vapor(param_set, T)
 
-The specific latent heat of vaporization, given
+The specific latent heat of vaporization `L_v`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+
+# Returns
+ - `L_v`: latent heat of vaporization [J/kg]
+
+Because the specific heats are assumed constant, the latent heats are linear functions of
+temperature by Kirchhoff's law.
 """
 @inline function latent_heat_vapor(param_set::APS, T)
     cp_l = TP.cp_l(param_set)
@@ -162,12 +122,19 @@ The specific latent heat of vaporization, given
 end
 
 """
-    latent_heat_sublim(param_set, T) 
+    latent_heat_sublim(param_set, T)
 
-The specific latent heat of sublimation, given
+The specific latent heat of sublimation `L_s`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+
+# Returns
+ - `L_s`: latent heat of sublimation [J/kg]
+
+Because the specific heats are assumed constant, the latent heats are linear functions of
+temperature by Kirchhoff's law.
 """
 @inline function latent_heat_sublim(param_set::APS, T)
     LH_s0 = TP.LH_s0(param_set)
@@ -177,12 +144,19 @@ The specific latent heat of sublimation, given
 end
 
 """
-    latent_heat_fusion(param_set, T) 
+    latent_heat_fusion(param_set, T)
 
-The specific latent heat of fusion, given
+The specific latent heat of fusion `L_f`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+
+# Returns
+ - `L_f`: latent heat of fusion [J/kg]
+
+Because the specific heats are assumed constant, the latent heats are linear functions of
+temperature by Kirchhoff's law.
 """
 @inline function latent_heat_fusion(param_set::APS, T)
     LH_f0 = TP.LH_f0(param_set)
@@ -192,33 +166,38 @@ The specific latent heat of fusion, given
 end
 
 """
-    latent_heat_generic(param_set, T, LH_0, Δcp) 
+    latent_heat_generic(param_set, T, LH_0, Δcp)
 
-The specific latent heat of a generic phase transition between two phases, 
-computed using Kirchhoff's relation with constant isobaric specific heat 
-capacities of the two phases, given
+Internal function. The specific latent heat of a generic phase transition between
+two phases, computed using Kirchhoff's law.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
  - `LH_0` latent heat at the reference temperature `T_0`
  - `Δcp` difference in isobaric specific heat capacities between the two phases
+
+ Because the specific heats are assumed constant, the latent heats are linear functions of
+ temperature by Kirchhoff's law.
 """
 @inline function latent_heat_generic(param_set::APS, T, LH_0, Δcp)
     T_0 = TP.T_0(param_set)
     return LH_0 + Δcp * (T - T_0)
 end
+
 latent_heat_generic(param_set, T, LH_0, Δcp) =
     latent_heat_generic(param_set, promote(T, LH_0, Δcp)...)
 
 """
     latent_heat_mixed(param_set, T, λ)
 
-Latent heat for a mixture of liquid and ice weighted by the 
-liquid fraction `λ`, given
+The specific latent heat of a mixed phase, weighted by the liquid fraction `λ`.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` air temperature
  - `λ` liquid fraction
+
+ Because the specific heats are assumed constant, the latent heats are linear functions of
+ temperature by Kirchhoff's law.
 """
 @inline function latent_heat_mixed(param_set::APS, T, λ)
     L_v = latent_heat_vapor(param_set, T)
@@ -227,25 +206,54 @@ liquid fraction `λ`, given
 end
 
 """
-    soundspeed_air(param_set, T[, q::PhasePartition])
+    humidity_weighted_latent_heat(param_set, q_liq=0, q_ice=0)
 
-The speed of sound in unstratified air, given
+Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference
+temperature `T_0`.
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `q_liq` liquid specific humidity
+ - `q_ice` ice specific humidity
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
+If `q_liq` and `q_ice` are not provided, `humidity_weighted_latent_heat` is zero.
+"""
+@inline function humidity_weighted_latent_heat(
+    param_set::APS,
+    q_liq = 0,
+    q_ice = 0,
+)
+    LH_v0 = TP.LH_v0(param_set)
+    LH_s0 = TP.LH_s0(param_set)
+    return LH_v0 * q_liq + LH_s0 * q_ice
+end
 
-and, optionally,
+"""
+    soundspeed_air(param_set, T, q_tot=0, q_liq=0, q_ice=0)
 
- - `q` [`PhasePartition`](@ref). 
+The speed of sound in unstratified air.
 
-When `q` is not provided, the results are for dry air.
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `c`: speed of sound [m/s]
+
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
+The formula is `c = √(γ R_m T)` where `γ = cp_m/cv_m`.
 """
 @inline function soundspeed_air(
     param_set::APS,
     T,
-    q::PhasePartition = q_pt_0(param_set),
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
 )
-    γ = cp_m(param_set, q) / cv_m(param_set, q)
-    R_m = gas_constant_air(param_set, q)
+    γ =
+        cp_m(param_set, q_tot, q_liq, q_ice) /
+        cv_m(param_set, q_tot, q_liq, q_ice)
+    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     return sqrt(γ * R_m * T)
 end

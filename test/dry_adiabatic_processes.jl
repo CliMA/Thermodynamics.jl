@@ -14,10 +14,19 @@ using Random
         _kappa_d = TP.kappa_d(param_set)
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-        (; T, p, ρ, θ_liq_ice, q_pt) = profiles
+        (; T, p, ρ, θ_li, q_tot, q_liq, q_ice) = profiles
 
         @testset "Ideal Gas Law" begin
-            T_idgl = TD.air_temperature_given_ρp.(param_set, p, ρ, q_pt)
+            T_idgl =
+                TD.air_temperature.(
+                    Ref(param_set),
+                    Ref(TD.pρ()),
+                    p,
+                    ρ,
+                    q_tot,
+                    q_liq,
+                    q_ice,
+                )
             @test all(T .≈ T_idgl)
         end
 
@@ -29,19 +38,19 @@ using Random
             T∞, p∞ = T .* perturbation, p .* perturbation
             @test air_temperature.(
                 param_set,
-                p,
-                θ_liq_ice,
                 DryAdiabaticProcess(),
-            ) ≈ (p ./ _p_ref_theta) .^ (_R_d / _cp_d) .* θ_liq_ice
+                p,
+                θ_li,
+            ) ≈ (p ./ _p_ref_theta) .^ (_R_d / _cp_d) .* θ_li
             @test TD.air_pressure_given_θ.(
                 param_set,
-                θ_liq_ice,
-                Φ,
                 DryAdiabaticProcess(),
+                θ_li,
+                Φ,
             ) ≈
                   _p_ref_theta .*
-                  (1 .- Φ ./ (θ_liq_ice .* _cp_d)) .^ (_cp_d / _R_d)
-            @test air_pressure.(param_set, T, T∞, p∞, DryAdiabaticProcess()) ≈
+                  (1 .- Φ ./ (θ_li .* _cp_d)) .^ (_cp_d / _R_d)
+            @test air_pressure.(param_set, DryAdiabaticProcess(), T, T∞, p∞) ≈
                   p∞ .* (T ./ T∞) .^ (FT(1) / _kappa_d)
         end
     end

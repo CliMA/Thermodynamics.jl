@@ -1,120 +1,47 @@
-"""
-# Exceptions Test Suite
+using Test
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+import ClimaParams as CP
+import RootSolvers as RS
 
-This file contains tests for error handling on failed convergence.
-"""
+@testset "Thermodynamics - exceptions/convergence" begin
+    FT = Float64
+    toml_dict = CP.create_toml_dict(FT)
+    param_set = TP.ThermodynamicsParameters(toml_dict)
 
-@testset "Thermodynamics - Exceptions on Failed Convergence" begin
-    ArrayType = Array{Float64}
-    FT = eltype(ArrayType)
-    param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
-    profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
-    (; q_tot, q_pt, RH) = profiles
+    # Construct a state that is definitely saturated and requires iteration
+    ρ = FT(1.1)
+    T_true = FT(300)
+    q_tot = FT(0.025)
+    e_int = TD.internal_energy_sat(param_set, T_true, ρ, q_tot)
 
-    maxiter = 2
-    tol = FT(1e-10)
-    T_virt = T
+    # Test that providing insufficient maxiter results in converged = false
+    # instead of throwing an error.
+    res = TD.saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        TD.ρe(),
+        ρ,
+        e_int,
+        q_tot,
+        1, # maxiter too small
+        1e-6,
+    )
 
-    TD.error_on_non_convergence() = true
-    TD.print_warning() = true
+    @test res.converged == false
+    @test isfinite(res.T)
 
-    @testset "Saturation Adjustment" begin
-        @test_throws ErrorException TD.saturation_adjustment.(
-            RS.NewtonsMethod,
-            param_set,
-            e_int,
-            ρ,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment.(
-            RS.SecantMethod,
-            param_set,
-            e_int,
-            ρ,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment_given_peq.(
-            RS.SecantMethod,
-            param_set,
-            p,
-            e_int,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment_given_ρθq.(
-            param_set,
-            ρ,
-            θ_liq_ice,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            RS.ResidualTolerance(tol),
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment_given_pθq.(
-            RS.SecantMethod,
-            param_set,
-            p,
-            θ_liq_ice,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment_given_pθq.(
-            RS.NewtonsMethodAD,
-            param_set,
-            p,
-            θ_liq_ice,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-
-        @test_throws ErrorException TD.saturation_adjustment_ρpq.(
-            RS.NewtonsMethodAD,
-            param_set,
-            ρ,
-            p,
-            q_tot,
-            Ref(phase_type),
-            maxiter,
-            tol,
-        )
-    end
-
-    @testset "Temperature and Humidity" begin
-        @test_throws ErrorException TD.temperature_and_humidity_given_TᵥρRH.(
-            param_set,
-            T_virt,
-            ρ,
-            RH,
-            Ref(phase_type),
-            maxiter,
-            RS.ResidualTolerance(tol),
-        )
-
-        @test_throws ErrorException TD.air_temperature_given_ρθq_nonlinear.(
-            param_set,
-            ρ,
-            θ_liq_ice,
-            maxiter,
-            RS.ResidualTolerance(tol),
-            q_pt,
-        )
-    end
+    # Verify that with enough iterations it does converge
+    res_converged = TD.saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        TD.ρe(),
+        ρ,
+        e_int,
+        q_tot,
+        20,
+        1e-6,
+    )
+    @test res_converged.converged == true
+    @test isapprox(res_converged.T, T_true; rtol = 1e-5)
 end
