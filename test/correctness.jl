@@ -279,5 +279,54 @@ using the non-deprecated functional API (no `PhasePartition`/state types).
             @test r ≈ q_any / (1 - q_tot)
         end
 
+        @testset "Reference temperature invariance ($FT)" begin
+            # 1. Define checking logic
+            function check_invariance(param_set_local, T_in, q_tot, q_liq, q_ice)
+                ρ = FT(1.2)
+                
+                # Internal Energy
+                e_int = TD.internal_energy(param_set_local, T_in, q_tot, q_liq, q_ice)
+                
+                # Recover Temperature
+                # air_temperature(param_set, phase, e_int, q_tot, ...)
+                # Using ρe() as phase indicator for internal energy
+                T_rec = TD.air_temperature(param_set_local, TD.ρe(), e_int, q_tot, q_liq, q_ice)
+                @test T_rec ≈ T_in
+                
+                # Enthalpy = e_int + R_m * T 
+                h = TD.enthalpy(param_set_local, T_in, q_tot, q_liq, q_ice)
+                R_m = TD.gas_constant_air(param_set_local, q_tot, q_liq, q_ice)
+                @test h ≈ e_int + R_m * T_in
+            end
+
+            T_test = FT(300)
+            q_tot_test = FT(0.02)
+            q_liq_test = FT(0.005)
+            q_ice_test = FT(0.001)
+
+            # 2. Run with standard parameters
+            check_invariance(param_set, T_test, q_tot_test, q_liq_test, q_ice_test)
+
+            # 3. Modify T_0 and run again
+            # Construct a new parameter set with a different T_0
+            
+            # Extract all fields as a NamedTuple
+            nt = NamedTuple{fieldnames(TD.Parameters.ThermodynamicsParameters)}(
+                (getproperty(param_set, fn) for fn in fieldnames(TD.Parameters.ThermodynamicsParameters))
+            )
+            
+            # Create modified NamedTuple
+            T_0_new = TP.T_0(param_set) + FT(10)
+            nt_new = merge(nt, (; T_0 = T_0_new))
+            
+            param_set_new = TD.Parameters.ThermodynamicsParameters{FT}(; nt_new...)
+            
+            # Verify T_0 changed
+            @test TP.T_0(param_set_new) ≈ T_0_new
+            
+            # Run check again
+            check_invariance(param_set_new, T_test, q_tot_test, q_liq_test, q_ice_test)
+        end
+
     end
 end
