@@ -58,4 +58,4 @@ include("saturation_adjustment.jl")
 - Use these maps to understand the convergence characteristics of different numerical methods
 - Consider the trade-offs between robustness (SecantMethod) and efficiency (NewtonsMethod)
 - The tested parameter ranges should cover your expected simulation conditions
-- For production use, ensure your parameter combinations fall within well-converged regions 
+- For production use, ensure your parameter combinations fall within well-converged regions

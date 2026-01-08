@@ -13,7 +13,6 @@ pages = Any[
     "How-To Guide" => "HowToGuide.md",
     "Temperature Profiles" => "TemperatureProfiles.md",
     "Tested Profiles" => "TestedProfiles.md",
-    "Clausius-Clapeyron Validation" => "Clausius_Clapeyron.md",
     "Saturation Adjustment Convergence" => "SaturationAdjustmentConvergence.md",
     "References" => "References.md",
 ]

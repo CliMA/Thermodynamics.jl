@@ -4,7 +4,7 @@
 
 # Thermodynamics.jl
 
-A comprehensive Julia package for Earth system thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
+The `Thermodynamics.jl` package implements the thermodynamic formulation of the [CliMA Earth System Model](https://clima.caltech.edu) (Yatunin et al., 2026). It provides a consistent, accurate, and efficient framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** (Romps, 2021), providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
 
 |||
 |-----------------------------:|:-------------------------------------------------|

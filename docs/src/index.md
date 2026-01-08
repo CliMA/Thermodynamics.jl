@@ -1,6 +1,6 @@
 # Thermodynamics.jl
 
-A comprehensive Julia package for atmospheric thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
+A comprehensive Julia package for atmospheric thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice). `Thermodynamics.jl` implements the thermodynamic formulation of the CliMA Earth System Model ([Yatunin2026](@cite)). It provides a consistent, accurate, and efficient framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** ([Romps2021](@cite)).
 
 ## Table of Contents
 
@@ -35,7 +35,7 @@ params = TD.Parameters.ThermodynamicsParameters(Float64)
 
 # 2. Define your thermodynamic variables
 ρ     = 1.1        # Density [kg/m³]
-e_int = 200000.0   # Internal energy [J/kg]
+e_int = 130000.0   # Internal energy [J/kg] (approx. 290 K)
 q_tot = 0.015      # Total specific humidity [kg/kg]
 q_liq = 0.005      # Liquid specific humidity [kg/kg]
 q_ice = 0.001      # Ice specific humidity [kg/kg]
@@ -43,6 +43,7 @@ q_ice = 0.001      # Ice specific humidity [kg/kg]
 # 3. Compute properties directly
 T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
 p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+(T=T, p=p)
 ```
 
 ## Documentation Overview
@@ -58,11 +59,11 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
   - Auxiliary thermodynamic functions
 
 - **[API Reference](API.md)** - Complete function documentation
-  - Thermodynamic state constructors
-  - Equation of state functions
-  - Energy and temperature functions
-  - Saturation and phase equilibrium functions
-  - Auxiliary diagnostic functions
+  - Thermodynamics Parameters
+  - Types
+  - Thermodynamic Functions
+  - Temperature Profiles
+  - Data Collection
 
 ### 🛠️ **User Guides**
 
@@ -73,10 +74,7 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 ### 🔬 **Advanced Topics**
 
 - **[Temperature Profiles](TemperatureProfiles.md)** - Pre-defined atmospheric profiles to be used as reference states in atmosphere models and for testing
-
-- **[Tested Profiles](TestedProfiles.md)** - Thermodynamic profiles used for testing of the package
-
-- **[Clausius-Clapeyron Validation](Clausius_Clapeyron.md)** - Validation of analytical derivatives
+- **[Tested Profiles](TestedProfiles.md)** - Thermodynamic profiles used for testing of the package (Internal Use)
 
 ### 👨‍💻 **Developer Resources**
 
@@ -199,8 +197,8 @@ FT = Float64
 params = TD.Parameters.ThermodynamicsParameters(FT)
 
 # Define physical constants and initial conditions
-grav = 9.81  # m/s²
-cv_d = 718.0  # J/(kg K)
+grav = TD.Parameters.grav(params)
+cv_d = TD.Parameters.cv_d(params)
 z = 1000.0   # m
 geopotential = grav * z
 q_tot = 0.01
@@ -229,7 +227,7 @@ for timestep in 1:10
     e_int_new = e_tot_new - e_kin_new - geopotential
     
     # Saturation adjustment to get T, q_liq, q_ice
-    sol = TD.saturation_adjustment(
+    local sol = TD.saturation_adjustment(
         RS.NewtonsMethod, 
         params, 
         TD.ρe(), 

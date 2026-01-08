@@ -54,11 +54,12 @@ q_ice = 0.0      # Ice specific humidity [kg/kg]
 # Compute a property
 T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
 p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+
+(T=T, p=p)
 ```
 
-!!! tip "Temperature Profiles"
-    For testing and validation, you can use pre-defined atmospheric temperature profiles.
-    See [Temperature Profiles](TemperatureProfiles.md) for available profiles and usage examples.
+!!! tip "Temperature Profiles for Testing"
+    For testing and validation, you can use pre-defined atmospheric temperature profiles from `TD.TemperatureProfiles`. See [Temperature Profiles](@ref) for available profiles and usage examples.
 
 ## Thermodynamic Calculations
 
@@ -139,6 +140,8 @@ p_v_sat_i = TD.saturation_vapor_pressure(params, T, TD.Ice())
 
 # Saturation specific humidity (equilibrium w.r.t. density)
 q_v_sat = TD.q_vap_saturation(params, T, ρ)
+
+(p_v_sat_l=p_v_sat_l, p_v_sat_i=p_v_sat_i, q_v_sat=q_v_sat)
 ```
 
 ## Performance Considerations
@@ -226,6 +229,8 @@ sol = TD.saturation_adjustment(RS.NewtonsMethod, params, TD.ρe(), ρ, e_int, q_
 T_new = sol.T
 q_liq_new = sol.q_liq
 q_ice_new = sol.q_ice
+
+(T_new, q_liq_new, q_ice_new)
 ```
 
 ## Common Pitfalls

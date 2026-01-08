@@ -253,4 +253,52 @@ using Thermodynamics: ρe, pe, ph
             end
         end
     end
+
+    @testset "Saturation adjustment helper derivatives" begin
+        # Test the analytical derivatives used in saturation adjustment
+        # against ForwardDiff over a range of temperatures
+
+        T_range = FT.([220, 250, 273.15, 290, 310])
+        ρ_range = FT.([0.5, 1.0, 1.5])
+        q_tot_vals = FT.([0.001, 0.01, 0.02])
+
+        for T in T_range, ρ in ρ_range, q_tot in q_tot_vals
+            @testset "T=$T, ρ=$ρ, q_tot=$q_tot" begin
+                # Test ∂q_vap_sat_∂T
+                λ = TD.liquid_fraction(param_set, T)
+                q_vap_sat = TD.q_vap_saturation(param_set, T, ρ)
+                L = TD.latent_heat_mixed(param_set, T, λ)
+
+                # Analytical derivative
+                dq_sat_dT_analytical =
+                    TD.∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, L)
+
+                # ForwardDiff derivative
+                f_q_sat(T_) = TD.q_vap_saturation(param_set, T_, ρ)
+                dq_sat_dT_AD = ForwardDiff.derivative(f_q_sat, T)
+
+                @test isapprox(
+                    dq_sat_dT_analytical,
+                    dq_sat_dT_AD;
+                    rtol = FT(1e-6),
+                    atol = FT(1e-12),
+                )
+
+                # Test ∂e_int_∂T_sat
+                # Analytical derivative
+                de_int_dT_analytical = TD.∂e_int_∂T_sat(param_set, T, ρ, q_tot)
+
+                # ForwardDiff derivative
+                f_e_int_sat(T_) = TD.internal_energy_sat(param_set, T_, ρ, q_tot)
+                de_int_dT_AD = ForwardDiff.derivative(f_e_int_sat, T)
+
+                @test isapprox(
+                    de_int_dT_analytical,
+                    de_int_dT_AD;
+                    rtol = FT(1e-6),
+                    atol = FT(1e-10),
+                )
+            end
+        end
+    end
 end
