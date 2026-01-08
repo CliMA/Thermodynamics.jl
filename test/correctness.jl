@@ -229,5 +229,55 @@ using the non-deprecated functional API (no `PhasePartition`/state types).
             )
             @test vpd_sat_warm == 0
         end
+
+        @testset "Static energy definitions (\$FT)" begin
+            # Test that static energies satisfy their definitions: s = h + Ф
+            T = FT(300)
+            e_pot = FT(1000) # Geopotential [J/kg]
+            q_tot = FT(0.02)
+            q_liq = FT(0.005)
+            q_ice = FT(0.001)
+
+            # Dry static energy: s_d = h_d + e_pot
+            h_d = TD.enthalpy_dry(param_set, T)
+            s_d = TD.dry_static_energy(param_set, T, e_pot)
+            @test s_d ≈ h_d + e_pot
+
+            # Vapor static energy: s_v = cp_v * (T - T_0) + e_pot = h_v - LH_v0 + e_pot
+            h_v = TD.enthalpy_vapor(param_set, T)
+            s_v = TD.vapor_static_energy(param_set, T, e_pot)
+            LH_v0 = TP.LH_v0(param_set)
+            @test s_v ≈ h_v - LH_v0 + e_pot
+
+            # Moist static energy: s_m = h_m + e_pot
+            h_m = TD.enthalpy(param_set, T, q_tot, q_liq, q_ice)
+            s_m = TD.moist_static_energy(param_set, T, e_pot, q_tot, q_liq, q_ice)
+            @test s_m ≈ h_m + e_pot
+
+            # Virtual dry static energy: s_vd = cp_d(T_virt - T_0) + e_pot
+            T_virt = TD.virtual_temperature(param_set, T, q_tot, q_liq, q_ice)
+            T_0 = TP.T_0(param_set)
+            cp_d = TP.cp_d(param_set)
+            s_vd =
+                TD.virtual_dry_static_energy(param_set, T, e_pot, q_tot, q_liq, q_ice)
+            @test s_vd ≈ cp_d * (T_virt - T_0) + e_pot
+        end
+
+        @testset "Humidity definitions (\$FT)" begin
+            q_tot = FT(0.02)
+            q_liq = FT(0.005)
+            q_ice = FT(0.001)
+
+            # vapor_specific_humidity
+            q_vap = TD.vapor_specific_humidity(q_tot, q_liq, q_ice)
+            @test q_vap ≈ q_tot - q_liq - q_ice
+
+            # specific_humidity_to_mixing_ratio
+            # r = q / (1 - q_tot)
+            q_any = FT(0.01)
+            r = TD.specific_humidity_to_mixing_ratio(q_any, q_tot)
+            @test r ≈ q_any / (1 - q_tot)
+        end
+
     end
 end

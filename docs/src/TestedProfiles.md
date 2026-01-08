@@ -114,7 +114,7 @@ Plots.savefig("tested_profiles_nonequil.svg");
 nothing # hide
 ```
 
-![Moist phase non-equilibrium profiles](tested_profiles_nonequil.svg)
+![Moist phase (non-equilibrium) profiles](tested_profiles_nonequil.svg)
 
 ### Key Features (Phase Non-Equilibrium)
 

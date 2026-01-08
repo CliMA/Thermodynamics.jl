@@ -206,7 +206,7 @@ e_kin = 0.5 * (u^2 + v^2 + w^2)
 e_pot = 0.0 # arbitrary
 e_int = e_tot - e_kin - e_pot
 
-# 2. Recover temperature (phase non-equilibrium if q_liq/ice are prognostic)
+# 2. Recover temperature (if q_liq/ice are prognostic)
 T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
 
 # 3. Compute pressure

@@ -67,10 +67,10 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 ### Saturation Adjustment
 
-To find the equilibrium temperature and phase partition from non-equilibrium variables (e.g., given `ρ`, `e_int`, `q_tot`), use `saturation_adjustment`:
+To find the phase equilibrium temperature and phase partition from thermodynamic variables (e.g., given `ρ`, `e_int`, `q_tot`), use `saturation_adjustment`:
 
 ```julia
-# Solve for equilibrium (T, q_liq, q_ice) given (ρ, e_int, q_tot)
+# Solve for phase equilibrium (T, q_liq, q_ice) given (ρ, e_int, q_tot)
 # using SecantMethod
 sol = TD.saturation_adjustment(
     RS.SecantMethod,        # Root-solving method
@@ -103,7 +103,7 @@ println("Converged: ",     sol.converged)
 
 ### 🔧 **Flexible Design**
 
-- **Multiple formulations**: Solve for equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc.
+- **Multiple formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc.
 - **Extensible parameters**: Easily adapt to different planetary atmospheres via `ClimaParams`.
 
 ## Core Design Principles
@@ -123,8 +123,8 @@ All quantities are derived from the **calorically perfect gas** assumption with 
 ## Documentation
 
 - **[Mathematical Formulation](https://clima.github.io/Thermodynamics.jl/dev/Formulation/)** - Theoretical background.
-- **[API Reference](https://clima.github.io/Thermodynamics.jl/dev/API/)** - Detailed function documentation.
 - **[How-To Guide](https://clima.github.io/Thermodynamics.jl/dev/HowToGuide/)** - Recipes and examples.
+- **[API Reference](https://clima.github.io/Thermodynamics.jl/dev/API/)** - Detailed function documentation.
 
 ## Integration with Climate Models
 
