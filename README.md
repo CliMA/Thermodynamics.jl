@@ -103,7 +103,7 @@ println("Converged: ",     sol.converged)
 
 ### 🔧 **Flexible Design**
 
-- **Multiple formulations**: Solve for equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_liq_ice)`, etc.
+- **Multiple formulations**: Solve for equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc.
 - **Extensible parameters**: Easily adapt to different planetary atmospheres via `ClimaParams`.
 
 ## Core Design Principles

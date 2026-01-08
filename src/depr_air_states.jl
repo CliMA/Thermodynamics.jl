@@ -410,12 +410,12 @@ PhaseEquil_ρeq(param_set::APS, ρ, e_int, q_tot, args...) =
 end
 
 """
-    PhaseEquil_ρθq(param_set, ρ, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, T_guess])
+    PhaseEquil_ρθq(param_set, ρ, θ_li, q_tot[, maxiter, relative_temperature_tol, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from density, liquid-ice potential temperature, and total specific humidity, given
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
- - `θ_liq_ice` liquid-ice potential temperature
+ - `θ_li` liquid-ice potential temperature
  - `q_tot` total specific humidity
 and, optionally
  - `maxiter` maximum iterations for saturation adjustment (default: 36)
@@ -428,7 +428,7 @@ and the pressure and internal energy are computed from the equation of state.
 @inline function PhaseEquil_ρθq(
     param_set::APS,
     ρ::FT,
-    θ_liq_ice::FT,
+    θ_li::FT,
     q_tot::FT,
     maxiter::IT = nothing,
     relative_temperature_tol::TT = nothing,
@@ -441,7 +441,7 @@ and the pressure and internal energy are computed from the equation of state.
     T = saturation_adjustment_given_ρθq(
         param_set,
         ρ,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         phase_type,
         maxiter,
@@ -453,8 +453,8 @@ and the pressure and internal energy are computed from the equation of state.
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot, T)
 end
-PhaseEquil_ρθq(param_set::APS, ρ, θ_liq_ice, q_tot, args...) =
-    PhaseEquil_ρθq(param_set, promote(ρ, θ_liq_ice, q_tot)..., args...)
+PhaseEquil_ρθq(param_set::APS, ρ, θ_li, q_tot, args...) =
+    PhaseEquil_ρθq(param_set, promote(ρ, θ_li, q_tot)..., args...)
 
 """
     PhaseEquil_ρTq(param_set, ρ, T, q_tot)
@@ -678,12 +678,12 @@ PhaseEquil_ρpq(param_set::APS, ρ, p, q_tot, args...) =
 
 
 """
-    PhaseEquil_pθq(param_set, p, θ_liq_ice, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
+    PhaseEquil_pθq(param_set, p, θ_li, q_tot[, maxiter, relative_temperature_tol, sat_adjust_method, T_guess])
 
 Constructs a [`PhaseEquil`](@ref) thermodynamic state from pressure, liquid-ice potential temperature, and total specific humidity, given
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` air pressure
- - `θ_liq_ice` liquid-ice potential temperature
+ - `θ_li` liquid-ice potential temperature
  - `q_tot` total specific humidity
 and, optionally
  - `maxiter` maximum iterations for saturation adjustment (default: 50)
@@ -698,7 +698,7 @@ and the density and internal energy are computed from the equation of state.
 @inline function PhaseEquil_pθq(
     param_set::APS,
     p::FT,
-    θ_liq_ice::FT,
+    θ_li::FT,
     q_tot::FT,
     maxiter::IT = nothing,
     relative_temperature_tol::TT = nothing,
@@ -714,7 +714,7 @@ and the density and internal energy are computed from the equation of state.
         sat_adjust_method,
         param_set,
         p,
-        θ_liq_ice,
+        θ_li,
         q_tot_safe,
         phase_type,
         maxiter,
@@ -726,8 +726,8 @@ and the density and internal energy are computed from the equation of state.
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseEquil{FT}(ρ, p, e_int, q_tot_safe, T)
 end
-PhaseEquil_pθq(param_set::APS, p, θ_liq_ice, q_tot, args...) =
-    PhaseEquil_pθq(param_set, promote(p, θ_liq_ice, q_tot)..., args...)
+PhaseEquil_pθq(param_set::APS, p, θ_li, q_tot, args...) =
+    PhaseEquil_pθq(param_set, promote(p, θ_li, q_tot)..., args...)
 
 #####
 ##### Non-equilibrium states
@@ -761,12 +761,12 @@ PhaseNonEquil_ρTq(param_set::APS, ρ, T, q_pt) =
     PhaseNonEquil_ρTq(param_set, promote_phase_partition(ρ, T, q_pt)...)
 
 """
-    PhaseNonEquil_ρθq(param_set, ρ, θ_liq_ice, q_pt)
+    PhaseNonEquil_ρθq(param_set, ρ, θ_li, q_pt)
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from density, liquid-ice potential temperature, and phase partition, given
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
- - `θ_liq_ice` liquid-ice potential temperature
+ - `θ_li` liquid-ice potential temperature
  - `q_pt` phase partition
 and, optionally
  - `maxiter` maximum iterations for non-linear equation solve (default: 10)
@@ -778,7 +778,7 @@ and the internal energy is computed from the temperature and phase partition.
 @inline function PhaseNonEquil_ρθq(
     param_set::APS,
     ρ::FT,
-    θ_liq_ice::FT,
+    θ_li::FT,
     q_pt::PhasePartition{FT},
     maxiter::Int = 10,
     relative_temperature_tol::FT = FT(1e-4),
@@ -788,7 +788,7 @@ and the internal energy is computed from the temperature and phase partition.
     T = air_temperature_given_ρθq_nonlinear(
         param_set,
         ρ,
-        θ_liq_ice,
+        θ_li,
         maxiter,
         tol,
         q_pt,
@@ -796,16 +796,16 @@ and the internal energy is computed from the temperature and phase partition.
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
-PhaseNonEquil_ρθq(param_set::APS, ρ, θ_liq_ice, q_pt) =
-    PhaseNonEquil_ρθq(param_set, promote_phase_partition(ρ, θ_liq_ice, q_pt)...)
+PhaseNonEquil_ρθq(param_set::APS, ρ, θ_li, q_pt) =
+    PhaseNonEquil_ρθq(param_set, promote_phase_partition(ρ, θ_li, q_pt)...)
 
 """
-    PhaseNonEquil_pθq(param_set, p, θ_liq_ice, q_pt)
+    PhaseNonEquil_pθq(param_set, p, θ_li, q_pt)
 
 Constructs a [`PhaseNonEquil`](@ref) thermodynamic state from pressure, liquid-ice potential temperature, and phase partition, given
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `θ_liq_ice` liquid-ice potential temperature
+ - `θ_li` liquid-ice potential temperature
  - `q_pt` phase partition
 
 The temperature is computed from the pressure and liquid-ice potential temperature,
@@ -814,16 +814,16 @@ and the density and internal energy are computed from the equation of state.
 @inline function PhaseNonEquil_pθq(
     param_set::APS,
     p::FT,
-    θ_liq_ice::FT,
+    θ_li::FT,
     q_pt::PhasePartition{FT},
 ) where {FT <: Real}
-    T = air_temperature_given_pθq(param_set, p, θ_liq_ice, q_pt)
+    T = air_temperature_given_pθq(param_set, p, θ_li, q_pt)
     ρ = air_density(param_set, T, p, q_pt)
     e_int = internal_energy(param_set, T, q_pt)
     return PhaseNonEquil{FT}(e_int, ρ, q_pt)
 end
-PhaseNonEquil_pθq(param_set::APS, p, θ_liq_ice, q_pt) =
-    PhaseNonEquil_pθq(param_set, promote_phase_partition(p, θ_liq_ice, q_pt)...)
+PhaseNonEquil_pθq(param_set::APS, p, θ_li, q_pt) =
+    PhaseNonEquil_pθq(param_set, promote_phase_partition(p, θ_li, q_pt)...)
 
 """
     PhaseNonEquil_pTq(param_set, p, T, q_pt)

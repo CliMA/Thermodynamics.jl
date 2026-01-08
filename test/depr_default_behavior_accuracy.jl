@@ -14,7 +14,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             _cp_d = TP.cp_d(param_set)
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, e_int, ρ, θ_liq_ice) = profiles
+            (; T, p, e_int, ρ, θ_li) = profiles
             (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
 
             RH_sat_mask = or.(RH .> 1, RH .≈ 1)
@@ -140,7 +140,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
         @testset "Constructor accuracy" begin
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, e_int, ρ, θ_liq_ice) = profiles
+            (; T, p, e_int, ρ, θ_li) = profiles
             (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
             ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
             ts_exact =
@@ -309,7 +309,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
         @testset "PhaseEquil constructors" begin
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, e_int, ρ, θ_liq_ice) = profiles
+            (; T, p, e_int, ρ, θ_li) = profiles
             (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
             ts_exact =
                 PhaseEquil_ρeq.(
@@ -359,8 +359,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
 
             # PhaseEquil_ρθq
             ts_exact =
-                PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-6))
-            ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot)
+                PhaseEquil_ρθq.(param_set, ρ, θ_li, q_tot, 45, FT(1e-6))
+            ts = PhaseEquil_ρθq.(param_set, ρ, θ_li, q_tot)
             # Should be machine accurate:
             @test all(
                 air_density.(param_set, ts) .≈
@@ -392,14 +392,14 @@ This file contains tests for saturation adjustment accuracy and convergence.
 
             # PhaseEquil_pθq
             ts_exact =
-                PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-6))
-            ts = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
+                PhaseEquil_pθq.(param_set, p, θ_li, q_tot, 40, FT(1e-6))
+            ts = PhaseEquil_pθq.(param_set, p, θ_li, q_tot)
 
             ts =
                 PhaseEquil_pθq.(
                     param_set,
                     p,
-                    θ_liq_ice,
+                    θ_li,
                     q_tot,
                     40,
                     FT(rtol_temperature),
@@ -448,7 +448,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             T_freeze_plus = _T_freeze + TD.ϵ_numerics(FT)
             T_freeze_minus = _T_freeze - TD.ϵ_numerics(FT)
 
-            θ_liq_ice_upper =
+            θ_li_upper =
                 TD.liquid_ice_pottemp_given_pressure.(
                     param_set,
                     Ref(T_freeze_plus),
@@ -461,7 +461,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
                         Ref(phase_type),
                     ),
                 )
-            θ_liq_ice_lower =
+            θ_li_lower =
                 TD.liquid_ice_pottemp_given_pressure.(
                     param_set,
                     Ref(T_freeze_minus),
@@ -474,11 +474,11 @@ This file contains tests for saturation adjustment accuracy and convergence.
                         Ref(phase_type),
                     ),
                 )
-            θ_liq_ice_mid = (θ_liq_ice_upper .+ θ_liq_ice_lower) ./ 2
+            θ_li_mid = (θ_li_upper .+ θ_li_lower) ./ 2
 
-            ts_lower = PhaseEquil_pθq.(param_set, p, θ_liq_ice_lower, q_tot)
-            ts_upper = PhaseEquil_pθq.(param_set, p, θ_liq_ice_upper, q_tot)
-            ts_mid = PhaseEquil_pθq.(param_set, p, θ_liq_ice_mid, q_tot)
+            ts_lower = PhaseEquil_pθq.(param_set, p, θ_li_lower, q_tot)
+            ts_upper = PhaseEquil_pθq.(param_set, p, θ_li_upper, q_tot)
+            ts_mid = PhaseEquil_pθq.(param_set, p, θ_li_mid, q_tot)
 
             # Test that all states converge to approximately the freezing point
             @test all(
@@ -499,12 +499,12 @@ This file contains tests for saturation adjustment accuracy and convergence.
         @testset "PhaseNonEquil" begin
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; ρ, θ_liq_ice, q_tot, q_liq, q_ice) = profiles
+            (; ρ, θ_li, q_tot, q_liq, q_ice) = profiles
             # Create PhasePartition for deprecated constructor tests
             q_pt = TD.PhasePartition.(q_tot, q_liq, q_ice)
             ts_exact =
-                PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt, 40, FT(1e-6))
-            ts = PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt)
+                PhaseNonEquil_ρθq.(param_set, ρ, θ_li, q_pt, 40, FT(1e-6))
+            ts = PhaseNonEquil_ρθq.(param_set, ρ, θ_li, q_pt)
             # Should be machine accurate:
             @test all(compare_moisture.(param_set, ts, ts_exact))
             @test all(

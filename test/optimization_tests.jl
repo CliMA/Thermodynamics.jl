@@ -95,8 +95,8 @@ get_kwargs(x, ::Type{TD.ρe}) = (; ρ = x.ρ, e_int = x.e_int_ρ, q_tot = x.q_to
 get_kwargs(x, ::Type{TD.pe}) = (; p = x.p, e_int = x.e_int_p, q_tot = x.q_tot)
 get_kwargs(x, ::Type{TD.ph}) = (; p = x.p, h = x.h_p, q_tot = x.q_tot)
 get_kwargs(x, ::Type{TD.pρ}) = (; p = x.p, ρ = x.ρ, q_tot = x.q_tot)
-get_kwargs(x, ::Type{TD.ρθ_li}) = (; ρ = x.ρ, θ_liq_ice = x.θ_ρ, q_tot = x.q_tot)
-get_kwargs(x, ::Type{TD.pθ_li}) = (; p = x.p, θ_liq_ice = x.θ_p, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.ρθ_li}) = (; ρ = x.ρ, θ_li = x.θ_ρ, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.pθ_li}) = (; p = x.p, θ_li = x.θ_p, q_tot = x.q_tot)
 
 conditions(::Type) = (:dry, :saturated)
 

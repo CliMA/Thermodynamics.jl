@@ -83,11 +83,11 @@ end
 Find an index in the given `profiles` that satisfies
 some condition. For example, find the index that we're
 sure that saturation adjustment is performed for a given
-(profiles.p[i], profiles.θ_liq_ice[i], profiles.q_tot[i]).
+(profiles.p[i], profiles.θ_li[i], profiles.q_tot[i]).
 =#
 use_p_based(::Type{TD.peq}) = true
 use_p_based(::Type{TD.phq}) = true
-use_p_based(::Type{TD.pθ_liq_ice_q}) = true
+use_p_based(::Type{TD.pθ_li_q}) = true
 use_p_based(::Type) = false
 
 function conditions_index(inputs, sym, ftype::Type)
@@ -165,8 +165,8 @@ get_kwargs(x, ::Type{TD.ρeq}) = (; ρ = x.ρ, e_int = x.e_int_ρ, q_tot = x.q_t
 get_kwargs(x, ::Type{TD.peq}) = (; p = x.p, e_int = x.e_int_p, q_tot = x.q_tot)
 get_kwargs(x, ::Type{TD.phq}) = (; p = x.p, h = x.h_p, q_tot = x.q_tot)
 get_kwargs(x, ::Type{TD.pρq}) = (; p = x.p, ρ = x.ρ, q_tot = x.q_tot)
-get_kwargs(x, ::Type{TD.ρθ_liq_ice_q}) = (; ρ = x.ρ, θ_liq_ice = x.θ_ρ, q_tot = x.q_tot)
-get_kwargs(x, ::Type{TD.pθ_liq_ice_q}) = (; p = x.p, θ_liq_ice = x.θ_p, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.ρθ_li_q}) = (; ρ = x.ρ, θ_li = x.θ_ρ, q_tot = x.q_tot)
+get_kwargs(x, ::Type{TD.pθ_li_q}) = (; p = x.p, θ_li = x.θ_p, q_tot = x.q_tot)
 
 conditions(::Type) = (:dry, :saturated)
 

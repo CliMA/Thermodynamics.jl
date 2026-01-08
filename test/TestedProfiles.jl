@@ -32,7 +32,7 @@ struct ProfileSet{AFT}
     e_int::AFT      # Internal energy
     h::AFT          # Specific enthalpy
     ρ::AFT          # Density
-    θ_liq_ice::AFT  # Liquid ice potential temperature
+    θ_li::AFT  # Liquid ice potential temperature
     q_tot::AFT      # Total specific humidity
     q_liq::AFT      # Liquid specific humidity
     q_ice::AFT      # Ice specific humidity
@@ -54,7 +54,7 @@ function Base.iterate(ps::ProfileSet, state = 1)
         e_int = ps.e_int[state],
         h = ps.h[state],
         ρ = ps.ρ[state],
-        θ_liq_ice = ps.θ_liq_ice[state],
+        θ_li = ps.θ_li[state],
         q_tot = ps.q_tot[state],
         q_liq = ps.q_liq[state],
         q_ice = ps.q_ice[state],
@@ -166,7 +166,7 @@ function DryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
 
     e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
     h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
-    θ_liq_ice =
+    θ_li =
         TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
     RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
 
@@ -186,7 +186,7 @@ function DryProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
         e_int,
         h,
         ρ,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         q_liq,
         q_ice,
@@ -235,7 +235,7 @@ function EquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
 
     e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
     h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
-    θ_liq_ice =
+    θ_li =
         TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
     RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
 
@@ -255,7 +255,7 @@ function EquilMoistProfiles(param_set::APS, ::Type{ArrayType}) where {ArrayType}
         e_int,
         h,
         ρ,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         q_liq,
         q_ice,
@@ -302,7 +302,7 @@ function NonEquilMoistProfiles(
 
     e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
     h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
-    θ_liq_ice =
+    θ_li =
         TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
     RH = TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice)
 
@@ -322,7 +322,7 @@ function NonEquilMoistProfiles(
         e_int,
         h,
         ρ,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         q_liq,
         q_ice,

@@ -125,7 +125,7 @@ end
         param_set,
         ::pθ_li,
         p,
-        θ_liq_ice,
+        θ_li,
         q_tot=0,
         q_liq=0,
         q_ice=0
@@ -136,7 +136,7 @@ The air temperature obtained by inverting the liquid-ice potential temperature, 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p`: pressure [Pa]
- - `θ_liq_ice`: liquid-ice potential temperature [K]
+ - `θ_li`: liquid-ice potential temperature [K]
  - `q_tot`: total specific humidity [kg/kg]
  - `q_liq`: liquid specific humidity [kg/kg]
  - `q_ice`: ice specific humidity [kg/kg]
@@ -144,7 +144,7 @@ The air temperature obtained by inverting the liquid-ice potential temperature, 
 # Returns
  - `T`: air temperature [K]
 
-If the specific humidities are not given, `θ_liq_ice` is assumed to be the dry-air
+If the specific humidities are not given, `θ_li` is assumed to be the dry-air
 potential temperature.
 This inverts [`liquid_ice_pottemp_given_pressure`](@ref) by solving for `T`.
 """
@@ -152,26 +152,26 @@ This inverts [`liquid_ice_pottemp_given_pressure`](@ref) by solving for `T`.
     param_set::APS,
     ::pθ_li,
     p::Real,
-    θ_liq_ice::Real,
+    θ_li::Real,
     q_tot::Real = 0,
     q_liq::Real = 0,
     q_ice::Real = 0,
 )
     cpm = cp_m(param_set, q_tot, q_liq, q_ice)
-    return θ_liq_ice * exner_given_pressure(param_set, p, q_tot, q_liq, q_ice) +
+    return θ_li * exner_given_pressure(param_set, p, q_tot, q_liq, q_ice) +
            humidity_weighted_latent_heat(param_set, q_liq, q_ice) / cpm
 end
 
 
 """
-    air_temperature(param_set, ::ρθ_li, ρ, θ_liq_ice, q_tot=0, q_liq=0, q_ice=0)
+    air_temperature(param_set, ::ρθ_li, ρ, θ_li, q_tot=0, q_liq=0, q_ice=0)
 
 The air temperature obtained by inverting the liquid-ice potential temperature, given
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ`: (moist-)air density [kg/m³]
- - `θ_liq_ice`: liquid-ice potential temperature [K]
+ - `θ_li`: liquid-ice potential temperature [K]
  - `q_tot`: total specific humidity [kg/kg]
  - `q_liq`: liquid specific humidity [kg/kg]
  - `q_ice`: ice specific humidity [kg/kg]
@@ -190,7 +190,7 @@ potential temperature, then latent heat corrections are applied.
     param_set::APS,
     ::ρθ_li,
     ρ::Real,
-    θ_liq_ice::Real,
+    θ_li::Real,
     q_tot::Real = 0,
     q_liq::Real = 0,
     q_ice::Real = 0,
@@ -202,8 +202,8 @@ potential temperature, then latent heat corrections are applied.
     R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     κ = 1 - cvm / cpm
 
-    # Unsaturated temperature corresponding to (ρ, θ_liq_ice) in the dry/moist EOS sense
-    T_unsat = (ρ * R_m * θ_liq_ice / p_ref)^(R_m / cvm) * θ_liq_ice
+    # Unsaturated temperature corresponding to (ρ, θ_li) in the dry/moist EOS sense
+    T_unsat = (ρ * R_m * θ_li / p_ref)^(R_m / cvm) * θ_li
 
     # Latent-heat correction (humidity-weighted at reference temperature)
     L_q = humidity_weighted_latent_heat(param_set, q_liq, q_ice)
@@ -345,7 +345,7 @@ The liquid-ice potential temperature, given
  - `q_ice`: ice specific humidity [kg/kg]
 
 # Returns
- - `θ_liq_ice`: liquid-ice potential temperature [K]
+ - `θ_li`: liquid-ice potential temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
 
@@ -386,7 +386,7 @@ The liquid-ice potential temperature, given
  - `q_ice`: ice specific humidity [kg/kg]
 
 # Returns
- - `θ_liq_ice`: liquid-ice potential temperature [K]
+ - `θ_li`: liquid-ice potential temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
 The latent heats of phase transitions are approximated as constants.

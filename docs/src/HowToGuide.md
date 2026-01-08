@@ -98,7 +98,7 @@ println("Equilibrium T: $T_equil")
 - `TD.ρe()`: Inputs: `ρ`, `e_int`, `q_tot`
 - `TD.pe()`: Inputs: `p`, `e_int`, `q_tot`
 - `TD.ph()`: Inputs: `p`, `h`, `q_tot`
-- `TD.pθ_li()`: Inputs: `p`, `θ_liq_ice`, `q_tot`
+- `TD.pθ_li()`: Inputs: `p`, `θ_li`, `q_tot`
 
 ### **2. Non-Equilibrium Calculations (Explicit Phases)**
 

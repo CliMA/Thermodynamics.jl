@@ -10,8 +10,8 @@ function test_type_stability_for_type(FT)
 
     # Create dry profiles and thermodynamic states
     profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
-    (; T, p, e_int, ρ, θ_liq_ice) = profiles
-    (; T, p, e_int, ρ, θ_liq_ice) = profiles
+    (; T, p, e_int, ρ, θ_li) = profiles
+    (; T, p, e_int, ρ, θ_li) = profiles
     (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
     h = e_int + p ./ ρ
 
@@ -25,7 +25,7 @@ function test_type_stability_for_type(FT)
 
     # Create equilibrium profiles and thermodynamic states
     profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-    (; T, p, e_int, ρ, θ_liq_ice) = profiles
+    (; T, p, e_int, ρ, θ_li) = profiles
     (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
     # Create PhasePartition for testing
     q_pt = TD.PhasePartition.(q_tot, q_liq, q_ice)
@@ -71,26 +71,26 @@ function test_type_stability_for_type(FT)
     ts_ρT_neq = PhaseNonEquil_ρTq.(param_set, ρ, T, q_pt)
     ts_pT_neq = PhaseNonEquil_pTq.(param_set, p, T, q_pt)
 
-    ts_θ_liq_ice_eq =
+    ts_θ_li_eq =
         PhaseEquil_ρθq.(
             param_set,
             ρ,
-            θ_liq_ice,
+            θ_li,
             q_tot,
             40,
             FT(rtol_temperature),
         )
-    ts_θ_liq_ice_eq_p =
+    ts_θ_li_eq_p =
         PhaseEquil_pθq.(
             param_set,
             p,
-            θ_liq_ice,
+            θ_li,
             q_tot,
             40,
             FT(rtol_temperature),
         )
-    ts_θ_liq_ice_neq = PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt)
-    ts_θ_liq_ice_neq_p = PhaseNonEquil_pθq.(param_set, p, θ_liq_ice, q_pt)
+    ts_θ_li_neq = PhaseNonEquil_ρθq.(param_set, ρ, θ_li, q_pt)
+    ts_θ_li_neq_p = PhaseNonEquil_pθq.(param_set, p, θ_li, q_pt)
 
     # All thermodynamic states to test
     all_ts = (
@@ -107,10 +107,10 @@ function test_type_stability_for_type(FT)
         ts_neq,
         ts_ρT_neq,
         ts_pT_neq,
-        ts_θ_liq_ice_eq,
-        ts_θ_liq_ice_eq_p,
-        ts_θ_liq_ice_neq,
-        ts_θ_liq_ice_neq_p,
+        ts_θ_li_eq,
+        ts_θ_li_eq_p,
+        ts_θ_li_neq,
+        ts_θ_li_neq_p,
     )
 
     # Type stability tests for all thermodynamic functions

@@ -400,7 +400,7 @@ end
         @test isapprox(T_pθ_li_cpu[i], T_ref; rtol = FT(5e-6))
         @test isapprox(ql_pθ_li_cpu[i], ql_ref; rtol = FT(1e-6), atol = FT(1e-12))
         @test isapprox(qi_pθ_li_cpu[i], qi_ref; rtol = FT(1e-6), atol = FT(1e-12))
-        # Invariance checks (pθ_liq_ice_q): θ target and partition using ρ(T,p,q_tot)
+        # Invariance checks (pθ_li_q): θ target and partition using ρ(T,p,q_tot)
         let ρ_eff = TD.air_density(param_set, T_pθ_li_cpu[i], p0[i], q0[i])
             let (ql_chk, qi_chk) =
                     TD.condensate_partition(param_set, T_pθ_li_cpu[i], ρ_eff, q0[i])

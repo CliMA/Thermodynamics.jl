@@ -84,15 +84,15 @@ function sa_ρeq_loop(param_set, ρ, e_int, q_tot; maxiter = 40, tol = FT(1e-10)
     return s
 end
 
-function sa_pθ_loop(param_set, p, θ_liq_ice, q_tot; maxiter = 40, tol = FT(1e-10))
+function sa_pθ_loop(param_set, p, θ_li, q_tot; maxiter = 40, tol = FT(1e-10))
     s = zero(FT)
     @inbounds for i in eachindex(q_tot)
         (T, ql, qi) = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
-            TD.pθ_liq_ice_q(),
+            TD.pθ_li_q(),
             p[i],
-            θ_liq_ice[i],
+            θ_li[i],
             q_tot[i],
             maxiter,
             tol,

@@ -977,7 +977,7 @@ end
     air_temperature_given_pθq(
         param_set,
         p,
-        θ_liq_ice,
+        θ_li,
         [q::PhasePartition]
     )
 
@@ -985,23 +985,23 @@ The air temperature obtained by inverting the liquid-ice potential temperature, 
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `p` pressure
- - `θ_liq_ice` liquid-ice potential temperature
+ - `θ_li` liquid-ice potential temperature
  
 and, optionally,
  - `q` [`PhasePartition`](@ref). 
  
-When `q` is not provided, the `θ_liq_ice` is assumed to be the dry-air potential temperature.
+When `q` is not provided, the `θ_li` is assumed to be the dry-air potential temperature.
 """
 @inline function air_temperature_given_pθq(
     param_set::APS,
     p,
-    θ_liq_ice,
+    θ_li,
     q::PhasePartition,
 )
     return air_temperature_given_pθq(
         param_set,
         p,
-        θ_liq_ice,
+        θ_li,
         q.tot,
         q.liq,
         q.ice,
@@ -1009,13 +1009,13 @@ When `q` is not provided, the `θ_liq_ice` is assumed to be the dry-air potentia
 end
 
 """
-    air_temperature_given_ρθq(param_set, ρ, θ_liq_ice[, q::PhasePartition])
+    air_temperature_given_ρθq(param_set, ρ, θ_li[, q::PhasePartition])
 
 The air temperature obtained by inverting the liquid-ice potential temperature, given
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
- - `θ_liq_ice` liquid-ice potential temperature
+ - `θ_li` liquid-ice potential temperature
 
 and, optionally,
 
@@ -1026,13 +1026,13 @@ When `q` is not provided, the results are for dry air.
 @inline function air_temperature_given_ρθq(
     param_set::APS,
     ρ,
-    θ_liq_ice,
+    θ_li,
     q::PhasePartition,
 )
     return air_temperature_given_ρθq(
         param_set,
         ρ,
-        θ_liq_ice,
+        θ_li,
         q.tot,
         q.liq,
         q.ice,
@@ -1130,13 +1130,13 @@ end
 
 
 """
-    air_temperature_given_ρθq_nonlinear(param_set, ρ, θ_liq_ice, maxiter, tol, q::PhasePartition)
+    air_temperature_given_ρθq_nonlinear(param_set, ρ, θ_li, maxiter, tol, q::PhasePartition)
 
 Computes temperature `T`, given
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
- - `θ_liq_ice` liquid-ice potential temperature
+ - `θ_li` liquid-ice potential temperature
 
 and, optionally,
  - `maxiter` maximum iterations for non-linear equation solve
@@ -1148,13 +1148,13 @@ and, optionally,
 The temperature `T` is found by finding the root of
 `T - air_temperature_given_pθq(param_set,
                                air_pressure(param_set, T, ρ, q),
-                               θ_liq_ice,
+                               θ_li,
                                q) = 0`
 """
 @inline function air_temperature_given_ρθq_nonlinear(
     param_set::APS,
     ρ,
-    θ_liq_ice,
+    θ_li,
     maxiter::Int,
     tol::RS.AbstractTolerance,
     q::PhasePartition = q_pt_0(param_set),
@@ -1165,7 +1165,7 @@ The temperature `T` is found by finding the root of
         T - air_temperature_given_pθq(
             param_set,
             air_pressure(param_set, ReLU(T), ρ, q),
-            θ_liq_ice,
+            θ_li,
             q,
         )
     sol = RS.find_zero(

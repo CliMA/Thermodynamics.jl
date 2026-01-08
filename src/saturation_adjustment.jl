@@ -345,7 +345,7 @@ end
         param_set,
         ::pθ_li,
         p::Real,
-        θ_liq_ice::Real,
+        θ_li::Real,
         q_tot::Real,
         maxiter::Int,
         tol,
@@ -353,14 +353,14 @@ end
     )
 
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
-given pressure `p`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
+given pressure `p`, liquid-ice potential temperature `θ_li`, and total specific humidity `q_tot`.
 
 # Arguments
 - `M`: Root-solving method type from `RootSolvers.jl`. Supported types:
   `RS.SecantMethod`, `RS.BrentsMethod`, `RS.NewtonsMethod`, `RS.NewtonsMethodAD`.
 - `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
 - `p`: Pressure of moist air [Pa].
-- `θ_liq_ice`: Liquid-ice potential temperature [K].
+- `θ_li`: Liquid-ice potential temperature [K].
 - `q_tot`: Total specific humidity [kg/kg].
 - `maxiter`: Maximum iterations for the solver [dimensionless integer].
 - `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
@@ -378,13 +378,13 @@ function saturation_adjustment(
     param_set::APS,
     ::pθ_li,
     p,
-    θ_liq_ice,
+    θ_li,
     q_tot,
     maxiter::Int,
     tol,
     T_guess = nothing,
 ) where {M}
-    θ_liq_ice_sat_given_p =
+    θ_li_sat_given_p =
         T -> begin
             _ρ = air_density(param_set, T, p, q_tot)
             (_q_liq, _q_ice) = condensate_partition(param_set, T, _ρ, q_tot)
@@ -392,31 +392,31 @@ function saturation_adjustment(
         end
 
     temp_unsat_func =
-        (param_set, θ_liq_ice, q_tot) ->
-            air_temperature(param_set, pθ_li(), p, θ_liq_ice, q_tot)
+        (param_set, θ_li, q_tot) ->
+            air_temperature(param_set, pθ_li(), p, θ_li, q_tot)
 
     q_sat_func =
         (param_set, T, q_tot) ->
             q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
 
     temp_ice_func =
-        (param_set, θ_liq_ice, q_tot) ->
+        (param_set, θ_li, q_tot) ->
             air_temperature(
                 param_set,
                 pθ_li(),
                 p,
-                θ_liq_ice,
+                θ_li,
                 q_tot,
                 zero(q_tot),
                 q_tot,
             )
 
-    roots_func = T -> θ_liq_ice_sat_given_p(T) - θ_liq_ice
+    roots_func = T -> θ_li_sat_given_p(T) - θ_li
 
     (T, converged) = _saturation_adjustment_generic(
         M,
         param_set,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         maxiter,
         tol,
@@ -438,7 +438,7 @@ end
         param_set,
         ::ρθ_li,
         ρ::Real,
-        θ_liq_ice::Real,
+        θ_li::Real,
         q_tot::Real,
         maxiter::Int,
         tol,
@@ -446,14 +446,14 @@ end
     )
 
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
-given density `ρ`, liquid-ice potential temperature `θ_liq_ice`, and total specific humidity `q_tot`.
+given density `ρ`, liquid-ice potential temperature `θ_li`, and total specific humidity `q_tot`.
 
 # Arguments
 - `M`: Root-solving method type from `RootSolvers.jl`. Supported types:
   `RS.SecantMethod`, `RS.BrentsMethod`, `RS.NewtonsMethod`, `RS.NewtonsMethodAD`.
 - `param_set`: Thermodynamics parameter set, see [`Thermodynamics`](@ref).
 - `ρ`: Density of moist air [kg/m³].
-- `θ_liq_ice`: Liquid-ice potential temperature [K].
+- `θ_li`: Liquid-ice potential temperature [K].
 - `q_tot`: Total specific humidity [kg/kg].
 - `maxiter`: Maximum iterations for the solver [dimensionless integer].
 - `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
@@ -471,43 +471,43 @@ function saturation_adjustment(
     param_set::APS,
     ::ρθ_li,
     ρ,
-    θ_liq_ice,
+    θ_li,
     q_tot,
     maxiter::Int,
     tol,
     T_guess = nothing,
 ) where {M}
-    θ_liq_ice_sat_given_ρ =
+    θ_li_sat_given_ρ =
         T -> begin
             (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
             liquid_ice_pottemp(param_set, T, ρ, q_tot, _q_liq, _q_ice)
         end
 
     temp_unsat_func =
-        (param_set, θ_liq_ice, q_tot) ->
-            air_temperature(param_set, ρθ_li(), ρ, θ_liq_ice, q_tot)
+        (param_set, θ_li, q_tot) ->
+            air_temperature(param_set, ρθ_li(), ρ, θ_li, q_tot)
 
     q_sat_func = (param_set, T, q_tot) ->
         q_vap_saturation(param_set, T, ρ)
 
     temp_ice_func =
-        (param_set, θ_liq_ice, q_tot) ->
+        (param_set, θ_li, q_tot) ->
             air_temperature(
                 param_set,
                 ρθ_li(),
                 ρ,
-                θ_liq_ice,
+                θ_li,
                 q_tot,
                 zero(q_tot),
                 q_tot,
             )
 
-    roots_func = T -> θ_liq_ice_sat_given_ρ(T) - θ_liq_ice
+    roots_func = T -> θ_li_sat_given_ρ(T) - θ_li
 
     (T, converged) = _saturation_adjustment_generic(
         M,
         param_set,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         maxiter,
         tol,
@@ -748,7 +748,7 @@ and root-finding for all `saturation_adjustment` variants.
 # Arguments
 - `Method`: Root-solving method type (e.g., `RS.NewtonsMethod`, `RS.SecantMethod`).
 - `param_set`: Thermodynamics parameter set.
-- `thermo_var`: Thermodynamic variable to match (e.g., `e_int`, `h`, `p`, `θ_liq_ice`).
+- `thermo_var`: Thermodynamic variable to match (e.g., `e_int`, `h`, `p`, `θ_li`).
 - `q_tot`: Total specific humidity.
 - `maxiter`: Maximum iterations for the solver.
 - `relative_temperature_tol`: Relative tolerance for temperature solution.

@@ -6,7 +6,7 @@ function benchmark_thermo_states(::Type{FT}) where {FT}
     param_set = TP.ThermodynamicsParameters(FT)
     inputs = functional_inputs(param_set, FT)
 
-    for F in (TD.ρeq, TD.peq, TD.phq, TD.pρq, TD.ρθ_liq_ice_q, TD.pθ_liq_ice_q)
+    for F in (TD.ρeq, TD.peq, TD.phq, TD.pρq, TD.ρθ_li_q, TD.pθ_li_q)
         for cond in conditions(F)
             args = sample_args(inputs, param_set, cond, F)
             solver = solver_for(F)

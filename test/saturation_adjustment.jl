@@ -42,7 +42,7 @@ Focus:
             (q_liq0, q_ice0) = TD.condensate_partition(param_set, T0, ρ0, q_tot)
             p0 = TD.air_pressure(param_set, T0, ρ0, q_tot, q_liq0, q_ice0)
             h_sat = TD.enthalpy_sat(param_set, T0, ρ0, q_tot)
-            θ_liq_ice_p = TD.liquid_ice_pottemp_given_pressure(
+            θ_li_p = TD.liquid_ice_pottemp_given_pressure(
                 param_set,
                 T0,
                 p0,
@@ -50,7 +50,7 @@ Focus:
                 q_liq0,
                 q_ice0,
             )
-            θ_liq_ice_ρ = TD.liquid_ice_pottemp(param_set, T0, ρ0, q_tot, q_liq0, q_ice0)
+            θ_li_ρ = TD.liquid_ice_pottemp(param_set, T0, ρ0, q_tot, q_liq0, q_ice0)
 
             # ρeq
             let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
@@ -136,13 +136,13 @@ Focus:
                 )
             end
 
-            # pθ_liq_ice_q
+            # pθ_li_q
             let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
                     TD.pθ_li(),
                     p0,
-                    θ_liq_ice_p,
+                    θ_li_p,
                     q_tot,
                     80,
                     FT(1e-10),
@@ -156,23 +156,23 @@ Focus:
                     q_liq,
                     q_ice,
                 )
-                @test isapprox(θ_chk, θ_liq_ice_p; rtol = FT(1e-6))
+                @test isapprox(θ_chk, θ_li_p; rtol = FT(1e-6))
             end
 
-            # ρθ_liq_ice_q
+            # ρθ_li_q
             let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                     RS.SecantMethod,
                     param_set,
                     TD.ρθ_li(),
                     ρ0,
-                    θ_liq_ice_ρ,
+                    θ_li_ρ,
                     q_tot,
                     80,
                     FT(1e-10),
                 )
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
                 θ_chk = TD.liquid_ice_pottemp(param_set, T, ρ0, q_tot, q_liq, q_ice)
-                @test isapprox(θ_chk, θ_liq_ice_ρ; rtol = FT(1e-6))
+                @test isapprox(θ_chk, θ_li_ρ; rtol = FT(1e-6))
             end
         end
     end

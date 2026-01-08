@@ -176,13 +176,13 @@ end
 """
     saturation_adjustment_given_pθq(args...)
 
-Deprecated. Use [`saturation_adjustment`](@ref) with `pθ_liq_ice_q()` dispatch instead.
+Deprecated. Use [`saturation_adjustment`](@ref) with `pθ_li_q()` dispatch instead.
 """
 @inline function saturation_adjustment_given_pθq(
     sat_adjust_method::Type,
     param_set::APS,
     p::Real,
-    θ_liq_ice::Real,
+    θ_li::Real,
     q_tot::Real,
     phase_type::Type,
     maxiter::Int,
@@ -194,7 +194,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `pθ_liq_ice_q()` dispatch 
         param_set,
         pθ_li(),
         p,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         maxiter,
         tol,
@@ -207,12 +207,12 @@ end
 """
     saturation_adjustment_given_ρθq(args...)
 
-Deprecated. Use [`saturation_adjustment`](@ref) with `ρθ_liq_ice_q()` dispatch instead.
+Deprecated. Use [`saturation_adjustment`](@ref) with `ρθ_li_q()` dispatch instead.
 """
 @inline function saturation_adjustment_given_ρθq(
     param_set::APS,
     ρ::Real,
-    θ_liq_ice::Real,
+    θ_li::Real,
     q_tot::Real,
     phase_type::Type,
     maxiter::Int,
@@ -225,7 +225,7 @@ Deprecated. Use [`saturation_adjustment`](@ref) with `ρθ_liq_ice_q()` dispatch
         param_set,
         ρθ_li(),
         ρ,
-        θ_liq_ice,
+        θ_li,
         q_tot,
         maxiter,
         tol,

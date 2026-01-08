@@ -11,7 +11,7 @@ This file contains tests for thermodynamic state constructor consistency.
 
         @testset "PhaseDry" begin
             profiles = TestedProfiles.PhaseDryProfiles(param_set, ArrayType)
-            (; T, p, e_int, h, ρ, θ_liq_ice) = profiles
+            (; T, p, e_int, h, ρ, θ_li) = profiles
             (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
 
             ts = PhaseDry.(param_set, e_int, ρ)
@@ -80,7 +80,7 @@ This file contains tests for thermodynamic state constructor consistency.
         @testset "PhaseEquil" begin
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, e_int, h, ρ, θ_liq_ice) = profiles
+            (; T, p, e_int, h, ρ, θ_li) = profiles
             (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
 
             ts =
@@ -126,7 +126,7 @@ This file contains tests for thermodynamic state constructor consistency.
 
         @testset "PhaseNonEquil" begin
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, e_int, h, ρ, θ_liq_ice) = profiles
+            (; T, p, e_int, h, ρ, θ_li) = profiles
             (; q_tot, q_liq, q_ice) = profiles
             # Create PhasePartition for PhaseNonEquil tests
             q_pt = TD.PhasePartition.(q_tot, q_liq, q_ice)

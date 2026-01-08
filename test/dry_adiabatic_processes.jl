@@ -14,7 +14,7 @@ using Random
         _kappa_d = TP.kappa_d(param_set)
 
         profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-        (; T, p, ρ, θ_liq_ice, q_tot, q_liq, q_ice) = profiles
+        (; T, p, ρ, θ_li, q_tot, q_liq, q_ice) = profiles
 
         @testset "Ideal Gas Law" begin
             T_idgl =
@@ -40,16 +40,16 @@ using Random
                 param_set,
                 DryAdiabaticProcess(),
                 p,
-                θ_liq_ice,
-            ) ≈ (p ./ _p_ref_theta) .^ (_R_d / _cp_d) .* θ_liq_ice
+                θ_li,
+            ) ≈ (p ./ _p_ref_theta) .^ (_R_d / _cp_d) .* θ_li
             @test TD.air_pressure_given_θ.(
                 param_set,
                 DryAdiabaticProcess(),
-                θ_liq_ice,
+                θ_li,
                 Φ,
             ) ≈
                   _p_ref_theta .*
-                  (1 .- Φ ./ (θ_liq_ice .* _cp_d)) .^ (_cp_d / _R_d)
+                  (1 .- Φ ./ (θ_li .* _cp_d)) .^ (_cp_d / _R_d)
             @test air_pressure.(param_set, DryAdiabaticProcess(), T, T∞, p∞) ≈
                   p∞ .* (T ./ T∞) .^ (FT(1) / _kappa_d)
         end
