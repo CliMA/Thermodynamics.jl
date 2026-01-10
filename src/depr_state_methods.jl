@@ -7,6 +7,17 @@ export ice_specific_humidity
 export mixing_ratios
 export saturated
 
+# Backward compatibility exports
+export specific_enthalpy
+export specific_enthalpy_dry
+export specific_enthalpy_vapor
+export specific_enthalpy_liquid
+export specific_enthalpy_ice
+export dry_pottemp
+export total_specific_enthalpy
+export q_vap_saturation_generic
+export latent_heat_liq_ice
+
 """
     gas_constant_air(param_set, ts::ThermodynamicState)
 
@@ -656,3 +667,78 @@ Create a PhasePartition for non-equilibrium thermodynamic state.
     q_vap_sat = vapor_specific_humidity(param_set, ts)
     return ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat)
 end
+
+#####
+##### Backward compatibility wrappers
+#####
+# These wrappers map deprecated function names to their new equivalents
+# to ensure backward compatibility with ClimaAtmos, ClimaLand, and ClimaCoupler.
+
+# specific_enthalpy_* → enthalpy_*
+"""
+    specific_enthalpy(args...)
+
+Deprecated: Use [`enthalpy`](@ref) instead.
+"""
+@inline specific_enthalpy(args...; kwargs...) = enthalpy(args...; kwargs...)
+
+"""
+    specific_enthalpy_dry(args...)
+
+Deprecated: Use [`enthalpy_dry`](@ref) instead.
+"""
+@inline specific_enthalpy_dry(args...; kwargs...) = enthalpy_dry(args...; kwargs...)
+
+"""
+    specific_enthalpy_vapor(args...)
+
+Deprecated: Use [`enthalpy_vapor`](@ref) instead.
+"""
+@inline specific_enthalpy_vapor(args...; kwargs...) = enthalpy_vapor(args...; kwargs...)
+
+"""
+    specific_enthalpy_liquid(args...)
+
+Deprecated: Use [`enthalpy_liquid`](@ref) instead.
+"""
+@inline specific_enthalpy_liquid(args...; kwargs...) = enthalpy_liquid(args...; kwargs...)
+
+"""
+    specific_enthalpy_ice(args...)
+
+Deprecated: Use [`enthalpy_ice`](@ref) instead.
+"""
+@inline specific_enthalpy_ice(args...; kwargs...) = enthalpy_ice(args...; kwargs...)
+
+# dry_pottemp → potential_temperature
+"""
+    dry_pottemp(args...)
+
+Deprecated: Use [`potential_temperature`](@ref) instead.
+"""
+@inline dry_pottemp(args...; kwargs...) = potential_temperature(args...; kwargs...)
+
+# total_specific_enthalpy → total_enthalpy
+"""
+    total_specific_enthalpy(args...)
+
+Deprecated: Use [`total_enthalpy`](@ref) instead.
+"""
+@inline total_specific_enthalpy(args...; kwargs...) = total_enthalpy(args...; kwargs...)
+
+# q_vap_saturation_generic → q_vap_saturation
+"""
+    q_vap_saturation_generic(args...)
+
+Deprecated: Use [`q_vap_saturation`](@ref) instead.
+"""
+@inline q_vap_saturation_generic(args...; kwargs...) = q_vap_saturation(args...; kwargs...)
+
+# latent_heat_liq_ice → humidity_weighted_latent_heat
+"""
+    latent_heat_liq_ice(args...)
+
+Deprecated: Use [`humidity_weighted_latent_heat`](@ref) instead.
+"""
+@inline latent_heat_liq_ice(args...; kwargs...) =
+    humidity_weighted_latent_heat(args...; kwargs...)
