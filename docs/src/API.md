@@ -152,6 +152,24 @@ Thermodynamics.DataCollection
 
 These functions are deprecated and will be removed in a future release.
 
+### Backward Compatibility Wrappers
+
+These wrappers exist for backward compatibility with older versions of the package.
+
+```@docs
+specific_enthalpy
+specific_enthalpy_dry
+specific_enthalpy_vapor
+specific_enthalpy_liquid
+specific_enthalpy_ice
+dry_pottemp
+total_specific_enthalpy
+q_vap_saturation_generic
+latent_heat_liq_ice
+```
+
+### Other Deprecated Functions
+
 ```@docs
 air_temperature_given_hq
 air_temperature_given_pρq
