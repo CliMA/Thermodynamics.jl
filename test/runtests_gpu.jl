@@ -123,7 +123,7 @@ end
     ql_ρe = map(x -> x.q_liq, gpu_results_ρe)
     qi_ρe = map(x -> x.q_ice, gpu_results_ρe)
 
-    # 1b) ρeq - forced_fixed_iters (via type dispatch for GPU compatibility)
+    # 1b) ρeq - forced_fixed_iters (positional Bool for GPU compatibility)
     gpu_results_ρe_fixed =
         TD.saturation_adjustment.(
             RS.NewtonsMethod,
@@ -133,8 +133,9 @@ end
             d_e_int_ρ,
             d_q,
             Ref(3), # maxiter = 3
-            Ref(tol); # This is ignored by the fixed iters path but passed for API consistency
-            forced_fixed_iters = true,
+            Ref(tol), # ignored when forced_fixed_iters=true
+            nothing, # T_guess (ignored when forced_fixed_iters=true)
+            true, # forced_fixed_iters as positional Bool
         )
     T_ρe_fixed = map(x -> x.T, gpu_results_ρe_fixed)
     ql_ρe_fixed = map(x -> x.q_liq, gpu_results_ρe_fixed)

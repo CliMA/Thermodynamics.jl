@@ -241,8 +241,9 @@ const TDTP_SA = TD.TemperatureProfiles
                             inp.e_int_ρ,
                             inp.q0,
                             fixed_maxiter,
-                            fixed_tol;
-                            forced_fixed_iters = true,
+                            fixed_tol,
+                            nothing, # T_guess (ignored)
+                            true, # forced_fixed_iters
                         )
 
                         @test res.converged

@@ -190,18 +190,33 @@ params_f32 = TD.Parameters.ThermodynamicsParameters(FT)
 
 #### **Optimized Saturation Adjustment**
 
-For GPU performance, avoiding branch divergence is important. The `saturation_adjustment` function (with `ρe` formulation) supports a `forced_fixed_iters` option, which replaces the conditional loop with a fixed number of iterations (default 3). This is sufficient for high accuracy (temperature accuracy `0.1 K` and better) in typical atmospheric conditions.
+For GPU performance, avoiding branch divergence is important. For `ρe` formulation, use the fixed-iteration path by passing `forced_fixed_iters=true` as the last positional argument.
 
 ```julia
-# Optimized call for GPU kernels
+# GPU-optimized broadcasting
+sol = TD.saturation_adjustment.(
+    RS.NewtonsMethod,
+    Ref(params_f32),
+    Ref(TD.ρe()),
+    ρ_gpu, e_int_gpu, q_tot_gpu,
+    Ref(3),      # maxiter (3 iterations → ~0.1 K accuracy)
+    Ref(1e-4),   # tol (ignored when forced_fixed_iters=true)
+    nothing,     # T_guess (ignored when forced_fixed_iters=true)
+    true,        # forced_fixed_iters
+)
+```
+
+For CPU single calls, you can omit the last two arguments to use the standard solver:
+
+```julia
+# CPU single-call (standard solver)
 sol = TD.saturation_adjustment(
     RS.NewtonsMethod,
     params_f32,
     TD.ρe(),
-    ρ_gpu, e_int_gpu, q_tot_gpu,
-    3,       # maxiter (number of fixed iterations)
-    1e-4;    # tolerance (ignored when forced_fixed_iters=true, as is T_guess)
-    forced_fixed_iters = true # Force fixed iterations
+    ρ_val, e_int_val, q_tot_val,
+    10,      # maxiter
+    1e-4,    # tolerance
 )
 ```
 

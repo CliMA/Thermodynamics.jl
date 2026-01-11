@@ -14,8 +14,8 @@ export saturation_adjustment
         q_tot::Real,
         maxiter::Int,
         tol,
-        [T_guess::Union{Nothing, Real}];
-        [forced_fixed_iters::Bool]
+        [T_guess::Union{Nothing, Real} = nothing],
+        [forced_fixed_iters::Bool = false]
     )
 
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
@@ -30,7 +30,7 @@ given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`
 - `q_tot`: Total specific humidity [kg/kg].
 - `maxiter`: Maximum iterations for the solver [dimensionless integer].
 - `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
-- `T_guess`: Optional initial guess for the temperature [K].
+- `T_guess`: Optional initial guess for the temperature [K]. Defaults to `nothing`.
 - `forced_fixed_iters`: Optional boolean to force a fixed number of iterations (`maxiter`)
   without checking for convergence. Useful for GPU optimization to avoid branch divergence.
   When `true`, `T_guess` and `tol` are ignored. Defaults to `false`.
@@ -47,6 +47,7 @@ given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`
   root-finding, then computes `(q_liq, q_ice)` from [`condensate_partition`](@ref).
 - For `ρe` formulation, `NewtonsMethod` is recommended (fast + analytic derivative available).
 - For other formulations, `SecantMethod` or `BrentsMethod` are recommended.
+- **GPU broadcasting**: Pass `forced_fixed_iters` as a positional Bool.
 """
 function saturation_adjustment(
     ::Type{M},  # RS.AbstractMethod type
@@ -57,7 +58,7 @@ function saturation_adjustment(
     q_tot,
     maxiter::Int,
     tol,
-    T_guess = nothing;
+    T_guess = nothing,
     forced_fixed_iters::Bool = false,
 ) where {M}
     if forced_fixed_iters
@@ -95,7 +96,6 @@ function saturation_adjustment(
         roots_func,
     )
 
-    # Compute equilibrium phase partition
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice, converged)
 end
@@ -103,15 +103,28 @@ end
 """
     saturation_adjustment_ρe_fixed_iters(param_set, ρ, e_int, q_tot, maxiter)
 
-Internal GPU-optimization helper: unconditional fixed-iteration Newton's method solver
-for `ρe` saturation adjustment. Bypasses standard solver logic (bracketing, unsaturated
-checks, convergence testing) to avoid branch divergence on GPUs.
+GPU-optimized saturation adjustment for `ρe` formulation using a fixed number of
+Newton iterations. 
+
+Bypasses standard solver logic (bracketing, unsaturated checks, convergence testing)
+to avoid branch divergence on GPUs.
+
+# Arguments
+- `param_set`: Thermodynamics parameter set
+- `ρ`: Density [kg/m³]
+- `e_int`: Specific internal energy [J/kg]
+- `q_tot`: Total specific humidity [kg/kg]
+- `maxiter`: Number of Newton iterations (3 recommended for ~0.1 K accuracy)
+
+# Returns
+- `NamedTuple` `(; T, q_liq, q_ice, converged)`
 
 # Notes
-- The `converged` field in the return value is always `true` since no convergence check
-  is performed. The caller is responsible for ensuring `maxiter` is sufficient.
+- The `converged` field is always `true` (no convergence check is performed).
 - With `maxiter = 3`, temperature accuracy is better than 0.1 K for typical atmospheric
   conditions (T < 320 K).
+- This is an internal helper function. For the public API, use [`saturation_adjustment`](@ref)
+  with `forced_fixed_iters=true` as a positional argument.
 """
 @inline function saturation_adjustment_ρe_fixed_iters(
     param_set::APS,
