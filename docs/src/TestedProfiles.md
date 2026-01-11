@@ -5,9 +5,9 @@
 
 ## Overview
 
-`Thermodynamics.jl` is tested using a comprehensive set of thermodynamic profiles specified in `test/TestedProfiles.jl`. These profiles represent a wide range of atmospheric conditions and are used to validate the thermodynamic calculations.
+`Thermodynamics.jl` is tested using a set of thermodynamic profiles specified in `test/TestedProfiles.jl`. These profiles represent a range of atmospheric conditions and are used to validate the thermodynamic calculations.
 
-The tested profiles serve several important functions:
+The tested profiles serve several functions:
 
 - **Validation**: Ensure thermodynamic calculations are correct across diverse conditions
 - **Coverage**: Test the full range of atmospheric temperatures and humidities, including both **phase equilibrium** and **intentional phase non-equilibrium** states.
@@ -152,5 +152,5 @@ The tested profiles are automatically used in:
 
 !!! tip "Development Workflow"
     When adding new thermodynamic functionality, ensure it works correctly
-    with these tested profiles. The profiles provide comprehensive coverage
+    with these tested profiles. The profiles provide coverage
     of atmospheric conditions and help catch numerical issues early.

@@ -9,6 +9,8 @@ This guide covers the essential aspects of using `Thermodynamics.jl`, specifical
 3. [Thermodynamic Calculations](#thermodynamic-calculations)
 4. [Performance Considerations](#performance-considerations)
 5. [Integration with Models](#integration-with-models)
+6. [Automatic Differentiation](#automatic-differentiation)
+7. [Common Pitfalls](#common-pitfalls)
 
 ## Basic Setup
 
@@ -232,6 +234,70 @@ q_ice_new = sol.q_ice
 
 (T_new, q_liq_new, q_ice_new)
 ```
+
+## Automatic Differentiation
+
+`Thermodynamics.jl` is compatible with automatic differentiation (AD) tools such as [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl). This enables computing thermodynamic derivatives for sensitivity analysis, optimization, and adjoint-based methods.
+
+### **Computing Derivatives Through Saturation Adjustment**
+
+A common use case is computing how phase variables change with respect to input thermodynamic variables. For example, computing `∂q_liq/∂e_int` (the rate of change of liquid condensate with internal energy):
+
+```@example HowToGuide
+using ForwardDiff
+
+# Setup: conditions at T = 290 K
+T_sat = 290.0
+ρ = 1.2
+
+# Create supersaturated conditions (q_tot > q_vap_sat)
+q_vap_sat = TD.q_vap_saturation(params, T_sat, ρ)
+q_tot = q_vap_sat * 1.5  # 50% supersaturated
+
+# Get equilibrium partition
+(q_liq_eq, q_ice_eq) = TD.condensate_partition(params, T_sat, ρ, q_tot)
+
+# Compute consistent internal energy
+e_int = TD.internal_energy(params, T_sat, q_tot, q_liq_eq, q_ice_eq)
+
+# Define a function from e_int → q_liq through saturation adjustment
+function q_liq_from_e_int(e)
+    sol = TD.saturation_adjustment(
+        RS.SecantMethod,
+        params,
+        TD.ρe(),
+        ρ, e, q_tot,
+        100,    # maxiter
+        1e-10   # tolerance
+    )
+    return sol.q_liq
+end
+
+# Compute ∂q_liq/∂e_int using ForwardDiff
+dq_liq_de_int = ForwardDiff.derivative(q_liq_from_e_int, e_int)
+
+println("∂q_liq/∂e_int = ", dq_liq_de_int, " [kg/kg per J/kg]")
+```
+
+### **AD-Compatible Derivatives**
+
+All core thermodynamic functions and saturation adjustment routines propagate dual numbers correctly:
+
+```@example HowToGuide
+# ∂T/∂e_int at fixed composition
+function T_from_e_int(e)
+    q_tot, q_liq, q_ice = 0.01, 0.002, 0.0
+    TD.air_temperature(params, e, q_tot, q_liq, q_ice)
+end
+
+e_int_ref = -7.0e4
+dT_de_int = ForwardDiff.derivative(T_from_e_int, e_int_ref)
+
+println("∂T/∂e_int = ", dT_de_int, " [K per J/kg]")
+```
+
+!!! note "Root Solver Compatibility"
+    When using AD through [`saturation_adjustment`](@ref), prefer `RS.SecantMethod` or `RS.NewtonsMethod` for smooth derivative propagation.
 
 ## Common Pitfalls
 

@@ -6,7 +6,7 @@ CurrentModule = Thermodynamics.TemperatureProfiles
 
 ## Overview
 
-The `Thermodynamics.TemperatureProfiles` module provides pre-defined atmospheric temperature profiles for testing and validation purposes, and to be used as reference states in atmosphere models. These profiles represent idealized atmospheric conditions commonly used in climate modeling and thermodynamic testing.
+The `Thermodynamics.TemperatureProfiles` module provides pre-defined atmospheric temperature profiles for testing and validation, and as reference states in atmosphere models. These profiles represent idealized atmospheric conditions used in climate modeling and testing.
 
 ## Available Profiles
 

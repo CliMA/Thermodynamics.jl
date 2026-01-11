@@ -87,7 +87,7 @@ end
 Bool indicating if condensate exists, i.e., q_c > eps.
 
 We use a threshold of `eps` rather than `0` to avoid division by zero in functions
-like `liquid_fraction` and to robustly handle numerical noise.
+such as `liquid_fraction` and to robustly handle numerical noise.
 """
 @inline has_condensate(q_c) = q_c > ϵ_numerics(typeof(q_c))
 

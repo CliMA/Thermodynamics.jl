@@ -1,6 +1,6 @@
 # Thermodynamics.jl
 
-A comprehensive Julia package for atmospheric thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice). `Thermodynamics.jl` implements the thermodynamic formulation of the CliMA Earth System Model ([Yatunin2026](@cite)). It provides a consistent, accurate, and efficient framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** ([Romps2021](@cite)).
+A Julia package for atmospheric thermodynamics, providing consistent thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice). `Thermodynamics.jl` implements the thermodynamic formulation of the CliMA Earth System Model ([Yatunin2026](@cite)), providing a framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** ([Romps2021](@cite)).
 
 ## Table of Contents
 
@@ -86,8 +86,8 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 ### 🌟 **Comprehensive Thermodynamics**
 
-- **Complete moist air thermodynamics** including all water phases (vapor, liquid, ice).
-- **Stateless, functional API** for maximum flexibility and ease of integration.
+- **Moist air thermodynamics** including all water phases (vapor, liquid, ice).
+- **Stateless, functional API** for flexibility and integration.
 - **Consistent formulation** assuming a **calorically perfect gas** mixture.
 
 ### ⚡ **High Performance**
@@ -100,7 +100,7 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 - **Multiple formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc., or using direct functional relationships.
 - **Extensible parameters**: Easily adapt to different planetary atmospheres via `ClimaParams`.
-- **Comprehensive testing** and validation suite.
+- **Testing** and validation suite.
 
 ## Core Design Principles
 
