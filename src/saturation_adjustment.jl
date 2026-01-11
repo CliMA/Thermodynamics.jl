@@ -128,7 +128,7 @@ checks, convergence testing) to avoid branch divergence on GPUs.
     @fastmath for _ in 1:maxiter
         e_val = internal_energy_sat(param_set, T, ρ, q_tot)
         de_int_dT = ∂e_int_∂T_sat(param_set, T, ρ, q_tot)
-        
+
         # f(T) = e_int_target - e_val
         # f'(T) = -de_int_dT
         # Newton step: T_{n+1} = T_n - f(T_n) / f'(T_n)
