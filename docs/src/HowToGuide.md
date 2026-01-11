@@ -4,13 +4,13 @@ This guide covers the essential aspects of using `Thermodynamics.jl`, specifical
 
 ## Table of Contents
 
-1. [Basic Setup](#basic-setup)
-2. [Core Workflow](#core-workflow)
-3. [Thermodynamic Calculations](#thermodynamic-calculations)
-4. [Performance Considerations](#performance-considerations)
-5. [Integration with Models](#integration-with-models)
-6. [Automatic Differentiation](#automatic-differentiation)
-7. [Common Pitfalls](#common-pitfalls)
+1. [Basic Setup](@ref)
+2. [Core Workflow](@ref)
+3. [Thermodynamic Calculations](@ref)
+4. [Performance Considerations](@ref)
+5. [Integration with Models](@ref)
+6. [Automatic Differentiation](@ref)
+7. [Common Pitfalls](@ref)
 
 ## Basic Setup
 
@@ -190,7 +190,7 @@ params_f32 = TD.Parameters.ThermodynamicsParameters(FT)
 
 #### **Optimized Saturation Adjustment**
 
-For GPU performance, avoiding branch divergence is important. For `ρe` formulation, use the fixed-iteration path by passing `forced_fixed_iters=true` as the last positional argument.
+For GPU performance, avoiding branch divergence is important. For the `ρe` formulation, use the fixed-iteration path by passing `forced_fixed_iters=true` as the last positional argument.
 
 ```julia
 # GPU-optimized broadcasting

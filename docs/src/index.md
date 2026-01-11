@@ -4,12 +4,12 @@ A Julia package for atmospheric thermodynamics, providing consistent thermodynam
 
 ## Table of Contents
 
-1. [Quick Start](#quick-start)
-2. [Documentation Overview](#documentation-overview)
-3. [Key Features](#key-features)
-4. [Core Design Principles](#core-design-principles)
-5. [Usage Examples](#usage-examples)
-6. [Integration with Climate Models](#integration-with-climate-models)
+1. [Quick Start](@ref)
+2. [Documentation Overview](@ref)
+3. [Key Features](@ref)
+4. [Core Design Principles](@ref)
+5. [Usage Examples](@ref)
+6. [Integration with Climate Models](@ref)
 
 ## Quick Start
 
@@ -100,7 +100,7 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 - **Multiple formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc., or using direct functional relationships.
 - **Extensible parameters**: Easily adapt to different planetary atmospheres via `ClimaParams`.
-- **Testing** and validation suite.
+- **Comprehensive testing** and validation suite.
 
 ## Core Design Principles
 

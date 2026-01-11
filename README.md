@@ -4,7 +4,7 @@
 
 # Thermodynamics.jl
 
-The `Thermodynamics.jl` package implements the thermodynamic formulation of the [CliMA Earth System Model](https://clima.caltech.edu) (Yatunin et al., 2026). It provides a consistent framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** (Romps, 2021), and thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
+The `Thermodynamics.jl` package implements the thermodynamic formulation of the [CliMA Earth System Model](https://clima.caltech.edu) ([Yatunin et al., 2026](https://doi.org/10.1029/2025MS005014)). It provides a consistent framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** ([Romps, 2021](https://doi.org/10.1002/qj.4154)), and thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
 
 |||
 |-----------------------------:|:-------------------------------------------------|

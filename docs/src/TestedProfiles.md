@@ -152,5 +152,5 @@ The tested profiles are automatically used in:
 
 !!! tip "Development Workflow"
     When adding new thermodynamic functionality, ensure it works correctly
-    with these tested profiles. The profiles provide coverage
+    with these tested profiles. The profiles provide comprehensive coverage
     of atmospheric conditions and help catch numerical issues early.
