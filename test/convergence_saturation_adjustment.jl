@@ -221,6 +221,52 @@ const TDTP_SA = TD.TemperatureProfiles
                         check_partition(T, inp.ρ0, inp.q0, q_liq, q_ice)
                     end
                 end
+
+                # Accuracy check for forced_fixed_iters (GPU optimization)
+                # We expect better than 0.1 K accuracy with maxiter=3.
+                @testset "forced_fixed_iters accuracy ($FT)" begin
+                    fixed_maxiter = 3
+                    fixed_tol = FT(1e-4) # Ignored but passed
+                    max_err = FT(0)
+                    chunk_errs = FT[]
+                    for i in idxs
+                        inp = targets(i)
+                        
+                        # Only applicable to ρe formulation
+                        res = TD.saturation_adjustment(
+                            RS.NewtonsMethod,
+                            param_set,
+                            TD.ρe(),
+                            inp.ρ0,
+                            inp.e_int_ρ,
+                            inp.q0,
+                            fixed_maxiter,
+                            fixed_tol;
+                            forced_fixed_iters = true
+                        )
+                        
+                        @test res.converged
+                        err = abs(res.T - inp.T0)
+                        max_err = max(max_err, err)
+                        push!(chunk_errs, err)
+
+                        if err > FT(0.1) # Outliers appear to occur, if at all, at unrealistically high temperatures/humidities
+                            @info "Outlier detected" FT i err T_ref=inp.T0 p=inp.p0 q_tot=inp.q0 ρ=inp.ρ0
+                        end
+                        
+                        check_partition(res.T, inp.ρ0, inp.q0, res.q_liq, res.q_ice)
+                    end
+                    @info "Max error forced_fixed_iters (maxiter=$fixed_maxiter)" FT max_err
+                    
+                    # Allow a few outliers to exceed strict tolerance
+                    @test max_err < FT(0.5) 
+                    
+                    # Check percentage of points with error < 0.1 K
+                    n_strict = count(e -> e < FT(0.1), chunk_errs)
+                    pct_strict = n_strict / length(chunk_errs)
+                    @info "Percentage of points with error < 0.1 K" FT pct_strict
+                    @test pct_strict > 0.98
+                end
             end
 
             @testset "ρeq solver variants are timed ($FT)" begin

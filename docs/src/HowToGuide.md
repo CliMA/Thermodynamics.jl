@@ -188,6 +188,23 @@ params_f32 = TD.Parameters.ThermodynamicsParameters(FT)
 # T_gpu = TD.air_temperature.(Ref(params_f32), e_int_gpu, q_tot_gpu)
 ```
 
+#### **Optimized Saturation Adjustment**
+
+For GPU performance, avoiding branch divergence is important. The `saturation_adjustment` function (with `ρe` formulation) supports a `forced_fixed_iters` option, which replaces the conditional loop with a fixed number of iterations (default 3). This is sufficient for high accuracy (temperature accuracy `0.1 K` and better) in typical atmospheric conditions.
+
+```julia
+# Optimized call for GPU kernels
+sol = TD.saturation_adjustment(
+    RS.NewtonsMethod,
+    params_f32,
+    TD.ρe(),
+    ρ_gpu, e_int_gpu, q_tot_gpu,
+    3,       # maxiter (number of fixed iterations)
+    1e-4;    # tolerance (ignored when forced_fixed_iters=true, as is T_guess)
+    forced_fixed_iters = true # Force fixed iterations
+)
+```
+
 ## Integration with Models
 
 ### **Prognostic Variable Management**
@@ -267,8 +284,8 @@ function q_liq_from_e_int(e)
         params,
         TD.ρe(),
         ρ, e, q_tot,
-        100,    # maxiter
-        1e-10   # tolerance
+        20,    # maxiter
+        1e-5   # tolerance
     )
     return sol.q_liq
 end

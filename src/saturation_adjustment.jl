@@ -14,7 +14,8 @@ export saturation_adjustment
         q_tot::Real,
         maxiter::Int,
         tol,
-        [T_guess::Union{Nothing, Real}]
+        [T_guess::Union{Nothing, Real}];
+        [forced_fixed_iters::Bool]
     )
 
 Compute the saturation equilibrium temperature `T` and phase partition `(q_liq, q_ice)`
@@ -30,6 +31,9 @@ given density `ρ`, internal energy `e_int`, and total specific humidity `q_tot`
 - `maxiter`: Maximum iterations for the solver [dimensionless integer].
 - `tol`: Relative tolerance for the temperature solution (or a `RS.RelativeSolutionTolerance`).
 - `T_guess`: Optional initial guess for the temperature [K].
+- `forced_fixed_iters`: Optional boolean to force a fixed number of iterations (`maxiter`)
+  without checking for convergence. Useful for GPU optimization to avoid branch divergence.
+  When `true`, `T_guess` and `tol` are ignored. Defaults to `false`.
 
 # Returns
 - `NamedTuple` `(; T, q_liq, q_ice, converged)`:
@@ -53,8 +57,18 @@ function saturation_adjustment(
     q_tot,
     maxiter::Int,
     tol,
-    T_guess = nothing,
+    T_guess = nothing;
+    forced_fixed_iters::Bool = false,
 ) where {M}
+    if forced_fixed_iters
+        return saturation_adjustment_ρe_fixed_iters(
+            param_set,
+            ρ,
+            e_int,
+            q_tot,
+            maxiter,
+        )
+    end
     temp_unsat_func = (param_set, e_int, q_tot) -> air_temperature(param_set, e_int, q_tot)
 
     q_sat_unsat_func = (param_set, T, q_tot) -> q_vap_saturation(param_set, T, ρ)
@@ -84,6 +98,46 @@ function saturation_adjustment(
     # Compute equilibrium phase partition
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice, converged)
+end
+
+"""
+    saturation_adjustment_ρe_fixed_iters(param_set, ρ, e_int, q_tot, maxiter)
+
+Internal GPU-optimization helper: unconditional fixed-iteration Newton's method solver
+for `ρe` saturation adjustment. Bypasses standard solver logic (bracketing, unsaturated
+checks, convergence testing) to avoid branch divergence on GPUs.
+
+# Notes
+- The `converged` field in the return value is always `true` since no convergence check
+  is performed. The caller is responsible for ensuring `maxiter` is sufficient.
+- With `maxiter = 3`, temperature accuracy is better than 0.1 K for typical atmospheric
+  conditions (T < 320 K).
+"""
+@inline function saturation_adjustment_ρe_fixed_iters(
+    param_set::APS,
+    ρ,
+    e_int,
+    q_tot,
+    maxiter,
+)
+    # Estimate T_unsat for initialization.
+    T_unsat = air_temperature(param_set, e_int, q_tot)
+    T_init_min = TP.T_init_min(param_set)
+    T = max(T_init_min, T_unsat)
+
+    @fastmath for _ in 1:maxiter
+        e_val = internal_energy_sat(param_set, T, ρ, q_tot)
+        de_int_dT = ∂e_int_∂T_sat(param_set, T, ρ, q_tot)
+        
+        # f(T) = e_int_target - e_val
+        # f'(T) = -de_int_dT
+        # Newton step: T_{n+1} = T_n - f(T_n) / f'(T_n)
+        # delta = - (e_int_target - e_val) / (-de_int_dT) = (e_int_target - e_val) / de_int_dT
+        T += (e_int - e_val) / de_int_dT
+    end
+
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    return (; T, q_liq, q_ice, converged = true)
 end
 """
     bound_upper_temperature(param_set, T_lo, T_hi)
