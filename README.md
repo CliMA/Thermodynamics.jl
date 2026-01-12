@@ -4,7 +4,7 @@
 
 # Thermodynamics.jl
 
-The `Thermodynamics.jl` package implements the thermodynamic formulation of the [CliMA Earth System Model](https://clima.caltech.edu) (Yatunin et al., 2026). It provides a consistent, accurate, and efficient framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** (Romps, 2021), providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
+The `Thermodynamics.jl` package implements the thermodynamic formulation of the [CliMA Earth System Model](https://clima.caltech.edu) ([Yatunin et al., 2026](https://doi.org/10.1029/2025MS005014)). It provides a consistent framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** ([Romps, 2021](https://doi.org/10.1002/qj.4154)), and thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
 
 |||
 |-----------------------------:|:-------------------------------------------------|
@@ -91,8 +91,8 @@ println("Converged: ",     sol.converged)
 
 ### 🌟 **Comprehensive Thermodynamics**
 
-- **Complete moist air thermodynamics** including all water phases (vapor, liquid, ice).
-- **Stateless, functional API** for maximum flexibility and ease of integration.
+- **Moist air thermodynamics** including all water phases (vapor, liquid, ice).
+- **Stateless, functional API** for flexibility and integration.
 - **Consistent formulation** assuming a **calorically perfect gas** mixture.
 
 ### ⚡ **High Performance**
@@ -110,7 +110,7 @@ println("Converged: ",     sol.converged)
 
 ### **Functional & Stateless**
 
-Functions in Thermodynamics.jl are pure and stateless. They take a `ThermodynamicsParameters` struct and the necessary thermodynamic variables (e.g., `T`, `ρ`, `q`...) as arguments. This design fits naturally into large-scale simulations (like `ClimaAtmos.jl`) where prognostic variables are managed externally.
+Functions in Thermodynamics.jl are stateless. They take a `ThermodynamicsParameters` struct and the necessary thermodynamic variables (e.g., `T`, `ρ`, `q`...) as arguments. This design fits naturally into large-scale simulations (e.g., with `ClimaAtmos.jl`).
 
 ### **Working Fluid**
 
@@ -140,4 +140,4 @@ Thermodynamics.jl is the thermodynamic core for the [CliMA](https://github.com/C
 
 ## Getting Help
 
-For questions, verify the [documentation](https://clima.github.io/Thermodynamics.jl/dev/) or open an issue on [GitHub](https://github.com/CliMA/Thermodynamics.jl).
+For questions, check the [documentation](https://clima.github.io/Thermodynamics.jl/dev/) or open an issue on [GitHub](https://github.com/CliMA/Thermodynamics.jl).

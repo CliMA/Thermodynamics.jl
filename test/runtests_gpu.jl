@@ -107,7 +107,7 @@ end
     # CPU reference implementation for the same states.
     # Use default methods (no method type parameter) to avoid dynamic dispatch issues on GPU.
 
-    # 1) ρeq - using NewtonsMethod (via type dispatch for GPU compatibility)
+    # 1a) ρeq - using NewtonsMethod (via type dispatch for GPU compatibility)
     gpu_results_ρe =
         TD.saturation_adjustment.(
             RS.NewtonsMethod,
@@ -122,6 +122,24 @@ end
     T_ρe = map(x -> x.T, gpu_results_ρe)
     ql_ρe = map(x -> x.q_liq, gpu_results_ρe)
     qi_ρe = map(x -> x.q_ice, gpu_results_ρe)
+
+    # 1b) ρeq - forced_fixed_iters (positional Bool for GPU compatibility)
+    gpu_results_ρe_fixed =
+        TD.saturation_adjustment.(
+            RS.NewtonsMethod,
+            Ref(param_set),
+            Ref(TD.ρe()),
+            d_ρ,
+            d_e_int_ρ,
+            d_q,
+            Ref(3), # maxiter = 3
+            Ref(tol), # ignored when forced_fixed_iters=true
+            nothing, # T_guess (ignored when forced_fixed_iters=true)
+            true, # forced_fixed_iters as positional Bool
+        )
+    T_ρe_fixed = map(x -> x.T, gpu_results_ρe_fixed)
+    ql_ρe_fixed = map(x -> x.q_liq, gpu_results_ρe_fixed)
+    qi_ρe_fixed = map(x -> x.q_ice, gpu_results_ρe_fixed)
 
     # 2) pe - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_pe =
@@ -207,6 +225,9 @@ end
     T_ρe_cpu = Array(T_ρe)
     ql_ρe_cpu = Array(ql_ρe)
     qi_ρe_cpu = Array(qi_ρe)
+    T_ρe_fixed_cpu = Array(T_ρe_fixed)
+    ql_ρe_fixed_cpu = Array(ql_ρe_fixed)
+    qi_ρe_fixed_cpu = Array(qi_ρe_fixed)
     T_pe_cpu = Array(T_pe)
     ql_pe_cpu = Array(ql_pe)
     qi_pe_cpu = Array(qi_pe)
@@ -254,6 +275,11 @@ end
             @test approx_tight(ql_ρe_cpu[i], ql_chk)
             @test approx_tight(qi_ρe_cpu[i], qi_chk)
         end
+
+        # Verify fixed iter results (accuracy better than 0.1 K expected)
+        @test isapprox(T_ρe_fixed_cpu[i], T_ref; atol = FT(0.05))
+        @test isapprox(ql_ρe_fixed_cpu[i], ql_ref; atol = FT(1e-4))
+        @test isapprox(qi_ρe_fixed_cpu[i], qi_ref; atol = FT(1e-4))
 
         res = TD.saturation_adjustment(
             RS.SecantMethod,

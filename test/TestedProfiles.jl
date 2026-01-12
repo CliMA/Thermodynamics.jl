@@ -90,7 +90,7 @@ function input_config(
     n = 50,
     n_RS1 = 10,
     n_RS2 = 20,
-    T_surface = 340,
+    T_surface = 320,
     T_min = 150,
 )
     n_RS = n_RS1 + n_RS2
