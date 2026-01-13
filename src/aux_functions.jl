@@ -27,3 +27,4 @@ See: https://stackoverflow.com/questions/14687665/very-slow-stdpow-for-bases-ver
 Smallest acceptable number that is different than zero.
 """
 ϵ_numerics(FT) = sqrt(floatmin(FT))
+ϵ_numerics(::Type{<:Integer}) = 0
