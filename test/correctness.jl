@@ -277,6 +277,18 @@ using the non-deprecated functional API (no `PhasePartition`/state types).
             q_any = FT(0.01)
             r = TD.specific_humidity_to_mixing_ratio(q_any, q_tot)
             @test r ≈ q_any / (1 - q_tot)
+
+            # Regression test for relative_humidity with default integer arguments
+            # (Ensures internal type stability when q_liq/q_ice default to Int 0)
+            T_rh = FT(300)
+            p_rh = FT(1e5)
+            rh = TD.relative_humidity(param_set, T_rh, p_rh, q_tot)
+
+            # Expected value using explicit floats
+            p_vap = TD.partial_pressure_vapor(param_set, p_rh, q_tot, FT(0), FT(0))
+            p_sat = TD.saturation_vapor_pressure(param_set, T_rh, FT(0), FT(0))
+            rh_expected = p_vap / p_sat
+            @test rh ≈ rh_expected
         end
 
         @testset "Reference temperature invariance ($FT)" begin
