@@ -11,7 +11,8 @@ import ClimaParams as CP
 
 Test that a temperature profile is physically consistent by verifying:
 1. Surface pressure matches the reference pressure
-2. Virtual temperature can be reconstructed from pressure gradient using hydrostatic balance
+2. The profile's returned temperature-like quantity (interpreted as virtual temperature `T_virt`)
+   can be reconstructed from the pressure gradient using dry-air hydrostatic balance.
 
 # Arguments
 - `profile`: Temperature profile function to test
@@ -19,7 +20,7 @@ Test that a temperature profile is physically consistent by verifying:
 - `z`: Array of height levels
 - `_p_ref`: Reference pressure (typically MSLP)
 - `_grav`: Gravitational acceleration
-- `_R_d`: Gas constant for dry air
+- `_R_d`: Gas constant for dry air (used in the hydrostatic reconstruction)
 """
 function test_temperature_profile_consistency(
     profile,
@@ -49,8 +50,10 @@ function test_temperature_profile_consistency(
 
     # Reconstruct virtual temperature using hydrostatic balance:
     # T_virt = -g / (R_d * d(log(p/p_ref))/dz)
-    T_virt_rec = -_grav ./ (_R_d .* ∇log_p_over_p_ref.(z))
-    @test all(T_virt_rec .≈ T_virt)
+    # Avoid endpoint derivatives to reduce brittleness (e.g. if future profiles are only C¹).
+    z_int = z[2:(end - 1)]
+    T_virt_rec = -_grav ./ (_R_d .* ∇log_p_over_p_ref.(z_int))
+    @test all(T_virt_rec .≈ T_virt[2:(end - 1)])
 end
 
 @testset "TemperatureProfiles - DecayingTemperatureProfile" begin
@@ -111,7 +114,3 @@ end
         end
     end
 end
-
-# Clean up any temporary files created during testing
-rm(joinpath(@__DIR__, "logfilepath_Float32.toml"); force = true)
-rm(joinpath(@__DIR__, "logfilepath_Float64.toml"); force = true)

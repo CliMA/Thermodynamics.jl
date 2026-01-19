@@ -1,8 +1,5 @@
 module TemperatureProfiles
 
-import DocStringExtensions
-const DSE = DocStringExtensions
-
 export TemperatureProfile,
     IsothermalProfile, DecayingTemperatureProfile, DryAdiabaticProfile
 
@@ -44,12 +41,13 @@ end
 """
     DryAdiabaticProfile{FT} <: TemperatureProfile{FT}
 
-Temperature profile with uniform dry potential temperature `θ` up to 
+Temperature profile with uniform potential temperature `θ` up to 
 the height where a minimum temperature is reached.
 
 # Fields
 
-$(DSE.FIELDS)
+ - `T_surface`: Surface temperature (K)
+ - `T_min_ref`: Minimum temperature (K)
 """
 struct DryAdiabaticProfile{FT} <: TemperatureProfile{FT}
     "Surface temperature (K)"
@@ -59,9 +57,9 @@ struct DryAdiabaticProfile{FT} <: TemperatureProfile{FT}
     function DryAdiabaticProfile{FT}(
         param_set::APS,
         T_surface::FT = FT(TP.T_surf_ref(param_set)),
-        _T_min_ref::FT = FT(TP.T_min_ref(param_set)),
+        T_min_ref::FT = FT(TP.T_min_ref(param_set)),
     ) where {FT}
-        return new{FT}(T_surface, _T_min_ref)
+        return new{FT}(T_surface, T_min_ref)
     end
 end
 
@@ -72,7 +70,6 @@ Returns dry adiabatic temperature and pressure profiles with zero relative humid
 Temperature is truncated to be ≥ `profile.T_min_ref`.
 """
 function (profile::DryAdiabaticProfile)(param_set::APS, z::FT) where {FT}
-
     R_d = TP.R_d(param_set)
     cp_d = TP.cp_d(param_set)
     grav = TP.grav(param_set)
@@ -99,12 +96,14 @@ Virtual temperature profile that decays smoothly with height `z` from `T_virt_su
 over height scale `H_t` (default: density scale height with `T_virt_surf`).
 
 ```math
-T_{\\text{v}}(z) = \\max(T_{\\text{v, sfc}} − (T_{\\text{v, sfc}} - T_{\\text{v, min}}) \\tanh(z/H_{\\text{t}})
+T_{\\text{v}}(z) = \\max(T_{\\text{v, sfc}} − (T_{\\text{v, sfc}} - T_{\\text{v, min}}) \\tanh(z/H_{\\text{t}}), T_{\\text{v, min}})
 ```
 
 # Fields
 
-$(DSE.FIELDS)
+ - `T_virt_surf`: Virtual temperature at surface (K)
+ - `T_min_ref`: Minimum virtual temperature at the top of the atmosphere (K)
+ - `H_t`: Height scale over which virtual temperature drops (m)
 """
 struct DecayingTemperatureProfile{FT} <: TemperatureProfile{FT}
     "Virtual temperature at surface (K)"
@@ -115,14 +114,13 @@ struct DecayingTemperatureProfile{FT} <: TemperatureProfile{FT}
     H_t::FT
     function DecayingTemperatureProfile{FT}(
         param_set::APS,
-        _T_virt_surf::FT = FT(TP.T_surf_ref(param_set)),
-        _T_min_ref::FT = FT(TP.T_min_ref(param_set)),
-        H_t::FT = FT(TP.R_d(param_set)) * _T_virt_surf / FT(TP.grav(param_set)),
+        T_virt_surf::FT = FT(TP.T_surf_ref(param_set)),
+        T_min_ref::FT = FT(TP.T_min_ref(param_set)),
+        H_t::FT = FT(TP.R_d(param_set)) * T_virt_surf / FT(TP.grav(param_set)),
     ) where {FT}
-        return new{FT}(_T_virt_surf, _T_min_ref, H_t)
+        return new{FT}(T_virt_surf, T_min_ref, H_t)
     end
 end
-
 
 """
     (profile::DecayingTemperatureProfile)(param_set::APS, z::FT) where {FT}

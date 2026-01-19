@@ -1,422 +1,296 @@
 export air_temperature
-export air_temperature_given_ρp
-export dry_pottemp
+export potential_temperature
+export potential_temperature_given_pressure
+export virtual_temperature
 export virtual_pottemp
 export liquid_ice_pottemp
-export liquid_ice_pottemp_sat
-export virtual_temperature
+export liquid_ice_pottemp_given_pressure
 
 """
-    air_temperature(param_set, e_int[, q::PhasePartition])
+    air_temperature(param_set, e_int, q_tot=0, q_liq=0, q_ice=0)
 
-The air temperature, given
+The air temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `e_int` specific internal energy of moist air
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `e_int`: specific internal energy of moist air [J/kg]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
-and, optionally,
+# Returns
+ - `T`: air temperature [K]
 
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the results are for dry air.
+If the specific humidities are not given, the result is for dry air.
+This method inverts [`internal_energy`](@ref) by solving for `T` given `e_int`.
 """
 @inline function air_temperature(
     param_set::APS,
-    e_int,
-    q::PhasePartition = q_pt_0(param_set),
-    cvm::Number = cv_m(param_set, q),
+    e_int::Real,     # Number type needed to disambiguate from deprecated methods that are still there
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
+)
+    return air_temperature(param_set, ρe(), e_int, q_tot, q_liq, q_ice)
+end
+
+@inline function air_temperature(
+    param_set::APS,
+    ::Union{ρe, pe},
+    e_int::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
     T_0 = TP.T_0(param_set)
     R_d = TP.R_d(param_set)
     e_int_v0 = TP.e_int_v0(param_set)
     e_int_i0 = TP.e_int_i0(param_set)
+    cvm = cv_m(param_set, q_tot, q_liq, q_ice)
+    q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
     return T_0 +
            (
-        e_int - (q.tot - q.liq - q.ice) * e_int_v0 +
-        q.ice * e_int_i0 +
-        (1 - q.tot) * R_d * T_0
+        e_int - q_vap * e_int_v0 + q_ice * e_int_i0 + (1 - q_tot) * R_d * T_0
     ) / cvm
 end
 
 """
-    air_temperature_from_enthalpy(param_set, h[, q::PhasePartition]s)
+    air_temperature(param_set, ::ph, h, q_tot=0, q_liq=0, q_ice=0)
 
-The air temperature, given
+The air temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `h` specific enthalpy of moist air
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `h`: specific enthalpy of moist air [J/kg]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
-and, optionally,
+# Returns
+ - `T`: air temperature [K]
 
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the results are for dry air.
+If the specific humidities are not given, the result is for dry air.
+This method inverts [`enthalpy`](@ref) by solving for `T` given `h`.
 """
-@inline function air_temperature_from_enthalpy(
+@inline function air_temperature(
     param_set::APS,
-    h,
-    q::PhasePartition = q_pt_0(param_set),
+    ::ph,
+    h::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
-    cp_m_ = cp_m(param_set, q)
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice)
     T_0 = TP.T_0(param_set)
     LH_v0 = TP.LH_v0(param_set)
     LH_f0 = TP.LH_f0(param_set)
-    return T_0 + (h - (q.tot - q.liq - q.ice) * LH_v0 + q.ice * LH_f0) / cp_m_
+    q_vap = vapor_specific_humidity(q_tot, q_liq, q_ice)
+    return T_0 + (h - q_vap * LH_v0 + q_ice * LH_f0) / cpm
 end
 
 """
-    air_temperature_given_ρp(param_set, p, ρ[, q::PhasePartition])
+    air_temperature(param_set, ::pρ, p, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The air temperature, where
+The air temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` air pressure
- - `ρ` air density
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `p`: air pressure [Pa]
+ - `ρ`: air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
-and, optionally,
+# Returns
+ - `T`: air temperature [K]
 
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the results are for dry air.
+If the specific humidities are not given, the result is for dry air.
+This directly applies the ideal gas law: `T = p / (R_m ρ)`.
 """
-@inline function air_temperature_given_ρp(
+@inline function air_temperature(
     param_set::APS,
-    p,
-    ρ,
-    q::PhasePartition = q_pt_0(param_set),
+    ::pρ,
+    p::Real,
+    ρ::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
-    R_m = gas_constant_air(param_set, q)
+    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     return p / (R_m * ρ)
 end
 
 """
-    dry_pottemp(param_set, T, ρ[, q::PhasePartition])
-
-The dry potential temperature, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
-
-and, optionally,
-
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the results are for dry air.
-"""
-@inline function dry_pottemp(
-    param_set::APS,
-    T,
-    ρ,
-    q::PhasePartition = q_pt_0(param_set),
-    cpm = cp_m(param_set, q),
-)
-    return T / exner(param_set, T, ρ, q, cpm)
-end
-
-"""
-    dry_pottemp_given_pressure(param_set, T, p[, q::PhasePartition])
-
-The dry potential temperature, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `p` pressure
-
-and, optionally,
-
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the results are for dry air, i.e., using the adiabatic exponent 
- for dry air.
-"""
-@inline function dry_pottemp_given_pressure(
-    param_set::APS,
-    T,
-    p,
-    q::PhasePartition = q_pt_0(param_set),
-    cpm = cp_m(param_set, q),
-)
-    return T / exner_given_pressure(param_set, p, q, cpm)
-end
-
-"""
-    latent_heat_liq_ice(param_set[, q::PhasePartition])
-
-Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference temperature 
-`T_0`, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `q` [`PhasePartition`](@ref). 
-
-When `q` is not provided, `latent_heat_liq_ice` is zero.
-
- This is used in the evaluation of the liquid-ice potential temperature.
-"""
-@inline function latent_heat_liq_ice(
-    param_set::APS,
-    q::PhasePartition = q_pt_0(param_set),
-)
-    LH_v0 = TP.LH_v0(param_set)
-    LH_s0 = TP.LH_s0(param_set)
-    return LH_v0 * q.liq + LH_s0 * q.ice
-end
-
-"""
-    liquid_ice_pottemp_given_pressure(param_set, T, p[, q::PhasePartition])
-
-The liquid-ice potential temperature, given
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `p` pressure
-
-and, optionally,
-
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the result is the dry-air potential temperature.
-"""
-@inline function liquid_ice_pottemp_given_pressure(
-    param_set::APS,
-    T,
-    p,
-    q::PhasePartition = q_pt_0(param_set),
-    cpm = cp_m(param_set, q),
-)
-    # liquid-ice potential temperature, approximating latent heats
-    # of phase transitions as constants
-    return dry_pottemp_given_pressure(param_set, T, p, q, cpm) *
-           (1 - latent_heat_liq_ice(param_set, q) / (cpm * T))
-end
-
-"""
-    liquid_ice_pottemp(param_set, T, ρ[, q::PhasePartition])
-
-The liquid-ice potential temperature, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
-
-and, optionally,
-
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the result is the dry-air potential temperature.
-"""
-@inline function liquid_ice_pottemp(
-    param_set::APS,
-    T,
-    ρ,
-    q::PhasePartition = q_pt_0(param_set),
-    cpm = cp_m(param_set, q),
-)
-    return liquid_ice_pottemp_given_pressure(
+    air_temperature(
         param_set,
-        T,
-        air_pressure(param_set, T, ρ, q),
-        q,
-        cpm,
-    )
-end
-
-"""
-    air_temperature_given_pθq(
-        param_set,
+        ::pθ_li,
         p,
-        θ_liq_ice,
-        [q::PhasePartition]
+        θ_li,
+        q_tot=0,
+        q_liq=0,
+        q_ice=0
     )
 
-The air temperature obtained by inverting the liquid-ice potential temperature, given
+The air temperature obtained by inverting the liquid-ice potential temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `p` pressure
- - `θ_liq_ice` liquid-ice potential temperature
- 
-and, optionally,
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the `θ_liq_ice` is assumed to be the dry-air potential temperature.
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `p`: pressure [Pa]
+ - `θ_li`: liquid-ice potential temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `T`: air temperature [K]
+
+If the specific humidities are not given, `θ_li` is assumed to be the dry-air
+potential temperature.
+This inverts [`liquid_ice_pottemp_given_pressure`](@ref) by solving for `T`.
 """
-@inline function air_temperature_given_pθq(
+@inline function air_temperature(
     param_set::APS,
-    p,
-    θ_liq_ice,
-    q::PhasePartition = q_pt_0(param_set),
-    cpm = cp_m(param_set, q),
+    ::pθ_li,
+    p::Real,
+    θ_li::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
-    return θ_liq_ice * exner_given_pressure(param_set, p, q, cpm) +
-           latent_heat_liq_ice(param_set, q) / cpm
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice)
+    return θ_li * exner_given_pressure(param_set, p, q_tot, q_liq, q_ice) +
+           humidity_weighted_latent_heat(param_set, q_liq, q_ice) / cpm
 end
 
+
 """
-    air_temperature_given_ρθq(param_set, ρ, θ_liq_ice[, q::PhasePartition])
+    air_temperature(param_set, ::ρθ_li, ρ, θ_li, q_tot=0, q_liq=0, q_ice=0)
 
-The air temperature obtained by inverting the liquid-ice potential temperature, given
+The air temperature obtained by inverting the liquid-ice potential temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `ρ` (moist-)air density
- - `θ_liq_ice` liquid-ice potential temperature
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `ρ`: (moist-)air density [kg/m³]
+ - `θ_li`: liquid-ice potential temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
-and, optionally,
+# Returns
+ - `T`: air temperature [K]
 
- - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the results are for dry air.
+If the specific humidities are not given, the results are for dry air.
+
+# Method
+This function uses a second-order Taylor expansion to avoid an iterative inversion.
+The unsaturated temperature `T_unsat` is first computed assuming the ideal gas law with
+potential temperature, then latent heat corrections are applied.
 """
-@inline function air_temperature_given_ρθq(
+@inline function air_temperature(
     param_set::APS,
-    ρ,
-    θ_liq_ice,
-    q::PhasePartition = q_pt_0(param_set),
+    ::ρθ_li,
+    ρ::Real,
+    θ_li::Real,
+    q_tot::Real = 0,
+    q_liq::Real = 0,
+    q_ice::Real = 0,
 )
-
-    p0 = TP.p_ref_theta(param_set)
-    cvm = cv_m(param_set, q)
-    cpm = cp_m(param_set, q)
-    R_m = gas_constant_air(param_set, q)
+    # Second-order Taylor expansion around unsaturated temperature
+    p_ref = TP.p_ref_theta(param_set)
+    cvm = cv_m(param_set, q_tot, q_liq, q_ice)
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice)
+    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     κ = 1 - cvm / cpm
-    T_u = (ρ * R_m * θ_liq_ice / p0)^(R_m / cvm) * θ_liq_ice
-    T_1 = latent_heat_liq_ice(param_set, q) / cvm
-    T_2 = -κ / (2 * T_u) * (latent_heat_liq_ice(param_set, q) / cvm)^2
-    return T_u + T_1 + T_2
+
+    # Unsaturated temperature corresponding to (ρ, θ_li) in the dry/moist EOS sense
+    T_unsat = (ρ * R_m * θ_li / p_ref)^(R_m / cvm) * θ_li
+
+    # Latent-heat correction (humidity-weighted at reference temperature)
+    L_q = humidity_weighted_latent_heat(param_set, q_liq, q_ice)
+    ΔT₁ = L_q / cvm
+    ΔT₂ = -κ / (2 * T_unsat) * (L_q / cvm)^2
+    return T_unsat + ΔT₁ + ΔT₂
 end
 
-"""
-    liquid_ice_pottemp_sat(param_set, T, ρ, phase_type[, q::PhasePartition, cpm])
-
-The saturated liquid ice potential temperature, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `phase_type` a thermodynamic state type
-
-and, optionally,
-
- - `q` [`PhasePartition`](@ref). 
-
-When `q` is not provided, the air assumed to be dry.
-"""
-@inline function liquid_ice_pottemp_sat(
-    param_set::APS,
-    T,
-    ρ,
-    ::Type{phase_type},
-    q::PhasePartition = q_pt_0(param_set),
-    cpm = cp_m(param_set, q),
-) where {phase_type <: ThermodynamicState}
-    q_v_sat = q_vap_saturation(param_set, T, ρ, phase_type, q)
-    return liquid_ice_pottemp(param_set, T, ρ, PhasePartition(q_v_sat), cpm)
-end
 
 """
-    liquid_ice_pottemp_sat(param_set, T, ρ, phase_type, q_tot)
+    potential_temperature(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The saturated liquid ice potential temperature, given
+The potential temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `phase_type` a thermodynamic state type
- - `q_tot` total specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `θ`: potential temperature [K]
+
+If the specific humidities are not given, the result is for dry air.
+
+Note: if any of `q_tot`, `q_liq`, or `q_ice` are nonzero, the Exner function uses the
+moist exponent `R_m/cp_m` (reducing to the dry exponent `R_d/cp_d` in the dry limit).
 """
-@inline function liquid_ice_pottemp_sat(
-    param_set::APS,
-    T,
-    ρ,
-    ::Type{phase_type},
-    q_tot,
-) where {phase_type <: ThermodynamicState}
-    q = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
-    cpm = cp_m(param_set, q)
-    return liquid_ice_pottemp(param_set, T, ρ, q, cpm)
-end
-
-"""
-    virtual_pottemp(param_set, T, ρ, q_tot, q_liq, q_ice)
-
-The virtual potential temperature, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
-and, optionally,
- - `q_tot` total specific humidity
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
-
-The virtual potential temperature is defined as `θ_v = (R_m/R_d) * θ`, where `θ` is the
-potential temperature. It is the potential temperature a dry air parcel would need to have to
-have the same density as the moist air parcel at the same pressure.
-"""
-@inline function virtual_pottemp(
+@inline function potential_temperature(
     param_set::APS,
     T,
     ρ,
     q_tot = 0,
     q_liq = 0,
     q_ice = 0,
-    cpm = cp_m(param_set, q_tot, q_liq, q_ice),
 )
-    R_d = TP.R_d(param_set)
-    p0 = TP.p_ref_theta(param_set)
-    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
-
-    # TODO: add functional methods for air_pressure, exner etc. 
-    # and use them here
-    # We need to calculate pressure to get exner function
-    p = ρ * R_m * T
-
-    # exner = (p / p0)^(R_m / cpm)
-    exner = fast_power(p / p0, R_m / cpm)
-
-    θ = T / exner
-    return R_m / R_d * θ
+    return T / exner(param_set, T, ρ, q_tot, q_liq, q_ice)
 end
 
 """
-    virtual_pottemp(param_set, T, ρ[, q::PhasePartition])
+    potential_temperature_given_pressure(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
 
-The virtual potential temperature, given
+The potential temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
- - `ρ` (moist-)air density
+ - `p` pressure
+ - `q_tot` total specific humidity
+ - `q_liq` liquid specific humidity
+ - `q_ice` ice specific humidity
 
-and, optionally,
+If the specific humidities are not given, the result is for dry air.
 
- - `q` [`PhasePartition`](@ref). 
- 
-The virtual potential temperature is defined as `θ_v = (R_m/R_d) * θ`, where `θ` is the
-potential temperature. It is the potential temperature a dry air parcel would need to have to
-have the same density as the moist air parcel at the same pressure.
+Note: if any of `q_tot`, `q_liq`, or `q_ice` are nonzero, the Exner function uses the
+moist exponent `R_m/cp_m` (reducing to the dry exponent `R_d/cp_d` in the dry limit).
 """
-@inline function virtual_pottemp(
+@inline function potential_temperature_given_pressure(
     param_set::APS,
     T,
-    ρ,
-    q::PhasePartition,
-    cpm = cp_m(param_set, q),
+    p,
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
 )
-    return virtual_pottemp(param_set, T, ρ, q.tot, q.liq, q.ice, cpm)
+    return T / exner_given_pressure(param_set, p, q_tot, q_liq, q_ice)
 end
 
 """
-    virtual_temperature(param_set, T, q_tot, q_liq, q_ice)
+    virtual_temperature(param_set, T, q_tot=0, q_liq=0, q_ice=0)
 
-The virtual temperature, given
+The virtual temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
-and, optionally,
- - `q_tot` total specific humidity
- - `q_liq` specific humidity of liquid
- - `q_ice` specific humidity of ice
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
-The virtual temperature is defined as `T_v = (R_m/R_d) * T`. It is the temperature
-a dry air parcel would need to have to have the same density as the moist air parcel
-at the same pressure.
+# Returns
+ - `T_v`: virtual temperature [K]
+
+If the specific humidities are not given, the result is for dry air.
+The virtual temperature is defined such that dry air at `T_v` has the same density
+as moist air at `T`, i.e., `T_v = T (R_m / R_d)`.
 """
 @inline function virtual_temperature(
     param_set::APS,
@@ -426,147 +300,114 @@ at the same pressure.
     q_ice = 0,
 )
     R_d = TP.R_d(param_set)
-    return gas_constant_air(param_set, q_tot, q_liq, q_ice) / R_d * T
+    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
+    return T * R_m / R_d
 end
 
 """
-    virtual_temperature(param_set, T, q::PhasePartition)
+    virtual_pottemp(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
 
-The virtual temperature, given
+The virtual potential temperature.
 
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
+ - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `T` temperature
- - `q` [`PhasePartition`](@ref). 
- 
-The virtual temperature is defined as `T_v = (R_m/R_d) * T`. It is the temperature
-a dry air parcel would need to have to have the same density as the moist air parcel
-at the same pressure.
-"""
-@inline function virtual_temperature(param_set::APS, T, q::PhasePartition)
-    return virtual_temperature(param_set, T, q.tot, q.liq, q.ice)
-end
-
-"""
-    temperature_and_humidity_given_TᵥρRH(param_set, T_virt, ρ, RH)
-
-The air temperature and total specific humidity `q_tot`, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
- - `T_virt` virtual temperature
- - `ρ` air density
- - `RH` relative humidity
- - `phase_type` a thermodynamic state type
-"""
-@inline function temperature_and_humidity_given_TᵥρRH(
-    param_set::APS{FT},
-    T_virt,
-    ρ,
-    RH,
-    ::Type{phase_type},
-    maxiter::Int = 100,
-    tol::RS.AbstractTolerance = RS.ResidualTolerance(sqrt(eps(FT))),
-) where {FT, phase_type <: ThermodynamicState}
-
-    T_init_min = TP.T_init_min(param_set)
-    _T_max = T_virt
-    @inline roots(T) =
-        T_virt - virt_temp_from_RH(param_set, ReLU(T), ρ, RH, phase_type)
-    sol = RS.find_zero(
-        roots,
-        RS.SecantMethod(T_init_min, _T_max),
-        RS.CompactSolution(),
-        tol,
-        maxiter,
-    )
-    if !sol.converged
-        if print_warning()
-            print_warning_TᵥρRH(
-                RS.SecantMethod,
-                T_virt,
-                RH,
-                ρ,
-                sol.root,
-                maxiter,
-                tol.tol,
-            )
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
-    end
-    T = sol.root
-
-    # Re-compute specific humidity and phase partitioning
-    # given the temperature
-    q_tot = RH * q_vap_saturation(param_set, T, ρ, phase_type)
-    q_pt = PhasePartition_equil(param_set, T, ρ, q_tot, phase_type)
-    return (T, q_pt)
-
-end
-
-"""
-    air_temperature_given_ρθq_nonlinear(param_set, ρ, θ_liq_ice, maxiter, tol, q::PhasePartition)
-
-Computes temperature `T`, given
-
- - `param_set` an `AbstractParameterSet`, see the [`Thermodynamics`](@ref) for more details
  - `ρ` (moist-)air density
- - `θ_liq_ice` liquid-ice potential temperature
+ - `q_tot` total specific humidity
+ - `q_liq` liquid specific humidity
+ - `q_ice` ice specific humidity
 
-and, optionally,
- - `maxiter` maximum iterations for non-linear equation solve
-- `tol` absolute tolerance for non-linear equation iterations. Can be one of:
-    - `RelativeSolutionTolerance()` to stop when `|x_2 - x_1|/x_1 < tol`
-    - `ResidualTolerance()` to stop when `|f(x)| < tol`
- - `q` [`PhasePartition`](@ref).When `q` is not provided, the results are for dry air,
-
-The temperature `T` is found by finding the root of
-`T - air_temperature_given_pθq(param_set,
-                               air_pressure(param_set, T, ρ, q),
-                               θ_liq_ice,
-                               q) = 0`
+If the specific humidities are not given, the result is for dry air.
 """
-@inline function air_temperature_given_ρθq_nonlinear(
+@inline function virtual_pottemp(
     param_set::APS,
+    T,
     ρ,
-    θ_liq_ice,
-    maxiter::Int,
-    tol::RS.AbstractTolerance,
-    q::PhasePartition = q_pt_0(param_set),
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
 )
-    T_init_min = TP.T_init_min(param_set)
-    _T_max = TP.T_max(param_set)
-    @inline roots(T) =
-        T - air_temperature_given_pθq(
-            param_set,
-            air_pressure(param_set, ReLU(T), ρ, q),
-            θ_liq_ice,
-            q,
-        )
-    sol = RS.find_zero(
-        roots,
-        RS.SecantMethod(T_init_min, _T_max),
-        RS.CompactSolution(),
-        tol,
-        maxiter,
+    R_d = TP.R_d(param_set)
+    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
+    return potential_temperature(param_set, T, ρ, q_tot, q_liq, q_ice) * R_m / R_d
+end
+
+"""
+    liquid_ice_pottemp(param_set, T, ρ, q_tot=0, q_liq=0, q_ice=0)
+
+The liquid-ice potential temperature.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `θ_li`: liquid-ice potential temperature [K]
+
+If the specific humidities are not given, the result is for dry air.
+
+# Reference
+Betts (1973), "Non-precipitating cumulus convection and its parameterization," 
+*Quarterly Journal of the Royal Meteorological Society*, **99**, 178-196,
+doi:[10.1002/qj.49709941915](https://doi.org/10.1002/qj.49709941915).
+"""
+@inline function liquid_ice_pottemp(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
+)
+    return liquid_ice_pottemp_given_pressure(
+        param_set,
+        T,
+        air_pressure(param_set, T, ρ, q_tot, q_liq, q_ice),
+        q_tot,
+        q_liq,
+        q_ice,
     )
-    if !sol.converged
-        if print_warning()
-            print_warning_ρθq_nonlinear(
-                RS.SecantMethod,
-                θ_liq_ice,
-                ρ,
-                q.tot,
-                q.liq,
-                q.ice,
-                sol.root,
-                maxiter,
-                tol.tol,
-            )
-        end
-        if error_on_non_convergence()
-            error("Failed to converge with printed set of inputs.")
-        end
-    end
-    return sol.root
+end
+
+"""
+    liquid_ice_pottemp_given_pressure(param_set, T, p, q_tot=0, q_liq=0, q_ice=0)
+
+The liquid-ice potential temperature.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `p`: pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `θ_li`: liquid-ice potential temperature [K]
+
+If the specific humidities are not given, the result is for dry air.
+The latent heats of phase transitions are approximated as constants.
+
+# Reference
+Betts (1973), "Non-precipitating cumulus convection and its parameterization," 
+*Quarterly Journal of the Royal Meteorological Society*, **99**, 178-196,
+doi:[10.1002/qj.49709941915](https://doi.org/10.1002/qj.49709941915).
+"""
+@inline function liquid_ice_pottemp_given_pressure(
+    param_set::APS,
+    T,
+    p,
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
+)
+    # liquid-ice potential temperature, approximating latent heats
+    # of phase transitions as constants
+    cpm = cp_m(param_set, q_tot, q_liq, q_ice)
+    return potential_temperature_given_pressure(param_set, T, p, q_tot, q_liq, q_ice) * (
+        1 - humidity_weighted_latent_heat(param_set, q_liq, q_ice) / (cpm * T)
+    )
 end

@@ -4,22 +4,21 @@ function benchmark_thermo_states(::Type{FT}) where {FT}
     summary = OrderedCollections.OrderedDict()
     ArrayType = Array{FT}
     param_set = TP.ThermodynamicsParameters(FT)
-    profiles = TD.TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
+    inputs = functional_inputs(param_set, FT)
 
-    for C in (
-        TD.PhaseEquil_ρeq,
-        TD.PhaseEquil_ρTq,
-        TD.PhaseEquil_pTq,
-        TD.PhaseEquil_peq,
-        TD.PhaseEquil_phq,
-        TD.PhaseEquil_ρθq,
-        TD.PhaseEquil_pθq,
-        TD.PhaseEquil_ρpq,
-    )
-        for cond in conditions(C)
-            args = sample_args(profiles, param_set, cond, C)
-            trial = BenchmarkTools.@benchmark $C($param_set, $args...)
-            summary[Symbol(nameof(C), :_, cond)] = get_summary(trial)
+    for F in (TD.ρeq, TD.peq, TD.phq, TD.pρq, TD.ρθ_li_q, TD.pθ_li_q)
+        for cond in conditions(F)
+            args = sample_args(inputs, param_set, cond, F)
+            solver = solver_for(F)
+            trial = BenchmarkTools.@benchmark TD.saturation_adjustment(
+                $solver,
+                $param_set,
+                $(F)(),
+                $args...,
+                40,
+                $FT(1e-10),
+            )
+            summary[Symbol(nameof(F), :_, cond)] = get_summary(trial)
         end
     end
     @info "Microbenchmarks for $FT"

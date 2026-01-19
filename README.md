@@ -4,7 +4,7 @@
 
 # Thermodynamics.jl
 
-A comprehensive Julia package for Earth system thermodynamics, providing consistent and accurate thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
+The `Thermodynamics.jl` package implements the thermodynamic formulation of the [CliMA Earth System Model](https://clima.caltech.edu) ([Yatunin et al., 2026](https://doi.org/10.1029/2025MS005014)). It provides a consistent framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** ([Romps, 2021](https://doi.org/10.1002/qj.4154)), and thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
 
 |||
 |-----------------------------:|:-------------------------------------------------|
@@ -13,7 +13,6 @@ A comprehensive Julia package for Earth system thermodynamics, providing consist
 | **GHA CI**                   | [![gha ci][gha-ci-img]][gha-ci-url]              |
 | **Code Coverage**            | [![codecov][codecov-img]][codecov-url]           |
 | **Downloads**                | [![Downloads][dlt-img]][dlt-url]                 |
-
 
 [docs-bld-img]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml/badge.svg
 [docs-bld-url]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml
@@ -33,6 +32,7 @@ A comprehensive Julia package for Earth system thermodynamics, providing consist
 ## Quick Start
 
 ### Installation
+
 ```julia
 using Pkg
 Pkg.add("Thermodynamics")
@@ -40,65 +40,95 @@ Pkg.add("ClimaParams")
 ```
 
 ### Basic Usage
+
+Thermodynamics.jl provides a **functional, stateless API**. You import the package (`TD`) and pass a **parameter set** plus **thermodynamic variables** (e.g., density, internal energy, specific humidities) directly to functions.
+
 ```julia
 import Thermodynamics as TD
+# Use RootSolvers for the saturation adjustment method
+import RootSolvers as RS
 using ClimaParams
 
-# Create thermodynamic parameters
+# 1. Create thermodynamic parameters
+#    (requires a definition of the parameter set, e.g. from ClimaParams)
 params = TD.Parameters.ThermodynamicsParameters(Float64)
 
-# Create a thermodynamic state
-ρ = 1.0
-e_int = -7.e4
-q_tot = 0.01
-ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
+# 2. Define your thermodynamic variables
+ρ     = 1.1        # Density [kg/m³]
+e_int = 200000.0   # Internal energy [J/kg]
+q_tot = 0.015      # Total specific humidity [kg/kg]
+q_liq = 0.005      # Liquid specific humidity [kg/kg]
+q_ice = 0.001      # Ice specific humidity [kg/kg]
 
-# Compute thermodynamic properties from state
-T = TD.air_temperature(params, ts)
-p = TD.air_pressure(params, ts)
-q = TD.PhasePartition(params, ts)
+# 3. Compute properties directly
+T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
+p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+```
+
+### Saturation Adjustment
+
+To find the phase equilibrium temperature and phase partition from thermodynamic variables (e.g., given `ρ`, `e_int`, `q_tot`), use `saturation_adjustment`:
+
+```julia
+# Solve for phase equilibrium (T, q_liq, q_ice) given (ρ, e_int, q_tot)
+# using SecantMethod
+sol = TD.saturation_adjustment(
+    RS.SecantMethod,        # Root-solving method
+    params,                 # Parameter set
+    TD.ρe(),                # Formulation: Density & Internal Energy
+    ρ, e_int, q_tot,        # Input variables
+    10,                     # Max iterations
+    1e-3                    # Relative tolerance
+)
+
+println("Equilibrium T: ", sol.T)
+println("Liquid q: ",      sol.q_liq)
+println("Ice q: ",         sol.q_ice)
+println("Converged: ",     sol.converged)
 ```
 
 ## Key Features
 
 ### 🌟 **Comprehensive Thermodynamics**
-- **Complete moist air thermodynamics** including all water phases (vapor, liquid, ice)
-- **Consistent formulation** for use across all Earth system model components
-- **Precipitation included** in the atmospheric working fluid for full thermodynamic consistency
-- **Calorically perfect gas approximation** enabling closed-form expressions for saturation vapor pressure
+
+- **Moist air thermodynamics** including all water phases (vapor, liquid, ice).
+- **Stateless, functional API** for flexibility and integration.
+- **Consistent formulation** assuming a **calorically perfect gas** mixture.
 
 ### ⚡ **High Performance**
-- **Type-stable implementations** for optimal Julia performance
-- **GPU-compatible** implementations
-- **Differentiable implementation** compatible with Julia's automatic differentiation capabilities
-- **Efficient saturation adjustment** with Newton's method and analytical derivatives
+
+- **Type-stable** and **GPU-compatible** (CUDA.jl, AMDGPU.jl, etc.).
+- **AD-compatible** (ForwardDiff.jl, etc.) for differentiable physics.
+- **Zero-allocation** design for core functions.
 
 ### 🔧 **Flexible Design**
-- **Multiple thermodynamic state constructors** for different use cases
-- **Direct function access** for efficient single calculations
-- **Equilibrium and non-equilibrium** phase partitioning
-- **Extensible parameter system** for different planetary atmospheres
+
+- **Multiple formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc.
+- **Extensible parameters**: Easily adapt to different planetary atmospheres via `ClimaParams`.
 
 ## Core Design Principles
 
-### **Working Fluid Definition**
-The working fluid includes **moist air with precipitation**, ensuring mass and energy conservation across all phases and thermodynamic consistency throughout the system.
+### **Functional & Stateless**
+
+Functions in Thermodynamics.jl are stateless. They take a `ThermodynamicsParameters` struct and the necessary thermodynamic variables (e.g., `T`, `ρ`, `q`...) as arguments. This design fits naturally into large-scale simulations (e.g., with `ClimaAtmos.jl`).
+
+### **Working Fluid**
+
+The working fluid is **moist air** (dry air + water vapor + liquid water + ice, which may include precipitation). We treat it as a mixture of ideal gases and condensed phases, ensuring rigorous mass and energy conservation.
 
 ### **Consistent Formulation**
-All thermodynamic quantities are derived from a single fundamental approximation of **calorically perfect gases** with constant specific heat capacities, providing accuracy within 1-3% for atmospheric conditions.
 
-### **Thermodynamic State Abstraction**
-Optionally, given two (or more) independent intrinsic thermodynamic properties, we can establish a thermodynamic state from which any thermodynamic property can be computed.
+All quantities are derived from the **calorically perfect gas** assumption with constant specific heat capacities. This provides a consistent, closed set of equations for saturation vapor pressures (the so-called Rankine-Kirchhoff approximation), latent heats, and other derived quantities.
 
 ## Documentation
 
-- **[Mathematical Formulation](https://clima.github.io/Thermodynamics.jl/dev/Formulation/)** - Complete theoretical framework and equations
-- **[API Reference](https://clima.github.io/Thermodynamics.jl/dev/API/)** - Complete function documentation
-- **[How-To Guide](https://clima.github.io/Thermodynamics.jl/dev/HowToGuide/)** - Practical usage examples and patterns
+- **[Mathematical Formulation](https://clima.github.io/Thermodynamics.jl/dev/Formulation/)** - Theoretical background.
+- **[How-To Guide](https://clima.github.io/Thermodynamics.jl/dev/HowToGuide/)** - Recipes and examples.
+- **[API Reference](https://clima.github.io/Thermodynamics.jl/dev/API/)** - Detailed function documentation.
 
 ## Integration with Climate Models
 
-Thermodynamics.jl is used by several CliMA components:
+Thermodynamics.jl is the thermodynamic core for the [CliMA](https://github.com/CliMA) ecosystem, including:
 
 - [ClimaAtmos](https://github.com/CliMA/ClimaAtmos.jl)
 - [ClimaLand](https://github.com/CliMA/ClimaLand.jl)
@@ -110,4 +140,4 @@ Thermodynamics.jl is used by several CliMA components:
 
 ## Getting Help
 
-For questions and issues, please check the [documentation](https://clima.github.io/Thermodynamics.jl/dev/) or open an issue on the [GitHub repository](https://github.com/CliMA/Thermodynamics.jl).
+For questions, check the [documentation](https://clima.github.io/Thermodynamics.jl/dev/) or open an issue on [GitHub](https://github.com/CliMA/Thermodynamics.jl).

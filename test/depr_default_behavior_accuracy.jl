@@ -14,8 +14,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
             _cp_d = TP.cp_d(param_set)
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
-            (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
+            (; T, p, e_int, ρ, θ_li) = profiles
+            (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
 
             RH_sat_mask = or.(RH .> 1, RH .≈ 1)
             RH_unsat_mask = .!or.(RH .> 1, RH .≈ 1)
@@ -98,27 +98,15 @@ This file contains tests for saturation adjustment accuracy and convergence.
             _T_freeze = FT(TP.T_freeze(param_set))
 
             # Test around approximate freezing temperature with tolerance
-            T_freeze_plus = _T_freeze + sqrt(eps(FT))
-            T_freeze_minus = _T_freeze - sqrt(eps(FT))
+            T_freeze_plus = _T_freeze + TD.ϵ_numerics(FT)
+            T_freeze_minus = _T_freeze - TD.ϵ_numerics(FT)
 
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; ρ, q_tot, phase_type) = profiles
+            (; ρ, q_tot) = profiles
             e_int_upper =
-                internal_energy_sat.(
-                    param_set,
-                    Ref(T_freeze_plus),
-                    ρ,
-                    q_tot,
-                    phase_type,
-                )
+                TD.internal_energy_sat.(param_set, Ref(T_freeze_plus), ρ, q_tot)
             e_int_lower =
-                internal_energy_sat.(
-                    param_set,
-                    Ref(T_freeze_minus),
-                    ρ,
-                    q_tot,
-                    phase_type,
-                )
+                TD.internal_energy_sat.(param_set, Ref(T_freeze_minus), ρ, q_tot)
             _e_int = (e_int_upper .+ e_int_lower) / 2
             ts = PhaseEquil_ρeq.(param_set, ρ, _e_int, q_tot)
             @test all(
@@ -152,8 +140,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
         @testset "Constructor accuracy" begin
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
-            (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
+            (; T, p, e_int, ρ, θ_li) = profiles
+            (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
             ts = PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot)
             ts_exact =
                 PhaseEquil_ρeq.(param_set, ρ, e_int, q_tot, 100, FT(1e-6))
@@ -274,38 +262,43 @@ This file contains tests for saturation adjustment accuracy and convergence.
 
             @test all(within_tolerance)
 
-            dry_mask = abs.(q_tot .- 0) .< eps(FT)
-            q_dry = q_pt[dry_mask]
+            dry_mask = q_tot .== 0
+            q_dry_tot = q_tot[dry_mask]
+            q_dry_liq = q_liq[dry_mask]
+            q_dry_ice = q_ice[dry_mask]
             @test all(
-                condensate_specific_humidity.(q_pt) .==
-                getproperty.(q_pt, :liq) .+ getproperty.(q_pt, :ice),
+                condensate_specific_humidity.(q_liq, q_ice) .== q_liq .+ q_ice,
             )
-            @test all(has_condensate.(q_dry) .== false)
+            @test all(
+                has_condensate.(
+                    condensate_specific_humidity.(q_dry_liq, q_dry_ice),
+                ) .== false,
+            )
 
             e_tot = total_energy.(param_set, ts, e_kin, e_pot)
             _cp_d = FT(TP.cp_d(param_set))
             @test all(
-                specific_enthalpy.(param_set, ts) .≈
+                enthalpy.(param_set, ts) .≈
                 e_int .+
                 gas_constant_air.(param_set, ts) .*
                 air_temperature.(param_set, ts),
             )
             @test all(
-                specific_enthalpy.(param_set, ts) .≈
+                enthalpy.(param_set, ts) .≈
                 e_int .+
                 air_pressure.(param_set, ts) ./ air_density.(param_set, ts),
             )
             @test all(
-                total_specific_enthalpy.(param_set, ts, e_tot) .≈
-                specific_enthalpy.(param_set, ts) .+ e_kin .+ e_pot,
+                total_enthalpy.(param_set, ts, e_tot) .≈
+                enthalpy.(param_set, ts) .+ e_kin .+ e_pot,
             )
             @test all(
                 moist_static_energy.(param_set, ts, e_pot) .≈
-                specific_enthalpy.(param_set, ts) .+ e_pot,
+                enthalpy.(param_set, ts) .+ e_pot,
             )
             @test all(
                 moist_static_energy.(param_set, ts, e_pot) .≈
-                total_specific_enthalpy.(param_set, ts, e_tot) .- e_kin,
+                total_enthalpy.(param_set, ts, e_tot) .- e_kin,
             )
             @test all(
                 virtual_dry_static_energy.(param_set, ts, e_pot) .≈
@@ -316,8 +309,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
         @testset "PhaseEquil constructors" begin
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; T, p, e_int, ρ, θ_liq_ice, phase_type) = profiles
-            (; q_tot, q_liq, q_ice, q_pt, RH, e_kin, e_pot) = profiles
+            (; T, p, e_int, ρ, θ_li) = profiles
+            (; q_tot, q_liq, q_ice, RH, e_kin, e_pot) = profiles
             ts_exact =
                 PhaseEquil_ρeq.(
                     param_set,
@@ -366,8 +359,8 @@ This file contains tests for saturation adjustment accuracy and convergence.
 
             # PhaseEquil_ρθq
             ts_exact =
-                PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot, 45, FT(1e-6))
-            ts = PhaseEquil_ρθq.(param_set, ρ, θ_liq_ice, q_tot)
+                PhaseEquil_ρθq.(param_set, ρ, θ_li, q_tot, 45, FT(1e-6))
+            ts = PhaseEquil_ρθq.(param_set, ρ, θ_li, q_tot)
             # Should be machine accurate:
             @test all(
                 air_density.(param_set, ts) .≈
@@ -378,7 +371,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             @test all(
                 abs.(
                     internal_energy.(param_set, ts) .-
-                    internal_energy.(param_set, ts_exact)
+                    internal_energy.(param_set, ts_exact),
                 ) .<=
                 (atol_energy_temperature .+ rtol_humidity * _eint_v0 .* q_tot),
             )
@@ -399,18 +392,18 @@ This file contains tests for saturation adjustment accuracy and convergence.
 
             # PhaseEquil_pθq
             ts_exact =
-                PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot, 40, FT(1e-6))
-            ts = PhaseEquil_pθq.(param_set, p, θ_liq_ice, q_tot)
+                PhaseEquil_pθq.(param_set, p, θ_li, q_tot, 40, FT(1e-6))
+            ts = PhaseEquil_pθq.(param_set, p, θ_li, q_tot)
 
             ts =
                 PhaseEquil_pθq.(
                     param_set,
                     p,
-                    θ_liq_ice,
+                    θ_li,
                     q_tot,
                     40,
                     FT(rtol_temperature),
-                    RS.RegulaFalsiMethod,
+                    RS.BrentsMethod,
                 )
             # Should be machine accurate:
             @test all(compare_moisture.(param_set, ts, ts_exact))
@@ -425,7 +418,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             @test all(
                 abs.(
                     internal_energy.(param_set, ts) .-
-                    internal_energy.(param_set, ts_exact)
+                    internal_energy.(param_set, ts_exact),
                 ) .<=
                 (atol_energy_temperature .+ rtol_humidity * _eint_v0 .* q_tot),
             )
@@ -448,13 +441,14 @@ This file contains tests for saturation adjustment accuracy and convergence.
         @testset "PhaseEquil_pθq freezing" begin
             _T_freeze = FT(TP.T_freeze(param_set))
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; p, q_tot, phase_type) = profiles
+            (; p, q_tot) = profiles
+            phase_type = PhaseEquil{FT}
 
             # Test around approximate freezing temperature with tolerance
-            T_freeze_plus = _T_freeze + sqrt(eps(FT))
-            T_freeze_minus = _T_freeze - sqrt(eps(FT))
+            T_freeze_plus = _T_freeze + TD.ϵ_numerics(FT)
+            T_freeze_minus = _T_freeze - TD.ϵ_numerics(FT)
 
-            θ_liq_ice_upper =
+            θ_li_upper =
                 TD.liquid_ice_pottemp_given_pressure.(
                     param_set,
                     Ref(T_freeze_plus),
@@ -464,10 +458,10 @@ This file contains tests for saturation adjustment accuracy and convergence.
                         Ref(T_freeze_plus),
                         p,
                         q_tot,
-                        phase_type,
+                        Ref(phase_type),
                     ),
                 )
-            θ_liq_ice_lower =
+            θ_li_lower =
                 TD.liquid_ice_pottemp_given_pressure.(
                     param_set,
                     Ref(T_freeze_minus),
@@ -477,19 +471,19 @@ This file contains tests for saturation adjustment accuracy and convergence.
                         Ref(T_freeze_minus),
                         p,
                         q_tot,
-                        phase_type,
+                        Ref(phase_type),
                     ),
                 )
-            θ_liq_ice_mid = (θ_liq_ice_upper .+ θ_liq_ice_lower) ./ 2
+            θ_li_mid = (θ_li_upper .+ θ_li_lower) ./ 2
 
-            ts_lower = PhaseEquil_pθq.(param_set, p, θ_liq_ice_lower, q_tot)
-            ts_upper = PhaseEquil_pθq.(param_set, p, θ_liq_ice_upper, q_tot)
-            ts_mid = PhaseEquil_pθq.(param_set, p, θ_liq_ice_mid, q_tot)
+            ts_lower = PhaseEquil_pθq.(param_set, p, θ_li_lower, q_tot)
+            ts_upper = PhaseEquil_pθq.(param_set, p, θ_li_upper, q_tot)
+            ts_mid = PhaseEquil_pθq.(param_set, p, θ_li_mid, q_tot)
 
             # Test that all states converge to approximately the freezing point
             @test all(
                 abs.(
-                    air_temperature.(param_set, ts_lower) .- T_freeze_minus
+                    air_temperature.(param_set, ts_lower) .- T_freeze_minus,
                 ) .<= atol_temperature,
             )
             @test all(
@@ -505,10 +499,12 @@ This file contains tests for saturation adjustment accuracy and convergence.
         @testset "PhaseNonEquil" begin
             _eint_v0 = TP.e_int_v0(param_set)
             profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
-            (; ρ, θ_liq_ice, q_pt) = profiles
+            (; ρ, θ_li, q_tot, q_liq, q_ice) = profiles
+            # Create PhasePartition for deprecated constructor tests
+            q_pt = TD.PhasePartition.(q_tot, q_liq, q_ice)
             ts_exact =
-                PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt, 40, FT(1e-6))
-            ts = PhaseNonEquil_ρθq.(param_set, ρ, θ_liq_ice, q_pt)
+                PhaseNonEquil_ρθq.(param_set, ρ, θ_li, q_pt, 40, FT(1e-6))
+            ts = PhaseNonEquil_ρθq.(param_set, ρ, θ_li, q_pt)
             # Should be machine accurate:
             @test all(compare_moisture.(param_set, ts, ts_exact))
             @test all(
@@ -519,7 +515,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             @test all(
                 abs.(
                     internal_energy.(param_set, ts) .-
-                    internal_energy.(param_set, ts_exact)
+                    internal_energy.(param_set, ts_exact),
                 ) .<= (
                     atol_energy_temperature .+
                     rtol_humidity * _eint_v0 .* getproperty.(q_pt, :tot)
@@ -529,7 +525,7 @@ This file contains tests for saturation adjustment accuracy and convergence.
             pot_temp_errors =
                 abs.(
                     liquid_ice_pottemp.(param_set, ts) .-
-                    liquid_ice_pottemp.(param_set, ts_exact)
+                    liquid_ice_pottemp.(param_set, ts_exact),
                 )
             pot_temp_tolerances = 2.25 * atol_temperature  # Larger tol to allow for condensate effects
             @test all(pot_temp_errors .<= pot_temp_tolerances)
