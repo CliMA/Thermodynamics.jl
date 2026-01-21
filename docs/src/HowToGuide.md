@@ -76,15 +76,12 @@ e_int = -7.0e4
 q_tot = 0.01
 
 # Solve for phase equilibrium
-# We select a root-finding method from RootSolvers.jl (e.g., SecantMethod, NewtonsMethod)
-# We specify the formulation (TD.ρe() means inputs are Density & Internal Energy)
+# We use the convenience method which handles defaults automatically
+# For ρe(), this defaults to the optimized fixed-iteration solver
 sol = TD.saturation_adjustment(
-    RS.SecantMethod,        # Method
     params,                 # Parameter set
     TD.ρe(),                # Formulation
-    ρ, e_int, q_tot,        # Inputs
-    10,                     # Max iterations
-    1e-3                    # Tolerance
+    ρ, e_int, q_tot         # Inputs
 )
 
 T_equil = sol.T
@@ -193,30 +190,23 @@ params_f32 = TD.Parameters.ThermodynamicsParameters(FT)
 For GPU performance, avoiding branch divergence is important. For the `ρe` formulation, use the fixed-iteration path by passing `forced_fixed_iters=true` as the last positional argument.
 
 ```julia
-# GPU-optimized broadcasting
+# GPU-optimized broadcasting using the convenience method
+# This automatically uses the fast, branch-free fixed-iteration solver
 sol = TD.saturation_adjustment.(
-    RS.NewtonsMethod,
     Ref(params_f32),
     Ref(TD.ρe()),
-    ρ_gpu, e_int_gpu, q_tot_gpu,
-    Ref(3),      # maxiter (3 iterations → ~0.1 K accuracy)
-    Ref(1e-4),   # tol (ignored when forced_fixed_iters=true)
-    nothing,     # T_guess (ignored when forced_fixed_iters=true)
-    true,        # forced_fixed_iters
+    ρ_gpu, e_int_gpu, q_tot_gpu
 )
 ```
 
 For CPU single calls, you can omit the last two arguments to use the standard solver:
 
 ```julia
-# CPU single-call (standard solver)
+# CPU single-call (uses defaults)
 sol = TD.saturation_adjustment(
-    RS.NewtonsMethod,
     params_f32,
     TD.ρe(),
-    ρ_val, e_int_val, q_tot_val,
-    10,      # maxiter
-    1e-4,    # tolerance
+    ρ_val, e_int_val, q_tot_val
 )
 ```
 
@@ -257,7 +247,7 @@ If your model handles phase changes (microphysics), you might step `q_liq` and `
 ρ = 1.0
 e_int = -7.0e4
 q_tot = 0.01
-sol = TD.saturation_adjustment(RS.NewtonsMethod, params, TD.ρe(), ρ, e_int, q_tot, 15, 1e-4)
+sol = TD.saturation_adjustment(params, TD.ρe(), ρ, e_int, q_tot)
 
 # Update thermodynamic variables
 T_new = sol.T
@@ -295,12 +285,9 @@ e_int = TD.internal_energy(params, T_sat, q_tot, q_liq_eq, q_ice_eq)
 # Define a function from e_int → q_liq through saturation adjustment
 function q_liq_from_e_int(e)
     sol = TD.saturation_adjustment(
-        RS.SecantMethod,
         params,
         TD.ρe(),
-        ρ, e, q_tot,
-        20,    # maxiter
-        1e-5   # tolerance
+        ρ, e, q_tot
     )
     return sol.q_liq
 end
