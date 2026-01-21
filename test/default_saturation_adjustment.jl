@@ -4,8 +4,8 @@ Tests for default convenience methods of saturation_adjustment.
 This suite verifies that the convenience methods with default settings (without 
 explicit solver method type) work correctly across all formulations:
 
-- ρe: Uses RS.NewtonsMethod with forced_fixed_iters=true, maxiter=3
-- Other formulations: Use RS.SecantMethod with maxiter=10
+- ρe: Uses RS.NewtonsMethod with forced_fixed_iters=true
+- Other formulations: Use RS.SecantMethod
 """
 
 @testset "Thermodynamics - saturation_adjustment default methods" begin

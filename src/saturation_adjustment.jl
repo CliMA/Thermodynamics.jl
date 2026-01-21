@@ -114,14 +114,14 @@ to avoid branch divergence on GPUs.
 - `ρ`: Density [kg/m³]
 - `e_int`: Specific internal energy [J/kg]
 - `q_tot`: Total specific humidity [kg/kg]
-- `maxiter`: Number of Newton iterations (3 recommended for ~0.1 K accuracy)
+- `maxiter`: Number of Newton iterations (2 recommended for < 0.1 K accuracy)
 
 # Returns
 - `NamedTuple` `(; T, q_liq, q_ice, converged)`
 
 # Notes
 - The `converged` field is always `true` (no convergence check is performed).
-- With `maxiter = 3`, temperature accuracy is better than 0.1 K for typical atmospheric
+- With `maxiter = 2`, temperature accuracy is better than 0.1 K for typical atmospheric
   conditions (T < 320 K).
 - This is an internal helper function. For the public API, use [`saturation_adjustment`](@ref)
   with `forced_fixed_iters=true` as a positional argument.
@@ -683,12 +683,12 @@ end
         ρ,
         e_int,
         q_tot;
-        maxiter::Int = 3,
+        maxiter::Int = 2,
     )
 
 Convenience method for `ρe` formulation with reasonable GPU-optimized defaults.
 
-Uses `RS.NewtonsMethod` with `forced_fixed_iters=true` and `maxiter=3` for fast,
+Uses `RS.NewtonsMethod` with `forced_fixed_iters=true` and `maxiter=2` for fast,
 branch-free execution on GPUs. For typical atmospheric conditions (T < 320 K), 
 this achieves better than 0.1 K accuracy.
 
@@ -700,7 +700,7 @@ function saturation_adjustment(
     ρ,
     e_int,
     q_tot;
-    maxiter::Int = 3,
+    maxiter::Int = 2,
 )
     return saturation_adjustment_ρe_fixed_iters(
         param_set,
