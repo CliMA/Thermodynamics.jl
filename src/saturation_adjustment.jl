@@ -114,14 +114,14 @@ to avoid branch divergence on GPUs.
 - `ρ`: Density [kg/m³]
 - `e_int`: Specific internal energy [J/kg]
 - `q_tot`: Total specific humidity [kg/kg]
-- `maxiter`: Number of Newton iterations (3 recommended for ~0.1 K accuracy)
+- `maxiter`: Number of Newton iterations (2 recommended for < 0.1 K accuracy)
 
 # Returns
 - `NamedTuple` `(; T, q_liq, q_ice, converged)`
 
 # Notes
 - The `converged` field is always `true` (no convergence check is performed).
-- With `maxiter = 3`, temperature accuracy is better than 0.1 K for typical atmospheric
+- With `maxiter = 2`, temperature accuracy is better than 0.1 K for typical atmospheric
   conditions (T < 320 K).
 - This is an internal helper function. For the public API, use [`saturation_adjustment`](@ref)
   with `forced_fixed_iters=true` as a positional argument.
@@ -671,6 +671,266 @@ function saturation_adjustment(
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice, converged)
 end
+
+# ---------------------------------------------
+# Convenience methods with reasonable defaults
+# ---------------------------------------------
+
+"""
+    saturation_adjustment(
+        param_set,
+        ::ρe,
+        ρ,
+        e_int,
+        q_tot;
+        maxiter::Int = 2,
+    )
+
+Convenience method for `ρe` formulation with reasonable GPU-optimized defaults.
+
+Uses `RS.NewtonsMethod` with `forced_fixed_iters=true` and `maxiter=2` for fast,
+branch-free execution on GPUs. For typical atmospheric conditions (T < 320 K), 
+this achieves better than 0.1 K accuracy.
+
+For more control over solver parameters, use the full signature with explicit method type.
+"""
+function saturation_adjustment(
+    param_set::APS,
+    ::ρe,
+    ρ,
+    e_int,
+    q_tot;
+    maxiter::Int = 2,
+)
+    return saturation_adjustment_ρe_fixed_iters(
+        param_set,
+        ρ,
+        e_int,
+        q_tot,
+        maxiter,
+    )
+end
+
+"""
+    saturation_adjustment(
+        param_set,
+        ::pe,
+        p,
+        e_int,
+        q_tot;
+        maxiter::Int = 15,
+        tol = nothing,
+        T_guess = nothing,
+    )
+
+Convenience method for `pe` formulation with reasonable defaults.
+
+Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+
+For more control over solver parameters, use the full signature with explicit method type.
+"""
+function saturation_adjustment(
+    param_set::APS,
+    ::pe,
+    p,
+    e_int,
+    q_tot;
+    maxiter::Int = 15,
+    tol = nothing,
+    T_guess = nothing,
+)
+    FT = eltype(param_set)
+    _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
+
+    return saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        pe(),
+        p,
+        e_int,
+        q_tot,
+        maxiter,
+        _tol,
+        T_guess,
+    )
+end
+
+"""
+    saturation_adjustment(
+        param_set,
+        ::ph,
+        p,
+        h,
+        q_tot;
+        maxiter::Int = 15,
+        tol = nothing,
+        T_guess = nothing,
+    )
+
+Convenience method for `ph` formulation with reasonable defaults.
+
+Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+
+For more control over solver parameters, use the full signature with explicit method type.
+"""
+function saturation_adjustment(
+    param_set::APS,
+    ::ph,
+    p,
+    h,
+    q_tot;
+    maxiter::Int = 15,
+    tol = nothing,
+    T_guess = nothing,
+)
+    FT = eltype(param_set)
+    _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
+
+    return saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        ph(),
+        p,
+        h,
+        q_tot,
+        maxiter,
+        _tol,
+        T_guess,
+    )
+end
+
+"""
+    saturation_adjustment(
+        param_set,
+        ::pθ_li,
+        p,
+        θ_li,
+        q_tot;
+        maxiter::Int = 15,
+        tol = nothing,
+        T_guess = nothing,
+    )
+
+Convenience method for `pθ_li` formulation with reasonable defaults.
+
+Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+
+For more control over solver parameters, use the full signature with explicit method type.
+"""
+function saturation_adjustment(
+    param_set::APS,
+    ::pθ_li,
+    p,
+    θ_li,
+    q_tot;
+    maxiter::Int = 15,
+    tol = nothing,
+    T_guess = nothing,
+)
+    FT = eltype(param_set)
+    _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
+
+    return saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        pθ_li(),
+        p,
+        θ_li,
+        q_tot,
+        maxiter,
+        _tol,
+        T_guess,
+    )
+end
+
+"""
+    saturation_adjustment(
+        param_set,
+        ::ρθ_li,
+        ρ,
+        θ_li,
+        q_tot;
+        maxiter::Int = 15,
+        tol = nothing,
+        T_guess = nothing,
+    )
+
+Convenience method for `ρθ_li` formulation with reasonable defaults.
+
+Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+
+For more control over solver parameters, use the full signature with explicit method type.
+"""
+function saturation_adjustment(
+    param_set::APS,
+    ::ρθ_li,
+    ρ,
+    θ_li,
+    q_tot;
+    maxiter::Int = 15,
+    tol = nothing,
+    T_guess = nothing,
+)
+    FT = eltype(param_set)
+    _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
+
+    return saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        ρθ_li(),
+        ρ,
+        θ_li,
+        q_tot,
+        maxiter,
+        _tol,
+        T_guess,
+    )
+end
+
+"""
+    saturation_adjustment(
+        param_set,
+        ::pρ,
+        p,
+        ρ,
+        q_tot;
+        maxiter::Int = 15,
+        tol = nothing,
+        T_guess = nothing,
+    )
+
+Convenience method for `pρ` formulation with reasonable defaults.
+
+Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+
+For more control over solver parameters, use the full signature with explicit method type.
+"""
+function saturation_adjustment(
+    param_set::APS,
+    ::pρ,
+    p,
+    ρ,
+    q_tot;
+    maxiter::Int = 15,
+    tol = nothing,
+    T_guess = nothing,
+)
+    FT = eltype(param_set)
+    _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
+
+    return saturation_adjustment(
+        RS.SecantMethod,
+        param_set,
+        pρ(),
+        p,
+        ρ,
+        q_tot,
+        maxiter,
+        _tol,
+        T_guess,
+    )
+end
+
 
 # ---------------------------------------------
 # Helper functions 
