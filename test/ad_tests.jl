@@ -263,14 +263,9 @@ using Thermodynamics: ρe, pe, ph
 
         for T in T_range, ρ in ρ_range, q_tot in q_tot_vals
             @testset "T=$T, ρ=$ρ, q_tot=$q_tot" begin
-                # Test ∂q_vap_sat_∂T
-                λ = TD.liquid_fraction_ramp(param_set, T)
-                q_vap_sat = TD.q_vap_saturation(param_set, T, ρ)
-                L = TD.latent_heat_mixed(param_set, T, λ)
-
                 # Analytical derivative
                 dq_sat_dT_analytical =
-                    TD.∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, L)
+                    TD.∂q_vap_sat_∂T(param_set, T, ρ)
 
                 # ForwardDiff derivative
                 f_q_sat(T_) = TD.q_vap_saturation(param_set, T_, ρ)
