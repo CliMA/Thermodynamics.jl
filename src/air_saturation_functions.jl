@@ -4,6 +4,7 @@ export has_condensate
 export saturation_vapor_pressure
 export q_vap_saturation
 export q_vap_saturation_from_pressure
+export ∂q_vap_sat_∂T
 export supersaturation
 export saturation_excess
 export condensate_partition
@@ -372,6 +373,64 @@ and is set to 1 if `p - p_v_sat` is less than machine epsilon.
 end
 
 """
+    ∂q_vap_sat_∂T(param_set, T, ρ)
+    ∂q_vap_sat_∂T(param_set, T, ρ, q_liq, q_ice)
+    ∂q_vap_sat_∂T(param_set, T, ρ, phase::Phase)
+
+Derivative of saturation vapor specific humidity with respect to temperature.
+
+# Arguments
+- `param_set`: Parameter set.
+- `T`: Temperature [K].
+- `ρ`: Density [kg/m³].
+- `q_liq`: (Optional) Liquid specific humidity [kg/kg].
+- `q_ice`: (Optional) Ice specific humidity [kg/kg].
+- `phase`: (Optional) Phase (Liquid() or Ice()).
+
+# Returns
+- `∂q_v^* / ∂T`: Derivative of saturation specific humidity with respect to temperature [kg/kg/K].
+
+Computed via the Clausius-Clapeyron relation: `∂q_sat/∂T = q_sat * (L / (Rv * T^2) - 1 / T)`, which 
+follows from `q_sat = p_sat / (ρ * R_v * T)` and the Clausius-Clapeyron relation 
+`∂ln(p_sat)/∂T = L / (Rv * T^2)` by differentiation with respect to `T` while holding `ρ` constant.
+
+If `q_liq` and `q_ice` are provided, the saturation specific humidity derivative is computed
+assuming a phase mixture defined by the liquid fraction (see [`liquid_fraction`](@ref)).
+
+If `phase` is provided, the derivative is computed for saturation over that specific phase.
+
+If neither are provided, the saturation specific humidity derivative is computed assuming
+phase equilibrium, where the liquid fraction is determined by a temperature-dependent
+parameterization (see [`liquid_fraction_ramp`](@ref)).
+"""
+@inline function ∂q_vap_sat_∂T(param_set::APS, T, ρ)
+    q_vap_sat = q_vap_saturation(param_set, T, ρ)
+    λ = liquid_fraction_ramp(param_set, T)
+    L = latent_heat_mixed(param_set, T, λ)
+    R_v = TP.R_v(param_set)
+    return q_vap_sat * (L / (R_v * T^2) - 1 / T)
+end
+
+@inline function ∂q_vap_sat_∂T(param_set::APS, T, ρ, q_liq, q_ice)
+    q_vap_sat = q_vap_saturation(param_set, T, ρ, q_liq, q_ice)
+    λ = liquid_fraction(param_set, T, q_liq, q_ice)
+    L = latent_heat_mixed(param_set, T, λ)
+    R_v = TP.R_v(param_set)
+    return q_vap_sat * (L / (R_v * T^2) - 1 / T)
+end
+
+@inline function ∂q_vap_sat_∂T(param_set::APS, T, ρ, phase::Phase)
+    q_vap_sat = q_vap_saturation(param_set, T, ρ, phase)
+    L = ifelse(
+        phase isa Liquid,
+        latent_heat_vapor(param_set, T),
+        latent_heat_sublim(param_set, T),
+    )
+    R_v = TP.R_v(param_set)
+    return q_vap_sat * (L / (R_v * T^2) - 1 / T)
+end
+
+"""
     supersaturation(param_set, q_vap, ρ, T[, phase::Phase = Liquid()])
 
 The supersaturation over water or ice.
@@ -569,3 +628,4 @@ If the specific humidities are not given, the result is the saturation vapor pre
         vapor_pressure_deficit(param_set, T, p, q_tot, q_liq, q_ice, Ice()),
     )
 end
+

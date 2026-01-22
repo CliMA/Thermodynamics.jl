@@ -117,6 +117,7 @@ saturation_excess
 q_vap_from_RH
 q_vap_from_p_vap
 q_vap_saturation_from_pressure
+∂q_vap_sat_∂T
 ```
 
 ### Saturation Adjustment
