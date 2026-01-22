@@ -326,7 +326,7 @@ The total specific enthalpy.
 @inline function total_enthalpy(param_set::APS, ts::ThermodynamicState, e_tot)
     R_m = gas_constant_air(param_set, ts)
     T = air_temperature(param_set, ts)
-    return total_enthalpy(e_tot, R_m, T)
+    return e_tot + R_m * T
 end
 
 """

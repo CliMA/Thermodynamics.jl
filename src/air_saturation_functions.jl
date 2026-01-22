@@ -388,11 +388,21 @@ Derivative of saturation vapor specific humidity with respect to temperature.
 - `phase`: (Optional) Phase (Liquid() or Ice()).
 
 # Returns
-- `∂q_v^* / ∂T`: Derivative of saturation specific humidity with respect to temperature [kg/kg/K].
+- `∂q_vap_sat / ∂T`: Derivative of saturation specific humidity with respect to temperature [kg/kg/K].
 
-Computed via the Clausius-Clapeyron relation: `∂q_sat/∂T = q_sat * (L / (Rv * T^2) - 1 / T)`, which 
-follows from `q_sat = p_sat / (ρ * R_v * T)` and the Clausius-Clapeyron relation 
-`∂ln(p_sat)/∂T = L / (Rv * T^2)` by differentiation with respect to `T` while holding `ρ` constant.
+Computed as
+```math
+\\frac{\\partial q_v^*}{\\partial T} = q_v^* \\left( \\frac{L}{R_v T^2} - \\frac{1}{T} \\right),
+```
+which follows from the definition of saturation specific humidity and the ideal gas law,
+```math
+q_v^* = \\frac{p_v^*}{\\rho R_v T},
+```
+(where `` q_v^* `` is `q_vap_sat` and `` p_v^* `` is saturation vapor pressure) and the Clausius-Clapeyron relation
+```math
+\\frac{\\partial \\ln p_v^*}{\\partial T} = \\frac{L}{R_v T^2}
+```
+by differentiation with respect to `` T `` while holding `` \\rho `` constant.
 
 If `q_liq` and `q_ice` are provided, the saturation specific humidity derivative is computed
 assuming a phase mixture defined by the liquid fraction (see [`liquid_fraction`](@ref)).
@@ -407,16 +417,14 @@ parameterization (see [`liquid_fraction_ramp`](@ref)).
     q_vap_sat = q_vap_saturation(param_set, T, ρ)
     λ = liquid_fraction_ramp(param_set, T)
     L = latent_heat_mixed(param_set, T, λ)
-    R_v = TP.R_v(param_set)
-    return q_vap_sat * (L / (R_v * T^2) - 1 / T)
+    return ∂q_vap_sat_∂T_from_L(param_set, q_vap_sat, L, T)
 end
 
 @inline function ∂q_vap_sat_∂T(param_set::APS, T, ρ, q_liq, q_ice)
     q_vap_sat = q_vap_saturation(param_set, T, ρ, q_liq, q_ice)
     λ = liquid_fraction(param_set, T, q_liq, q_ice)
     L = latent_heat_mixed(param_set, T, λ)
-    R_v = TP.R_v(param_set)
-    return q_vap_sat * (L / (R_v * T^2) - 1 / T)
+    return ∂q_vap_sat_∂T_from_L(param_set, q_vap_sat, L, T)
 end
 
 @inline function ∂q_vap_sat_∂T(param_set::APS, T, ρ, phase::Phase)
@@ -426,6 +434,10 @@ end
         latent_heat_vapor(param_set, T),
         latent_heat_sublim(param_set, T),
     )
+    return ∂q_vap_sat_∂T_from_L(param_set, q_vap_sat, L, T)
+end
+
+@inline function ∂q_vap_sat_∂T_from_L(param_set::APS, q_vap_sat, L, T)
     R_v = TP.R_v(param_set)
     return q_vap_sat * (L / (R_v * T^2) - 1 / T)
 end
@@ -628,4 +640,3 @@ If the specific humidities are not given, the result is the saturation vapor pre
         vapor_pressure_deficit(param_set, T, p, q_tot, q_liq, q_ice, Ice()),
     )
 end
-

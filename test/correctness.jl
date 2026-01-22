@@ -261,6 +261,13 @@ using the non-deprecated functional API (no `PhasePartition`/state types).
             s_vd =
                 TD.virtual_dry_static_energy(param_set, T, e_pot, q_tot, q_liq, q_ice)
             @test s_vd ≈ cp_d * (T_virt - T_0) + e_pot
+
+            # Total enthalpy: h_tot = e_tot + R_m * T
+            e_kin = FT(50)  # Kinetic energy [J/kg]
+            e_tot = TD.total_energy(param_set, e_kin, e_pot, T, q_tot, q_liq, q_ice)
+            h_tot = TD.total_enthalpy(param_set, e_tot, T, q_tot, q_liq, q_ice)
+            R_m = TD.gas_constant_air(param_set, q_tot, q_liq, q_ice)
+            @test h_tot ≈ e_tot + R_m * T
         end
 
         @testset "Humidity definitions (\$FT)" begin

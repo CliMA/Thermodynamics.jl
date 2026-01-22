@@ -1215,4 +1215,3 @@ calculating necessary intermediate variables.
     e_int_sat = internal_energy_sat(param_set, T, ρ, q_tot)
     return ∂e_int_∂T(param_set, T, e_int_sat, ρ, q_tot, q_vap_sat)
 end
-
