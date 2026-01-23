@@ -263,14 +263,9 @@ using Thermodynamics: ρe, pe, ph
 
         for T in T_range, ρ in ρ_range, q_tot in q_tot_vals
             @testset "T=$T, ρ=$ρ, q_tot=$q_tot" begin
-                # Test ∂q_vap_sat_∂T
-                λ = TD.liquid_fraction_ramp(param_set, T)
-                q_vap_sat = TD.q_vap_saturation(param_set, T, ρ)
-                L = TD.latent_heat_mixed(param_set, T, λ)
-
                 # Analytical derivative
                 dq_sat_dT_analytical =
-                    TD.∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, L)
+                    TD.∂q_vap_sat_∂T(param_set, T, ρ)
 
                 # ForwardDiff derivative
                 f_q_sat(T_) = TD.q_vap_saturation(param_set, T_, ρ)
@@ -299,5 +294,42 @@ using Thermodynamics: ρe, pe, ph
                 )
             end
         end
+    end
+
+    @testset "∂q_vap_sat_∂T method consistency" begin
+        # Test that the different method signatures return consistent values
+        # Above freezing: Phase(Liquid()) should match (q_liq=0, q_ice=0) which defaults to liquid
+        # Below freezing: Phase(Ice()) should match (q_liq=0, q_ice=0) which defaults to ice
+
+        ρ = FT(1.0)
+
+        # Above freezing (T > T_freeze): expects liquid saturation
+        T_above = FT(290.0)
+        dq_dT_default = TD.∂q_vap_sat_∂T(param_set, T_above, ρ)
+        dq_dT_explicit = TD.∂q_vap_sat_∂T(param_set, T_above, ρ, FT(0), FT(0))
+        dq_dT_liquid = TD.∂q_vap_sat_∂T(param_set, T_above, ρ, TD.Liquid())
+
+        @test isapprox(dq_dT_default, dq_dT_explicit; rtol = FT(1e-10))
+        @test isapprox(dq_dT_default, dq_dT_liquid; rtol = FT(1e-10))
+
+        # Below freezing (T < T_icenuc): expects ice saturation  
+        T_below = FT(220.0)
+        dq_dT_default_cold = TD.∂q_vap_sat_∂T(param_set, T_below, ρ)
+        dq_dT_explicit_cold = TD.∂q_vap_sat_∂T(param_set, T_below, ρ, FT(0), FT(0))
+        dq_dT_ice = TD.∂q_vap_sat_∂T(param_set, T_below, ρ, TD.Ice())
+
+        @test isapprox(dq_dT_default_cold, dq_dT_explicit_cold; rtol = FT(1e-10))
+        @test isapprox(dq_dT_default_cold, dq_dT_ice; rtol = FT(1e-10))
+
+        # Mixed phase region (T_icenuc < T < T_freeze): 
+        # Default method uses liquid_fraction_ramp, should differ from pure phases
+        T_mixed = FT(260.0)
+        dq_dT_mixed_default = TD.∂q_vap_sat_∂T(param_set, T_mixed, ρ)
+        dq_dT_mixed_liquid = TD.∂q_vap_sat_∂T(param_set, T_mixed, ρ, TD.Liquid())
+        dq_dT_mixed_ice = TD.∂q_vap_sat_∂T(param_set, T_mixed, ρ, TD.Ice())
+
+        # In mixed phase, default should be between pure liquid and pure ice
+        @test min(dq_dT_mixed_liquid, dq_dT_mixed_ice) <= dq_dT_mixed_default <=
+              max(dq_dT_mixed_liquid, dq_dT_mixed_ice)
     end
 end

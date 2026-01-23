@@ -282,21 +282,32 @@ The total energy is `e_tot = e_int + e_kin + e_pot`.
 end
 
 """
-    total_enthalpy(e_tot, R_m, T)
+    total_enthalpy(param_set, e_tot, T, q_tot=0, q_liq=0, q_ice=0)
 
-The total specific enthalpy.
+The total enthalpy per unit mass, `h_tot = e_tot + R_m T`.
 
 # Arguments
- - `e_tot`: total specific energy [J/kg]
- - `R_m`: gas constant of moist air [J/(kg·K)], see [`gas_constant_air`](@ref)
- - `T`: air temperature [K]
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `e_tot`: total specific energy [J/kg], see [`total_energy`](@ref)
+ - `T`: temperature [K]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
 
 # Returns
  - `h_tot`: total specific enthalpy [J/kg]
 
-The total enthalpy is computed as `h_tot = e_tot + R_m T`.
+In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the dry-air expression.
 """
-@inline function total_enthalpy(e_tot, R_m, T)
+@inline function total_enthalpy(
+    param_set::APS,
+    e_tot,
+    T,
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
+)
+    R_m = gas_constant_air(param_set, q_tot, q_liq, q_ice)
     return e_tot + R_m * T
 end
 

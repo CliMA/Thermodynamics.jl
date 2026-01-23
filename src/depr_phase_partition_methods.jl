@@ -583,28 +583,22 @@ and total specific humidity.
 end
 
 """
-    total_enthalpy(param_set, e_tot, T[, q::PhasePartition])
+    total_enthalpy(param_set, e_tot, T, q::PhasePartition)
 
 The total specific enthalpy, defined as `e_tot + R_m * T`.
 
  - `param_set` a thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
  - `e_tot` total specific energy
  - `T` temperature
-
-and, optionally,
-
  - `q` [`PhasePartition`](@ref). 
- 
-When `q` is not provided, the results are for dry air.
 """
 @inline function total_enthalpy(
     param_set::APS,
     e_tot,
     T,
-    q::PhasePartition = q_pt_0(param_set),
+    q::PhasePartition,
 )
-    R_m = gas_constant_air(param_set, q)
-    return total_enthalpy(e_tot, R_m, T)
+    return total_enthalpy(param_set, e_tot, T, q.tot, q.liq, q.ice)
 end
 
 # -------------------------------------------------------------------------

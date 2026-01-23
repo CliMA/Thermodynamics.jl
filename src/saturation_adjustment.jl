@@ -1138,7 +1138,7 @@ end
 # -------------------------------
 
 """
-    ∂e_int_∂T(param_set, T, e_int, ρ, q_tot, ...)
+    ∂e_int_∂T(param_set, T, e_int, ρ, q_tot, q_vap_sat)
 
 Derivative of internal energy with respect to temperature at saturation.
 
@@ -1148,6 +1148,7 @@ Derivative of internal energy with respect to temperature at saturation.
 - `e_int`: Internal energy [J/kg] (unused, for interface consistency).
 - `ρ`: Density [kg/m³].
 - `q_tot`: Total specific humidity [kg/kg].
+- `q_vap_sat`: (Optional) Saturation vapor specific humidity [kg/kg].
 """
 @inline function ∂e_int_∂T(
     param_set::APS,
@@ -1155,14 +1156,11 @@ Derivative of internal energy with respect to temperature at saturation.
     e_int,
     ρ,
     q_tot,
-    λ = liquid_fraction_ramp(param_set, T),
-    p_vap_sat = saturation_vapor_pressure(param_set, T),
+    q_vap_sat = q_vap_saturation(param_set, T, ρ),
 )
     FT = eltype(param_set)
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     q_cond = q_liq + q_ice
-    q_vap_sat = q_vap_from_p_vap(param_set, T, ρ, p_vap_sat)
-    L = latent_heat_mixed(param_set, T, λ)
 
     # ∂λ/∂T for λ = ((T - Tⁱ) / (Tᶠ - Tⁱ))^n
     Tᶠ = TP.T_freeze(param_set)
@@ -1175,7 +1173,7 @@ Derivative of internal energy with respect to temperature at saturation.
     )
 
     # ∂q_vap_sat/∂T from Clausius-Clapeyron
-    _∂q_vap_sat_∂T = ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, L)
+    _∂q_vap_sat_∂T = ∂q_vap_sat_∂T(param_set, T, ρ)
 
     # Derivative of internal energy with respect to temperature
     # Note: we need to handle the unsaturated case explicitly because
@@ -1188,6 +1186,7 @@ Derivative of internal energy with respect to temperature at saturation.
     # Saturated case
     # Derivatives of phase fractions (when saturated, ∂q_c/∂T = -∂q_vap_sat/∂T)
     # q_c = q_tot - q_vap_sat
+    λ = liquid_fraction_ramp(param_set, T)
     ∂q_c_∂T = -_∂q_vap_sat_∂T
     ∂q_liq_∂T = ∂λ_∂T * q_cond + λ * ∂q_c_∂T
     ∂q_ice_∂T = -∂λ_∂T * q_cond + (1 - λ) * ∂q_c_∂T
@@ -1212,27 +1211,7 @@ Helper to compute `∂e_int/∂T` at saturation for Newton's method,
 calculating necessary intermediate variables.
 """
 @inline function ∂e_int_∂T_sat(param_set::APS, T, ρ, q_tot)
-    p_vap_sat = saturation_vapor_pressure(param_set, T)
-    λ = liquid_fraction_ramp(param_set, T)
+    q_vap_sat = q_vap_saturation(param_set, T, ρ)
     e_int_sat = internal_energy_sat(param_set, T, ρ, q_tot)
-    return ∂e_int_∂T(param_set, T, e_int_sat, ρ, q_tot, λ, p_vap_sat)
-end
-
-"""
-    ∂q_vap_sat_∂T(param_set, ts)
-    ∂q_vap_sat_∂T(param_set, λ, T, q_vap_sat, [L])
-
-Derivative of saturation vapor specific humidity with respect to temperature.
-
-Computed via the Clausius-Clapeyron relation: `∂q_sat/∂T = q_sat * (L / (Rv * T^2) - 1 / T)`.
-"""
-@inline function ∂q_vap_sat_∂T(
-    param_set::APS,
-    λ,
-    T,
-    q_vap_sat,
-    L = latent_heat_mixed(param_set, T, λ),
-)
-    R_v = TP.R_v(param_set)
-    return q_vap_sat * (L / (R_v * T^2) - 1 / T)
+    return ∂e_int_∂T(param_set, T, e_int_sat, ρ, q_tot, q_vap_sat)
 end
