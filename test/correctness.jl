@@ -90,6 +90,40 @@ using the non-deprecated functional API (no `PhasePartition`/state types).
             end
         end
 
+        @testset "latent_heat internal consistency ($FT)" begin
+            T = TP.T_freeze(param_set)
+
+            # Test 1: All liquid condensate should give L_v
+            q_liq = FT(0.001)
+            q_ice = FT(0)
+            L_all_liq = TD.latent_heat(param_set, T, q_liq, q_ice)
+            L_v = TD.latent_heat_vapor(param_set, T)
+            @test L_all_liq ≈ L_v
+
+            # Test 2: All ice condensate should give L_s
+            q_liq = FT(0)
+            q_ice = FT(0.001)
+            L_all_ice = TD.latent_heat(param_set, T, q_liq, q_ice)
+            L_s = TD.latent_heat_sublim(param_set, T)
+            @test L_all_ice ≈ L_s
+
+            # Test 3: Mixed condensate should give weighted average
+            q_liq = FT(0.0006)  # 60% liquid
+            q_ice = FT(0.0004)  # 40% ice
+            L_mixed = TD.latent_heat(param_set, T, q_liq, q_ice)
+            λ = q_liq / (q_liq + q_ice)
+            L_expected = TD.latent_heat_mixed(param_set, T, λ)
+            @test L_mixed ≈ L_expected
+
+            # Test 4: latent_heat(param_set, T) should be consistent with liquid_fraction_ramp
+            for T_test in (FT(240), FT(260), FT(280), FT(300))
+                L_ramp = TD.latent_heat(param_set, T_test)
+                λ_ramp = TD.liquid_fraction_ramp(param_set, T_test)
+                L_expected_ramp = TD.latent_heat_mixed(param_set, T_test, λ_ramp)
+                @test L_ramp ≈ L_expected_ramp
+            end
+        end
+
         @testset "Saturation vapor pressure at triple point ($FT)" begin
             T_tr = TP.T_triple(param_set)
             p_tr = TP.press_triple(param_set)
