@@ -4,13 +4,6 @@
 export gas_constant_air
 export cp_m, cv_m
 
-# Specific latent heats
-export latent_heat_vapor
-export latent_heat_sublim
-export latent_heat_fusion
-export latent_heat_mixed
-export humidity_weighted_latent_heat
-
 # Speed of sound
 export soundspeed_air
 
@@ -99,132 +92,7 @@ The specific heat capacities are assumed to be constant (calorically perfect air
            (cv_i - cv_v) * q_ice
 end
 
-"""
-    latent_heat_vapor(param_set, T)
 
-The specific latent heat of vaporization `L_v`.
-
-# Arguments
- - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T`: temperature [K]
-
-# Returns
- - `L_v`: latent heat of vaporization [J/kg]
-
-Because the specific heats are assumed constant, the latent heats are linear functions of
-temperature by Kirchhoff's law.
-"""
-@inline function latent_heat_vapor(param_set::APS, T)
-    cp_l = TP.cp_l(param_set)
-    cp_v = TP.cp_v(param_set)
-    LH_v0 = TP.LH_v0(param_set)
-    return latent_heat_generic(param_set, T, LH_v0, cp_v - cp_l)
-end
-
-"""
-    latent_heat_sublim(param_set, T)
-
-The specific latent heat of sublimation `L_s`.
-
-# Arguments
- - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T`: temperature [K]
-
-# Returns
- - `L_s`: latent heat of sublimation [J/kg]
-
-Because the specific heats are assumed constant, the latent heats are linear functions of
-temperature by Kirchhoff's law.
-"""
-@inline function latent_heat_sublim(param_set::APS, T)
-    LH_s0 = TP.LH_s0(param_set)
-    cp_v = TP.cp_v(param_set)
-    cp_i = TP.cp_i(param_set)
-    return latent_heat_generic(param_set, T, LH_s0, cp_v - cp_i)
-end
-
-"""
-    latent_heat_fusion(param_set, T)
-
-The specific latent heat of fusion `L_f`.
-
-# Arguments
- - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T`: temperature [K]
-
-# Returns
- - `L_f`: latent heat of fusion [J/kg]
-
-Because the specific heats are assumed constant, the latent heats are linear functions of
-temperature by Kirchhoff's law.
-"""
-@inline function latent_heat_fusion(param_set::APS, T)
-    LH_f0 = TP.LH_f0(param_set)
-    cp_l = TP.cp_l(param_set)
-    cp_i = TP.cp_i(param_set)
-    return latent_heat_generic(param_set, T, LH_f0, cp_l - cp_i)
-end
-
-"""
-    latent_heat_generic(param_set, T, LH_0, Δcp)
-
-Internal function. The specific latent heat of a generic phase transition between
-two phases, computed using Kirchhoff's law.
-
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `LH_0` latent heat at the reference temperature `T_0`
- - `Δcp` difference in isobaric specific heat capacities between the two phases
-
- Because the specific heats are assumed constant, the latent heats are linear functions of
- temperature by Kirchhoff's law.
-"""
-@inline function latent_heat_generic(param_set::APS, T, LH_0, Δcp)
-    T_0 = TP.T_0(param_set)
-    return LH_0 + Δcp * (T - T_0)
-end
-
-latent_heat_generic(param_set, T, LH_0, Δcp) =
-    latent_heat_generic(param_set, promote(T, LH_0, Δcp)...)
-
-"""
-    latent_heat_mixed(param_set, T, λ)
-
-The specific latent heat of a mixed phase, weighted by the liquid fraction `λ`.
-
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` air temperature
- - `λ` liquid fraction
-
- Because the specific heats are assumed constant, the latent heats are linear functions of
- temperature by Kirchhoff's law.
-"""
-@inline function latent_heat_mixed(param_set::APS, T, λ)
-    L_v = latent_heat_vapor(param_set, T)
-    L_s = latent_heat_sublim(param_set, T)
-    return λ * L_v + (1 - λ) * L_s
-end
-
-"""
-    humidity_weighted_latent_heat(param_set, q_liq=0, q_ice=0)
-
-Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference
-temperature `T_0`.
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
-
-If `q_liq` and `q_ice` are not provided, `humidity_weighted_latent_heat` is zero.
-"""
-@inline function humidity_weighted_latent_heat(
-    param_set::APS,
-    q_liq = 0,
-    q_ice = 0,
-)
-    LH_v0 = TP.LH_v0(param_set)
-    LH_s0 = TP.LH_s0(param_set)
-    return LH_v0 * q_liq + LH_s0 * q_ice
-end
 
 """
     soundspeed_air(param_set, T, q_tot=0, q_liq=0, q_ice=0)

@@ -82,6 +82,7 @@ latent_heat_fusion
 latent_heat_sublim
 latent_heat_vapor
 latent_heat_mixed
+latent_heat
 humidity_weighted_latent_heat
 ```
 
