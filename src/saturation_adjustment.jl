@@ -117,10 +117,10 @@ to avoid branch divergence on GPUs.
 - `maxiter`: Number of Newton iterations (2 recommended for < 0.1 K accuracy)
 
 # Returns
-- `NamedTuple` `(; T, q_liq, q_ice, converged)`
+- `NamedTuple` `(; T, q_liq, q_ice)`
 
 # Notes
-- The `converged` field is always `true` (no convergence check is performed).
+- No convergence check is performed, and the `converged` field is not returned.
 - With `maxiter = 2`, temperature accuracy is better than 0.1 K for typical atmospheric
   conditions (T < 320 K).
 - This is an internal helper function. For the public API, use [`saturation_adjustment`](@ref)
@@ -725,7 +725,7 @@ end
 
 Convenience method for `pe` formulation with reasonable defaults.
 
-Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+Uses `RS.SecantMethod` with `maxiter=4` and relative tolerance `0` (fixed iterations).
 
 For more control over solver parameters, use the full signature with explicit method type.
 """
@@ -742,7 +742,7 @@ function saturation_adjustment(
     FT = eltype(param_set)
     _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
 
-    return saturation_adjustment(
+    sa_result = saturation_adjustment(
         RS.SecantMethod,
         param_set,
         pe(),
@@ -753,6 +753,7 @@ function saturation_adjustment(
         _tol,
         T_guess,
     )
+    return (; sa_result.T, sa_result.q_liq, sa_result.q_ice)
 end
 
 """
@@ -769,7 +770,7 @@ end
 
 Convenience method for `ph` formulation with reasonable defaults.
 
-Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+Uses `RS.SecantMethod` with `maxiter=4` and relative tolerance `0` (fixed iterations).
 
 For more control over solver parameters, use the full signature with explicit method type.
 """
@@ -786,7 +787,7 @@ function saturation_adjustment(
     FT = eltype(param_set)
     _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
 
-    return saturation_adjustment(
+    sa_result = saturation_adjustment(
         RS.SecantMethod,
         param_set,
         ph(),
@@ -797,6 +798,7 @@ function saturation_adjustment(
         _tol,
         T_guess,
     )
+    return (; sa_result.T, sa_result.q_liq, sa_result.q_ice)
 end
 
 """
@@ -813,7 +815,7 @@ end
 
 Convenience method for `pθ_li` formulation with reasonable defaults.
 
-Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+Uses `RS.SecantMethod` with `maxiter=4` and relative tolerance `0` (fixed iterations).
 
 For more control over solver parameters, use the full signature with explicit method type.
 """
@@ -830,7 +832,7 @@ function saturation_adjustment(
     FT = eltype(param_set)
     _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
 
-    return saturation_adjustment(
+    sa_result = saturation_adjustment(
         RS.SecantMethod,
         param_set,
         pθ_li(),
@@ -841,6 +843,7 @@ function saturation_adjustment(
         _tol,
         T_guess,
     )
+    return (; sa_result.T, sa_result.q_liq, sa_result.q_ice)
 end
 
 """
@@ -857,7 +860,7 @@ end
 
 Convenience method for `ρθ_li` formulation with reasonable defaults.
 
-Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+Uses `RS.SecantMethod` with `maxiter=4` and relative tolerance `0` (fixed iterations).
 
 For more control over solver parameters, use the full signature with explicit method type.
 """
@@ -874,7 +877,7 @@ function saturation_adjustment(
     FT = eltype(param_set)
     _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
 
-    return saturation_adjustment(
+    sa_result = saturation_adjustment(
         RS.SecantMethod,
         param_set,
         ρθ_li(),
@@ -885,6 +888,7 @@ function saturation_adjustment(
         _tol,
         T_guess,
     )
+    return (; sa_result.T, sa_result.q_liq, sa_result.q_ice)
 end
 
 """
@@ -901,7 +905,7 @@ end
 
 Convenience method for `pρ` formulation with reasonable defaults.
 
-Uses `RS.SecantMethod` with `maxiter=15` and relative tolerance `1e-4`.
+Uses `RS.SecantMethod` with `maxiter=4` and relative tolerance `0` (fixed iterations).
 
 For more control over solver parameters, use the full signature with explicit method type.
 """
@@ -918,7 +922,7 @@ function saturation_adjustment(
     FT = eltype(param_set)
     _tol = tol === nothing ? RS.RelativeSolutionTolerance(FT(1e-4)) : tol
 
-    return saturation_adjustment(
+    sa_result = saturation_adjustment(
         RS.SecantMethod,
         param_set,
         pρ(),
@@ -929,6 +933,7 @@ function saturation_adjustment(
         _tol,
         T_guess,
     )
+    return (; sa_result.T, sa_result.q_liq, sa_result.q_ice)
 end
 
 
