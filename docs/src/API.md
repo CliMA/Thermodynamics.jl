@@ -125,6 +125,12 @@ q_vap_saturation_from_pressure
 
 ```@docs
 saturation_adjustment
+∂e_int_∂T_sat_ρ
+∂e_int_∂T_sat_p
+∂θ_li_∂T_sat_ρ
+∂θ_li_∂T_sat_p
+∂p_∂T_sat_ρ
+∂h_∂T_sat_p
 ```
 
 ### Air Entropies

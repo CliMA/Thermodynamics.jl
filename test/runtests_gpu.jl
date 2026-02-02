@@ -157,6 +157,24 @@ end
     ql_pe = map(x -> x.q_liq, gpu_results_pe)
     qi_pe = map(x -> x.q_ice, gpu_results_pe)
 
+    # 2b) pe - forced_fixed_iters
+    gpu_results_pe_fixed =
+        TD.saturation_adjustment.(
+            RS.NewtonsMethod,
+            Ref(param_set),
+            Ref(TD.pe()),
+            d_p,
+            d_e_int_p,
+            d_q,
+            Ref(3),
+            Ref(tol),
+            nothing,
+            true,
+        )
+    T_pe_fixed = map(x -> x.T, gpu_results_pe_fixed)
+    ql_pe_fixed = map(x -> x.q_liq, gpu_results_pe_fixed)
+    qi_pe_fixed = map(x -> x.q_ice, gpu_results_pe_fixed)
+
     # 3) ph - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_ph =
         TD.saturation_adjustment.(
@@ -172,6 +190,24 @@ end
     T_ph = map(x -> x.T, gpu_results_ph)
     ql_ph = map(x -> x.q_liq, gpu_results_ph)
     qi_ph = map(x -> x.q_ice, gpu_results_ph)
+
+    # 3b) ph - forced_fixed_iters
+    gpu_results_ph_fixed =
+        TD.saturation_adjustment.(
+            RS.NewtonsMethod,
+            Ref(param_set),
+            Ref(TD.ph()),
+            d_p,
+            d_h_p,
+            d_q,
+            Ref(3),
+            Ref(tol),
+            nothing,
+            true,
+        )
+    T_ph_fixed = map(x -> x.T, gpu_results_ph_fixed)
+    ql_ph_fixed = map(x -> x.q_liq, gpu_results_ph_fixed)
+    qi_ph_fixed = map(x -> x.q_ice, gpu_results_ph_fixed)
 
     # 4) pρ - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_pρ =
@@ -189,6 +225,24 @@ end
     ql_pρ = map(x -> x.q_liq, gpu_results_pρ)
     qi_pρ = map(x -> x.q_ice, gpu_results_pρ)
 
+    # 4b) pρ - forced_fixed_iters
+    gpu_results_pρ_fixed =
+        TD.saturation_adjustment.(
+            RS.NewtonsMethod,
+            Ref(param_set),
+            Ref(TD.pρ()),
+            d_p_ρ,
+            d_ρ,
+            d_q,
+            Ref(3),
+            Ref(tol),
+            nothing,
+            true,
+        )
+    T_pρ_fixed = map(x -> x.T, gpu_results_pρ_fixed)
+    ql_pρ_fixed = map(x -> x.q_liq, gpu_results_pρ_fixed)
+    qi_pρ_fixed = map(x -> x.q_ice, gpu_results_pρ_fixed)
+
     # 5) ρθ_li - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_ρθ_li =
         TD.saturation_adjustment.(
@@ -204,6 +258,24 @@ end
     T_ρθ_li = map(x -> x.T, gpu_results_ρθ_li)
     ql_ρθ_li = map(x -> x.q_liq, gpu_results_ρθ_li)
     qi_ρθ_li = map(x -> x.q_ice, gpu_results_ρθ_li)
+
+    # 5b) ρθ_li - forced_fixed_iters
+    gpu_results_ρθ_li_fixed =
+        TD.saturation_adjustment.(
+            RS.NewtonsMethod,
+            Ref(param_set),
+            Ref(TD.ρθ_li()),
+            d_ρ,
+            d_θ_ρ,
+            d_q,
+            Ref(3),
+            Ref(tol),
+            nothing,
+            true,
+        )
+    T_ρθ_li_fixed = map(x -> x.T, gpu_results_ρθ_li_fixed)
+    ql_ρθ_li_fixed = map(x -> x.q_liq, gpu_results_ρθ_li_fixed)
+    qi_ρθ_li_fixed = map(x -> x.q_ice, gpu_results_ρθ_li_fixed)
 
     # 6) pθ_li - using SecantMethod (via type dispatch for GPU compatibility)
     gpu_results_pθ_li =
@@ -221,6 +293,24 @@ end
     ql_pθ_li = map(x -> x.q_liq, gpu_results_pθ_li)
     qi_pθ_li = map(x -> x.q_ice, gpu_results_pθ_li)
 
+    # 6b) pθ_li - forced_fixed_iters
+    gpu_results_pθ_li_fixed =
+        TD.saturation_adjustment.(
+            RS.NewtonsMethod,
+            Ref(param_set),
+            Ref(TD.pθ_li()),
+            d_p,
+            d_θ_p,
+            d_q,
+            Ref(3),
+            Ref(tol),
+            nothing,
+            true,
+        )
+    T_pθ_li_fixed = map(x -> x.T, gpu_results_pθ_li_fixed)
+    ql_pθ_li_fixed = map(x -> x.q_liq, gpu_results_pθ_li_fixed)
+    qi_pθ_li_fixed = map(x -> x.q_ice, gpu_results_pθ_li_fixed)
+
     # Convert GPU results to CPU arrays for comparison
     T_ρe_cpu = Array(T_ρe)
     ql_ρe_cpu = Array(ql_ρe)
@@ -228,6 +318,21 @@ end
     T_ρe_fixed_cpu = Array(T_ρe_fixed)
     ql_ρe_fixed_cpu = Array(ql_ρe_fixed)
     qi_ρe_fixed_cpu = Array(qi_ρe_fixed)
+    T_pe_fixed_cpu = Array(T_pe_fixed)
+    ql_pe_fixed_cpu = Array(ql_pe_fixed)
+    qi_pe_fixed_cpu = Array(qi_pe_fixed)
+    T_ph_fixed_cpu = Array(T_ph_fixed)
+    ql_ph_fixed_cpu = Array(ql_ph_fixed)
+    qi_ph_fixed_cpu = Array(qi_ph_fixed)
+    T_pρ_fixed_cpu = Array(T_pρ_fixed)
+    ql_pρ_fixed_cpu = Array(ql_pρ_fixed)
+    qi_pρ_fixed_cpu = Array(qi_pρ_fixed)
+    T_ρθ_li_fixed_cpu = Array(T_ρθ_li_fixed)
+    ql_ρθ_li_fixed_cpu = Array(ql_ρθ_li_fixed)
+    qi_ρθ_li_fixed_cpu = Array(qi_ρθ_li_fixed)
+    T_pθ_li_fixed_cpu = Array(T_pθ_li_fixed)
+    ql_pθ_li_fixed_cpu = Array(ql_pθ_li_fixed)
+    qi_pθ_li_fixed_cpu = Array(qi_pθ_li_fixed)
     T_pe_cpu = Array(T_pe)
     ql_pe_cpu = Array(ql_pe)
     qi_pe_cpu = Array(qi_pe)
@@ -311,6 +416,11 @@ end
             end
         end
 
+        # Verify pe fixed iter results
+        @test isapprox(T_pe_fixed_cpu[i], T_ref; atol = FT(0.05))
+        @test isapprox(ql_pe_fixed_cpu[i], ql_ref; atol = FT(1e-4))
+        @test isapprox(qi_pe_fixed_cpu[i], qi_ref; atol = FT(1e-4))
+
         res = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
@@ -340,6 +450,11 @@ end
                 @test approx_tight(qi_ph_cpu[i], qi_chk)
             end
         end
+
+        # Verify ph fixed iter results
+        @test isapprox(T_ph_fixed_cpu[i], T_ref; atol = FT(0.05))
+        @test isapprox(ql_ph_fixed_cpu[i], ql_ref; atol = FT(1e-4))
+        @test isapprox(qi_ph_fixed_cpu[i], qi_ref; atol = FT(1e-4))
 
         res = TD.saturation_adjustment(
             RS.SecantMethod,
@@ -375,6 +490,11 @@ end
             @test approx_tight(qi_pρ_cpu[i], qi_chk)
         end
 
+        # Verify pρ fixed iter results
+        @test isapprox(T_pρ_fixed_cpu[i], T_ref; atol = FT(0.05))
+        @test isapprox(ql_pρ_fixed_cpu[i], ql_ref; atol = FT(1e-4))
+        @test isapprox(qi_pρ_fixed_cpu[i], qi_ref; atol = FT(1e-4))
+
         res = TD.saturation_adjustment(
             RS.SecantMethod,
             param_set,
@@ -409,6 +529,11 @@ end
             @test approx_tight(ql_ρθ_li_cpu[i], ql_chk)
             @test approx_tight(qi_ρθ_li_cpu[i], qi_chk)
         end
+
+        # Verify ρθ_li fixed iter results
+        @test isapprox(T_ρθ_li_fixed_cpu[i], T_ref; atol = FT(0.05))
+        @test isapprox(ql_ρθ_li_fixed_cpu[i], ql_ref; atol = FT(1e-4))
+        @test isapprox(qi_ρθ_li_fixed_cpu[i], qi_ref; atol = FT(1e-4))
 
         res = TD.saturation_adjustment(
             RS.SecantMethod,
@@ -446,6 +571,11 @@ end
                 )
             end
         end
+
+        # Verify pθ_li fixed iter results
+        @test isapprox(T_pθ_li_fixed_cpu[i], T_ref; atol = FT(0.05))
+        @test isapprox(ql_pθ_li_fixed_cpu[i], ql_ref; atol = FT(1e-4))
+        @test isapprox(qi_pθ_li_fixed_cpu[i], qi_ref; atol = FT(1e-4))
 
         # Basic invariants for all formulations
         @test ql_ρe_cpu[i] >= 0
