@@ -87,7 +87,6 @@ sol = TD.saturation_adjustment(
 T_equil = sol.T
 q_liq_equil = sol.q_liq
 q_ice_equil = sol.q_ice
-converged = sol.converged
 
 println("Equilibrium T: $T_equil")
 ```

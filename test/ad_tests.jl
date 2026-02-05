@@ -278,9 +278,9 @@ using Thermodynamics: ρe, pe, ph
                     atol = FT(1e-6),
                 )
 
-                # Test ∂e_int_∂T_sat
+                # Test ∂e_int_∂T_sat_ρ
                 # Analytical derivative (approximate)
-                de_int_dT_analytical = TD.∂e_int_∂T_sat(param_set, T, ρ, q_tot)
+                de_int_dT_analytical = TD.∂e_int_∂T_sat_ρ(param_set, T, ρ, q_tot)
 
                 # ForwardDiff derivative
                 f_e_int_sat(T_) = TD.internal_energy_sat(param_set, T_, ρ, q_tot)
@@ -289,6 +289,105 @@ using Thermodynamics: ρe, pe, ph
                 @test isapprox(
                     de_int_dT_analytical,
                     de_int_dT_AD;
+                    rtol = FT(5e-2),
+                    atol = FT(1e-6),
+                )
+            end
+        end
+
+        # Test derivatives at fixed pressure
+        p_range = FT.([80000, 100000, 101325])
+        for T in T_range, p in p_range, q_tot in q_tot_vals
+            @testset "T=$T, p=$p, q_tot=$q_tot" begin
+                # Test ∂e_int_∂T_sat_p
+                de_int_dT_p_analytical = TD.∂e_int_∂T_sat_p(param_set, T, p, q_tot)
+
+                f_e_int_sat_p(T_) = begin
+                    ρ_ = TD.air_density(param_set, T_, p, q_tot)
+                    TD.internal_energy_sat(param_set, T_, ρ_, q_tot)
+                end
+                de_int_dT_p_AD = ForwardDiff.derivative(f_e_int_sat_p, T)
+
+                @test isapprox(
+                    de_int_dT_p_analytical,
+                    de_int_dT_p_AD;
+                    rtol = FT(5e-2),
+                    atol = FT(1e-6),
+                )
+
+                # Test ∂h_∂T_sat_p
+                dh_dT_p_analytical = TD.∂h_∂T_sat_p(param_set, T, p, q_tot)
+
+                f_h_sat_p(T_) = begin
+                    ρ_ = TD.air_density(param_set, T_, p, q_tot)
+                    TD.enthalpy_sat(param_set, T_, ρ_, q_tot)
+                end
+                dh_dT_p_AD = ForwardDiff.derivative(f_h_sat_p, T)
+
+                @test isapprox(
+                    dh_dT_p_analytical,
+                    dh_dT_p_AD;
+                    rtol = FT(5e-2),
+                    atol = FT(1e-6),
+                )
+
+                # Test ∂θ_li_∂T_sat_p
+                dθ_li_dT_p_analytical = TD.∂θ_li_∂T_sat_p(param_set, T, p, q_tot)
+
+                f_θ_li_sat_p(T_) = begin
+                    ρ_ = TD.air_density(param_set, T_, p, q_tot)
+                    (q_liq_, q_ice_) = TD.condensate_partition(param_set, T_, ρ_, q_tot)
+                    TD.liquid_ice_pottemp_given_pressure(
+                        param_set,
+                        T_,
+                        p,
+                        q_tot,
+                        q_liq_,
+                        q_ice_,
+                    )
+                end
+                dθ_li_dT_p_AD = ForwardDiff.derivative(f_θ_li_sat_p, T)
+
+                @test isapprox(
+                    dθ_li_dT_p_analytical,
+                    dθ_li_dT_p_AD;
+                    rtol = FT(5e-2),
+                    atol = FT(1e-6),
+                )
+            end
+        end
+
+        # Test derivatives at fixed density
+        for T in T_range, ρ in ρ_range, q_tot in q_tot_vals
+            @testset "∂θ_li_∂T_sat_ρ and ∂p_∂T_sat_ρ: T=$T, ρ=$ρ, q_tot=$q_tot" begin
+                # Test ∂θ_li_∂T_sat_ρ
+                dθ_li_dT_ρ_analytical = TD.∂θ_li_∂T_sat_ρ(param_set, T, ρ, q_tot)
+
+                f_θ_li_sat_ρ(T_) = begin
+                    (q_liq_, q_ice_) = TD.condensate_partition(param_set, T_, ρ, q_tot)
+                    TD.liquid_ice_pottemp(param_set, T_, ρ, q_tot, q_liq_, q_ice_)
+                end
+                dθ_li_dT_ρ_AD = ForwardDiff.derivative(f_θ_li_sat_ρ, T)
+
+                @test isapprox(
+                    dθ_li_dT_ρ_analytical,
+                    dθ_li_dT_ρ_AD;
+                    rtol = FT(5e-2),
+                    atol = FT(1e-6),
+                )
+
+                # Test ∂p_∂T_sat_ρ
+                dp_dT_ρ_analytical = TD.∂p_∂T_sat_ρ(param_set, T, ρ, q_tot)
+
+                f_p_sat_ρ(T_) = begin
+                    (q_liq_, q_ice_) = TD.condensate_partition(param_set, T_, ρ, q_tot)
+                    TD.air_pressure(param_set, T_, ρ, q_tot, q_liq_, q_ice_)
+                end
+                dp_dT_ρ_AD = ForwardDiff.derivative(f_p_sat_ρ, T)
+
+                @test isapprox(
+                    dp_dT_ρ_analytical,
+                    dp_dT_ρ_AD;
                     rtol = FT(5e-2),
                     atol = FT(1e-6),
                 )

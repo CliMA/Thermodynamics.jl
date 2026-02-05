@@ -60,7 +60,6 @@ explicit solver method type) work correctly across all formulations:
                     inp.q0,
                 )
 
-                @test res.converged
                 err = abs(res.T - inp.T0)
                 max_err = max(max_err, err)
                 push!(chunk_errs, err)
@@ -135,7 +134,7 @@ explicit solver method type) work correctly across all formulations:
             # Test pe default method
             for i in idxs
                 inp = targets(i)
-                let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
+                let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                         param_set,
                         TD.pe(),
                         inp.p0,
@@ -143,7 +142,6 @@ explicit solver method type) work correctly across all formulations:
                         inp.q0,
                     )
                     @test isfinite(T)
-                    @test converged
                     @test isapprox(
                         T,
                         inp.T0;
@@ -158,7 +156,7 @@ explicit solver method type) work correctly across all formulations:
             # Test ph default method
             for i in idxs
                 inp = targets(i)
-                let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
+                let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                         param_set,
                         TD.ph(),
                         inp.p0,
@@ -166,7 +164,6 @@ explicit solver method type) work correctly across all formulations:
                         inp.q0,
                     )
                     @test isfinite(T)
-                    @test converged
                     @test isapprox(
                         T,
                         inp.T0;
@@ -181,7 +178,7 @@ explicit solver method type) work correctly across all formulations:
             # Test pρ default method
             for i in idxs
                 inp = targets(i)
-                let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
+                let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                         param_set,
                         TD.pρ(),
                         inp.p_ρ,
@@ -189,7 +186,6 @@ explicit solver method type) work correctly across all formulations:
                         inp.q0,
                     )
                     @test isfinite(T)
-                    @test converged
                     @test isapprox(
                         T,
                         inp.T0;
@@ -203,7 +199,7 @@ explicit solver method type) work correctly across all formulations:
             # Test pθ_li default method
             for i in idxs
                 inp = targets(i)
-                let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
+                let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                         param_set,
                         TD.pθ_li(),
                         inp.p0,
@@ -211,7 +207,6 @@ explicit solver method type) work correctly across all formulations:
                         inp.q0,
                     )
                     @test isfinite(T)
-                    @test converged
                     @test isapprox(
                         T,
                         inp.T0;
@@ -226,7 +221,7 @@ explicit solver method type) work correctly across all formulations:
             # Test ρθ_li default method
             for i in idxs
                 inp = targets(i)
-                let (; T, q_liq, q_ice, converged) = TD.saturation_adjustment(
+                let (; T, q_liq, q_ice) = TD.saturation_adjustment(
                         param_set,
                         TD.ρθ_li(),
                         inp.ρ0,
@@ -234,7 +229,6 @@ explicit solver method type) work correctly across all formulations:
                         inp.q0,
                     )
                     @test isfinite(T)
-                    @test converged
                     @test isapprox(
                         T,
                         inp.T0;
