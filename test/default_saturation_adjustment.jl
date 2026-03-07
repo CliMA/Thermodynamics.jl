@@ -26,7 +26,7 @@ explicit solver method type) work correctly across all formulations:
         end
 
         @testset "ρe default method accuracy ($FT)" begin
-            profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT})
+            profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
             (; T, p, ρ, q_tot) = profiles
 
             # Sample ~120 points across the full profile grid
@@ -84,7 +84,7 @@ explicit solver method type) work correctly across all formulations:
         end
 
         @testset "Other formulations default methods ($FT)" begin
-            profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT})
+            profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
             (; T, p, ρ, q_tot) = profiles
 
             # Sample fewer points for other formulations (faster test)

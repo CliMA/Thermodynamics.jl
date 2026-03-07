@@ -11,6 +11,9 @@
 #
 # To run GPU tests: julia --project=. test/runtests_gpu.jl CuArray
 
+# Run aqua tests for code quality and performance (fail fast)
+include("aqua.jl")
+
 # Run temperature profile tests for physical consistency
 include("TemperatureProfiles.jl")
 include("TestedProfiles.jl")
@@ -31,19 +34,6 @@ include("optimization_tests.jl")
 include("ad_tests.jl")
 include("liquid_fraction_ramp_tests.jl")
 
-const _include_deprecated =
-    lowercase(get(ENV, "THERMODYNAMICS_INCLUDE_DEPRECATED", "true")) ∉ ("0", "false", "no")
-
-if _include_deprecated
-    # Deprecated tests (PhasePartition and thermodynamic state methods in `src/depr_*`); soon to be removed
-    include("depr_test_common.jl")
-    include("depr_default_behavior_accuracy.jl")
-    include("depr_constructor_consistency.jl")
-    include("depr_type_stability.jl")
-    include("depr_dry_limit.jl")
-    include("depr_miscellaneous.jl")
-    include("depr_data_tests.jl")
-end
-
-# Run aqua tests for code quality and performance
-include("aqua.jl")
+using Documenter
+@info "Running doctests..."
+doctest(Thermodynamics)

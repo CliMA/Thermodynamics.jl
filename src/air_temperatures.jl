@@ -26,10 +26,10 @@ This method inverts [`internal_energy`](@ref) by solving for `T` given `e_int`.
 """
 @inline function air_temperature(
     param_set::APS,
-    e_int::Real,     # Number type needed to disambiguate from deprecated methods that are still there
-    q_tot::Real = 0,
-    q_liq::Real = 0,
-    q_ice::Real = 0,
+    e_int,     
+    q_tot = 0,
+    q_liq = 0,
+    q_ice = 0,
 )
     return air_temperature(param_set, ρe(), e_int, q_tot, q_liq, q_ice)
 end

@@ -6,7 +6,6 @@ export partial_pressure_vapor
 export specific_humidity_to_mixing_ratio
 export q_vap_from_p_vap
 export q_vap_from_RH
-export q_vap_from_RH_liquid
 export relative_humidity
 
 """
@@ -191,26 +190,6 @@ Compute the vapor specific humidity from the relative humidity.
     p_vap = RH * p_vap_sat
     Rv_over_Rd = TP.Rv_over_Rd(param_set)
     return p_vap / Rv_over_Rd / (p - (1 - 1 / Rv_over_Rd) * p_vap)
-end
-
-"""
-    q_vap_from_RH_liquid(param_set, p, T, RH)
-
-Compute the vapor specific humidity from the relative humidity over liquid.
-
-# Arguments
- - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
- - `p`: pressure [Pa]
- - `T`: temperature [K]
- - `RH`: relative humidity [dimensionless], 0 ≤ RH ≤ 1
-
-# Returns
- - `q_vap`: vapor specific humidity [kg/kg]
-
-This function is deprecated. Use `q_vap_from_RH` with `Liquid()` instead.
-"""
-@inline function q_vap_from_RH_liquid(param_set::APS, p, T, RH)
-    return q_vap_from_RH(param_set, p, T, RH, Liquid())
 end
 
 """

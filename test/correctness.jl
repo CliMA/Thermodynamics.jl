@@ -1,8 +1,7 @@
 """
 # Correctness Test Suite (functional API)
 
-This file contains tests for fundamental thermodynamic relations and physical laws,
-using the non-deprecated functional API (no `PhasePartition`/state types).
+This file contains tests for fundamental thermodynamic relations and physical laws.
 """
 
 @testset "Thermodynamics - correctness (functional)" begin
