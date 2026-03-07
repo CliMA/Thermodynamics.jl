@@ -331,6 +331,42 @@ This file contains tests for fundamental thermodynamic relations and physical la
             @test rh ≈ rh_expected
         end
 
+        @testset "q_vap_from_RH / relative_humidity round-trip ($FT)" begin
+            # q_vap_from_RH and relative_humidity must be inverse of each other (no condensate)
+            p = FT(1e5)
+            T = FT(290)
+            for RH in (FT(0.3), FT(0.7), FT(1.0))
+                q_vap = TD.q_vap_from_RH(param_set, p, T, RH, TD.Liquid())
+                RH_recovered = TD.relative_humidity(param_set, T, p, q_vap)
+                @test isapprox(RH_recovered, RH; rtol = FT(1e-5))
+            end
+        end
+
+        @testset "Entropy component consistency ($FT)" begin
+            # entropy = (1-q_tot)*s_d + q_tot*s_v - (q_liq*L_v + q_ice*L_s)/T
+            T = FT(280)
+            p = FT(9e4)
+            q_tot = FT(0.01)
+            q_liq = FT(0.002)
+            q_ice = FT(0.001)
+            s = TD.entropy(param_set, p, T, q_tot, q_liq, q_ice)
+            s_d = TD.entropy_dry(param_set, p, T, q_tot, q_liq, q_ice)
+            s_v = TD.entropy_vapor(param_set, p, T, q_tot, q_liq, q_ice)
+            L_v = TD.latent_heat_vapor(param_set, T)
+            L_s = TD.latent_heat_sublim(param_set, T)
+            s_expected = (1 - q_tot) * s_d + q_tot * s_v - (q_liq * L_v + q_ice * L_s) / T
+            @test s ≈ s_expected
+        end
+
+        @testset "saturation_vapor_pressure(T,0,0) == saturation_vapor_pressure(T) at T_freeze ($FT)" begin
+            # At T_freeze both liquid fraction parameterizations give λ=1,
+            # so the two overloads must agree exactly.
+            T_f = TP.T_freeze(param_set)
+            p_v_explicit = TD.saturation_vapor_pressure(param_set, T_f, FT(0), FT(0))
+            p_v_ramp = TD.saturation_vapor_pressure(param_set, T_f)
+            @test p_v_explicit ≈ p_v_ramp
+        end
+
         @testset "Reference temperature invariance ($FT)" begin
             # 1. Define checking logic
             function check_invariance(param_set_local, T_in, q_tot, q_liq, q_ice)

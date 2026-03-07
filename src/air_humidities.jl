@@ -11,7 +11,7 @@ export relative_humidity
 """
     vapor_specific_humidity(q_tot=0, q_liq=0, q_ice=0)
 
-The vapor specific humidity (clamped to be non-negative).
+The vapor specific humidity.
 
 # Arguments
  - `q_tot`: total specific humidity [kg/kg]
@@ -23,6 +23,8 @@ The vapor specific humidity (clamped to be non-negative).
 
 If the specific humidities are not given, the result is zero.
 The formula is `q_vap = q_tot - q_liq - q_ice`.
+
+Note: callers must ensure `q_liq + q_ice ≤ q_tot`; no clamping is applied.
 """
 @inline function vapor_specific_humidity(q_tot = 0, q_liq = 0, q_ice = 0)
     return q_tot - q_liq - q_ice
@@ -184,6 +186,8 @@ Compute the vapor specific humidity from the relative humidity.
 
 # Returns
  - `q_vap`: vapor specific humidity [kg/kg]
+
+Note: this function assumes all water is in vapor form (no liquid or ice condensate).
 """
 @inline function q_vap_from_RH(param_set::APS, p, T, RH, phase::Phase)
     p_vap_sat = saturation_vapor_pressure(param_set, T, phase)

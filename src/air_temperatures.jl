@@ -26,7 +26,7 @@ This method inverts [`internal_energy`](@ref) by solving for `T` given `e_int`.
 """
 @inline function air_temperature(
     param_set::APS,
-    e_int,     
+    e_int,
     q_tot = 0,
     q_liq = 0,
     q_ice = 0,
@@ -250,12 +250,16 @@ end
 
 The potential temperature.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `p` pressure
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `p`: pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `θ`: potential temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
 
@@ -309,14 +313,19 @@ end
 
 The virtual potential temperature.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `ρ` (moist-)air density
- - `q_tot` total specific humidity
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `θ_v`: virtual potential temperature [K]
 
 If the specific humidities are not given, the result is for dry air.
+The virtual potential temperature is defined as `θ_v = θ * R_m / R_d`.
 """
 @inline function virtual_pottemp(
     param_set::APS,
