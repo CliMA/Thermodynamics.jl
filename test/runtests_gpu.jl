@@ -65,7 +65,7 @@ end
     param_set = parameter_set(FT)
 
     # Create equilibrium-consistent test inputs on CPU, then move to device.
-    profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT})
+    profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
     n = min(length(profiles.z), 256)
     sl = 1:n
     T0 = profiles.T[sl]

@@ -53,6 +53,8 @@ The specific entropy of dry air at its partial pressure.
  - `s_d`: specific entropy of dry air [J/(kg·K)]
 
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), the dry-air partial pressure equals the total pressure.
+Note: `entropy_dry` diverges logarithmically as `q_tot → 1` (since `p_d → 0`). See also
+the analogous warning in [`entropy_vapor`](@ref).
 """
 @inline function entropy_dry(
     param_set::APS,
@@ -89,6 +91,9 @@ The specific entropy of water vapor at its partial pressure.
  - `s_v`: specific entropy of water vapor [J/(kg·K)]
 
 Note: the entropy of water vapor diverges logarithmically as `q_tot → 0` (since `p_v → 0`).
+The analogous divergence occurs in [`entropy_dry`](@ref) as `q_tot → 1` (since `p_d → 0`).
+A small numerical regularization `ϵ_numerics(FT)` is added to the pressure before taking the
+logarithm to avoid floating-point exceptions, but results should not be trusted in these limits.
 """
 @inline function entropy_vapor(
     param_set::APS,

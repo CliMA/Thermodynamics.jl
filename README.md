@@ -55,7 +55,7 @@ params = TD.Parameters.ThermodynamicsParameters(Float64)
 
 # 2. Define your thermodynamic variables
 ρ     = 1.1        # Density [kg/m³]
-e_int = 200000.0   # Internal energy [J/kg]
+e_int = -36000.0   # Internal energy [J/kg, can be negative]
 q_tot = 0.015      # Total specific humidity [kg/kg]
 q_liq = 0.005      # Liquid specific humidity [kg/kg]
 q_ice = 0.001      # Ice specific humidity [kg/kg]

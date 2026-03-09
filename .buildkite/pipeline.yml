@@ -31,7 +31,7 @@ steps:
 
   - label: "CPU tests"
     command:
-      - "THERMODYNAMICS_INCLUDE_DEPRECATED=false julia --project=test/ --color=yes test/runtests.jl"
+      - "julia --project=test/ --color=yes test/runtests.jl"
     agents:
       slurm_ntasks: 1
     timeout_in_minutes: 60

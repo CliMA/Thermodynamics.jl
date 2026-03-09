@@ -13,7 +13,7 @@ using Random
         _p_ref_theta = TP.p_ref_theta(param_set)
         _kappa_d = TP.kappa_d(param_set)
 
-        profiles = TestedProfiles.PhaseEquilProfiles(param_set, ArrayType)
+        profiles = TestedProfiles.EquilMoistProfiles(param_set, ArrayType)
         (; T, p, ρ, θ_li, q_tot, q_liq, q_ice) = profiles
 
         @testset "Ideal Gas Law" begin

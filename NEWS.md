@@ -1,10 +1,13 @@
 Thermodynamics.jl Release Notes
 ========================
 
-v1.xxx  (TODO: release once refactoring is done)
+v1.0.0
 --------
 
-- ![][[badge-✨feature/enhancement]] Complete rewrite of documentation
+- ![][[badge-💥breaking]] Removal of the deprecated object-oriented and state-based API (e.g., `ThermodynamicState`, `PhasePartition`, `PhaseEquil`). The package now relies exclusively on a stateless, completely functional API.
+- ![][[badge-🚀performance]] Enforced zero-allocations across core routines (`air_temperature`, `air_pressure`, `saturation_adjustment` with fixed iterations) backed by explicit testing.
+- ![][[badge-✨feature/enhancement]] Upgraded testing infrastructure: `Documenter.doctest` continuously checks all mathematical examples in the docstrings.
+- ![][[badge-✨feature/enhancement]] Rewrite of documentation
   - Restructured documentation for better organization and clarity
   - Updated all function documentation to be consistent and comprehensive
   - Improved code examples and usage patterns throughout documentation
@@ -17,10 +20,6 @@ v1.xxx  (TODO: release once refactoring is done)
   - Added comprehensive tests and physical consistency validation for these functions
   PR [259](https://github.com/CliMA/Thermodynamics.jl/pull/259)
   PR [263](https://github.com/CliMA/Thermodynamics.jl/pull/263)
-
-main
-----
-
 - Renamed `specific_enthalpy*` to `enthalpy*`.
 - Renamed `specific_entropy*` to `entropy*`.
 - Renamed `latent_heat_liq_ice` to `humidity_weighted_latent_heat`.

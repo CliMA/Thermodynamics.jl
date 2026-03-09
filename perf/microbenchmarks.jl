@@ -1,6 +1,6 @@
 include("common_micro_bm.jl")
 
-function benchmark_thermo_states(::Type{FT}) where {FT}
+function benchmark_functional_api(::Type{FT}) where {FT}
     summary = OrderedCollections.OrderedDict()
     ArrayType = Array{FT}
     param_set = TP.ThermodynamicsParameters(FT)
@@ -25,5 +25,5 @@ function benchmark_thermo_states(::Type{FT}) where {FT}
     tabulate_summary(summary)
 end
 
-benchmark_thermo_states(Float64)
-benchmark_thermo_states(Float32)
+benchmark_functional_api(Float64)
+benchmark_functional_api(Float32)

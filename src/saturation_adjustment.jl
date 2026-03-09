@@ -674,7 +674,6 @@ function saturation_adjustment(
     h,
     q_tot;
     maxiter::Int = 2,
-    tol = nothing,
 )
     sa_result = saturation_adjustment_fixed_iters(param_set, ph(), p, h, q_tot, maxiter)
     return (; sa_result.T, sa_result.q_liq, sa_result.q_ice)
@@ -709,7 +708,6 @@ function saturation_adjustment(
     θ_li,
     q_tot;
     maxiter::Int = 2,
-    tol = nothing,
 )
     sa_result =
         saturation_adjustment_fixed_iters(param_set, pθ_li(), p, θ_li, q_tot, maxiter)

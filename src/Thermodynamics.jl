@@ -60,8 +60,6 @@ const APS = TP.AbstractThermodynamicsParameters
 
 include("ThermoTypes.jl")
 
-include("depr_PhasePartitionTypes.jl")
-
 @inline solution_type() = RS.CompactSolution()
 include("DataCollection.jl")
 import .DataCollection
@@ -79,13 +77,6 @@ include("saturation_adjustment.jl")
 include("air_entropies.jl")
 include("air_dry_adiabatic.jl")
 include("TemperatureProfiles.jl")
-
-# Soon to be removed
-include("depr_air_temperatures.jl")
-include("depr_saturation_adjustment.jl")
-include("depr_air_states.jl")
-include("depr_state_methods.jl")
-include("depr_phase_partition_methods.jl")
 
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)

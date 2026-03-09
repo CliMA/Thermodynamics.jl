@@ -86,6 +86,7 @@ The specific heat capacities are assumed to be constant (calorically perfect air
     cv_v = TP.cv_v(param_set)
     cv_l = TP.cv_l(param_set)
     cv_i = TP.cv_i(param_set)
+    # rearranged formula for cv_m to avoid computation of vapor specific humidity
     return cv_d +
            (cv_v - cv_d) * q_tot +
            (cv_l - cv_v) * q_liq +

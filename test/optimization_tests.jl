@@ -14,7 +14,7 @@ using .TestedProfiles
 #####
 
 function functional_inputs(param_set, ::Type{FT}; n = 1500) where {FT}
-    ps = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT})
+    ps = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
     n = min(n, length(ps.z))
     sl = 1:n
 
@@ -124,7 +124,7 @@ solver_for(::Type) = RS.SecantMethod
     TD.saturation_adjustment(solver, param_set, method, args..., maxiter, tol)
 end
 
-function jet_thermo_states(::Type{FT}) where {FT}
+function jet_functional_api(::Type{FT}) where {FT}
     param_set = TP.ThermodynamicsParameters(FT)
     inputs = functional_inputs(param_set, FT)
 
@@ -148,4 +148,4 @@ function jet_thermo_states(::Type{FT}) where {FT}
 end
 
 # Run the tests
-jet_thermo_states(Float32)
+jet_functional_api(Float32)

@@ -84,7 +84,8 @@ end
 "Internal energy of vaporization at reference temperature `T_0`."
 @inline e_int_v0(ps::ATP) = LH_v0(ps) - R_v(ps) * T_0(ps)
 
-"Internal energy of fusion at reference temperature `T_0`."
+"Internal energy of fusion at reference temperature `T_0`. Equal to the latent heat of fusion
+because for incompressible condensed phases the `p Δv` term is negligible (`p Δv ≪ L_f`)."
 @inline e_int_i0(ps::ATP) = LH_f0(ps)
 
 "Ratio of dry air gas constant to isobaric specific heat `R_d / cp_d`."
