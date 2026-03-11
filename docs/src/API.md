@@ -125,6 +125,12 @@ q_vap_saturation_from_pressure
 
 ```@docs
 saturation_adjustment
+∂e_int_∂T_sat_ρ
+∂e_int_∂T_sat_p
+∂θ_li_∂T_sat_ρ
+∂θ_li_∂T_sat_p
+∂p_∂T_sat_ρ
+∂h_∂T_sat_p
 ```
 
 ### Air Entropies
@@ -150,76 +156,3 @@ TemperatureProfiles.DryAdiabaticProfile
 Thermodynamics.DataCollection
 ```
 
-## Deprecated Functions
-
-These functions are deprecated and will be removed in a future release.
-
-### Backward Compatibility Wrappers
-
-These wrappers exist for backward compatibility with older versions of the package.
-
-```@docs
-specific_enthalpy
-specific_enthalpy_dry
-specific_enthalpy_vapor
-specific_enthalpy_liquid
-specific_enthalpy_ice
-dry_pottemp
-total_specific_enthalpy
-q_vap_saturation_generic
-latent_heat_liq_ice
-```
-
-### Other Deprecated Functions
-
-```@docs
-air_temperature_given_hq
-air_temperature_given_pρq
-air_temperature_given_pθq
-air_temperature_given_ρθq
-air_temperature_given_ρθq_nonlinear
-saturated
-total_specific_humidity
-liquid_specific_humidity
-ice_specific_humidity
-mixing_ratios
-specific_volume
-q_vap_from_RH_liquid
-temperature_and_humidity_given_TᵥρRH
-liquid_ice_pottemp_sat
-PhasePartition_equil
-PhasePartition_equil_given_p
-```
-
-## Thermodynamic State Constructors (Deprecated)
-
-```@docs
-ThermodynamicState
-PhasePartition
-PhaseDry
-PhaseDry_ρe
-PhaseDry_pT
-PhaseDry_pθ
-PhaseDry_pe
-PhaseDry_ph
-PhaseDry_ρθ
-PhaseDry_ρT
-PhaseDry_ρp
-PhaseEquil
-PhaseEquil_ρeq
-PhaseEquil_ρTq
-PhaseEquil_pTq
-PhaseEquil_pθq
-PhaseEquil_peq
-PhaseEquil_phq
-PhaseEquil_ρθq
-PhaseEquil_ρpq
-PhaseNonEquil
-PhaseNonEquil_ρTq
-PhaseNonEquil_pTq
-PhaseNonEquil_ρθq
-PhaseNonEquil_pθq
-PhaseNonEquil_peq
-PhaseNonEquil_phq
-PhaseNonEquil_ρpq
-```

@@ -47,7 +47,7 @@ Specific thermodynamic formulations often vary in how they approximate the relev
 2. **Consistency**: The formulation is thermodynamically consistent (e.g., it conserves energy and satisfies the Clausius-Clapeyron relation).
 3. **Simplicity and Efficiency**: The formulation leads to closed-form expressions that can be evaluated efficiently.
 
-The implementation follows the thermodynamic formulation of the CliMA Earth System Model ([Yatunin2026](@cite)). It relies on the **Rankine-Kirchhoff approximations**, which provide a consistent framework for moist thermodynamics ([Romps2021](@cite)).
+The implementation follows the thermodynamic formulation of the CliMA Earth System Model [Yatunin2026](@cite). It relies on the **Rankine-Kirchhoff approximations**, which provide a consistent framework for moist thermodynamics [Romps2021](@cite).
 
 Specific choices of thermodynamic constants have been made in [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl) to maximize accuracy given the Rankine-Kirchhoff approximations ([Ambaum2020](@cite), [Yatunin2026](@cite)).
 
@@ -412,7 +412,7 @@ The sum of the specific enthalpy of moist air and the specific gravitational pot
 \end{equation}
 ```
 
-Moist static energy arises naturally as the static energy component that is transported in moist air. "Static" here refers to the fact that the (small) kinetic energy contribution to the total energy is neglected. The global integral of moist static energy is approximately conserved in adiabatic processes, even in the presence of reversible phase transitions and latent heat release. It is also approximately materially conserved ([Romps2015](@cite)).
+Moist static energy arises naturally as the static energy component that is transported in moist air. "Static" here refers to the fact that the (small) kinetic energy contribution to the total energy is neglected. The global integral of moist static energy is approximately conserved in adiabatic processes, even in the presence of reversible phase transitions and latent heat release. It is also approximately materially conserved [Romps2015](@cite).
 
 ## 9. Saturation Vapor Pressure
 
@@ -427,7 +427,7 @@ The Clausius-Clapeyron relation describes how the saturation vapor pressure $p_v
 
 Here, $L$ is the specific latent heat of the phase transition, which is $L_v$ for the saturation vapor pressure over liquid, or $L_s$ for the saturation vapor pressure over ice.
 
-Substituting the linear relation \eqref{e:LHTemperature} between latent heat and temperature, and taking $p_\mathrm{tr}$ to be the vapor pressure at the triple point (by definition equal to the saturation vapor pressures both over liquid and ice), the Clausius-Clapeyron relation can be integrated to give a closed-form expression for the saturation vapor pressure. This closed-form expression is known as the **Rankine-Kirchhoff approximation** ([Romps2021](@cite)), named after its independent discoverers. It is the unique solution consistent with our thermodynamic assumptions (constant heat capacities and ideal gas law):
+Substituting the linear relation \eqref{e:LHTemperature} between latent heat and temperature, and taking $p_\mathrm{tr}$ to be the vapor pressure at the triple point (by definition equal to the saturation vapor pressures both over liquid and ice), the Clausius-Clapeyron relation can be integrated to give a closed-form expression for the saturation vapor pressure. This closed-form expression is known as the **Rankine-Kirchhoff approximation** [Romps2021](@cite), named after its independent discoverers. It is the unique solution consistent with our thermodynamic assumptions (constant heat capacities and ideal gas law):
 
 ```math
 \begin{equation}
@@ -441,7 +441,7 @@ Substituting the linear relation \eqref{e:LHTemperature} between latent heat and
 !!! tip "Implementation Note"
     The saturation vapor pressure is implemented in the [`saturation_vapor_pressure`](@ref) function. The closed-form expression enables efficient computation without numerical integration.
 
-With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity difference $\Delta c_p$, this gives saturation vapor pressures over liquid or ice that are accurate within 3% for temperatures between 200K and 330K ([Ambaum2020](@cite)). The accuracy of this approximation depends on the choice of thermodynamic constants; the values used in `Thermodynamics.jl` (specified in [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)) are chosen to minimize errors in the Rankine-Kirchhoff approximation ([Yatunin2026](@cite)).
+With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity difference $\Delta c_p$, this gives saturation vapor pressures over liquid or ice that are accurate within 3% for temperatures between 200K and 330K [Ambaum2020](@cite). The accuracy of this approximation depends on the choice of thermodynamic constants; the values used in `Thermodynamics.jl` (specified in [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)) are chosen to minimize errors in the Rankine-Kirchhoff approximation [Yatunin2026](@cite).
 
 !!! example "Typical Values"
     At $T = 300$ K:
@@ -459,7 +459,7 @@ With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity diff
 
     The ratio of liquid to ice saturation vapor pressure at 300 K is approximately 12.4, reflecting the higher energy required for sublimation compared to vaporization.
 
-To obtain the saturation vapor pressure over a mixture of liquid and ice (e.g., in mixed-phase clouds), using a weighted average of the relevant specific latent heats in the vapor pressure \eqref{e:SatVaporPressure} leads to a thermodynamically consistent formulation ([Pressel2015](@cite)). That is, if a fraction $\lambda_p$ of the condensate is liquid and the complement $1-\lambda_p$ is ice, calculating the saturation vapor pressure with a specific latent heat $\lambda_p L_v + (1-\lambda_p)L_s$ gives a thermodynamically consistent saturation vapor pressure over the mixture.
+To obtain the saturation vapor pressure over a mixture of liquid and ice (e.g., in mixed-phase clouds), using a weighted average of the relevant specific latent heats in the vapor pressure \eqref{e:SatVaporPressure} leads to a thermodynamically consistent formulation [Pressel2015](@cite). That is, if a fraction $\lambda_p$ of the condensate is liquid and the complement $1-\lambda_p$ is ice, calculating the saturation vapor pressure with a specific latent heat $\lambda_p L_v + (1-\lambda_p)L_s$ gives a thermodynamically consistent saturation vapor pressure over the mixture.
 
 !!! note "Physical Interpretation"
     The weighted latent heat approach ensures thermodynamic consistency when computing saturation vapor pressure over mixed-phase conditions. This is important for modeling mixed-phase clouds where both liquid and ice coexist.
@@ -704,7 +704,7 @@ The speed of sound in (moist) unstratified air is
 \end{equation}
 ```
 
-with the appropriate gas constants for moist air. In the presence of stratification, additional terms arise ([Durran1999](@cite)).
+with the appropriate gas constants for moist air. In the presence of stratification, additional terms arise [Durran1999](@cite).
 
 !!! note "Physical Interpretation"
     The speed of sound represents the rate at which pressure perturbations propagate through the fluid. The expression accounts for the effect of moisture on the gas constant and specific heat capacities of the air mixture.

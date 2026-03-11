@@ -335,8 +335,4 @@ function NonEquilMoistProfiles(
     )
 end
 
-# Backwards compatibility aliases (deprecatedto be removed)
-const PhaseDryProfiles = DryProfiles
-const PhaseEquilProfiles = EquilMoistProfiles
-
 end # module

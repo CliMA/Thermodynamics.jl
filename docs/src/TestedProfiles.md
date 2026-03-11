@@ -41,7 +41,7 @@ import .TestedProfiles
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)
 
-profiles = TestedProfiles.PhaseDryProfiles(param_set, Array{FT});
+profiles = TestedProfiles.DryProfiles(param_set, Array{FT});
 (;T, ρ, z) = profiles
 p1 = Plots.scatter(ρ, z./10^3, xlabel="Density [kg/m^3]", ylabel="z [km]", title="Density");
 p2 = Plots.scatter(T, z./10^3, xlabel="Temperature [K]", ylabel="z [km]", title="Temperature");
@@ -73,7 +73,7 @@ import .TestedProfiles
 FT = Float64
 param_set = TP.ThermodynamicsParameters(FT)
 
-profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT});
+profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT});
 (;T, ρ, q_tot, z) = profiles
 p1 = Plots.scatter(ρ, z./10^3, xlabel="Density [kg/m^3]", ylabel="z [km]", title="Density");
 p2 = Plots.scatter(T, z./10^3, xlabel="Temperature [K]", ylabel="z [km]", title="Temperature");

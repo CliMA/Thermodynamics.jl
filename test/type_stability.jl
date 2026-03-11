@@ -4,6 +4,21 @@
 These tests focus on the functional API 
 """
 
+function test_zero_allocations(param_set, T, ρ, q_tot, q_liq, q_ice, e_int)
+    # Warm up inside the function
+    TD.air_pressure(param_set, T, ρ, q_tot, q_liq, q_ice)
+    TD.internal_energy(param_set, T, q_tot, q_liq, q_ice)
+    TD.air_temperature(param_set, TD.ρe(), e_int, q_tot, q_liq, q_ice)
+    TD.saturation_adjustment(param_set, TD.ρe(), ρ, e_int, q_tot)
+
+    # Return allocations
+    alloc1 = @allocated TD.air_pressure(param_set, T, ρ, q_tot, q_liq, q_ice)
+    alloc2 = @allocated TD.internal_energy(param_set, T, q_tot, q_liq, q_ice)
+    alloc3 = @allocated TD.air_temperature(param_set, TD.ρe(), e_int, q_tot, q_liq, q_ice)
+    alloc4 = @allocated TD.saturation_adjustment(param_set, TD.ρe(), ρ, e_int, q_tot)
+    return alloc1, alloc2, alloc3, alloc4
+end
+
 @testset "Thermodynamics - type stability (functional)" begin
     for FT in (Float32, Float64)
         param_set = FT == Float64 ? param_set_Float64 : param_set_Float32
@@ -41,6 +56,13 @@ These tests focus on the functional API
             @test @inferred(
                 TD.air_temperature(param_set, TD.pρ(), p, ρ, q_tot, q_liq, q_ice)
             ) isa FT
+        end
+        @testset "Zero allocations ($FT)" begin
+            allocs = test_zero_allocations(param_set, T, ρ, q_tot, q_liq, q_ice, e_int)
+            @test allocs[1] == 0
+            @test allocs[2] == 0
+            @test allocs[3] == 0
+            @test allocs[4] == 0
         end
     end
 end

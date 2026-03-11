@@ -17,7 +17,7 @@ using .TestedProfiles
     functional_inputs(param_set, ::Type{FT}; n=256)
 
 Construct equilibrium-consistent scalar inputs for functional benchmarks, derived from
-`test/TestedProfiles.jl` (no deprecated PhasePartition/state types).
+`test/TestedProfiles.jl`.
 """
 function functional_inputs(param_set, ::Type{FT}; n = 256) where {FT}
     ps = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT})

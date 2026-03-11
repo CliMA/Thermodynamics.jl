@@ -43,9 +43,10 @@ is returned. If there is effectively no condensate, a smooth temperature-depende
 
     # If no condensate, use sharp temperature dependent partitioning
     Tᶠ = TP.T_freeze(param_set)
-    ΔT = FT(0.1) # Smooth over +/- 0.1 K
-    # Linear ramp from 0 to 1 over [Tᶠ - ΔT, Tᶠ + ΔT]
-    λ_T = clamp((T - (Tᶠ - ΔT)) / (2 * ΔT), zero(T), one(T))
+    ΔT = FT(0.1) # Smooth over +/- 0.1 K around Tᶠ - ΔT
+    # Linear ramp from 0 to 1 over [Tᶠ - 2ΔT, Tᶠ]
+    # This ensures that liquid_fraction is exactly 1.0 at Tᶠ
+    λ_T = clamp((T - (Tᶠ - 2 * ΔT)) / (2 * ΔT), zero(T), one(T))
 
     return ifelse(has_condensate(q_c), q_liq / q_c, λ_T)
 end
@@ -167,7 +168,7 @@ where ``T_{tr}`` is the triple point temperature, ``p_{tr}`` is the triple point
 end
 
 # Promote the arguments to a common type to allow AD with dual numbers
-saturation_vapor_pressure_calc(param_set, T, LH_0, Δcp) =
+@inline saturation_vapor_pressure_calc(param_set, T, LH_0, Δcp) =
     saturation_vapor_pressure_calc(param_set, promote(T, LH_0, Δcp)...)
 
 """
@@ -185,17 +186,19 @@ The saturation vapor pressure over liquid, ice, or a mixture of liquid and ice.
 # Returns
  - `p_v^*`: saturation vapor pressure [Pa]
 
-If `q_liq` and `q_ice` are provided, the saturation vapor pressure is computed
-from a weighted mean of the latent heats of vaporization and sublimation, with
-the weights given by the liquid fraction (see [`liquid_fraction`](@ref)).
-If `q_liq` and `q_ice` are 0, the saturation vapor pressure is that over liquid
-above freezing and over ice below freezing.
+## Important: two different liquid fraction parameterizations are used
 
-Otherwise, the liquid fraction below freezing is computed from a temperature dependent
-parameterization `liquid_fraction_ramp(param_set, T)`.
+The two-argument form `saturation_vapor_pressure(param_set, T)` uses
+[`liquid_fraction_ramp`](@ref), a power-law interpolation between `T_icenuc` and `T_freeze`.
 
-Edge case: the `saturation_vapor_pressure(param_set, T, q_liq, q_ice)` form includes a small smooth transition
-around freezing when `q_liq == q_ice == 0` (via `liquid_fraction(param_set, T, q_liq, q_ice)`).
+The four-argument form `saturation_vapor_pressure(param_set, T, q_liq, q_ice)` uses
+[`liquid_fraction`](@ref), which returns `q_liq / (q_liq + q_ice)` when condensate is
+present, or a ±0.1 K linear ramp around `T_freeze` when there is no condensate.
+
+As a result, `saturation_vapor_pressure(param_set, T, 0, 0)` and
+`saturation_vapor_pressure(param_set, T)` give the same value at `T_freeze` (both λ=1)
+but can differ away from freezing. Use the two-argument form when no condensate information
+is available; use the four-argument form when condensate fractions are known.
 """
 @inline function saturation_vapor_pressure(param_set::APS, T, q_liq, q_ice)
     λ = liquid_fraction(param_set, T, q_liq, q_ice)
@@ -721,20 +724,24 @@ end
 Internal function. The specific latent heat of a generic phase transition between
 two phases, computed using Kirchhoff's law.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` temperature
- - `LH_0` latent heat at the reference temperature `T_0`
- - `Δcp` difference in isobaric specific heat capacities between the two phases
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: temperature [K]
+ - `LH_0`: latent heat at the reference temperature `T_0` [J/kg]
+ - `Δcp`: difference in isobaric specific heat capacities between the two phases [J/(kg·K)]
 
- Because the specific heats are assumed constant, the latent heats are linear functions of
- temperature by Kirchhoff's law.
+# Returns
+ - `L`: latent heat [J/kg]
+
+Because the specific heats are assumed constant, the latent heats are linear functions of
+temperature by Kirchhoff's law: `L(T) = LH_0 + Δcp * (T - T_0)`.
 """
 @inline function latent_heat_generic(param_set::APS, T, LH_0, Δcp)
     T_0 = TP.T_0(param_set)
     return LH_0 + Δcp * (T - T_0)
 end
 
-latent_heat_generic(param_set, T, LH_0, Δcp) =
+@inline latent_heat_generic(param_set, T, LH_0, Δcp) =
     latent_heat_generic(param_set, promote(T, LH_0, Δcp)...)
 
 """
@@ -742,12 +749,15 @@ latent_heat_generic(param_set, T, LH_0, Δcp) =
 
 The specific latent heat of a mixed phase, weighted by the liquid fraction `λ`.
 
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `T` air temperature
- - `λ` liquid fraction
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `T`: air temperature [K]
+ - `λ`: liquid fraction [dimensionless], 0 ≤ λ ≤ 1
 
- Because the specific heats are assumed constant, the latent heats are linear functions of
- temperature by Kirchhoff's law.
+# Returns
+ - `L`: latent heat of the mixed phase [J/kg]
+
+Computed as `L = λ * L_v(T) + (1 - λ) * L_s(T)`.
 """
 @inline function latent_heat_mixed(param_set::APS, T, λ)
     L_v = latent_heat_vapor(param_set, T)
@@ -760,11 +770,17 @@ end
 
 Specific-humidity weighted sum of latent heats of liquid and ice evaluated at reference
 temperature `T_0`.
- - `param_set` thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
- - `q_liq` liquid specific humidity
- - `q_ice` ice specific humidity
 
-If `q_liq` and `q_ice` are not provided, `humidity_weighted_latent_heat` is zero.
+# Arguments
+ - `param_set`: thermodynamics parameter set, see the [`Thermodynamics`](@ref) for more details
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `L_q`: humidity-weighted latent heat [J/kg]
+
+Computed as `L_q = LH_v0 * q_liq + LH_s0 * q_ice`. If `q_liq` and `q_ice` are not
+provided, this returns zero. Used in liquid-ice potential temperature computations.
 """
 @inline function humidity_weighted_latent_heat(
     param_set::APS,

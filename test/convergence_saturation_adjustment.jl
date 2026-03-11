@@ -34,7 +34,7 @@ const TDTP_SA = TD.TemperatureProfiles
         end
 
         @testset "TestedProfiles equilibrium columns ($FT)" begin
-            profiles = TestedProfiles.PhaseEquilProfiles(param_set, Array{FT})
+            profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
             (; T, p, ρ, q_tot) = profiles
 
             # Sample ~120 points across the full profile grid.
