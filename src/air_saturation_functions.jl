@@ -161,10 +161,17 @@ where ``T_{tr}`` is the triple point temperature, ``p_{tr}`` is the triple point
     T_triple = TP.T_triple(param_set)
     T_0 = TP.T_0(param_set)
 
-    return press_triple *
-           # Use fast_power to compute (T / T_triple)^(Δcp / R_v) more efficiently
-           fast_power(T / T_triple, Δcp / R_v) *
-           exp((LH_0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T))
+    # Combine the power-law and exponential factors of the Clausius-Clapeyron relation
+    # into a single exp() call:
+    #   p_tr * (T/T_tr)^(Δcp/Rv) * exp[...]  →  p_tr * exp( (Δcp/Rv)*log(T/T_tr) + ... )
+    # This avoids computing a separate pow, which is less efficient on GPUs,
+    # and reduces floating-point rounding by summing the exponents before exponentiation.
+    q_vap_sat =
+        press_triple * exp(
+            (Δcp / R_v) * log(T / T_triple) +
+            (LH_0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T),
+        )
+    return ifelse(iszero(T), zero(T), q_vap_sat)
 end
 
 # Promote the arguments to a common type to allow AD with dual numbers
