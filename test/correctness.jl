@@ -130,6 +130,12 @@ This file contains tests for fundamental thermodynamic relations and physical la
             @test TD.saturation_vapor_pressure(param_set, T_tr, TD.Ice()) ≈ p_tr
         end
 
+        small_Ts = (FT(1e-5), eps(FT), FT(1e-30), FT(0))
+        @testset "Saturation vapor pressure low T limit, T=$T ($FT)" for T in small_Ts
+            @test TD.saturation_vapor_pressure(param_set, T, TD.Liquid()) ≈ FT(0)
+            @test TD.saturation_vapor_pressure(param_set, T, TD.Ice()) ≈ FT(0)
+        end
+
         @testset "Clausius-Clapeyron (d ln e_s / dT) ($FT)" begin
             R_v = TP.R_v(param_set)
             T = FT(280)

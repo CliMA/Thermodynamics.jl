@@ -1,6 +1,12 @@
 Thermodynamics.jl Release Notes
 ========================
 
+v1.0.1
+--------
+
+- ![][[badge-🐛bugfix]] Fixed limiting behavior of saturation vapor pressure at very low temperatures.
+  PR [313](https://github.com/CliMA/Thermodynamics.jl/pull/313)
+
 v1.0.0
 --------
 
