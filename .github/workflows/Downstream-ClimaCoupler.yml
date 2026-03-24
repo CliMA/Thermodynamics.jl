@@ -28,17 +28,17 @@ jobs:
           - '1.10'
           - '1.11'
         steps:
-      - uses: actions/checkout@v4
-      - uses: julia-actions/setup-julia@v2
-        with:
-          version: ${{ matrix.version }}
-      - uses: julia-actions/cache@v2
-      - uses: julia-actions/julia-buildpkg@v1
-      - uses: actions/checkout@v4
-        with:
-          repository: 'CliMA/ClimaCoupler.jl'
-          path: ClimaCoupler.jl
-      - run: |
-          julia --color=yes --project=ClimaCoupler.jl/experiments/ClimaEarth/ -e 'using Pkg; Pkg.instantiate()'
-          julia --color=yes --project=ClimaCoupler.jl/experiments/ClimaEarth/ -e 'using Pkg; Pkg.develop(; path = ".")'
-          julia --color=yes --project=ClimaCoupler.jl/experiments/ClimaEarth/ ClimaCoupler.jl/experiments/ClimaEarth/test/runtests.jl
+          - uses: actions/checkout@v4
+          - uses: julia-actions/setup-julia@v2
+            with:
+              version: ${{ matrix.version }}
+          - uses: julia-actions/cache@v2
+          - uses: julia-actions/julia-buildpkg@v1
+          - uses: actions/checkout@v4
+            with:
+              repository: 'CliMA/ClimaCoupler.jl'
+              path: ClimaCoupler.jl
+          - run: |
+              julia --color=yes --project=ClimaCoupler.jl/experiments/AMIP/ -e 'using Pkg; Pkg.instantiate()'
+              julia --color=yes --project=ClimaCoupler.jl/experiments/AMIP/ -e 'using Pkg; Pkg.develop(; path = ".")'
+              julia --color=yes --project=ClimaCoupler.jl/experiments/AMIP/ ClimaCoupler.jl/experiments/test/runtests.jl
