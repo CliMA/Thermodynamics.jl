@@ -42,13 +42,14 @@ is returned. If there is effectively no condensate, a smooth temperature-depende
     q_c = condensate_specific_humidity(q_liq, q_ice)
 
     # If no condensate, use sharp temperature dependent partitioning
+    q_min = TP.q_min(param_set)
     Tᶠ = TP.T_freeze(param_set)
     ΔT = FT(0.1) # Smooth over +/- 0.1 K around Tᶠ - ΔT
     # Linear ramp from 0 to 1 over [Tᶠ - 2ΔT, Tᶠ]
     # This ensures that liquid_fraction is exactly 1.0 at Tᶠ
     λ_T = clamp((T - (Tᶠ - 2 * ΔT)) / (2 * ΔT), zero(T), one(T))
 
-    return ifelse(has_condensate(q_c), q_liq / q_c, λ_T)
+    return ifelse(has_condensate(q_c, q_min), q_liq / q_c, λ_T)
 end
 
 """
@@ -99,7 +100,7 @@ Bool indicating if condensate exists, i.e., q_c > eps.
 We use a threshold of `eps` rather than `0` to avoid division by zero in functions
 such as `liquid_fraction` and to robustly handle numerical noise.
 """
-@inline has_condensate(q_c) = q_c > ϵ_numerics(typeof(q_c))
+@inline has_condensate(q_c, q_min) = q_c > q_min
 
 """
     saturation_vapor_pressure(param_set, T, ::Liquid)

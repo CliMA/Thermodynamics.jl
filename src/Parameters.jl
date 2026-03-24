@@ -63,6 +63,7 @@ Base.@kwdef struct ThermodynamicsParameters{FT} <:
     # Other
     grav::FT
     pow_icenuc::FT
+    q_min::FT
 end
 
 Base.broadcastable(ps::ATP) = tuple(ps)
