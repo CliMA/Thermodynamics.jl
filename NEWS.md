@@ -1,10 +1,16 @@
 Thermodynamics.jl Release Notes
 ========================
 
+v1.2.0
+--------
+
+- Update `has_condensate` to accept thermodynamic parameters as input.
+  PR [316](https://github.com/CliMA/Thermodynamics.jl/pull/316)
+
 v1.1.0
 --------
 
-- Use a fixed `q_min` parameter as a lower bound for condensate specific humidity in the function `has_condensate`
+- Use a fixed `q_min` parameter as a lower bound for condensate specific humidity in the function `has_condensate`.
   PR [315](https://github.com/CliMA/Thermodynamics.jl/pull/315)
 
 v1.0.1
