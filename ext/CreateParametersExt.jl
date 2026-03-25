@@ -33,6 +33,7 @@ function ThermodynamicsParameters(toml_dict::CP.ParamDict{FT}) where {FT}
         :temperature_surface_reference => :T_surf_ref,
         :gravitational_acceleration => :grav,
         :temperature_homogenous_nucleation => :T_icenuc,
+        :specific_humidity_minimum => :q_min,
     )
     parameters = CP.get_parameter_values(toml_dict, name_map, "Thermodynamics")
     return ThermodynamicsParameters{FT}(; parameters...)
