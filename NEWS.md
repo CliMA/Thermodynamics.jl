@@ -1,6 +1,12 @@
 Thermodynamics.jl Release Notes
 ========================
 
+v1.2.1
+--------
+
+- ![][[badge-🐛bugfix]] Fixed type stability in `liquid_fraction`.
+  PR [320](https://github.com/CliMA/Thermodynamics.jl/pull/320)
+
 v1.2.0
 --------
 
