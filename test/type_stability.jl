@@ -47,6 +47,9 @@ end
                   FT
             @test @inferred(TD.relative_humidity(param_set, T, p, q_tot, q_liq, q_ice)) isa
                   FT
+            @test @inferred(TD.relative_humidity(param_set, T, p)) isa FT
+            @test @inferred(TD.relative_humidity(param_set, T, p, q_tot)) isa FT
+            @test @inferred(TD.relative_humidity(param_set, T, p, q_tot, q_liq)) isa FT
             @test @inferred(
                 TD.air_temperature(param_set, TD.ρe(), e_int, q_tot, q_liq, q_ice)
             ) isa FT

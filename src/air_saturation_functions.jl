@@ -48,7 +48,7 @@ is returned. If there is effectively no condensate, a smooth temperature-depende
     # This ensures that liquid_fraction is exactly 1.0 at Tᶠ
     λ_T = clamp((T - (Tᶠ - 2 * ΔT)) / (2 * ΔT), zero(T), one(T))
 
-    return ifelse(has_condensate(param_set, q_c), q_liq / q_c, λ_T)
+    return ifelse(has_condensate(param_set, q_c), FT(q_liq / q_c), λ_T)
 end
 
 """
