@@ -1,0 +1,52 @@
+name: Downgrade
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+    tags: '*'
+
+# Needed to allow julia-actions/cache to delete old caches that it has created
+permissions:
+  actions: write
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        version: ['1.10', '1.11']
+    steps:
+      - uses: actions/checkout@v5
+      - uses: julia-actions/setup-julia@latest
+        with:
+          version: ${{ matrix.version }}
+      - name: Cache Julia depot
+        uses: actions/cache@v4
+        with:
+          # Cache Julia's depot
+          path: |
+            ~/.julia/packages
+            ~/.julia/compiled
+            ~/.julia/artifacts
+            ~/.julia/scratchspaces
+            ~/.julia/registries
+            ~/.julia/logs
+          # The cache key includes the OS, Julia version, and the project's dependencies
+          key: ubuntu-latest-julia-${{ matrix.version }}-${{ hashFiles('**/Project.toml', '**/Manifest.toml') }}
+          # Fallback keys to use if the primary key isn't found
+          restore-keys: |
+            ubuntu-latest-julia-${{ matrix.version }}-
+            ubuntu-latest-julia-
+      - uses: julia-actions/julia-downgrade-compat@v2
+        with:
+          skip: Random
+          julia_version: ${{ matrix.version }}
+          mode: 'forcedeps'
+      - uses: julia-actions/julia-buildpkg@latest
+      - uses: julia-actions/julia-runtest@latest
