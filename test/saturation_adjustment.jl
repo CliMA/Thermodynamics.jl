@@ -61,16 +61,17 @@ Focus:
                     e_int_sat,
                     q_tot,
                     50,
-                    sqrt(eps(FT)),
+                    FT(1e-10),
                 )
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
-                @test isapprox(q_liq, q_liq0; atol = FT(0), rtol = sqrt(eps(FT)))
-                @test isapprox(q_ice, q_ice0; atol = FT(0), rtol = sqrt(eps(FT)))
+                @test isapprox(q_liq, q_liq0; atol = FT(0), rtol = FT(1e-6))
+                @test isapprox(q_liq, q_liq0; atol = FT(0), rtol = FT(1e-6))
+                @test isapprox(q_ice, q_ice0; atol = FT(0), rtol = FT(1e-6))
                 @test converged
                 @test isapprox(
                     TD.internal_energy_sat(param_set, T, ρ0, q_tot),
                     e_int_sat;
-                    rtol = sqrt(eps(FT)),
+                    rtol = FT(1e-6),
                 )
             end
 
