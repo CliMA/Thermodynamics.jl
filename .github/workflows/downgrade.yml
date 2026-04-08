@@ -27,7 +27,7 @@ jobs:
         with:
           version: ${{ matrix.version }}
       - name: Cache Julia depot
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           # Cache Julia's depot
           path: |
