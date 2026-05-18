@@ -11,22 +11,26 @@ Please refer to the shared CliMA agent index for ecosystem-wide rules regarding 
 
 ## Repo-Specific Guidelines
 
-Thermodynamics.jl provides a library of thermodynamic functions for the CliMA ecosystem. It is a relatively small, focused package with no runtime state.
+Thermodynamics.jl provides a library of thermodynamic functions for the CliMA ecosystem. It is a relatively small, focused package.
 
 ### Architecture
 
-- **Pure-function library**: All public API functions are pure (no mutation of global state). They accept a parameter set (`AbstractThermodynamicsParameters`) and thermodynamic state as arguments.
-- **Saturation adjustment**: The core numerical solver lives in `src/saturation_adjustment.jl`. Multiple methods are available (Newton, secant, bisection). This is the most performance-critical code path.
+- **Pure-function library**: All public API functions are pure (no mutation of global state). They accept a parameter set (`AbstractThermodynamicsParameters`) and thermodynamic state variables as arguments.
+- **Saturation adjustment**: The core numerical solver lives in `src/saturation_adjustment.jl`. Multiple methods are available (Newton, Newton-AD, secant, Brent's). This is the most performance-critical code path.
 
 ### Source layout
 
 | Path | Purpose |
 |------|---------|
 | `src/Thermodynamics.jl` | Module definition, exports |
-| `src/Parameters.jl` | Parameter interface |
-| `src/ThermoTypes.jl` | Thermodynamic state types |
+| `src/Parameters.jl` | Parameter interface (`AbstractThermodynamicsParameters`) |
+| `src/ThermoTypes.jl` | Independent-variable dispatch types (`IndepVars`) and phase types |
 | `src/saturation_adjustment.jl` | Saturation adjustment solvers |
 | `src/air_*.jl` | Thermodynamic property functions |
+| `src/TemperatureProfiles.jl` | Reference temperature/pressure profiles |
+| `src/DataCollection.jl` | Internal solver diagnostic statistics |
+| `src/aux_functions.jl` | Internal helpers (`ReLU`, `fast_power`, `ϵ_numerics`) |
+| `ext/CreateParametersExt.jl` | ClimaParams weak-dep extension for parameter construction |
 | `test/` | Test suite |
 | `perf/` | Performance benchmarks |
 | `docs/` | Documentation source |
