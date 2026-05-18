@@ -7,7 +7,7 @@ Please refer to the shared CliMA agent index for ecosystem-wide rules regarding 
 - [docs/dev-guides/AGENTS.md](docs/dev-guides/AGENTS.md) — Shared CliMA agent guidelines.
 
 > Shared guides live at `docs/dev-guides/` and are vendored from the canonical source:
-> https://github.com/CliMA/DeveloperGuides. Edit shared guides there, not here.
+> <https://github.com/CliMA/DeveloperGuides>. Edit shared guides there, not here.
 
 ## Repo-Specific Guidelines
 
@@ -16,9 +16,7 @@ Thermodynamics.jl provides a library of thermodynamic functions for the CliMA ec
 ### Architecture
 
 - **Pure-function library**: All public API functions are pure (no mutation of global state). They accept a parameter set (`AbstractThermodynamicsParameters`) and thermodynamic state as arguments.
-- **Thermodynamic state types**: `PhaseEquil`, `PhaseNonEquil`, `PhaseDry` encode the phase partition information. Constructors may perform saturation adjustment.
 - **Saturation adjustment**: The core numerical solver lives in `src/saturation_adjustment.jl`. Multiple methods are available (Newton, secant, bisection). This is the most performance-critical code path.
-- **Extensions**: GPU support via `CUDAExt` in `ext/`.
 
 ### Source layout
 
@@ -29,14 +27,12 @@ Thermodynamics.jl provides a library of thermodynamic functions for the CliMA ec
 | `src/ThermoTypes.jl` | Thermodynamic state types |
 | `src/saturation_adjustment.jl` | Saturation adjustment solvers |
 | `src/air_*.jl` | Thermodynamic property functions |
-| `ext/` | Package extensions (CUDA) |
 | `test/` | Test suite |
 | `perf/` | Performance benchmarks |
 | `docs/` | Documentation source |
 
 ## Local norms
 
-- Prefer Julia 1.11.x for local work.
 - For package tests, prefer `Pkg.test()` over manually `include`ing `test/runtests.jl` because test-only deps are loaded through the package test path.
 - Match existing style: explicit names, narrow imports, comments that explain why.
 - Follow the software design patterns in [docs/dev-guides/architecture/software_design_patterns.md](docs/dev-guides/architecture/software_design_patterns.md) for new code and refactor toward them when touching existing code.
