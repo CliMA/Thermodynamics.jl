@@ -9,6 +9,10 @@ Please refer to the shared CliMA agent index for ecosystem-wide rules regarding 
 > Shared guides live at `docs/dev-guides/` and are vendored from the canonical source:
 > <https://github.com/CliMA/DeveloperGuides>. Edit shared guides there, not here.
 
+## Before You Act: Agent Autonomy
+
+Before making changes that are externally visible or scientifically consequential (`git push`, version bumps, reproducibility-test edits, CI config changes, public API renames), check [docs/dev-guides/workflow/agent_autonomy.md](docs/dev-guides/workflow/agent_autonomy.md). The boundaries listed there require explicit user approval.
+
 ## Repo-Specific Guidelines
 
 Thermodynamics.jl provides a library of thermodynamic functions for the CliMA ecosystem. It is a relatively small, focused package.
