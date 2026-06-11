@@ -412,7 +412,7 @@ The sum of the specific enthalpy of moist air and the specific gravitational pot
 \end{equation}
 ```
 
-Moist static energy arises naturally as the static energy component that is transported in moist air. "Static" here refers to the fact that the (small) kinetic energy contribution to the total energy is neglected. The global integral of moist static energy is approximately conserved in adiabatic processes, even in the presence of reversible phase transitions and latent heat release. It is also approximately materially conserved [Romps2015](@cite).
+Moist static energy arises naturally as the static energy component that is transported in moist air. "Static" here refers to the fact that the (small) kinetic energy contribution to the total energy is neglected. Moist static energy is approximately (but not exactly) materially conserved in adiabatic processes, even in the presence of reversible phase transitions and latent heat release [Romps2015](@cite).
 
 ## 9. Saturation Vapor Pressure
 
