@@ -146,8 +146,8 @@ function tabulate_summary(summary)
 
     # Create a single header row merging the two-row header logic
     header_row = [
-    "IndepVars (+conditions)" "Memory estimate" "allocs estimate" "Time min" "Time max" "Time mean" "Time median" "N-samples"
-]
+        "IndepVars (+conditions)" "Memory estimate" "allocs estimate" "Time min" "Time max" "Time mean" "Time median" "N-samples"
+    ]
 
     final_table = vcat(header_row, table_data)
 
