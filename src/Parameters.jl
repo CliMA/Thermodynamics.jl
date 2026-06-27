@@ -7,15 +7,55 @@ module Parameters
 
 export ThermodynamicsParameters
 
+"""
+    AbstractThermodynamicsParameters{FT}
+
+Abstract supertype for thermodynamic parameter sets.
+
+Subtypes:
+- [`ThermodynamicsParameters`](@ref): default concrete parameter set.
+
+Subtypes must implement accessor functions for all thermodynamic constants
+(e.g., `T_0`, `R_d`, `cp_d`, …). See [`ThermodynamicsParameters`](@ref) for
+the full list of required fields.
+"""
 abstract type AbstractThermodynamicsParameters{FT} end
 const ATP = AbstractThermodynamicsParameters
 
 """
-    ThermodynamicsParameters
+    ThermodynamicsParameters{FT} <: AbstractThermodynamicsParameters{FT}
 
-Parameters for Thermodynamics.jl.
+Concrete parameter set for Thermodynamics.jl.
 
-# Example
+# Fields
+- `T_0`: reference temperature [K].
+- `T_triple`: triple-point temperature of water [K].
+- `T_freeze`: freezing temperature of water [K].
+- `T_icenuc`: temperature of homogeneous ice nucleation [K].
+- `T_min`: minimum allowable temperature for saturation adjustment [K].
+- `T_max`: maximum allowable temperature for saturation adjustment [K].
+- `T_init_min`: minimum initial temperature guess for saturation adjustment [K].
+- `T_surf_ref`: reference surface temperature [K].
+- `T_min_ref`: minimum reference temperature (for temperature profiles) [K].
+- `entropy_reference_temperature`: reference temperature for entropy [K].
+- `MSLP`: mean sea-level pressure [Pa].
+- `p_ref_theta`: reference pressure for potential temperature [Pa].
+- `press_triple`: triple-point pressure of water [Pa].
+- `R_d`: specific gas constant of dry air [J/(kg·K)].
+- `R_v`: specific gas constant of water vapor [J/(kg·K)].
+- `cp_d`: isobaric specific heat capacity of dry air [J/(kg·K)].
+- `cp_v`: isobaric specific heat capacity of water vapor [J/(kg·K)].
+- `cp_l`: isobaric specific heat capacity of liquid water [J/(kg·K)].
+- `cp_i`: isobaric specific heat capacity of ice [J/(kg·K)].
+- `LH_v0`: latent heat of vaporization at `T_0` [J/kg].
+- `LH_s0`: latent heat of sublimation at `T_0` [J/kg].
+- `entropy_dry_air`: reference specific entropy of dry air [J/(kg·K)].
+- `entropy_water_vapor`: reference specific entropy of water vapor [J/(kg·K)].
+- `grav`: gravitational acceleration [m/s²].
+- `pow_icenuc`: exponent for power-law ice nucleation fraction [-].
+- `q_min`: minimum condensate threshold for `has_condensate` [kg/kg].
+
+# Examples
 ```julia
 import ClimaParams as CP
 import Thermodynamics.Parameters as TP

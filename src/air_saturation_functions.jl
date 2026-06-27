@@ -227,8 +227,7 @@ Internal function. Compute the saturation vapor pressure over a mixture of liqui
 and/or ice.
 
 The computation uses a weighted mean of the temperature-dependent latent heats of
-vaporization and sublimation, weighted by the liquid fraction, following Pressel 
-et al. (JAMES, 2015).
+vaporization and sublimation, weighted by the liquid fraction, following [Pressel2015](@cite).
 """
 @inline function saturation_vapor_pressure_mixture(param_set::APS, T, λ)
     LH_v0 = TP.LH_v0(param_set)
@@ -276,9 +275,7 @@ Otherwise, the fraction of liquid is given by the temperature dependent
 `liquid_fraction_ramp(param_set, T)`.
 
 # Reference
-Pressel et al. (2015), "Numerics and subgrid-scale modeling in large eddy simulations of
-stratocumulus clouds," *Journal of Advances in Modeling Earth Systems*, **7**(3), 1199-1220,
-doi:[10.1002/2014MS000376](https://doi.org/10.1002/2014MS000376).
+Thermodynamically consistent mixed-phase saturation following [Pressel2015](@cite).
 """
 @inline function q_vap_saturation(param_set::APS, T, ρ, q_liq, q_ice)
     p_v_sat = saturation_vapor_pressure(param_set, T, q_liq, q_ice)
@@ -582,8 +579,8 @@ in thermodynamic equilibrium, returning a tuple `(q_liq, q_ice)`.
  - `(q_liq, q_ice)`: tuple of liquid and ice specific humidities [kg/kg]
 
 The condensate is partitioned into liquid and ice using the temperature-dependent
-liquid fraction (see [`liquid_fraction`](@ref)) and the saturation excess (see 
-[`saturation_excess`](@ref)).
+liquid fraction from [`liquid_fraction_ramp`](@ref) (a power-law interpolation between
+`T_icenuc` and `T_freeze`) and the saturation excess (see [`saturation_excess`](@ref)).
 """
 @inline function condensate_partition(param_set::APS, T, ρ, q_tot)
     λ = liquid_fraction_ramp(param_set, T)
