@@ -126,6 +126,10 @@ All quantities are derived from the **calorically perfect gas** assumption with 
 - **[How-To Guide](https://clima.github.io/Thermodynamics.jl/dev/HowToGuide/)** - Recipes and examples.
 - **[API Reference](https://clima.github.io/Thermodynamics.jl/dev/API/)** - Detailed function documentation.
 
+## Contributing
+
+Contributors should follow the shared CliMA engineering standards in [`docs/dev-guides/`](docs/dev-guides/), which cover architecture, performance, code quality, documentation, and workflows. These are vendored from [CliMA/DeveloperGuides](https://github.com/CliMA/DeveloperGuides). The repo's [`AGENTS.md`](AGENTS.md) is a starting point for AI agents with repo-specific guidance.  
+
 ## Integration with Climate Models
 
 Thermodynamics.jl is the thermodynamic core for the [CliMA](https://github.com/CliMA) ecosystem, including:
