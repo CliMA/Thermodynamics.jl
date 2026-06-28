@@ -1,6 +1,15 @@
 Thermodynamics.jl Release Notes
 ========================
 
+main
+--------
+
+v1.2.2
+--------
+
+- Bumped `RootSolvers` compatibility.
+- Added developer guides and updated/corrected documentation.
+
 v1.2.1
 --------
 
