@@ -15,6 +15,14 @@ export Ice
 
 Abstract type to dispatch over the independent variables used to compute
 a thermodynamic quantity (e.g., in [`air_temperature`](@ref)).
+
+Subtypes:
+- [`ρe`](@ref): density, internal energy, and specific humidities.
+- [`pe`](@ref): pressure, internal energy, and specific humidities.
+- [`ph`](@ref): pressure, enthalpy, and specific humidities.
+- [`pρ`](@ref): pressure, density, and specific humidities.
+- [`pθ_li`](@ref): pressure, liquid-ice potential temperature, and specific humidities.
+- [`ρθ_li`](@ref): density, liquid-ice potential temperature, and specific humidities.
 """
 abstract type IndepVars end
 
@@ -65,6 +73,10 @@ struct ρθ_li <: IndepVars end
 
 A condensed phase, to dispatch over (e.g., in
 [`saturation_vapor_pressure`](@ref)).
+
+Subtypes:
+- [`Liquid`](@ref): liquid water phase.
+- [`Ice`](@ref): ice phase.
 """
 abstract type Phase end
 

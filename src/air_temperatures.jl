@@ -359,9 +359,7 @@ The liquid-ice potential temperature.
 If the specific humidities are not given, the result is for dry air.
 
 # Reference
-Betts (1973), "Non-precipitating cumulus convection and its parameterization," 
-*Quarterly Journal of the Royal Meteorological Society*, **99**, 178-196,
-doi:[10.1002/qj.49709941915](https://doi.org/10.1002/qj.49709941915).
+See [Tripoli1981](@cite) and the [Mathematical Formulation](Formulation.md) §12.4.
 """
 @inline function liquid_ice_pottemp(
     param_set::APS,
@@ -401,9 +399,7 @@ If the specific humidities are not given, the result is for dry air.
 The latent heats of phase transitions are approximated as constants.
 
 # Reference
-Betts (1973), "Non-precipitating cumulus convection and its parameterization," 
-*Quarterly Journal of the Royal Meteorological Society*, **99**, 178-196,
-doi:[10.1002/qj.49709941915](https://doi.org/10.1002/qj.49709941915).
+See [Tripoli1981](@cite) and the [Mathematical Formulation](Formulation.md) §12.4.
 """
 @inline function liquid_ice_pottemp_given_pressure(
     param_set::APS,

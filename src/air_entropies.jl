@@ -24,9 +24,7 @@ In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), this reduces to the
 The entropy is computed as a mass-weighted sum of the entropies of each component (dry air, vapor, liquid, ice).
 
 # Reference
-Pressel et al. (2015), "Numerics and subgrid-scale modeling in large eddy simulations of
-stratocumulus clouds," *Journal of Advances in Modeling Earth Systems*, **7**(3), 1199-1220,
-doi:[10.1002/2015MS000496](https://doi.org/10.1002/2015MS000496). (Their Eqs. (29)-(33))
+Mass-weighted moist-air entropy formulation following [Pressel2015](@cite).
 """
 @inline function entropy(param_set::APS, p, T, q_tot = 0, q_liq = 0, q_ice = 0)
     L_v = latent_heat_vapor(param_set, T)

@@ -120,7 +120,7 @@ Because this enumerates all constituents of the working fluid, we have $q_t + q_
 The pressure $p$ of the working fluid is the sum of the partial pressures of dry air and water vapor, both taken to be ideal gases. Neglecting the volume of the condensed phases (but not their masses), this gives $p = \rho (R_d q_d + R_v q_v) T$, where $R_d$ is the specific gas constant of dry air, and $R_v$ is the specific gas constant of water vapor.
 
 !!! note "Precipitation and the Equation of State"
-    Although precipitation is included in the working fluid, it does **not** contribute to the pressure because its specific volume is neglected. However, precipitation mass affects the density andspecific heat capacity.
+    Although precipitation is included in the working fluid, it does **not** contribute to the pressure because its specific volume is neglected. However, precipitation mass affects the density and specific heat capacity.
 
 This can also be written as
 
@@ -264,7 +264,7 @@ For the phase transitions of water, this implies specifically:
 With $L_{s,0} = L_{v,0} + L_{f,0}$, this gives $L_s(T) = L_v(T) + L_f(T)$, as it should.
 
 !!! example "Typical Values"
-    At the reference temperature $T_0 = 273.15$ K:
+    At the reference temperature $T_0 = 273.16$ K:
 
     | Quantity | Value |
     |----------|-------|
@@ -272,13 +272,15 @@ With $L_{s,0} = L_{v,0} + L_{f,0}$, this gives $L_s(T) = L_v(T) + L_f(T)$, as it
     | $L_{f,0}$ | $0.334 \times 10^6$ J/kg (latent heat of fusion) |
     | $L_{s,0}$ | $2.835 \times 10^6$ J/kg (latent heat of sublimation) |
 
-    At $T = 300$ K:
+    At $T = 300$ K (with $\Delta T = T - T_0 = 26.84$ K):
 
-    | Quantity | Value |
+    | Quantity | Approximate Value |
     |----------|-------|
-    | $L_v$ | $2.430 \times 10^6$ J/kg |
-    | $L_f$ | $0.334 \times 10^6$ J/kg |
-    | $L_s$ | $2.764 \times 10^6$ J/kg |
+    | $L_v$ | $2.44 \times 10^6$ J/kg |
+    | $L_f$ | $0.39 \times 10^6$ J/kg |
+    | $L_s$ | $2.83 \times 10^6$ J/kg |
+
+    Note: exact values depend on the specific heat capacities in the parameter set.
 
 !!! tip "Implementation Note"
     The latent heats are implemented in the [`latent_heat_vapor`](@ref), [`latent_heat_fusion`](@ref), and [`latent_heat_sublim`](@ref) functions. The weighted latent heat for mixed-phase conditions is computed in [`latent_heat_mixed`](@ref).
@@ -346,18 +348,12 @@ The reference specific internal energies $I_{v,0}$ and $I_{i,0}$ are related to 
 ```
 
 !!! example "Typical Values"
-    At the reference temperature $T_0 = 273.15$ K:
+    At the reference temperature $T_0 = 273.16$ K:
 
     | Quantity | Value |
     |----------|-------|
-    | $I_{v,0}$ | $2.501 \times 10^6$ J/kg (vapor reference energy) |
-    | $I_{i,0}$ | $0.334 \times 10^6$ J/kg (ice reference energy) |
-
-    For typical moist air at $T = 300$ K with $q_t = 0.01$:
-
-    | Quantity | Value |
-    |----------|-------|
-    | $I$ | $21.5 \times 10^3$ J/kg (total internal energy) |
+    | $I_{v,0} = L_{v,0} - R_v T_0$ | $\approx 2.375 \times 10^6$ J/kg (vapor reference internal energy) |
+    | $I_{i,0} = L_{f,0}$ | $0.334 \times 10^6$ J/kg (ice reference internal energy) |
 
 ## 7. Enthalpies
 
@@ -451,7 +447,7 @@ With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity diff
     | $p_v^*$ (liquid) | $3537$ Pa |
     | $p_v^*$ (ice)    | $286$ Pa  |
 
-    At $T = 273.15$ K (triple point):
+    At $T = 273.16$ K (triple point):
 
     | Quantity | Value |
     |----------|-------|
@@ -564,11 +560,11 @@ The derivative ``\partial I^*/\partial T|_{T_n}`` is obtained by differentiation
 ```math
 \begin{equation}
      \left.\frac{\partial I^*}{\partial T}\right|_{T_n}
-     = c_{vm}^* + (e_{vap} - e_{cond}) \left. \frac{\partial q_v^*}{\partial T}\right|_{T_n} + (e_{liq} - e_{ice}) q_{cond}^* \frac{\partial \lambda_p}{\partial T},
+     = c_{vm}^* + (I_v - I_{cond}) \left. \frac{\partial q_v^*}{\partial T}\right|_{T_n} + (I_l - I_i) q_{cond}^* \frac{\partial \lambda_p}{\partial T},
 \end{equation}
 ```
 
-where $q_{cond}^* = q_t - q_v^*$, and $e_{cond} = \lambda_p e_{liq} + (1-\lambda_p) e_{ice}$. The derivative of the saturation specific humidity is given by
+where $I_{cond} = \lambda_p I_l + (1-\lambda_p) I_i$, $q_{cond}^* = q_t - q_v^*$, and $I_v$, $I_l$, $I_i$ are the specific internal energies of vapor, liquid, and ice (Eq. \eqref{e:InternalEnergies}). In the code, the corresponding variables are named `e_vap`, `e_liq`, `e_ice`. The derivative of the saturation specific humidity is given by
 
 ```math
 \begin{equation}
@@ -770,7 +766,7 @@ The implementation should be validated against:
     Comprehensive testing is performed using [Tested Profiles](TestedProfiles.md)
     that cover the full range of atmospheric conditions.
 
-`Thermodynamics.jl` contains a battery of unit tests that check for consistency of the thermodynamic formulation and convergence of saturation adjustement in a broad range of conditions.
+`Thermodynamics.jl` contains a battery of unit tests that check for consistency of the thermodynamic formulation and convergence of saturation adjustment in a broad range of conditions.
 
 ### 13.5 Extensions and Limitations
 
