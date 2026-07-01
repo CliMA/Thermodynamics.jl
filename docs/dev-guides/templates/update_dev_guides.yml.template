@@ -9,6 +9,17 @@
 #   - The repo's GitHub Actions are allowed to open pull requests
 #     (Settings → Actions → General → "Allow GitHub Actions to create and
 #     approve pull requests").
+#
+# Important:
+#   - PRs that touch the subtree merge metadata (the initial `subtree add` and
+#     all subsequent sync PRs) MUST be merged with a merge commit — never
+#     squash-merged. Squash-merging destroys the two-parent commit structure
+#     that `git subtree pull` relies on, causing future pulls to fail with
+#     "fatal: can't squash-merge: 'docs/dev-guides' was never added."
+#     If this has already happened, the fix is to remove and re-add the subtree:
+#       git rm -r docs/dev-guides && git commit -m "remove broken subtree"
+#       git subtree add --prefix docs/dev-guides \
+#           https://github.com/CliMA/DeveloperGuides.git main --squash
 
 name: Update Dev Guides
 on:
@@ -19,6 +30,9 @@ on:
 jobs:
   update-subtree:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -32,7 +46,8 @@ jobs:
       - name: Pull latest dev guides
         run: |
           git checkout -b update-dev-guides
-          # Exit 0 when there is nothing new to merge (subtree pull errors in that case).
+          # Subtree pull exits non-zero when there is nothing new to merge.
+          # The next step detects whether any commits were actually added.
           git subtree pull --prefix docs/dev-guides \
               https://github.com/CliMA/DeveloperGuides.git main --squash \
               -m "chore: sync dev guides from central repo" || true
@@ -52,6 +67,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git push -f origin update-dev-guides
-          gh pr create --title "chore: sync dev guides with central repo" \
-                       --body "Automated PR to sync \`docs/dev-guides\` with the latest changes from \`CliMA/DeveloperGuides\`." \
-                       --base main --head update-dev-guides || true
+          existing=$(gh pr list --head update-dev-guides --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "PR #$existing already exists — skipping creation."
+          else
+            gh pr create --title "chore: sync dev guides with central repo" \
+                         --body "Automated PR to sync \`docs/dev-guides\` with the latest changes from \`CliMA/DeveloperGuides\`." \
+                         --base main --head update-dev-guides
+          fi
