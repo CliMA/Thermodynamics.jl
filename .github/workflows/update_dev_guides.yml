@@ -50,6 +50,6 @@ jobs:
             echo "PR #$existing already exists — skipping creation."
           else
             gh pr create --title "chore: sync dev guides with central repo" \
-                         --body "Automated PR to sync \`docs/dev-guides\` with the latest changes from \`CliMA/DeveloperGuides\`." \
+                         --body "Automated PR to sync \`docs/dev-guides\` with the latest changes from \`CliMA/DeveloperGuides\`.\n\n> [!CAUTION]\n> **Merge with a merge commit, NOT with squash merge.** Squash-merging destroys the subtree metadata and breaks future syncs." \
                          --base main --head update-dev-guides
           fi
