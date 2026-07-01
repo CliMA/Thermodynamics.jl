@@ -7,6 +7,9 @@ on:
 jobs:
   update-subtree:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v7
         with:
@@ -18,14 +21,32 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
       - name: Pull latest dev guides
+        id: subtree
         run: |
           git checkout -b update-dev-guides
-          # Exit 0 when there is nothing new to merge (subtree pull errors in that case).
-          git subtree pull --prefix docs/dev-guides \
+          # Subtree pull exits non-zero when there is nothing new to merge.
+          # Capture the exit code so we can distinguish that from real failures.
+          set +e
+          output=$(git subtree pull --prefix docs/dev-guides \
               https://github.com/CliMA/DeveloperGuides.git main --squash \
-              -m "chore: sync dev guides from central repo" || true
-          
+              -m "chore: sync dev guides from central repo" 2>&1)
+          rc=$?
+          set -e
+          echo "$output"
+          if [ $rc -ne 0 ]; then
+            if echo "$output" | grep -qi "up.to.date\|already.*applied\|nothing to"; then
+              echo "No upstream changes — nothing to do."
+              echo "changes=false" >> $GITHUB_OUTPUT
+              exit 0
+            else
+              echo "::error::Subtree pull failed with unexpected error (exit $rc)"
+              exit $rc
+            fi
+          fi
+          echo "changes=true" >> $GITHUB_OUTPUT
+
       - name: Check for updates
+        if: steps.subtree.outputs.changes != 'false'
         id: check
         run: |
           if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
@@ -40,6 +61,12 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git push -f origin update-dev-guides
-          gh pr create --title "chore: sync dev guides with central repo" \
-                       --body "Automated PR to sync `docs/dev-guides` with the latest changes from `CliMA/DeveloperGuides`." \
-                       --base main --head update-dev-guides || true
+          # Use --fill to avoid failure when a PR already exists for the branch.
+          existing=$(gh pr list --head update-dev-guides --state open --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            echo "PR #$existing already exists — skipping creation."
+          else
+            gh pr create --title "chore: sync dev guides with central repo" \
+                         --body "Automated PR to sync \`docs/dev-guides\` with the latest changes from \`CliMA/DeveloperGuides\`." \
+                         --base main --head update-dev-guides
+          fi
