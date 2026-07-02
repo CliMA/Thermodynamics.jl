@@ -1,0 +1,151 @@
+[temperature_min_at_reference]
+used_in = ["Thermodynamics"]
+value = 220
+type = "float"
+alias = "T_min_ref"
+
+[entropy_water_vapor]
+used_in = ["Thermodynamics"]
+value = 10513.6
+type = "float"
+alias = "entropy_water_vapor"
+
+[entropy_dry_air]
+used_in = ["Thermodynamics"]
+value = 6864.8
+type = "float"
+alias = "entropy_dry_air"
+
+[potential_temperature_reference_pressure]
+used_in = ["Thermodynamics"]
+value = 100000
+type = "float"
+description = "Reference pressure used in potential temperature definition"
+alias = "p_ref_theta"
+
+[entropy_reference_temperature]
+used_in = ["Thermodynamics"]
+value = 298.15
+type = "float"
+alias = "entropy_reference_temperature"
+
+[temperature_saturation_adjustment_max]
+used_in = ["Thermodynamics"]
+value = 1000
+type = "float"
+alias = "T_max"
+
+[molar_mass_dry_air]
+used_in = ["Thermodynamics"]
+value = 0.02897
+type = "float"
+alias = "molmass_dryair"
+
+[pow_icenuc]
+used_in = ["Thermodynamics"]
+value = 1
+type = "float"
+alias = "pow_icenuc"
+
+[adiabatic_exponent_dry_air]
+used_in = ["Thermodynamics"]
+value = 0.28571428571
+type = "float"
+description = "(2/7)"
+alias = "kappa_d"
+
+[temperature_triple_point]
+used_in = ["Thermodynamics"]
+value = 273.16
+type = "float"
+alias = "T_triple"
+
+[pressure_triple_point]
+used_in = ["Thermodynamics"]
+value = 611.657
+type = "float"
+alias = "press_triple"
+
+[thermodynamics_temperature_reference]
+used_in = ["Thermodynamics"]
+value = 273.16
+type = "float"
+alias = "T_0"
+
+[temperature_water_freeze]
+used_in = ["Thermodynamics"]
+value = 273.15
+type = "float"
+alias = "T_freeze"
+
+[isobaric_specific_heat_ice]
+used_in = ["Thermodynamics"]
+value = 2100
+type = "float"
+alias = "cp_i"
+
+[latent_heat_sublimation_at_reference]
+used_in = ["Thermodynamics"]
+value = 2834400
+type = "float"
+alias = "LH_s0"
+
+[isobaric_specific_heat_vapor]
+used_in = ["Thermodynamics"]
+value = 1859
+type = "float"
+alias = "cp_v"
+
+[molar_mass_water]
+used_in = ["Thermodynamics"]
+value = 0.01801528
+type = "float"
+alias = "molmass_water"
+
+[mean_sea_level_pressure]
+used_in = ["Thermodynamics"]
+value = 101325
+type = "float"
+alias = "MSLP"
+
+[isobaric_specific_heat_liquid]
+used_in = ["Thermodynamics"]
+value = 4181
+type = "float"
+alias = "cp_l"
+
+[latent_heat_vaporization_at_reference]
+used_in = ["Thermodynamics"]
+value = 2500800
+type = "float"
+alias = "LH_v0"
+
+[temperature_saturation_adjustment_min]
+used_in = ["Thermodynamics"]
+value = 150
+type = "float"
+alias = "T_min"
+
+[gas_constant]
+used_in = ["Thermodynamics"]
+value = 8.3144598
+type = "float"
+alias = "gas_constant"
+
+[temperature_mean_at_reference]
+used_in = ["Thermodynamics"]
+value = 290
+type = "float"
+alias = "T_surf_ref"
+
+[gravitational_acceleration]
+used_in = ["Thermodynamics"]
+value = 9.81
+type = "float"
+alias = "grav"
+
+[temperature_homogenous_nucleation]
+used_in = ["Thermodynamics"]
+value = 233
+type = "float"
+alias = "T_icenuc"

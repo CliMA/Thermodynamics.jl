@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Home · Thermodynamics.jl</title><meta name="title" content="Home · Thermodynamics.jl"/><meta property="og:title" content="Home · Thermodynamics.jl"/><meta property="twitter:title" content="Home · Thermodynamics.jl"/><meta name="description" content="Documentation for Thermodynamics.jl."/><meta property="og:description" content="Documentation for Thermodynamics.jl."/><meta property="twitter:description" content="Documentation for Thermodynamics.jl."/><script data-outdated-warner src="assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="search_index.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script><link href="src/assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href><img src="assets/logo.svg" alt="Thermodynamics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href>Thermodynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Home</a><ul class="internal"><li><a class="tocitem" href="#Table-of-Contents"><span>Table of Contents</span></a></li><li><a class="tocitem" href="#Quick-Start"><span>Quick Start</span></a></li><li><a class="tocitem" href="#Documentation-Overview"><span>Documentation Overview</span></a></li><li><a class="tocitem" href="#Key-Features"><span>Key Features</span></a></li><li><a class="tocitem" href="#Core-Design-Principles"><span>Core Design Principles</span></a></li><li><a class="tocitem" href="#Usage-Examples"><span>Usage Examples</span></a></li><li><a class="tocitem" href="#Integration-with-Climate-Models"><span>Integration with Climate Models</span></a></li><li><a class="tocitem" href="#Next-Steps"><span>Next Steps</span></a></li></ul></li><li><a class="tocitem" href="Formulation/">Mathematical Formulation</a></li><li><a class="tocitem" href="HowToGuide/">How-To Guide</a></li><li><a class="tocitem" href="TemperatureProfiles/">Temperature Profiles</a></li><li><a class="tocitem" href="TestedProfiles/">Tested Profiles</a></li><li><a class="tocitem" href="API/">API Reference</a></li><li><a class="tocitem" href="References/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Home</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Home</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/CliMA/Thermodynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/CliMA/Thermodynamics.jl/blob/main/docs/src/index.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Thermodynamics.jl"><a class="docs-heading-anchor" href="#Thermodynamics.jl">Thermodynamics.jl</a><a id="Thermodynamics.jl-1"></a><a class="docs-heading-anchor-permalink" href="#Thermodynamics.jl" title="Permalink"></a></h1><p>A Julia package for atmospheric thermodynamics, providing consistent thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice). <code>Thermodynamics.jl</code> implements the thermodynamic formulation of the CliMA Earth System Model ([<a href="References/#Yatunin2026">1</a>]), providing a framework for moist thermodynamics based on the <strong>Rankine-Kirchhoff approximations</strong> ([<a href="References/#Romps2021">2</a>]).</p><h2 id="Table-of-Contents"><a class="docs-heading-anchor" href="#Table-of-Contents">Table of Contents</a><a id="Table-of-Contents-1"></a><a class="docs-heading-anchor-permalink" href="#Table-of-Contents" title="Permalink"></a></h2><ol><li><a href="#Quick-Start">Quick Start</a></li><li><a href="#Documentation-Overview">Documentation Overview</a></li><li><a href="#Key-Features">Key Features</a></li><li><a href="#Core-Design-Principles">Core Design Principles</a></li><li><a href="#Usage-Examples">Usage Examples</a></li><li><a href="#Integration-with-Climate-Models">Integration with Climate Models</a></li></ol><h2 id="Quick-Start"><a class="docs-heading-anchor" href="#Quick-Start">Quick Start</a><a id="Quick-Start-1"></a><a class="docs-heading-anchor-permalink" href="#Quick-Start" title="Permalink"></a></h2><h3 id="Installation"><a class="docs-heading-anchor" href="#Installation">Installation</a><a id="Installation-1"></a><a class="docs-heading-anchor-permalink" href="#Installation" title="Permalink"></a></h3><pre><code class="language-julia hljs">using Pkg
+Pkg.add(&quot;Thermodynamics&quot;)
+Pkg.add(&quot;ClimaParams&quot;)</code></pre><h3 id="Basic-Usage"><a class="docs-heading-anchor" href="#Basic-Usage">Basic Usage</a><a id="Basic-Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Usage" title="Permalink"></a></h3><pre><code class="language-julia hljs">import Thermodynamics as TD
+# Use RootSolvers for the saturation adjustment method
+import RootSolvers as RS
+using ClimaParams
+
+# 1. Create thermodynamic parameters
+#    (requires a definition of the parameter set, e.g. from ClimaParams)
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# 2. Define your thermodynamic variables
+ρ     = 1.1        # Density [kg/m³]
+e_int = -31673.0   # Internal energy [J/kg] (note: can be negative)
+q_tot = 0.015      # Total specific humidity [kg/kg]
+q_liq = 0.001      # Liquid specific humidity [kg/kg]
+q_ice = 0.0        # Ice specific humidity [kg/kg]
+
+# 3. Compute properties directly
+T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
+p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+(T=T, p=p)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(T = 290.0004254990017, p = 92240.8993391483)</code></pre><h2 id="Documentation-Overview"><a class="docs-heading-anchor" href="#Documentation-Overview">Documentation Overview</a><a id="Documentation-Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Documentation-Overview" title="Permalink"></a></h2><h3 id="**Core-Documentation**"><a class="docs-heading-anchor" href="#**Core-Documentation**">📚 <strong>Core Documentation</strong></a><a id="**Core-Documentation**-1"></a><a class="docs-heading-anchor-permalink" href="#**Core-Documentation**" title="Permalink"></a></h3><ul><li><strong><a href="Formulation/">Mathematical Formulation</a></strong> - Complete theoretical framework and equations<ul><li>Fundamental assumptions and working fluid definition</li><li>Equation of state and heat capacities</li><li>Internal energies, enthalpies, and latent heats</li><li>Saturation vapor pressure and specific humidity</li><li>Saturation adjustment algorithms</li><li>Auxiliary thermodynamic functions</li></ul></li></ul><h3 id="**User-Guides**"><a class="docs-heading-anchor" href="#**User-Guides**">🛠️ <strong>User Guides</strong></a><a id="**User-Guides**-1"></a><a class="docs-heading-anchor-permalink" href="#**User-Guides**" title="Permalink"></a></h3><ul><li><strong><a href="HowToGuide/">How-To Guide</a></strong> - Practical usage examples and patterns<ul><li>Installation and setup</li><li>Common use cases and workflows</li></ul></li></ul><h3 id="**Advanced-Topics**"><a class="docs-heading-anchor" href="#**Advanced-Topics**">🔬 <strong>Advanced Topics</strong></a><a id="**Advanced-Topics**-1"></a><a class="docs-heading-anchor-permalink" href="#**Advanced-Topics**" title="Permalink"></a></h3><ul><li><strong><a href="TemperatureProfiles/">Temperature Profiles</a></strong> - Pre-defined atmospheric profiles to be used as reference states in atmosphere models and for testing</li><li><strong><a href="TestedProfiles/">Tested Profiles</a></strong> - Thermodynamic profiles used for testing of the package (Internal Use)</li></ul><h3 id="**Package-Reference**"><a class="docs-heading-anchor" href="#**Package-Reference**">📖 <strong>Package Reference</strong></a><a id="**Package-Reference**-1"></a><a class="docs-heading-anchor-permalink" href="#**Package-Reference**" title="Permalink"></a></h3><ul><li><strong><a href="API/">API Reference</a></strong> - Complete function documentation<ul><li>Thermodynamics Parameters</li><li>Types</li><li>Thermodynamic Functions</li><li>Temperature Profiles</li><li>Data Collection</li></ul></li></ul><h3 id="**Published-References-and-Background**"><a class="docs-heading-anchor" href="#**Published-References-and-Background**">📚 <strong>Published References and Background</strong></a><a id="**Published-References-and-Background**-1"></a><a class="docs-heading-anchor-permalink" href="#**Published-References-and-Background**" title="Permalink"></a></h3><ul><li><strong><a href="References/">References</a></strong> - Bibliography of theoretical foundations</li></ul><h2 id="Key-Features"><a class="docs-heading-anchor" href="#Key-Features">Key Features</a><a id="Key-Features-1"></a><a class="docs-heading-anchor-permalink" href="#Key-Features" title="Permalink"></a></h2><h3 id="**Comprehensive-Thermodynamics**"><a class="docs-heading-anchor" href="#**Comprehensive-Thermodynamics**">🌟 <strong>Comprehensive Thermodynamics</strong></a><a id="**Comprehensive-Thermodynamics**-1"></a><a class="docs-heading-anchor-permalink" href="#**Comprehensive-Thermodynamics**" title="Permalink"></a></h3><ul><li><strong>Moist air thermodynamics</strong> including all water phases (vapor, liquid, ice).</li><li><strong>Stateless, functional API</strong> for flexibility and integration.</li><li><strong>Consistent formulation</strong> assuming a <strong>calorically perfect gas</strong> mixture.</li></ul><h3 id="**High-Performance**"><a class="docs-heading-anchor" href="#**High-Performance**">⚡ <strong>High Performance</strong></a><a id="**High-Performance**-1"></a><a class="docs-heading-anchor-permalink" href="#**High-Performance**" title="Permalink"></a></h3><ul><li><strong>Type-stable</strong> and <strong>GPU-compatible</strong> (CUDA.jl, AMDGPU.jl, etc.).</li><li><strong>AD-compatible</strong> (ForwardDiff.jl, etc.) for differentiable physics.</li><li><strong>Zero-allocation</strong> design for core functions.</li></ul><h3 id="**Flexible-Design**"><a class="docs-heading-anchor" href="#**Flexible-Design**">🔧 <strong>Flexible Design</strong></a><a id="**Flexible-Design**-1"></a><a class="docs-heading-anchor-permalink" href="#**Flexible-Design**" title="Permalink"></a></h3><ul><li><strong>Multiple formulations</strong>: Solve for phase equilibrium from <code>(ρ, e_int)</code>, <code>(p, h)</code>, <code>(p, θ_li)</code>, etc., or using direct functional relationships.</li><li><strong>Extensible parameters</strong>: Easily adapt to different planetary atmospheres via <code>ClimaParams</code>.</li><li><strong>Comprehensive testing</strong> and validation suite.</li></ul><h2 id="Core-Design-Principles"><a class="docs-heading-anchor" href="#Core-Design-Principles">Core Design Principles</a><a id="Core-Design-Principles-1"></a><a class="docs-heading-anchor-permalink" href="#Core-Design-Principles" title="Permalink"></a></h2><h3 id="**Functional-and-Stateless**"><a class="docs-heading-anchor" href="#**Functional-and-Stateless**"><strong>Functional &amp; Stateless</strong></a><a id="**Functional-and-Stateless**-1"></a><a class="docs-heading-anchor-permalink" href="#**Functional-and-Stateless**" title="Permalink"></a></h3><p>Functions in Thermodynamics.jl are stateless. They take a <code>ThermodynamicsParameters</code> struct and the necessary thermodynamic variables (e.g., <code>T</code>, <code>ρ</code>, <code>q</code>...) as arguments. This design fits naturally into large-scale simulations (e.g., with <a href="https://github.com/CliMA/ClimaAtmos.jl"><code>ClimaAtmos.jl</code></a>).</p><h3 id="**Working-Fluid**"><a class="docs-heading-anchor" href="#**Working-Fluid**"><strong>Working Fluid</strong></a><a id="**Working-Fluid**-1"></a><a class="docs-heading-anchor-permalink" href="#**Working-Fluid**" title="Permalink"></a></h3><p>The working fluid is <strong>moist air</strong> (dry air + water vapor + liquid water + ice, which may include precipitation). We treat it as a mixture of ideal gases and condensed phases, ensuring thermodynamic consistency and rigorous mass and energy conservation.</p><h3 id="**Consistent-Formulation**"><a class="docs-heading-anchor" href="#**Consistent-Formulation**"><strong>Consistent Formulation</strong></a><a id="**Consistent-Formulation**-1"></a><a class="docs-heading-anchor-permalink" href="#**Consistent-Formulation**" title="Permalink"></a></h3><p>All quantities are derived from the <strong>calorically perfect gas</strong> assumption with constant specific heat capacities. This provides a consistent, closed set of equations for saturation vapor pressures (the so-called Rankine-Kirchhoff approximation), latent heats, and other derived quantities.</p><h2 id="Usage-Examples"><a class="docs-heading-anchor" href="#Usage-Examples">Usage Examples</a><a id="Usage-Examples-1"></a><a class="docs-heading-anchor-permalink" href="#Usage-Examples" title="Permalink"></a></h2><h3 id="**Phase-Equilibrium-(Saturation-Adjustment)**"><a class="docs-heading-anchor" href="#**Phase-Equilibrium-(Saturation-Adjustment)**"><strong>Phase Equilibrium (Saturation Adjustment)</strong></a><a id="**Phase-Equilibrium-(Saturation-Adjustment)**-1"></a><a class="docs-heading-anchor-permalink" href="#**Phase-Equilibrium-(Saturation-Adjustment)**" title="Permalink"></a></h3><p>To find the phase equilibrium temperature and phase partition from phase non-equilibrium variables (e.g., given <code>ρ</code>, <code>e_int</code>, <code>q_tot</code>), use <a href="API/#Thermodynamics.saturation_adjustment"><code>saturation_adjustment</code></a>:</p><pre><code class="language-julia hljs"># Define thermodynamic variables: internal energy, density, and total humidity
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+
+# Solve for phase equilibrium
+# (using SecantMethod, but NewtonsMethod is also available for ρe)
+sol = TD.saturation_adjustment(
+    RS.SecantMethod,
+    params,
+    TD.ρe(),
+    ρ, e_int, q_tot,
+    10, 1e-4
+)
+
+println(&quot;T: &quot;, sol.T)
+println(&quot;q_liq: &quot;, sol.q_liq)
+println(&quot;q_ice: &quot;, sol.q_ice)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">T: 270.60667897359286
+q_liq: 0.005568952716797962
+q_ice: 0.00037662550712454245</code></pre><h3 id="**Phase-Non-Equilibrium**"><a class="docs-heading-anchor" href="#**Phase-Non-Equilibrium**"><strong>Phase Non-Equilibrium</strong></a><a id="**Phase-Non-Equilibrium**-1"></a><a class="docs-heading-anchor-permalink" href="#**Phase-Non-Equilibrium**" title="Permalink"></a></h3><p>Directly compute properties from thermodynamic variables without assuming equilibrium of phases and using saturation adjustment:</p><pre><code class="language-julia hljs"># Define variables
+q_tot = 0.01
+q_liq = 0.005
+q_ice = 0.0003
+ρ = 1.0
+e_int = -7.0e4
+
+# Compute temperature directly
+T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
+
+# Compute pressure directly
+p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+println(&quot;T: &quot;, T)
+println(&quot;p: &quot;, p)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">T: 268.49025242502825
+p: 76868.50420354579</code></pre><h3 id="**Saturation-Calculations**"><a class="docs-heading-anchor" href="#**Saturation-Calculations**"><strong>Saturation Calculations</strong></a><a id="**Saturation-Calculations**-1"></a><a class="docs-heading-anchor-permalink" href="#**Saturation-Calculations**" title="Permalink"></a></h3><pre><code class="language-julia hljs">T = 280.0
+ρ = 1.0
+q_tot = 0.01
+
+# Saturation vapor pressure
+p_v_sat = TD.saturation_vapor_pressure(params, T, TD.Liquid())
+
+# Saturation specific humidity
+q_v_sat = TD.q_vap_saturation(params, T, ρ)
+
+# Phase partition assuming phase equilibrium
+(q_liq, q_ice) = TD.condensate_partition(params, T, ρ, q_tot)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(0.002326794228707186, 0.0)</code></pre><h2 id="Integration-with-Climate-Models"><a class="docs-heading-anchor" href="#Integration-with-Climate-Models">Integration with Climate Models</a><a id="Integration-with-Climate-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Integration-with-Climate-Models" title="Permalink"></a></h2><h3 id="**Dynamical-Core-Integration**"><a class="docs-heading-anchor" href="#**Dynamical-Core-Integration**"><strong>Dynamical Core Integration</strong></a><a id="**Dynamical-Core-Integration**-1"></a><a class="docs-heading-anchor-permalink" href="#**Dynamical-Core-Integration**" title="Permalink"></a></h3><p>The package is designed for seamless integration with atmospheric dynamical cores, schematically as follows:</p><pre><code class="language-julia hljs"># Initialize
+import Thermodynamics as TD
+import RootSolvers as RS
+using ClimaParams
+
+FT = Float64
+params = TD.Parameters.ThermodynamicsParameters(FT)
+
+# Define physical constants and initial conditions
+grav = TD.Parameters.grav(params)
+cv_d = TD.Parameters.cv_d(params)
+z = 1000.0   # m
+geopotential = grav * z
+q_tot = 0.01
+ρ = 1.0
+T = 300.0
+
+# Initial velocity components
+u, v, w = 10.0, 5.0, 1.0
+e_kin = 0.5 * (u^2 + v^2 + w^2)
+
+# Specific total energy e_tot = e_int + e_kin + geopotential
+(q_liq, q_ice) = TD.condensate_partition(params, T, ρ, q_tot)
+e_int = TD.internal_energy(params, T, q_tot, q_liq, q_ice)
+e_tot = e_int + e_kin + geopotential
+
+println(&quot;Initial u: &quot;, u)
+println(&quot;Initial e_tot: &quot;, e_tot)
+
+# Timestepping loop (simplified example)
+for timestep in 1:10
+    # Advance dynamical variables (simplified)
+    # Note: In a real simulation, we would update the state vector.
+    # Here we just re-use the variable names for demonstration.
+    u_new = u + FT(0.1)
+    e_tot_new = e_tot + cv_d * FT(1)
+
+    # Compute new internal energy
+    e_kin_new = 0.5 * (u_new^2 + v^2 + w^2)
+    e_int_new = e_tot_new - e_kin_new - geopotential
+
+    # Saturation adjustment to get T, q_liq, q_ice
+    local sol = TD.saturation_adjustment(
+        RS.NewtonsMethod,
+        params,
+        TD.ρe(),
+        ρ, e_int_new, q_tot,
+        10, 1e-4
+    )
+
+    T_new = sol.T
+    q_liq_new = sol.q_liq
+    q_ice_new = sol.q_ice
+
+    # Compute pressure for dynamics
+    p_new = TD.air_pressure(params, T_new, ρ, q_tot, q_liq_new, q_ice_new)
+
+    # Update state for next iteration (in real code)
+    global u = u_new
+    global e_tot = e_tot_new
+end
+println(&quot;Final u: &quot;, u)
+println(&quot;Final e_tot: &quot;, e_tot)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Initial u: 10.0
+Initial e_tot: -24552.372200000027
+Final u: 10.999999999999996
+Final e_tot: -17377.372200000027</code></pre><h2 id="Next-Steps"><a class="docs-heading-anchor" href="#Next-Steps">Next Steps</a><a id="Next-Steps-1"></a><a class="docs-heading-anchor-permalink" href="#Next-Steps" title="Permalink"></a></h2><ol><li><strong>Read the <a href="Formulation/">Mathematical Formulation</a></strong> for theoretical background</li><li><strong>Follow the <a href="HowToGuide/">How-To Guide</a></strong> for practical examples</li><li><strong>Explore the <a href="API/">API Reference</a></strong> for complete function documentation</li></ol><hr/><div class="admonition is-info" id="Citation-29ee4f4e7db65335"><header class="admonition-header">Citation<a class="admonition-anchor" href="#Citation-29ee4f4e7db65335" title="Permalink"></a></header><div class="admonition-body"><p>If you use <code>Thermodynamics.jl</code> in your research, please cite the relevant papers listed in the <a href="References/">References</a> section.</p></div></div><div class="admonition is-success" id="Getting-Help-378673f336f5fd0a"><header class="admonition-header">Getting Help<a class="admonition-anchor" href="#Getting-Help-378673f336f5fd0a" title="Permalink"></a></header><div class="admonition-body"><p>For questions and issues, please check the documentation or open an issue on the <a href="https://github.com/CliMA/Thermodynamics.jl">GitHub repository</a>.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="Formulation/">Mathematical Formulation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Friday 23 January 2026 07:04">Friday 23 January 2026</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
