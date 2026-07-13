@@ -7,21 +7,31 @@
 The `Thermodynamics.jl` package implements the thermodynamic formulation of the [CliMA Earth System Model](https://clima.caltech.edu) ([Yatunin et al., 2026](https://doi.org/10.1029/2025MS005014)). It provides a consistent framework for moist thermodynamics based on the **Rankine-Kirchhoff approximations** ([Romps, 2021](https://doi.org/10.1002/qj.4154)), and thermodynamic functions for moist air including all phases of water (vapor, liquid, and ice).
 
 |||
-|-----------------------------:|:-------------------------------------------------|
-| **Documentation**            | [![dev][docs-latest-img]][docs-latest-url]       |
-| **Docs Build**               | [![docs build][docs-bld-img]][docs-bld-url]      |
-| **GHA CI**                   | [![gha ci][gha-ci-img]][gha-ci-url]              |
-| **Code Coverage**            | [![codecov][codecov-img]][codecov-url]           |
-| **Downloads**                | [![Downloads][dlt-img]][dlt-url]                 |
+|------------------:|:------------------------------------------------------------|
+| **Documentation** | [![stable][docs-stable-img]][docs-stable-url] [![dev][docs-dev-img]][docs-dev-url] |
+| **Version**       | [![version][version-img]][version-url]                      |
+| **License**       | [![license][license-img]][license-url]                      |
+| **Tests**         | [![gha ci][gha-ci-img]][gha-ci-url] [![buildkite][bk-ci-img]][bk-ci-url] |
+| **Code Coverage** | [![codecov][codecov-img]][codecov-url]                      |
+| **Downloads**     | [![Downloads][dlt-img]][dlt-url]                            |
 
-[docs-bld-img]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml/badge.svg
-[docs-bld-url]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/docs.yml
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://CliMA.github.io/Thermodynamics.jl/stable/
 
-[docs-latest-img]: https://img.shields.io/badge/docs-dev-blue.svg
-[docs-latest-url]: https://CliMA.github.io/Thermodynamics.jl/dev/
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://CliMA.github.io/Thermodynamics.jl/dev/
+
+[version-img]: https://juliahub.com/docs/General/Thermodynamics/stable/version.svg
+[version-url]: https://juliahub.com/ui/Packages/General/Thermodynamics
+
+[license-img]: https://img.shields.io/badge/license-Apache%202.0-blue.svg
+[license-url]: https://github.com/CliMA/Thermodynamics.jl/blob/main/LICENSE
 
 [gha-ci-img]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/ci.yml/badge.svg
 [gha-ci-url]: https://github.com/CliMA/Thermodynamics.jl/actions/workflows/ci.yml
+
+[bk-ci-img]: https://badge.buildkite.com/f18be4486263f7fbf96811bce17dc5fb84e6af6f154e14c8c6.svg?branch=main
+[bk-ci-url]: https://buildkite.com/clima/thermodynamics-ci/builds?branch=main
 
 [codecov-img]: https://codecov.io/gh/CliMA/Thermodynamics.jl/branch/main/graph/badge.svg
 [codecov-url]: https://codecov.io/gh/CliMA/Thermodynamics.jl
