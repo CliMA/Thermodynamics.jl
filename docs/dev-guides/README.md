@@ -83,12 +83,16 @@ The monthly sync breaks in one of two ways: a dev-guides PR was squash-merged �
 **1. Update the workflow file (do this on every consumer repo).** Replace the old workflow with the current template rather than hand-editing it:
 
 ```bash
+git checkout -b update-dev-guides-workflow
 mkdir -p .github/workflows
 curl -fsSL https://raw.githubusercontent.com/CliMA/DeveloperGuides/main/templates/update_dev_guides.yml.template \
     -o .github/workflows/update_dev_guides.yml
+git add .github/workflows/update_dev_guides.yml
+git commit -m "ci: refresh dev-guides sync workflow from template"
+git push -u origin update-dev-guides-workflow
 ```
 
-Then, in the repo's **Settings → Actions → General**, enable **"Allow GitHub Actions to create and approve pull requests."** Commit the workflow on a branch, open a PR, and merge it normally (this PR does not touch the subtree, so squash is fine).
+Then open a PR for that branch and merge it normally — this PR does not touch the subtree, so squash is fine. Also make sure **Settings → Actions → General → "Allow GitHub Actions to create and approve pull requests"** is enabled, or the workflow will fail when it tries to open the monthly sync PR.
 
 **2. Repair broken subtree metadata (only if a sync PR was ever squash-merged).** Symptom: a manual `git subtree pull` (or the workflow log) fails with `fatal: can't squash-merge: 'docs/dev-guides' was never added.` Remove and re-add the subtree:
 
