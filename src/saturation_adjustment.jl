@@ -161,7 +161,7 @@ function saturation_adjustment(
     end
     q_sat_func =
         (param_set, T, q_tot) ->
-            q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
+            q_vap_saturation_from_pressure(param_set, q_tot, p, T)
 
     temp_ice_func =
         (param_set, e_int, q_tot) ->
@@ -250,7 +250,7 @@ function saturation_adjustment(
     end
     q_sat_func =
         (param_set, T, q_tot) ->
-            q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
+            q_vap_saturation_from_pressure(param_set, q_tot, p, T)
 
     temp_unsat_func =
         (param_set, h, q_tot) ->
@@ -349,7 +349,7 @@ function saturation_adjustment(
 
     q_sat_func =
         (param_set, T, q_tot) ->
-            q_vap_saturation(param_set, T, air_density(param_set, T, p, q_tot))
+            q_vap_saturation_from_pressure(param_set, q_tot, p, T)
 
     temp_ice_func =
         (param_set, θ_li, q_tot) ->
@@ -589,15 +589,28 @@ end
 
 Convenience method for `ρe` formulation with reasonable GPU-optimized defaults.
 
-Uses `RS.NewtonsMethod` with `forced_fixed_iters=true` and `maxiter=2` for fast,
-branch-free execution on GPUs. For typical atmospheric conditions (T < 320 K), 
-this achieves better than 0.1 K accuracy.
+Runs a fixed number of safeguarded Newton iterations (see
+`saturation_adjustment_fixed_iters`) rather than a convergence-tested solve, so
+every GPU lane executes the same instructions.
+
+The default `maxiter = 2` is chosen for how saturation adjustment is used in a time-stepping
+model, where it is applied every step to a state that was near equilibrium at the previous
+one. What sets the iteration count is the gap between the unsaturated first guess and the
+solution, i.e. the warming from condensing the excess vapor. Across the tested profiles that
+gap never exceeds 4 K, and two iterations hold the temperature error below 2e-3 K. The error
+grows for states quenched from much further out of equilibrium (about 0.1 K at a 10 K gap,
+rising to a few K beyond 20 K), which is where a larger `maxiter` is worth passing.
+
+Overshooting the iteration budget is no longer dangerous: the error is a truncation error
+that decreases monotonically with `maxiter`, not a stalled iteration. Earlier versions could
+settle into a limit cycle and return an answer tens of K off no matter how many iterations
+were allowed.
 
 For more control over solver parameters, use the full signature with explicit method type.
 
 # Returns
-- `NamedTuple` `(; T, q_liq, q_ice)` — note: `converged` is not included; fixed iterations
-  always succeed by construction.
+- `NamedTuple` `(; T, q_liq, q_ice)`. Use the full signature if you need the `converged`
+  flag.
 """
 function saturation_adjustment(
     param_set::APS,
@@ -623,15 +636,28 @@ end
 
 Convenience method for `pe` formulation with reasonable GPU-optimized defaults.
 
-Uses `RS.NewtonsMethod` with `forced_fixed_iters=true` and `maxiter=2` for fast,
-branch-free execution on GPUs. For typical atmospheric conditions (T < 320 K),
-this achieves better than 0.1 K accuracy.
+Runs a fixed number of safeguarded Newton iterations (see
+`saturation_adjustment_fixed_iters`) rather than a convergence-tested solve, so
+every GPU lane executes the same instructions.
+
+The default `maxiter = 2` is chosen for how saturation adjustment is used in a time-stepping
+model, where it is applied every step to a state that was near equilibrium at the previous
+one. What sets the iteration count is the gap between the unsaturated first guess and the
+solution, i.e. the warming from condensing the excess vapor. Across the tested profiles that
+gap never exceeds 4 K, and two iterations hold the temperature error below 2e-3 K. The error
+grows for states quenched from much further out of equilibrium (about 0.1 K at a 10 K gap,
+rising to a few K beyond 20 K), which is where a larger `maxiter` is worth passing.
+
+Overshooting the iteration budget is no longer dangerous: the error is a truncation error
+that decreases monotonically with `maxiter`, not a stalled iteration. Earlier versions could
+settle into a limit cycle and return an answer tens of K off no matter how many iterations
+were allowed.
 
 For more control over solver parameters, use the full signature with explicit method type.
 
 # Returns
-- `NamedTuple` `(; T, q_liq, q_ice)` — note: `converged` is not included; fixed iterations
-  always succeed by construction.
+- `NamedTuple` `(; T, q_liq, q_ice)`. Use the full signature if you need the `converged`
+  flag.
 """
 function saturation_adjustment(
     param_set::APS,
@@ -657,15 +683,28 @@ end
 
 Convenience method for `ph` formulation with reasonable GPU-optimized defaults.
 
-Uses `RS.NewtonsMethod` with `forced_fixed_iters=true` and `maxiter=2` for fast,
-branch-free execution on GPUs. For typical atmospheric conditions (T < 320 K),
-this achieves better than 0.1 K accuracy.
+Runs a fixed number of safeguarded Newton iterations (see
+`saturation_adjustment_fixed_iters`) rather than a convergence-tested solve, so
+every GPU lane executes the same instructions.
+
+The default `maxiter = 2` is chosen for how saturation adjustment is used in a time-stepping
+model, where it is applied every step to a state that was near equilibrium at the previous
+one. What sets the iteration count is the gap between the unsaturated first guess and the
+solution, i.e. the warming from condensing the excess vapor. Across the tested profiles that
+gap never exceeds 4 K, and two iterations hold the temperature error below 2e-3 K. The error
+grows for states quenched from much further out of equilibrium (about 0.1 K at a 10 K gap,
+rising to a few K beyond 20 K), which is where a larger `maxiter` is worth passing.
+
+Overshooting the iteration budget is no longer dangerous: the error is a truncation error
+that decreases monotonically with `maxiter`, not a stalled iteration. Earlier versions could
+settle into a limit cycle and return an answer tens of K off no matter how many iterations
+were allowed.
 
 For more control over solver parameters, use the full signature with explicit method type.
 
 # Returns
-- `NamedTuple` `(; T, q_liq, q_ice)` — note: `converged` is not included; fixed iterations
-  always succeed by construction.
+- `NamedTuple` `(; T, q_liq, q_ice)`. Use the full signature if you need the `converged`
+  flag.
 """
 function saturation_adjustment(
     param_set::APS,
@@ -691,15 +730,28 @@ end
 
 Convenience method for `pθ_li` formulation with reasonable GPU-optimized defaults.
 
-Uses `RS.NewtonsMethod` with `forced_fixed_iters=true` and `maxiter=2` for fast,
-branch-free execution on GPUs. For typical atmospheric conditions (T < 320 K),
-this achieves better than 0.1 K accuracy.
+Runs a fixed number of safeguarded Newton iterations (see
+`saturation_adjustment_fixed_iters`) rather than a convergence-tested solve, so
+every GPU lane executes the same instructions.
+
+The default `maxiter = 2` is chosen for how saturation adjustment is used in a time-stepping
+model, where it is applied every step to a state that was near equilibrium at the previous
+one. What sets the iteration count is the gap between the unsaturated first guess and the
+solution, i.e. the warming from condensing the excess vapor. Across the tested profiles that
+gap never exceeds 4 K, and two iterations hold the temperature error below 2e-3 K. The error
+grows for states quenched from much further out of equilibrium (about 0.1 K at a 10 K gap,
+rising to a few K beyond 20 K), which is where a larger `maxiter` is worth passing.
+
+Overshooting the iteration budget is no longer dangerous: the error is a truncation error
+that decreases monotonically with `maxiter`, not a stalled iteration. Earlier versions could
+settle into a limit cycle and return an answer tens of K off no matter how many iterations
+were allowed.
 
 For more control over solver parameters, use the full signature with explicit method type.
 
 # Returns
-- `NamedTuple` `(; T, q_liq, q_ice)` — note: `converged` is not included; fixed iterations
-  always succeed by construction.
+- `NamedTuple` `(; T, q_liq, q_ice)`. Use the full signature if you need the `converged`
+  flag.
 """
 function saturation_adjustment(
     param_set::APS,
@@ -726,15 +778,28 @@ end
 
 Convenience method for `ρθ_li` formulation with reasonable GPU-optimized defaults.
 
-Uses `RS.NewtonsMethod` with `forced_fixed_iters=true` and `maxiter=2` for fast,
-branch-free execution on GPUs. For typical atmospheric conditions (T < 320 K),
-this achieves better than 0.1 K accuracy.
+Runs a fixed number of safeguarded Newton iterations (see
+`saturation_adjustment_fixed_iters`) rather than a convergence-tested solve, so
+every GPU lane executes the same instructions.
+
+The default `maxiter = 2` is chosen for how saturation adjustment is used in a time-stepping
+model, where it is applied every step to a state that was near equilibrium at the previous
+one. What sets the iteration count is the gap between the unsaturated first guess and the
+solution, i.e. the warming from condensing the excess vapor. Across the tested profiles that
+gap never exceeds 4 K, and two iterations hold the temperature error below 2e-3 K. The error
+grows for states quenched from much further out of equilibrium (about 0.1 K at a 10 K gap,
+rising to a few K beyond 20 K), which is where a larger `maxiter` is worth passing.
+
+Overshooting the iteration budget is no longer dangerous: the error is a truncation error
+that decreases monotonically with `maxiter`, not a stalled iteration. Earlier versions could
+settle into a limit cycle and return an answer tens of K off no matter how many iterations
+were allowed.
 
 For more control over solver parameters, use the full signature with explicit method type.
 
 # Returns
-- `NamedTuple` `(; T, q_liq, q_ice)` — note: `converged` is not included; fixed iterations
-  always succeed by construction.
+- `NamedTuple` `(; T, q_liq, q_ice)`. Use the full signature if you need the `converged`
+  flag.
 """
 function saturation_adjustment(
     param_set::APS,
@@ -761,15 +826,28 @@ end
 
 Convenience method for `pρ` formulation with reasonable GPU-optimized defaults.
 
-Uses `RS.NewtonsMethod` with `forced_fixed_iters=true` and `maxiter=2` for fast,
-branch-free execution on GPUs. For typical atmospheric conditions (T < 320 K),
-this achieves better than 0.1 K accuracy.
+Runs a fixed number of safeguarded Newton iterations (see
+`saturation_adjustment_fixed_iters`) rather than a convergence-tested solve, so
+every GPU lane executes the same instructions.
+
+The default `maxiter = 2` is chosen for how saturation adjustment is used in a time-stepping
+model, where it is applied every step to a state that was near equilibrium at the previous
+one. What sets the iteration count is the gap between the unsaturated first guess and the
+solution, i.e. the warming from condensing the excess vapor. Across the tested profiles that
+gap never exceeds 4 K, and two iterations hold the temperature error below 2e-3 K. The error
+grows for states quenched from much further out of equilibrium (about 0.1 K at a 10 K gap,
+rising to a few K beyond 20 K), which is where a larger `maxiter` is worth passing.
+
+Overshooting the iteration budget is no longer dangerous: the error is a truncation error
+that decreases monotonically with `maxiter`, not a stalled iteration. Earlier versions could
+settle into a limit cycle and return an answer tens of K off no matter how many iterations
+were allowed.
 
 For more control over solver parameters, use the full signature with explicit method type.
 
 # Returns
-- `NamedTuple` `(; T, q_liq, q_ice)` — note: `converged` is not included; fixed iterations
-  always succeed by construction.
+- `NamedTuple` `(; T, q_liq, q_ice)`. Use the full signature if you need the `converged`
+  flag.
 """
 function saturation_adjustment(
     param_set::APS,
@@ -792,8 +870,23 @@ end
 
 GPU-optimized saturation adjustment using a fixed number of Newton iterations.
 
-Bypasses standard solver logic (bracketing, unsaturated checks, convergence testing)
-to avoid branch divergence on GPUs. Dispatches on thermodynamic formulation type.
+Bypasses bracketing and convergence testing to avoid branch divergence on GPUs, and
+dispatches on thermodynamic formulation type.
+
+# Algorithm
+
+The iteration is Newton's method applied to the analytic continuation of the saturated
+branch, i.e. the saturation excess is allowed to go negative
+(see `_clamp_excess`). Both the residual and its derivative are continuous there,
+which matters: the physical residual has a kink at the saturation boundary, and taking
+Newton steps across it with the one-sided derivative produces a limit cycle rather than
+convergence. Because the continuation does not describe subsaturated air, the result is
+selected against the exact unsaturated solution (see `_is_saturated`) by a
+branchless `ifelse` after the loop. Steps are limited and the iterate is kept positive by
+`_newton_update`.
+
+Note that this is *not* `RS.NewtonsMethod`, which additionally applies a backtracking line
+search and would introduce data-dependent iteration counts.
 
 # Supported formulations
 - `ρe`: `saturation_adjustment_fixed_iters(param_set, ρe(), ρ, e_int, q_tot, maxiter)`
@@ -807,13 +900,117 @@ to avoid branch divergence on GPUs. Dispatches on thermodynamic formulation type
 - `NamedTuple` `(; T, q_liq, q_ice, converged)`
 
 # Notes
-- No convergence check is performed; `converged` is always `true`.
-- With `maxiter = 2`, temperature accuracy is better than 0.1 K for typical atmospheric
-  conditions (T < 320 K).
+- `converged` reports whether the final iteration left the temperature essentially
+  unchanged (see `_fixed_iters_converged`). It is a statement about the iteration
+  settling, not a residual test.
+- Accuracy is governed by the gap between the unsaturated first guess and the solution —
+  the warming from condensing the excess vapor — rather than by the absolute humidity. Two
+  iterations hold the error below 2e-3 K for gaps up to the ~4 K seen across the tested
+  profiles, reaching about 0.1 K at a 10 K gap and a few K beyond 20 K. The convenience
+  methods of [`saturation_adjustment`](@ref) default to `maxiter = 2`; states quenched far
+  from equilibrium warrant more.
 - This is an internal helper function. For the public API, use [`saturation_adjustment`](@ref)
   with `forced_fixed_iters=true` as a positional argument.
 """
 function saturation_adjustment_fixed_iters end
+
+"""
+    _newton_update(param_set, T, ΔT_raw)
+
+Internal function. Apply one safeguarded Newton increment to the temperature.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: current temperature iterate [K]
+ - `ΔT_raw`: unsafeguarded Newton increment [K]
+
+# Returns
+ - `(T_new, ΔT)`: updated temperature and the increment actually applied [K]
+
+The increment is limited to `ΔT_max` and the result is kept at or above `T_init_min`. Both
+guards are branchless. Limiting matters because the residual's derivative changes sharply
+across the saturation boundary, so an unlimited step can traverse the whole physical
+temperature range in one iteration and land somewhere with no useful information; keeping
+the iterate positive additionally prevents `log` of a negative temperature downstream.
+"""
+@inline function _newton_update(param_set::APS, T, ΔT_raw)
+    FT = eltype(param_set)
+    T_init_min = TP.T_init_min(param_set)
+    # Wide enough never to bind near a solution, small enough to keep a diverging
+    # iterate within the range where the saturation functions remain informative.
+    ΔT_max = FT(50)
+    ΔT = clamp(ΔT_raw, -ΔT_max, ΔT_max)
+    T_new = max(T_init_min, T + ΔT)
+    return (T_new, T_new - T)
+end
+
+"""
+    _is_saturated(param_set, T_unsat, ρ, q_tot)
+
+Internal function. Decide whether a state is saturated, given the temperature it would have
+if all of its water were vapor.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T_unsat`: temperature obtained by assuming no condensate [K]
+ - `ρ`: (moist-)air density [kg/m³]
+ - `q_tot`: total specific humidity [kg/kg]
+
+# Returns
+ - `saturated`: `true` when condensate must be present
+
+The test is exact rather than heuristic: `T_unsat` solves the no-condensate problem, so if
+no condensation is required there, it is already the answer.
+"""
+@inline function _is_saturated(param_set::APS, T_unsat, ρ, q_tot)
+    return q_tot > q_vap_saturation(param_set, T_unsat, ρ)
+end
+
+"""
+    _is_saturated_from_p(param_set, T_unsat, p, q_tot)
+
+Internal function. Pressure-based counterpart of `_is_saturated`.
+"""
+@inline function _is_saturated_from_p(param_set::APS, T_unsat, p, q_tot)
+    return q_tot > q_vap_saturation_from_pressure(param_set, q_tot, p, T_unsat)
+end
+
+"""
+    _select_solution(saturated, T_sat, ΔT_sat, T_unsat)
+
+Internal function. Choose between the iterated saturated solution and the exact unsaturated
+one, returning the corresponding temperature and final increment.
+
+Both are computed unconditionally so that every GPU lane executes the same instructions; the
+selection is a branchless `ifelse`.
+"""
+@inline function _select_solution(saturated, T_sat, ΔT_sat, T_unsat)
+    T = ifelse(saturated, T_sat, T_unsat)
+    ΔT = ifelse(saturated, ΔT_sat, zero(ΔT_sat))
+    return (T, ΔT)
+end
+
+"""
+    _fixed_iters_converged(T, ΔT)
+
+Internal function. Report whether the fixed-iteration solver reached a self-consistent
+temperature.
+
+# Arguments
+ - `T`: final temperature [K]
+ - `ΔT`: increment applied by the final iteration [K]
+
+# Returns
+ - `converged`: `true` when the last increment left the temperature essentially unchanged
+
+This is a test on the iteration itself, not on a residual: the fixed-iteration solvers take
+a set number of steps and never evaluate a stopping criterion. A small final increment means
+the iteration has settled; a large one means `maxiter` ran out before it did.
+"""
+@inline function _fixed_iters_converged(T, ΔT)
+    rtol = sqrt(eps(typeof(T)))
+    return isfinite(T) & (abs(ΔT) <= rtol * abs(T))
+end
 
 @inline function saturation_adjustment_fixed_iters(
     param_set::APS,
@@ -825,16 +1022,20 @@ function saturation_adjustment_fixed_iters end
 )
     T_unsat = air_temperature(param_set, e_int, q_tot)
     T_init_min = TP.T_init_min(param_set)
-    T = max(T_init_min, T_unsat)
+    T_0 = max(T_init_min, T_unsat)
+    saturated = _is_saturated(param_set, T_0, ρ, q_tot)
 
-    @fastmath for _ in 1:maxiter
-        e_val = internal_energy_sat(param_set, T, ρ, q_tot)
-        de_int_dT = ∂e_int_∂T_sat_ρ(param_set, T, ρ, q_tot)
-        T += (e_int - e_val) / de_int_dT
+    T = T_0
+    ΔT = zero(T)
+    for _ in 1:maxiter
+        e_val = internal_energy_sat(param_set, T, ρ, q_tot, Val(false))
+        de_int_dT = ∂e_int_∂T_sat_ρ(param_set, T, ρ, q_tot, Val(false))
+        (T, ΔT) = _newton_update(param_set, T, (e_int - e_val) / de_int_dT)
     end
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return (; T, q_liq, q_ice, converged = true)
+    return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
 end
 
 @inline function saturation_adjustment_fixed_iters(
@@ -847,17 +1048,21 @@ end
 )
     T_unsat = air_temperature(param_set, e_int, q_tot)
     T_init_min = TP.T_init_min(param_set)
-    T = max(T_init_min, T_unsat)
+    T_0 = max(T_init_min, T_unsat)
+    saturated = _is_saturated_from_p(param_set, T_0, p, q_tot)
 
-    @fastmath for _ in 1:maxiter
-        ρ = air_density(param_set, T, p, q_tot)
-        e_val = internal_energy_sat(param_set, T, ρ, q_tot)
-        de_int_dT = ∂e_int_∂T_sat_p(param_set, T, p, q_tot)
-        T -= (e_val - e_int) / de_int_dT
+    T = T_0
+    ΔT = zero(T)
+    for _ in 1:maxiter
+        (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, Val(false))
+        e_val = internal_energy(param_set, T, q_tot, q_liq, q_ice)
+        de_int_dT = ∂e_int_∂T_sat_p(param_set, T, p, q_tot, Val(false))
+        (T, ΔT) = _newton_update(param_set, T, (e_int - e_val) / de_int_dT)
     end
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
-    return (; T, q_liq, q_ice, converged = true)
+    return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
 end
 
 @inline function saturation_adjustment_fixed_iters(
@@ -868,19 +1073,23 @@ end
     q_tot,
     maxiter,
 )
-    T_unsat = air_temperature(param_set, ph(), h, q_tot, 0, 0)
+    T_unsat = air_temperature(param_set, ph(), h, q_tot, zero(q_tot), zero(q_tot))
     T_init_min = TP.T_init_min(param_set)
-    T = max(T_init_min, T_unsat)
+    T_0 = max(T_init_min, T_unsat)
+    saturated = _is_saturated_from_p(param_set, T_0, p, q_tot)
 
-    @fastmath for _ in 1:maxiter
-        ρ = air_density(param_set, T, p, q_tot)
-        h_val = enthalpy_sat(param_set, T, ρ, q_tot)
-        dh_dT = ∂h_∂T_sat_p(param_set, T, p, q_tot)
-        T -= (h_val - h) / dh_dT
+    T = T_0
+    ΔT = zero(T)
+    for _ in 1:maxiter
+        (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, Val(false))
+        h_val = enthalpy(param_set, T, q_tot, q_liq, q_ice)
+        dh_dT = ∂h_∂T_sat_p(param_set, T, p, q_tot, Val(false))
+        (T, ΔT) = _newton_update(param_set, T, (h - h_val) / dh_dT)
     end
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
-    return (; T, q_liq, q_ice, converged = true)
+    return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
 end
 
 @inline function saturation_adjustment_fixed_iters(
@@ -893,18 +1102,21 @@ end
 )
     T_unsat = air_temperature(param_set, pθ_li(), p, θ_li, q_tot)
     T_init_min = TP.T_init_min(param_set)
-    T = max(T_init_min, T_unsat)
+    T_0 = max(T_init_min, T_unsat)
+    saturated = _is_saturated_from_p(param_set, T_0, p, q_tot)
 
-    @fastmath for _ in 1:maxiter
-        ρ = air_density(param_set, T, p, q_tot)
-        (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    T = T_0
+    ΔT = zero(T)
+    for _ in 1:maxiter
+        (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, Val(false))
         θ_li_val = liquid_ice_pottemp_given_pressure(param_set, T, p, q_tot, q_liq, q_ice)
-        dθ_li_dT = ∂θ_li_∂T_sat_p(param_set, T, p, q_tot)
-        T -= (θ_li_val - θ_li) / dθ_li_dT
+        dθ_li_dT = ∂θ_li_∂T_sat_p(param_set, T, p, q_tot, Val(false))
+        (T, ΔT) = _newton_update(param_set, T, (θ_li - θ_li_val) / dθ_li_dT)
     end
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
-    return (; T, q_liq, q_ice, converged = true)
+    return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
 end
 
 @inline function saturation_adjustment_fixed_iters(
@@ -917,17 +1129,21 @@ end
 )
     T_unsat = air_temperature(param_set, ρθ_li(), ρ, θ_li, q_tot)
     T_init_min = TP.T_init_min(param_set)
-    T = max(T_init_min, T_unsat)
+    T_0 = max(T_init_min, T_unsat)
+    saturated = _is_saturated(param_set, T_0, ρ, q_tot)
 
-    @fastmath for _ in 1:maxiter
-        (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    T = T_0
+    ΔT = zero(T)
+    for _ in 1:maxiter
+        (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot, Val(false))
         θ_li_val = liquid_ice_pottemp(param_set, T, ρ, q_tot, q_liq, q_ice)
-        dθ_li_dT = ∂θ_li_∂T_sat_ρ(param_set, T, ρ, q_tot)
-        T -= (θ_li_val - θ_li) / dθ_li_dT
+        dθ_li_dT = ∂θ_li_∂T_sat_ρ(param_set, T, ρ, q_tot, Val(false))
+        (T, ΔT) = _newton_update(param_set, T, (θ_li - θ_li_val) / dθ_li_dT)
     end
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return (; T, q_liq, q_ice, converged = true)
+    return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
 end
 
 @inline function saturation_adjustment_fixed_iters(
@@ -940,17 +1156,21 @@ end
 )
     T_unsat = air_temperature(param_set, pρ(), p, ρ, q_tot)
     T_init_min = TP.T_init_min(param_set)
-    T = max(T_init_min, T_unsat)
+    T_0 = max(T_init_min, T_unsat)
+    saturated = _is_saturated(param_set, T_0, ρ, q_tot)
 
-    @fastmath for _ in 1:maxiter
-        (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+    T = T_0
+    ΔT = zero(T)
+    for _ in 1:maxiter
+        (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot, Val(false))
         p_val = air_pressure(param_set, T, ρ, q_tot, q_liq, q_ice)
-        dp_dT = ∂p_∂T_sat_ρ(param_set, T, ρ, q_tot)
-        T -= (p_val - p) / dp_dT
+        dp_dT = ∂p_∂T_sat_ρ(param_set, T, ρ, q_tot, Val(false))
+        (T, ΔT) = _newton_update(param_set, T, (p - p_val) / dp_dT)
     end
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-    return (; T, q_liq, q_ice, converged = true)
+    return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
 end
 
 # ---------------------------------------------
@@ -1066,8 +1286,14 @@ The phase partition into liquid and ice is computed internally from `q_tot` usin
 temperature-dependent liquid fraction (see [`liquid_fraction_ramp`](@ref)) and saturation 
 excess (see [`saturation_excess`](@ref)).
 """
-@inline function internal_energy_sat(param_set::APS, T, ρ, q_tot)
-    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+@inline function internal_energy_sat(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot,
+    clamped::Val = Val(true),
+)
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot, clamped)
     return internal_energy(param_set, T, q_tot, q_liq, q_ice)
 end
 
@@ -1089,8 +1315,14 @@ The phase partition into liquid and ice is computed internally from `q_tot` usin
 temperature-dependent liquid fraction (see [`liquid_fraction_ramp`](@ref)) and saturation 
 excess (see [`saturation_excess`](@ref)).
 """
-@inline function enthalpy_sat(param_set::APS, T, ρ, q_tot)
-    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+@inline function enthalpy_sat(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot,
+    clamped::Val = Val(true),
+)
+    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot, clamped)
     return enthalpy(param_set, T, q_tot, q_liq, q_ice)
 end
 
@@ -1145,8 +1377,7 @@ end
 )
     return _T -> begin
         T_val = ReLU(_T)
-        _ρ = air_density(param_set, T_val, p, q_tot)
-        f = internal_energy_sat(param_set, T_val, _ρ, q_tot) - e_int
+        f = _internal_energy_sat_from_p(param_set, T_val, p, q_tot) - e_int
         (f, ∂e_int_∂T_sat_p(param_set, T_val, p, q_tot))
     end
 end
@@ -1159,9 +1390,9 @@ end
     e_int,
     q_tot,
 ) where {M}
-    return T -> begin
-        _ρ = air_density(param_set, T, p, q_tot)
-        internal_energy_sat(param_set, T, _ρ, q_tot) - e_int
+    return _T -> begin
+        T_val = ReLU(_T)
+        _internal_energy_sat_from_p(param_set, T_val, p, q_tot) - e_int
     end
 end
 
@@ -1176,8 +1407,7 @@ end
 )
     return _T -> begin
         T_val = ReLU(_T)
-        _ρ = air_density(param_set, T_val, p, q_tot)
-        f = enthalpy_sat(param_set, T_val, _ρ, q_tot) - h
+        f = _enthalpy_sat_from_p(param_set, T_val, p, q_tot) - h
         (f, ∂h_∂T_sat_p(param_set, T_val, p, q_tot))
     end
 end
@@ -1190,9 +1420,9 @@ end
     h,
     q_tot,
 ) where {M}
-    return T -> begin
-        _ρ = air_density(param_set, T, p, q_tot)
-        enthalpy_sat(param_set, T, _ρ, q_tot) - h
+    return _T -> begin
+        T_val = ReLU(_T)
+        _enthalpy_sat_from_p(param_set, T_val, p, q_tot) - h
     end
 end
 
@@ -1207,8 +1437,7 @@ end
 )
     return _T -> begin
         T_val = ReLU(_T)
-        _ρ = air_density(param_set, T_val, p, q_tot)
-        (_q_liq, _q_ice) = condensate_partition(param_set, T_val, _ρ, q_tot)
+        (_q_liq, _q_ice) = _condensate_partition_from_p(param_set, T_val, p, q_tot)
         f =
             liquid_ice_pottemp_given_pressure(param_set, T_val, p, q_tot, _q_liq, _q_ice) - θ_li
         (f, ∂θ_li_∂T_sat_p(param_set, T_val, p, q_tot))
@@ -1223,10 +1452,10 @@ end
     θ_li,
     q_tot,
 ) where {M}
-    return T -> begin
-        _ρ = air_density(param_set, T, p, q_tot)
-        (_q_liq, _q_ice) = condensate_partition(param_set, T, _ρ, q_tot)
-        liquid_ice_pottemp_given_pressure(param_set, T, p, q_tot, _q_liq, _q_ice) - θ_li
+    return _T -> begin
+        T_val = ReLU(_T)
+        (_q_liq, _q_ice) = _condensate_partition_from_p(param_set, T_val, p, q_tot)
+        liquid_ice_pottemp_given_pressure(param_set, T_val, p, q_tot, _q_liq, _q_ice) - θ_li
     end
 end
 
@@ -1298,10 +1527,153 @@ end
 Helper to compute equilibrium phase partition given temperature, pressure, and total humidity.
 Returns `(ρ, q_liq, q_ice)` tuple.
 """
-@inline function _phase_partition_from_T_p(param_set::APS, T, p, q_tot)
-    ρ = air_density(param_set, T, p, q_tot)
-    (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
+@inline function _phase_partition_from_T_p(
+    param_set::APS,
+    T,
+    p,
+    q_tot,
+    clamped::Val = Val(true),
+)
+    (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, clamped)
+    ρ = air_density(param_set, T, p, q_tot, q_liq, q_ice)
     return (ρ, q_liq, q_ice)
+end
+
+"""
+    _condensate_partition_from_p(param_set, T, p, q_tot, clamped = Val(true))
+
+Internal function. Equilibrium `(q_liq, q_ice)` at a given temperature and *pressure*.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `p`: air pressure [Pa]
+ - `q_tot`: total specific humidity [kg/kg]
+ - `clamped`: `Val(false)` continues the saturated branch to negative condensate,
+   see `_clamp_excess`
+
+# Returns
+ - `(q_liq, q_ice)`: liquid and ice specific humidities [kg/kg]
+
+This is the pressure analogue of [`condensate_partition`](@ref). Obtaining the saturation
+specific humidity from the pressure directly, via
+[`q_vap_saturation_from_pressure`](@ref), keeps the result self-consistent: computing a
+density first would require a phase partition that is not yet known, and assuming no
+condensate there biases the saturation humidity high.
+"""
+@inline function _condensate_partition_from_p(
+    param_set::APS,
+    T,
+    p,
+    q_tot,
+    clamped::Val = Val(true),
+)
+    λ = liquid_fraction_ramp(param_set, T)
+    p_v_sat = saturation_vapor_pressure_mixture(param_set, T, λ)
+    q_vap_sat = q_vap_saturation_from_pressure_calc(param_set, q_tot, p, p_v_sat)
+    q_c = _clamp_excess(clamped, q_tot - q_vap_sat)
+    return (λ * q_c, (1 - λ) * q_c)
+end
+
+"""
+    _internal_energy_sat_from_p(param_set, T, p, q_tot, clamped = Val(true))
+
+Internal function. Equilibrium internal energy at a given temperature and pressure.
+
+Pressure analogue of [`internal_energy_sat`](@ref); see
+`_condensate_partition_from_p` for why the partition is taken from the pressure
+rather than from a condensate-free density.
+"""
+@inline function _internal_energy_sat_from_p(
+    param_set::APS,
+    T,
+    p,
+    q_tot,
+    clamped::Val = Val(true),
+)
+    (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, clamped)
+    return internal_energy(param_set, T, q_tot, q_liq, q_ice)
+end
+
+"""
+    _enthalpy_sat_from_p(param_set, T, p, q_tot, clamped = Val(true))
+
+Internal function. Equilibrium specific enthalpy at a given temperature and pressure.
+
+Pressure analogue of [`enthalpy_sat`](@ref).
+"""
+@inline function _enthalpy_sat_from_p(
+    param_set::APS,
+    T,
+    p,
+    q_tot,
+    clamped::Val = Val(true),
+)
+    (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, clamped)
+    return enthalpy(param_set, T, q_tot, q_liq, q_ice)
+end
+
+"""
+    _saturation_derivative_vars_p(param_set, T, p, q_tot, clamped = Val(true))
+
+Internal function. Phase partition and its temperature derivatives at fixed *pressure*.
+
+# Returns
+A `NamedTuple` with the same fields as `_saturation_derivative_vars`, plus
+`q_vap_sat` and `p_v_sat`.
+
+Differentiating `q_v^* = ε (1 - q_tot) p_v^* / (p - p_v^*)` at fixed `p` gives
+
+    ∂q_v^*/∂T|_p = q_v^* · (∂ln p_v^*/∂T) · p / (p - p_v^*),
+
+where the `p / (p - p_v^*)` factor comes from the saturation vapor pressure appearing in the
+denominator as well. It approaches 1 when `p_v^* ≪ p` but grows in warm, moist air.
+"""
+@inline function _saturation_derivative_vars_p(
+    param_set::APS,
+    T,
+    p,
+    q_tot,
+    clamped::Val = Val(true),
+)
+    FT = eltype(param_set)
+    R_v = TP.R_v(param_set)
+
+    λ = liquid_fraction_ramp(param_set, T)
+    ∂λ_∂T = ∂λ_∂T_ramp(param_set, T)
+    p_v_sat = saturation_vapor_pressure_mixture(param_set, T, λ)
+    q_vap_sat = q_vap_saturation_from_pressure_calc(param_set, q_tot, p, p_v_sat)
+
+    q_c = _clamp_excess(clamped, q_tot - q_vap_sat)
+    q_liq = λ * q_c
+    q_ice = (1 - λ) * q_c
+
+    # Logarithmic derivative of the mixed-phase saturation vapor pressure
+    L = latent_heat_mixed(param_set, T, λ)
+    ∂lnp_∂λ = log_saturation_vapor_pressure_ratio(param_set, T)
+    ∂lnp_v_sat_∂T = L / (R_v * T^2) + ∂lnp_∂λ * ∂λ_∂T
+
+    # Guard the denominator the same way q_vap_saturation_from_pressure_calc does, so that
+    # p approaching p_v_sat cannot produce a division by zero inside a kernel.
+    Δp = p - p_v_sat
+    amplification = ifelse(Δp ≥ ϵ_numerics(FT), p / Δp, one(Δp))
+    ∂qvs_∂T = q_vap_sat * ∂lnp_v_sat_∂T * amplification
+
+    ∂q_liq_∂T = ∂λ_∂T * q_c + λ * (-∂qvs_∂T)
+    ∂q_ice_∂T = -∂λ_∂T * q_c + (1 - λ) * (-∂qvs_∂T)
+
+    return (;
+        λ,
+        q_c,
+        q_liq,
+        q_ice,
+        ∂λ_∂T,
+        ∂qvs_∂T,
+        ∂q_liq_∂T,
+        ∂q_ice_∂T,
+        q_vap_sat,
+        p_v_sat,
+    )
 end
 
 """
@@ -1416,17 +1788,15 @@ end
 
 """
     _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, ::Val{:ρ})
-    _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, ::Val{:p})
 
-Helper to compute common intermediate variables for saturation derivatives.
+Helper to compute common intermediate variables for saturation derivatives at fixed
+density. The fixed-pressure counterpart is `_saturation_derivative_vars_p`, which takes
+`p` rather than `ρ` so that the phase partition stays consistent with the pressure.
 
 Returns a named tuple with phase partition and derivative information:
 - `λ`, `q_c`, `q_liq`, `q_ice`: Phase partition variables
 - `∂λ_∂T`, `∂qvs_∂T`: Temperature derivatives of liquid fraction and saturation humidity
 - `∂q_liq_∂T`, `∂q_ice_∂T`: Phase partition derivatives
-
-The `Val{:ρ}` version computes `∂qvs_∂T` at fixed density (includes `-1/T` term).
-The `Val{:p}` version computes `∂qvs_∂T` at fixed pressure (no `-1/T` term).
 """
 @inline function _saturation_derivative_vars(
     param_set::APS,
@@ -1441,11 +1811,7 @@ The `Val{:p}` version computes `∂qvs_∂T` at fixed pressure (no `-1/T` term).
     q_liq = λ * q_c
     q_ice = (1 - λ) * q_c
 
-    # ∂λ/∂T for λ = ((T - Tⁱ) / (Tᶠ - Tⁱ))^n
-    Tᶠ = TP.T_freeze(param_set)
-    Tⁱ = TP.T_icenuc(param_set)
-    n = TP.pow_icenuc(param_set)
-    ∂λ_∂T = ifelse(Tⁱ < T < Tᶠ, n / (Tᶠ - Tⁱ) * ((T - Tⁱ) / (Tᶠ - Tⁱ))^(n - 1), zero(T))
+    ∂λ_∂T = ∂λ_∂T_ramp(param_set, T)
 
     # ∂q_vap_sat/∂T at fixed ρ (includes -1/T term)
     ∂qvs_∂T = ∂q_vap_sat_∂T(param_set, T, ρ)
@@ -1457,46 +1823,47 @@ The `Val{:p}` version computes `∂qvs_∂T` at fixed pressure (no `-1/T` term).
     return (; λ, q_c, q_liq, q_ice, ∂λ_∂T, ∂qvs_∂T, ∂q_liq_∂T, ∂q_ice_∂T)
 end
 
-@inline function _saturation_derivative_vars(
-    param_set::APS,
-    T,
-    ρ,
-    q_tot,
-    q_vap_sat,
-    ::Val{:p},
-)
-    λ = liquid_fraction_ramp(param_set, T)
-    q_c = saturation_excess(param_set, T, ρ, q_tot)
-    q_liq = λ * q_c
-    q_ice = (1 - λ) * q_c
+"""
+    _select_sat_branch(unsat_branch, q_tot, q_vap_sat, x_unsat, x_sat)
 
-    # ∂λ/∂T for λ = ((T - Tⁱ) / (Tᶠ - Tⁱ))^n
-    Tᶠ = TP.T_freeze(param_set)
-    Tⁱ = TP.T_icenuc(param_set)
-    n = TP.pow_icenuc(param_set)
-    ∂λ_∂T = ifelse(Tⁱ < T < Tᶠ, n / (Tᶠ - Tⁱ) * ((T - Tⁱ) / (Tᶠ - Tⁱ))^(n - 1), zero(T))
+Internal function. Choose between the unsaturated and saturated forms of a temperature
+derivative.
 
-    # ∂q_vap_sat/∂T at fixed p (no -1/T term; cancels with ∂ρ/∂T|_p = -ρ/T)
-    R_v = TP.R_v(param_set)
-    L = latent_heat_mixed(param_set, T, λ)
-    ∂qvs_∂T = q_vap_sat * L / (R_v * T^2)
+With `Val(true)` (the default for the public derivative functions) this returns the exact
+derivative, which is discontinuous at the saturation boundary: below it the condensate
+terms are absent.
 
-    # Phase partition derivatives
-    ∂q_liq_∂T = ∂λ_∂T * q_c + λ * (-∂qvs_∂T)
-    ∂q_ice_∂T = -∂λ_∂T * q_c + (1 - λ) * (-∂qvs_∂T)
+With `Val(false)` it returns the saturated form everywhere, i.e. the analytic continuation
+of the saturated branch. That continuation is larger than the unsaturated derivative, so
+Newton steps taken with it are damped rather than amplified when an iterate overshoots into
+the unsaturated region. The fixed-iteration solvers use it to avoid the limit cycle that the
+discontinuity would otherwise produce (see `saturation_adjustment_fixed_iters`).
 
-    return (; λ, q_c, q_liq, q_ice, ∂λ_∂T, ∂qvs_∂T, ∂q_liq_∂T, ∂q_ice_∂T)
-end
+Dispatching on `Val` keeps the choice a compile-time constant, so no branch reaches the GPU.
+"""
+@inline _select_sat_branch(::Val{true}, q_tot, q_vap_sat, x_unsat, x_sat) =
+    ifelse(q_tot <= q_vap_sat, x_unsat, x_sat)
+
+@inline _select_sat_branch(::Val{false}, q_tot, q_vap_sat, x_unsat, x_sat) = x_sat
 
 """
-    ∂e_int_∂T_sat_ρ(param_set, T, ρ, q_tot)
+    ∂e_int_∂T_sat_ρ(param_set, T, ρ, q_tot, unsat_branch = Val(true))
 
 Derivative of `internal_energy_sat` with respect to temperature at fixed density.
 
 Uses `∂q_vap_sat/∂T|_ρ` from Clausius-Clapeyron, which includes the `-1/T` term
 from the density dependence of saturation vapor pressure.
+
+Passing `Val(false)` for `unsat_branch` returns the saturated form even below saturation;
+see `_select_sat_branch`.
 """
-@inline function ∂e_int_∂T_sat_ρ(param_set::APS, T, ρ, q_tot)
+@inline function ∂e_int_∂T_sat_ρ(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot,
+    unsat_branch::Val = Val(true),
+)
     q_vap_sat = q_vap_saturation(param_set, T, ρ)
     cvm_unsat = cv_m(param_set, q_tot, zero(q_tot), zero(q_tot))
 
@@ -1512,7 +1879,7 @@ from the density dependence of saturation vapor pressure.
     de_dT_sat =
         cvm_sat + e_vap * vars.∂qvs_∂T + e_liq * vars.∂q_liq_∂T + e_ice * vars.∂q_ice_∂T
 
-    return ifelse(q_tot <= q_vap_sat, cvm_unsat, de_dT_sat)
+    return _select_sat_branch(unsat_branch, q_tot, q_vap_sat, cvm_unsat, de_dT_sat)
 end
 
 """
@@ -1524,12 +1891,16 @@ Uses `∂q_vap_sat/∂T|_p = q_vap_sat * L / (R_v T²)` (Clausius-Clapeyron at c
 pressure), which differs from the constant-density form used in [`∂e_int_∂T_sat_ρ`](@ref)
 by an additional `q_vap_sat / T` term.
 """
-@inline function ∂e_int_∂T_sat_p(param_set::APS, T, p, q_tot)
-    ρ = air_density(param_set, T, p, q_tot)
-    q_vap_sat = q_vap_saturation(param_set, T, ρ)
+@inline function ∂e_int_∂T_sat_p(
+    param_set::APS,
+    T,
+    p,
+    q_tot,
+    unsat_branch::Val = Val(true),
+)
     cvm_unsat = cv_m(param_set, q_tot, zero(q_tot), zero(q_tot))
 
-    vars = _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, Val(:p))
+    vars = _saturation_derivative_vars_p(param_set, T, p, q_tot)
 
     # Component internal energies
     e_vap = internal_energy_vapor(param_set, T)
@@ -1541,7 +1912,7 @@ by an additional `q_vap_sat / T` term.
     de_dT_sat =
         cvm_sat + e_vap * vars.∂qvs_∂T + e_liq * vars.∂q_liq_∂T + e_ice * vars.∂q_ice_∂T
 
-    return ifelse(q_tot <= q_vap_sat, cvm_unsat, de_dT_sat)
+    return _select_sat_branch(unsat_branch, q_tot, vars.q_vap_sat, cvm_unsat, de_dT_sat)
 end
 
 """
@@ -1552,12 +1923,16 @@ Derivative of `enthalpy_sat` with respect to temperature at fixed pressure.
 Structured identically to [`∂e_int_∂T_sat_p`](@ref) but with component enthalpies
 (`cp_m` instead of `cv_m`, `enthalpy_vapor` instead of `internal_energy_vapor`, etc.).
 """
-@inline function ∂h_∂T_sat_p(param_set::APS, T, p, q_tot)
-    ρ = air_density(param_set, T, p, q_tot)
-    q_vap_sat = q_vap_saturation(param_set, T, ρ)
+@inline function ∂h_∂T_sat_p(
+    param_set::APS,
+    T,
+    p,
+    q_tot,
+    unsat_branch::Val = Val(true),
+)
     cpm_unsat = cp_m(param_set, q_tot, zero(q_tot), zero(q_tot))
 
-    vars = _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, Val(:p))
+    vars = _saturation_derivative_vars_p(param_set, T, p, q_tot)
 
     # Component enthalpies
     h_vap = enthalpy_vapor(param_set, T)
@@ -1569,7 +1944,7 @@ Structured identically to [`∂e_int_∂T_sat_p`](@ref) but with component entha
     dh_dT_sat =
         cpm_sat + h_vap * vars.∂qvs_∂T + h_liq * vars.∂q_liq_∂T + h_ice * vars.∂q_ice_∂T
 
-    return ifelse(q_tot <= q_vap_sat, cpm_unsat, dh_dT_sat)
+    return _select_sat_branch(unsat_branch, q_tot, vars.q_vap_sat, cpm_unsat, dh_dT_sat)
 end
 
 """
@@ -1581,11 +1956,15 @@ with respect to temperature at fixed pressure.
 Uses the product rule on `θ_li = θ * (1 - L_c / (cp_m T))`, differentiating
 each factor through the T-dependent phase partition.
 """
-@inline function ∂θ_li_∂T_sat_p(param_set::APS, T, p, q_tot)
-    ρ = air_density(param_set, T, p, q_tot)
-    q_vap_sat = q_vap_saturation(param_set, T, ρ)
-
-    vars = _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, Val(:p))
+@inline function ∂θ_li_∂T_sat_p(
+    param_set::APS,
+    T,
+    p,
+    q_tot,
+    unsat_branch::Val = Val(true),
+)
+    vars = _saturation_derivative_vars_p(param_set, T, p, q_tot)
+    q_vap_sat = vars.q_vap_sat
 
     # Current thermodynamic state
     R_m = gas_constant_air(param_set, q_tot, vars.q_liq, vars.q_ice)
@@ -1627,7 +2006,13 @@ each factor through the T-dependent phase partition.
     # Product rule: ∂(θ * F)/∂T
     dθ_li_dT_sat = ∂θ_∂T * F + θ * ∂F_∂T
 
-    return ifelse(q_tot <= q_vap_sat, dθ_li_dT_unsat, dθ_li_dT_sat)
+    return _select_sat_branch(
+        unsat_branch,
+        q_tot,
+        q_vap_sat,
+        dθ_li_dT_unsat,
+        dθ_li_dT_sat,
+    )
 end
 
 """
@@ -1644,7 +2029,13 @@ with `T`. This introduces two corrections to `∂θ/∂T`:
 The `∂q_vap_sat/∂T` also differs: at fixed ρ it carries an extra `-q_vap_sat / T`
 relative to the fixed-p Clausius–Clapeyron form.
 """
-@inline function ∂θ_li_∂T_sat_ρ(param_set::APS, T, ρ, q_tot)
+@inline function ∂θ_li_∂T_sat_ρ(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot,
+    unsat_branch::Val = Val(true),
+)
     q_vap_sat = q_vap_saturation(param_set, T, ρ)
 
     vars = _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, Val(:ρ))
@@ -1691,7 +2082,13 @@ relative to the fixed-p Clausius–Clapeyron form.
     # Product rule: ∂(θ · F)/∂T
     dθ_li_dT_sat = ∂θ_∂T * F + θ * ∂F_∂T
 
-    return ifelse(q_tot <= q_vap_sat, dθ_li_dT_unsat, dθ_li_dT_sat)
+    return _select_sat_branch(
+        unsat_branch,
+        q_tot,
+        q_vap_sat,
+        dθ_li_dT_unsat,
+        dθ_li_dT_sat,
+    )
 end
 
 """
@@ -1706,7 +2103,13 @@ From `p = ρ R_m T` and `∂R_m/∂T = R_v · ∂q_vap_sat/∂T`:
 
 Unsaturated: `R_m` is constant, so `∂p/∂T = ρ R_m`.
 """
-@inline function ∂p_∂T_sat_ρ(param_set::APS, T, ρ, q_tot)
+@inline function ∂p_∂T_sat_ρ(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot,
+    unsat_branch::Val = Val(true),
+)
     R_v = TP.R_v(param_set)
     q_vap_sat = q_vap_saturation(param_set, T, ρ)
 
@@ -1723,5 +2126,5 @@ Unsaturated: `R_m` is constant, so `∂p/∂T = ρ R_m`.
     # p = ρ R_m T  =>  ∂p/∂T = ρ(R_m + T · ∂R_m/∂T)
     dp_dT_sat = ρ * (R_m + T * ∂R_m_∂T)
 
-    return ifelse(q_tot <= q_vap_sat, dp_dT_unsat, dp_dT_sat)
+    return _select_sat_branch(unsat_branch, q_tot, q_vap_sat, dp_dT_unsat, dp_dT_sat)
 end

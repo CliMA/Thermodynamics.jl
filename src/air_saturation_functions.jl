@@ -34,8 +34,9 @@ The fraction of condensate that is liquid.
 
 The liquid fraction is computed from `q_liq` and `q_ice`.
 If `q_liq + q_ice` exceeds a small threshold (see [`has_condensate`](@ref)), `q_liq / (q_liq + q_ice)`
-is returned. If there is effectively no condensate, a smooth temperature-dependent partitioning is used
-(linear ramp from 0 to 1 over ±0.1 K around freezing).
+is returned. If there is effectively no condensate, a smooth temperature-dependent partitioning is used:
+a linear ramp from 0 to 1 over the 0.2 K interval `[T_freeze - 0.2, T_freeze]`, so that the liquid
+fraction is exactly 1 at `T_freeze`.
 """
 @inline function liquid_fraction(param_set::APS, T, q_liq, q_ice)
     FT = eltype(param_set)
@@ -48,7 +49,42 @@ is returned. If there is effectively no condensate, a smooth temperature-depende
     # This ensures that liquid_fraction is exactly 1.0 at Tᶠ
     λ_T = clamp((T - (Tᶠ - 2 * ΔT)) / (2 * ΔT), zero(T), one(T))
 
-    return ifelse(has_condensate(param_set, q_c), FT(q_liq / q_c), λ_T)
+    # Both branches must share a type. Keying off `λ_T` rather than converting to `FT`
+    # keeps the result wide enough for arguments wider than `FT` (Float64 inputs with a
+    # Float32 parameter set, or ForwardDiff duals), while still normalizing the `0/0`
+    # that integer-literal humidities would otherwise widen to Float64.
+    λ_c = oftype(λ_T, q_liq / q_c)
+    return ifelse(has_condensate(param_set, q_c), λ_c, λ_T)
+end
+
+"""
+    ∂λ_∂T_liquid_fraction(param_set, T, q_liq, q_ice)
+
+Internal function. Temperature derivative of [`liquid_fraction`](@ref).
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+ - `q_liq`: liquid specific humidity [kg/kg]
+ - `q_ice`: ice specific humidity [kg/kg]
+
+# Returns
+ - `∂λ/∂T`: derivative of the liquid fraction with respect to temperature [1/K]
+
+When condensate is present the liquid fraction is `q_liq / (q_liq + q_ice)`, which is
+independent of temperature, so the derivative is zero. Otherwise it is the slope of the
+linear ramp below freezing.
+"""
+@inline function ∂λ_∂T_liquid_fraction(param_set::APS, T, q_liq, q_ice)
+    FT = eltype(param_set)
+    q_c = condensate_specific_humidity(q_liq, q_ice)
+
+    Tᶠ = TP.T_freeze(param_set)
+    ΔT = FT(0.1)
+    in_ramp = (T > Tᶠ - 2 * ΔT) & (T < Tᶠ)
+    slope = ifelse(in_ramp, one(T) / (2 * ΔT), zero(T))
+
+    return ifelse(has_condensate(param_set, q_c), zero(slope), slope)
 end
 
 """
@@ -73,31 +109,87 @@ clouds using a simple microphysics approach," *Monthly Weather Review*, **143**,
 doi:[10.1175/MWR-D-14-00319.1](https://doi.org/10.1175/MWR-D-14-00319.1).
 """
 @inline function liquid_fraction_ramp(param_set::APS, T)
-    FT = eltype(param_set)
-
     # Interpolation between homogeneous nucleation and freezing temperatures
     Tᶠ = TP.T_freeze(param_set)   # freezing temperature
     Tⁱ = TP.T_icenuc(param_set)   # temperature of homogeneous ice nucleation
     n = TP.pow_icenuc(param_set)  # power law partial ice nucleation parameter
-    λᵖ = ((T - Tⁱ) / (Tᶠ - Tⁱ))^n
+    # Clamp before exponentiation: a negative base raised to a non-integer
+    # `pow_icenuc` throws a DomainError, which is unrecoverable in a GPU kernel.
+    x = clamp((T - Tⁱ) / (Tᶠ - Tⁱ), zero(T), one(T))
+    λᵖ = x^n
 
     above_freezing = T > Tᶠ
     supercooled_liquid = (T ≤ Tᶠ) & (T > Tⁱ)
 
     return ifelse(
         above_freezing,
-        one(T),
-        ifelse(supercooled_liquid, λᵖ, zero(T)),
+        one(λᵖ),
+        ifelse(supercooled_liquid, λᵖ, zero(λᵖ)),
     )
+end
+
+"""
+    ∂λ_∂T_ramp(param_set, T)
+
+Internal function. Temperature derivative of [`liquid_fraction_ramp`](@ref).
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+
+# Returns
+ - `∂λ/∂T`: derivative of the liquid fraction with respect to temperature [1/K]
+
+The derivative is zero outside the ramp interval `(T_icenuc, T_freeze)`, where the
+liquid fraction is constant.
+"""
+@inline function ∂λ_∂T_ramp(param_set::APS, T)
+    Tᶠ = TP.T_freeze(param_set)
+    Tⁱ = TP.T_icenuc(param_set)
+    n = TP.pow_icenuc(param_set)
+    x = clamp((T - Tⁱ) / (Tᶠ - Tⁱ), zero(T), one(T))
+    ∂λ_∂T = n / (Tᶠ - Tⁱ) * x^(n - 1)
+    return ifelse((Tⁱ < T) & (T < Tᶠ), ∂λ_∂T, zero(∂λ_∂T))
+end
+
+"""
+    log_saturation_vapor_pressure_ratio(param_set, T)
+
+Internal function. Compute `log(p_v^*(liquid) / p_v^*(ice))` in closed form.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `T`: temperature [K]
+
+# Returns
+ - `log(p_liq^* / p_ice^*)` [dimensionless]
+
+Because the mixed-phase saturation vapor pressure is the geometric mean
+`p_v^* = (p_liq^*)^λ (p_ice^*)^(1-λ)` (see [`saturation_vapor_pressure_mixture`](@ref)),
+this ratio is `∂ log p_v^* / ∂λ`, needed when differentiating with respect to
+temperature through the liquid fraction. Evaluating it directly avoids the two
+`exp` calls that forming the ratio explicitly would require.
+"""
+@inline function log_saturation_vapor_pressure_ratio(param_set::APS, T)
+    R_v = TP.R_v(param_set)
+    T_triple = TP.T_triple(param_set)
+    T_0 = TP.T_0(param_set)
+    LH_f0 = TP.LH_f0(param_set)
+    cp_l = TP.cp_l(param_set)
+    cp_i = TP.cp_i(param_set)
+
+    Δcp = cp_i - cp_l
+    return (Δcp / R_v) * log(T / T_triple) +
+           (-LH_f0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T)
 end
 
 """
     has_condensate(param_set, q_c)
 
-Bool indicating if condensate exists, i.e., q_c > eps.
+Bool indicating if condensate exists, i.e., `q_c > q_min`.
 
-We use a threshold of `eps` rather than `0` to avoid division by zero in functions
-such as `liquid_fraction` and to robustly handle numerical noise.
+We use the small threshold `q_min` rather than `0` to avoid division by zero in functions
+such as [`liquid_fraction`](@ref) and to robustly handle numerical noise.
 """
 @inline function has_condensate(param_set::APS, q_c)
     q_min = TP.q_min(param_set)
@@ -228,6 +320,12 @@ and/or ice.
 
 The computation uses a weighted mean of the temperature-dependent latent heats of
 vaporization and sublimation, weighted by the liquid fraction, following [Pressel2015](@cite).
+
+Because the latent heats enter the Rankine-Kirchhoff expression linearly in the exponent,
+this is equivalent to the geometric mean of the single-phase saturation vapor pressures,
+`p_v^* = (p_liq^*)^λ (p_ice^*)^(1-λ)`. Differentiating that identity with respect to `λ`
+gives `log_saturation_vapor_pressure_ratio`, which is used when differentiating
+the saturation specific humidity with respect to temperature.
 """
 @inline function saturation_vapor_pressure_mixture(param_set::APS, T, λ)
     LH_v0 = TP.LH_v0(param_set)
@@ -435,14 +533,16 @@ parameterization (see [`liquid_fraction_ramp`](@ref)).
     q_vap_sat = q_vap_saturation(param_set, T, ρ)
     λ = liquid_fraction_ramp(param_set, T)
     L = latent_heat_mixed(param_set, T, λ)
-    return ∂q_vap_sat_∂T_from_L(param_set, q_vap_sat, L, T)
+    ∂λ_∂T = ∂λ_∂T_ramp(param_set, T)
+    return ∂q_vap_sat_∂T_from_L(param_set, q_vap_sat, L, T, ∂λ_∂T)
 end
 
 @inline function ∂q_vap_sat_∂T(param_set::APS, T, ρ, q_liq, q_ice)
     q_vap_sat = q_vap_saturation(param_set, T, ρ, q_liq, q_ice)
     λ = liquid_fraction(param_set, T, q_liq, q_ice)
     L = latent_heat_mixed(param_set, T, λ)
-    return ∂q_vap_sat_∂T_from_L(param_set, q_vap_sat, L, T)
+    ∂λ_∂T = ∂λ_∂T_liquid_fraction(param_set, T, q_liq, q_ice)
+    return ∂q_vap_sat_∂T_from_L(param_set, q_vap_sat, L, T, ∂λ_∂T)
 end
 
 @inline function ∂q_vap_sat_∂T(param_set::APS, T, ρ, phase::Phase)
@@ -455,9 +555,38 @@ end
     return ∂q_vap_sat_∂T_from_L(param_set, q_vap_sat, L, T)
 end
 
-@inline function ∂q_vap_sat_∂T_from_L(param_set::APS, q_vap_sat, L, T)
+"""
+    ∂q_vap_sat_∂T_from_L(param_set, q_vap_sat, L, T, ∂λ_∂T = 0)
+
+Internal function. Assemble `∂q_v^*/∂T` at fixed density from the saturation specific
+humidity and the latent heat.
+
+# Arguments
+ - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
+ - `q_vap_sat`: saturation specific humidity [kg/kg]
+ - `L`: latent heat appropriate to the phase or mixture [J/kg]
+ - `T`: temperature [K]
+ - `∂λ_∂T`: (optional) temperature derivative of the liquid fraction [1/K]
+
+# Returns
+ - `∂q_v^*/∂T`: derivative of saturation specific humidity at fixed density [kg/kg/K]
+
+The `∂λ_∂T` term accounts for the temperature dependence of the phase partitioning in
+the mixed-phase regime. It vanishes for saturation over a single phase and outside the
+liquid-fraction ramp.
+"""
+@inline function ∂q_vap_sat_∂T_from_L(
+    param_set::APS,
+    q_vap_sat,
+    L,
+    T,
+    ∂λ_∂T = zero(T),
+)
     R_v = TP.R_v(param_set)
-    return q_vap_sat * (L / (R_v * T^2) - 1 / T)
+    # The mixed-phase saturation vapor pressure is the geometric mean
+    # (p_liq^*)^λ (p_ice^*)^(1-λ), so ∂ log p_v^*/∂λ = log(p_liq^*/p_ice^*).
+    ∂lnp_∂λ = log_saturation_vapor_pressure_ratio(param_set, T)
+    return q_vap_sat * (L / (R_v * T^2) - 1 / T + ∂lnp_∂λ * ∂λ_∂T)
 end
 
 """
@@ -534,9 +663,15 @@ nonzero only if this difference is positive: `q_ex = max(0, q_tot - q_v^*)`.
     return saturation_excess(param_set, T, ρ, q_tot, p_vap_sat)
 end
 
-@inline function saturation_excess(param_set::APS, T, ρ, q_tot)
+@inline function saturation_excess(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot,
+    clamped::Val = Val(true),
+)
     p_vap_sat = saturation_vapor_pressure(param_set, T)
-    return saturation_excess(param_set, T, ρ, q_tot, p_vap_sat)
+    return saturation_excess(param_set, T, ρ, q_tot, p_vap_sat, clamped)
 end
 
 """
@@ -558,10 +693,30 @@ The saturation excess is the difference between the total specific humidity `q_t
 and the saturation specific humidity, and it is defined to be nonzero only if
 this difference is positive: `q_ex = max(0, q_tot - q_v^*)`.
 """
-@inline function saturation_excess(param_set::APS, T, ρ, q_tot, p_vap_sat)
+@inline function saturation_excess(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot,
+    p_vap_sat,
+    clamped::Val = Val(true),
+)
     q_vap_sat = q_vap_from_p_vap(param_set, T, ρ, p_vap_sat)
-    return max(0, q_tot - q_vap_sat)
+    return _clamp_excess(clamped, q_tot - q_vap_sat)
 end
+
+"""
+    _clamp_excess(clamped, q_ex)
+
+Internal function. Apply, or omit, the nonnegativity constraint on the saturation excess.
+
+`Val(true)` gives the physical excess `max(0, q_ex)`. `Val(false)` returns `q_ex`
+unchanged, permitting the negative values that continue the saturated branch smoothly
+into subsaturated air; the fixed-iteration solvers rely on that continuation, since
+clamping introduces the kink whose one-sided derivative makes Newton oscillate.
+"""
+@inline _clamp_excess(::Val{true}, q_ex) = max(zero(q_ex), q_ex)
+@inline _clamp_excess(::Val{false}, q_ex) = q_ex
 
 """
     condensate_partition(param_set, T, ρ, q_tot)
@@ -582,9 +737,16 @@ The condensate is partitioned into liquid and ice using the temperature-dependen
 liquid fraction from [`liquid_fraction_ramp`](@ref) (a power-law interpolation between
 `T_icenuc` and `T_freeze`) and the saturation excess (see [`saturation_excess`](@ref)).
 """
-@inline function condensate_partition(param_set::APS, T, ρ, q_tot)
+@inline function condensate_partition(
+    param_set::APS,
+    T,
+    ρ,
+    q_tot,
+    clamped::Val = Val(true),
+)
     λ = liquid_fraction_ramp(param_set, T)
-    q_c = saturation_excess(param_set, T, ρ, q_tot)
+    p_vap_sat = saturation_vapor_pressure_mixture(param_set, T, λ)
+    q_c = saturation_excess(param_set, T, ρ, q_tot, p_vap_sat, clamped)
     q_liq = λ * q_c
     q_ice = (1 - λ) * q_c
     return (q_liq, q_ice)

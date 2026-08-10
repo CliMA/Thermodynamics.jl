@@ -302,10 +302,10 @@ using Thermodynamics: ρe, pe, ph
                 # Test ∂e_int_∂T_sat_p
                 de_int_dT_p_analytical = TD.∂e_int_∂T_sat_p(param_set, T, p, q_tot)
 
-                f_e_int_sat_p(T_) = begin
-                    ρ_ = TD.air_density(param_set, T_, p, q_tot)
-                    TD.internal_energy_sat(param_set, T_, ρ_, q_tot)
-                end
+                # The equilibrium partition is taken from the pressure directly, matching
+                # the quantity the fixed-pressure derivatives describe.
+                f_e_int_sat_p(T_) =
+                    TD._internal_energy_sat_from_p(param_set, T_, p, q_tot)
                 de_int_dT_p_AD = ForwardDiff.derivative(f_e_int_sat_p, T)
 
                 @test isapprox(
@@ -318,10 +318,7 @@ using Thermodynamics: ρe, pe, ph
                 # Test ∂h_∂T_sat_p
                 dh_dT_p_analytical = TD.∂h_∂T_sat_p(param_set, T, p, q_tot)
 
-                f_h_sat_p(T_) = begin
-                    ρ_ = TD.air_density(param_set, T_, p, q_tot)
-                    TD.enthalpy_sat(param_set, T_, ρ_, q_tot)
-                end
+                f_h_sat_p(T_) = TD._enthalpy_sat_from_p(param_set, T_, p, q_tot)
                 dh_dT_p_AD = ForwardDiff.derivative(f_h_sat_p, T)
 
                 @test isapprox(
@@ -335,8 +332,8 @@ using Thermodynamics: ρe, pe, ph
                 dθ_li_dT_p_analytical = TD.∂θ_li_∂T_sat_p(param_set, T, p, q_tot)
 
                 f_θ_li_sat_p(T_) = begin
-                    ρ_ = TD.air_density(param_set, T_, p, q_tot)
-                    (q_liq_, q_ice_) = TD.condensate_partition(param_set, T_, ρ_, q_tot)
+                    (q_liq_, q_ice_) =
+                        TD._condensate_partition_from_p(param_set, T_, p, q_tot)
                     TD.liquid_ice_pottemp_given_pressure(
                         param_set,
                         T_,
@@ -420,15 +417,32 @@ using Thermodynamics: ρe, pe, ph
         @test isapprox(dq_dT_default_cold, dq_dT_explicit_cold; rtol = FT(1e-10))
         @test isapprox(dq_dT_default_cold, dq_dT_ice; rtol = FT(1e-10))
 
-        # Mixed phase region (T_icenuc < T < T_freeze): 
-        # Default method uses liquid_fraction_ramp, should differ from pure phases
+        # Mixed phase region (T_icenuc < T < T_freeze):
+        # Default method uses liquid_fraction_ramp, so the saturation curve migrates from
+        # the ice curve toward the liquid curve as temperature rises. Since p_liq > p_ice
+        # below freezing, that migration contributes additional slope: the mixed-phase
+        # derivative is steeper than either pure-phase derivative, not bracketed by them.
+        # The invariant that does hold is agreement with the derivative of the mixed
+        # saturation curve itself.
         T_mixed = FT(260.0)
         dq_dT_mixed_default = TD.∂q_vap_sat_∂T(param_set, T_mixed, ρ)
         dq_dT_mixed_liquid = TD.∂q_vap_sat_∂T(param_set, T_mixed, ρ, TD.Liquid())
         dq_dT_mixed_ice = TD.∂q_vap_sat_∂T(param_set, T_mixed, ρ, TD.Ice())
 
-        # In mixed phase, default should be between pure liquid and pure ice
-        @test min(dq_dT_mixed_liquid, dq_dT_mixed_ice) <= dq_dT_mixed_default <=
-              max(dq_dT_mixed_liquid, dq_dT_mixed_ice)
+        @test dq_dT_mixed_default >= max(dq_dT_mixed_liquid, dq_dT_mixed_ice)
+
+        # Analytic derivative must match automatic differentiation of q_vap_saturation
+        # through the full temperature dependence, including the liquid fraction.
+        for T_c in (FT(240), FT(250), FT(260), FT(270))
+            dq_ad = ForwardDiff.derivative(
+                t -> TD.q_vap_saturation(param_set, t, ρ),
+                T_c,
+            )
+            @test isapprox(
+                TD.∂q_vap_sat_∂T(param_set, T_c, ρ),
+                dq_ad;
+                rtol = FT(1e-6),
+            )
+        end
     end
 end

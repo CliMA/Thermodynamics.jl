@@ -28,3 +28,4 @@ Manifest.toml
 
 *.jld2
 .qodo
+docs_output*.txt

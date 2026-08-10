@@ -33,6 +33,15 @@ const TDTP_SA = TD.TemperatureProfiles
             return nothing
         end
 
+        # Pressure-based counterpart, for the formulations whose independent variables
+        # include p rather than ρ.
+        function check_partition_from_p(Tsol, p0, q0, ql, qi)
+            (ql_exp, qi_exp) = TD._condensate_partition_from_p(param_set, Tsol, p0, q0)
+            @test approx_tight(ql, ql_exp)
+            @test approx_tight(qi, qi_exp)
+            return nothing
+        end
+
         @testset "TestedProfiles equilibrium columns ($FT)" begin
             profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
             (; T, p, ρ, q_tot) = profiles
@@ -53,11 +62,13 @@ const TDTP_SA = TD.TemperatureProfiles
                 p_ρ = TD.air_pressure(param_set, T0, ρ0, q0, q_liq_ρ, q_ice_ρ)
                 θ_ρ = TD.liquid_ice_pottemp(param_set, T0, ρ0, q0, q_liq_ρ, q_ice_ρ)
 
-                # p-based targets (matches pe/ph/pθ_li internals: ρ(T) computed from (p,T,q_tot))
-                ρ_p = TD.air_density(param_set, T0, p0, q0)
-                (q_liq_p, q_ice_p) = TD.condensate_partition(param_set, T0, ρ_p, q0)
-                e_int_p = TD.internal_energy_sat(param_set, T0, ρ_p, q0)
-                h_p = TD.enthalpy_sat(param_set, T0, ρ_p, q0)
+                # p-based targets (matches pe/ph/pθ_li internals: the equilibrium
+                # partition is obtained from (p, T, q_tot) directly, so that the density
+                # is consistent with the condensate it implies)
+                (q_liq_p, q_ice_p) =
+                    TD._condensate_partition_from_p(param_set, T0, p0, q0)
+                e_int_p = TD._internal_energy_sat_from_p(param_set, T0, p0, q0)
+                h_p = TD._enthalpy_sat_from_p(param_set, T0, p0, q0)
                 θ_p =
                     TD.liquid_ice_pottemp_given_pressure(
                         param_set,
@@ -127,8 +138,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
-                        check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
+                        check_partition_from_p(T, inp.p0, inp.q0, q_liq, q_ice)
                     end
 
                     # phq
@@ -150,8 +160,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
-                        check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
+                        check_partition_from_p(T, inp.p0, inp.q0, q_liq, q_ice)
                     end
 
                     # pρ (uses ρ-based equilibrium; p target is p_ρ)
@@ -195,8 +204,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
-                        check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
+                        check_partition_from_p(T, inp.p0, inp.q0, q_liq, q_ice)
                     end
 
                     # ρθ_li (ρ-based)
@@ -296,9 +304,8 @@ const TDTP_SA = TD.TemperatureProfiles
                 e_int_ρ = TD.internal_energy_sat(param_set, T0, ρ0, q0)
 
                 # p-based targets computed using the mapping the implementation uses
-                ρ_p = TD.air_density(param_set, T0, p0, q0)
-                e_int_p = TD.internal_energy_sat(param_set, T0, ρ_p, q0)
-                h_p = TD.enthalpy_sat(param_set, T0, ρ_p, q0)
+                e_int_p = TD._internal_energy_sat_from_p(param_set, T0, p0, q0)
+                h_p = TD._enthalpy_sat_from_p(param_set, T0, p0, q0)
 
                 # Quick smoke: ensure each IndepVars converges and returns a self-consistent partition
                 let (; T, q_liq, q_ice) = TD.saturation_adjustment(
@@ -326,8 +333,7 @@ const TDTP_SA = TD.TemperatureProfiles
                         tol,
                     )
                     @test isfinite(T)
-                    ρ_eff = TD.air_density(param_set, T, p0, q0)
-                    check_partition(T, ρ_eff, q0, q_liq, q_ice)
+                    check_partition_from_p(T, p0, q0, q_liq, q_ice)
                 end
 
                 let (; T, q_liq, q_ice) = TD.saturation_adjustment(
@@ -341,8 +347,7 @@ const TDTP_SA = TD.TemperatureProfiles
                         tol,
                     )
                     @test isfinite(T)
-                    ρ_eff = TD.air_density(param_set, T, p0, q0)
-                    check_partition(T, ρ_eff, q0, q_liq, q_ice)
+                    check_partition_from_p(T, p0, q0, q_liq, q_ice)
                 end
             end
         end

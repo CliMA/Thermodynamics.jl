@@ -211,17 +211,28 @@ Straightforward substitution shows that the above relation between the specific 
 \end{equation}
 ```
 
-!!! example "Typical Values"
-    For Earth's atmosphere at standard conditions:
+Typical values for Earth's atmosphere, evaluated from the `ClimaParams` defaults so that
+they stay in step with the parameters actually used:
 
-    | Quantity | Value |
-    |----------|-------|
-    | $c_{vd}$ | $717.6$ J/(kg·K) |
-    | $c_{vv}$ | $1410.0$ J/(kg·K) |
-    | $c_{vl}$ | $4219.0$ J/(kg·K) |
-    | $c_{vi}$ | $2106.0$ J/(kg·K) |
-    | $c_{vm}$ (typical moist air, $q_t = 0.01$) | $720.0$ J/(kg·K) |
-    | $c_{pm}$ (typical moist air, $q_t = 0.01$) | $1008.0$ J/(kg·K) |
+```@example heat_capacities
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+import ClimaParams
+
+param_set = TP.ThermodynamicsParameters(Float64)
+q_t = 0.01
+
+for (name, value) in (
+    ("c_vd", TP.cv_d(param_set)),
+    ("c_vv", TP.cv_v(param_set)),
+    ("c_vl", TP.cv_l(param_set)),
+    ("c_vi", TP.cv_i(param_set)),
+    ("c_vm (q_t = 0.01)", TD.cv_m(param_set, q_t, 0.0, 0.0)),
+    ("c_pm (q_t = 0.01)", TD.cp_m(param_set, q_t, 0.0, 0.0)),
+)
+    println(rpad(name, 20), round(value; digits = 1), " J/(kg K)")
+end
+```
 
 !!! tip "Implementation Note"
     The specific heat capacities are implemented as weighted sums in the [`cp_m`](@ref) and [`cv_m`](@ref) functions. The implementation uses the rearranged form of equation \eqref{e:SpecificHeat} for computational efficiency.
@@ -396,7 +407,10 @@ where the last equality used $c_{pm} = c_{vm} + R_m$ (Eq. \ref{e:SpecificHeatRel
 The enthalpy is the relevant thermodynamic energy quantity in fluid transport. It arises in boundary conditions for energy fluxes and in the modeling of subgrid-scale (SGS) turbulent transport.
 
 !!! example "Typical Values"
-    For typical moist air at $T = 300$ K with $q_t = 0.01$, we have the specific enthalpy $h = 302.0 \times 10^3$ J/kg. This is significantly larger than the specific internal energy due to the $R_m T$ term.
+    For typical moist air at $T = 300$ K with $q_t = 0.01$, the specific enthalpy is
+    $h \approx 52.2 \times 10^3$ J/kg. Note that this is measured relative to the reference
+    temperature $T_0$, following the convention of Section 6; it is larger than the specific
+    internal energy of the same state by $R_m T \approx 86 \times 10^3$ J/kg.
 
 ## 8. Moist Static Energy
 
@@ -483,8 +497,8 @@ This definition makes no assumption about the temperature dependence of the phas
 
 !!! tip "Implementation Note"
     The [`liquid_fraction`](@ref) function in `Thermodynamics.jl` dispatches on the arguments provided.
-    - [`liquid_fraction(param_set, T)`](@ref) computes the phase equilibrium temperature-dependent fraction.
-    - [`liquid_fraction(param_set, T, q_liq, q_ice)`](@ref) computes the fraction from specific humidities. If no condensate is present (`q_liq + q_ice ≈ 0`), it falls back to a **slightly smoothed Heaviside function** (a linear ramp over $\pm 0.1$ K around freezing) to ensure differentiability of derived quantities such as saturation vapor pressure.
+    - [`liquid_fraction_ramp(param_set, T)`](@ref) computes the phase equilibrium temperature-dependent fraction.
+    - [`liquid_fraction(param_set, T, q_liq, q_ice)`](@ref) computes the fraction from specific humidities. If no condensate is present (`q_liq + q_ice ≈ 0`), it falls back to a **slightly smoothed Heaviside function** (a linear ramp over the 0.2 K interval $[T_f - 0.2\,\mathrm{K},\, T_f]$, so that the fraction is exactly 1 at $T_f$) to ensure differentiability of derived quantities such as saturation vapor pressure.
 
 ## 10. Saturation Specific Humidity
 
@@ -574,7 +588,7 @@ where $I_{cond} = \lambda_p I_l + (1-\lambda_p) I_i$, $q_{cond}^* = q_t - q_v^*$
 
 which follows from differentiation of the ideal gas law for vapor and the Clausius-Clapeyron relation. Note the inclusion of the $-1/T$ term, which arises from the density dependence. The derivative of the liquid fraction $\partial \lambda_p / \partial T$ is non-zero in the supercooled liquid mixed-phase region.
 
-The resulting successive Newton approximations $T_n$ generally converge quadratically. Because condensate specific humidities are usually small, $T_1$ provides a close initial estimate, and few iterations are needed. Even the first-order approximation $T\approx T_2$ often suffices. With the smoothed liquid fraction $\lambda_p$ ramp (see [`liquid_fraction`](@ref)), the derivative of $I^*$ with respect to temperature remains continuous across the phase transition, allowing the saturation adjustment to converge reliably without requiring special treatment or limiters.
+The resulting successive Newton approximations $T_n$ generally converge quadratically. Because condensate specific humidities are usually small, $T_1$ provides a close initial estimate, and few iterations are needed. Even the first-order approximation $T\approx T_2$ often suffices. With the smoothed liquid fraction $\lambda_p$ ramp (see [`liquid_fraction_ramp`](@ref)), the derivative of $I^*$ with respect to temperature remains continuous across the phase transition. It is, however, *not* continuous across the saturation boundary itself, where the condensate terms switch off: the fixed-iteration solvers therefore iterate on the analytic continuation of the saturated branch and select against the exact unsaturated solution afterwards, rather than stepping across the kink.
 
 Using saturation adjustment makes it possible to construct a moist dynamical core that has the total specific humidity $q_t$ as the only prognostic moisture variable. The price for this simplicity is the necessity to solve a nonlinear problem iteratively (or approximately) at each time step, and being confined to a phase equilibrium framework which cannot adequately account for non-equilibrium processes. Using explicit tracers for the condensates $q_l$ and $q_i$ in addition to $q_t$ avoids iterations at each time step and allows the inclusion of explicit non-equilibrium processes, such as those leading to the formation of supercooled liquid in mixed-phase clouds.
 
