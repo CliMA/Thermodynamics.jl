@@ -379,11 +379,13 @@ Internal function. Apply one safeguarded Newton increment to the temperature.
 # Returns
  - `(T_new, ΔT)`: updated temperature and the increment actually applied [K]
 
-The increment is limited to `ΔT_max` and the result is kept at or above `T_init_min`. Both
+The increment is limited to `ΔT_max` and the iterate is kept at or above `T_init_min`. Both
 guards are branchless. Limiting matters because the residual's derivative changes sharply
 across the saturation boundary, so an unlimited step can traverse the whole physical
-temperature range in one iteration and land somewhere with no useful information; keeping
-the iterate positive additionally prevents `log` of a negative temperature downstream.
+temperature range in one iteration and land somewhere with no useful information.
+
+Both guards constrain the *search*, not the answer: they apply only along the saturated
+branch. The unsaturated solution is returned unmodified by [`_select_solution`](@ref).
 """
 @inline function _newton_update(param_set::APS, T, ΔT_raw)
     FT = eltype(param_set)
@@ -433,6 +435,10 @@ end
 Internal function. Choose between the iterated saturated solution and the exact unsaturated
 one, returning the corresponding temperature and final increment.
 
+`T_unsat` must be the *unclamped* no-condensate temperature. It solves the problem exactly
+when the state is subsaturated, so passing the clamped starting guess instead would return
+the clamp for any state colder than it.
+
 Both are computed unconditionally so that every GPU lane executes the same instructions; the
 selection is a branchless `ifelse`.
 """
@@ -473,18 +479,19 @@ end
     maxiter,
 )
     T_unsat = air_temperature(param_set, e_int, q_tot)
-    T_init_min = TP.T_init_min(param_set)
-    T_0 = max(T_init_min, T_unsat)
-    saturated = _is_saturated(param_set, T_0, ρ, q_tot)
+    saturated = _is_saturated(param_set, T_unsat, ρ, q_tot)
 
-    T = T_0
+    # Clamp only the iteration's starting guess: beginning Newton far below the
+    # physical range wastes iterations. The clamp must not reach the returned
+    # value, since for an unsaturated state T_unsat is itself the exact solution.
+    T = max(TP.T_init_min(param_set), T_unsat)
     ΔT = zero(T)
     for _ in 1:maxiter
         e_val = internal_energy_sat(param_set, T, ρ, q_tot, Val(false))
         de_int_dT = ∂e_int_∂T_sat_ρ(param_set, T, ρ, q_tot, Val(false))
         (T, ΔT) = _newton_update(param_set, T, (e_int - e_val) / de_int_dT)
     end
-    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_unsat)
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
@@ -499,11 +506,12 @@ end
     maxiter,
 )
     T_unsat = air_temperature(param_set, e_int, q_tot)
-    T_init_min = TP.T_init_min(param_set)
-    T_0 = max(T_init_min, T_unsat)
-    saturated = _is_saturated_from_p(param_set, T_0, p, q_tot)
+    saturated = _is_saturated_from_p(param_set, T_unsat, p, q_tot)
 
-    T = T_0
+    # Clamp only the iteration's starting guess: beginning Newton far below the
+    # physical range wastes iterations. The clamp must not reach the returned
+    # value, since for an unsaturated state T_unsat is itself the exact solution.
+    T = max(TP.T_init_min(param_set), T_unsat)
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, Val(false))
@@ -511,7 +519,7 @@ end
         de_int_dT = ∂e_int_∂T_sat_p(param_set, T, p, q_tot, Val(false))
         (T, ΔT) = _newton_update(param_set, T, (e_int - e_val) / de_int_dT)
     end
-    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_unsat)
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
     return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
@@ -526,11 +534,12 @@ end
     maxiter,
 )
     T_unsat = air_temperature(param_set, ph(), h, q_tot, zero(q_tot), zero(q_tot))
-    T_init_min = TP.T_init_min(param_set)
-    T_0 = max(T_init_min, T_unsat)
-    saturated = _is_saturated_from_p(param_set, T_0, p, q_tot)
+    saturated = _is_saturated_from_p(param_set, T_unsat, p, q_tot)
 
-    T = T_0
+    # Clamp only the iteration's starting guess: beginning Newton far below the
+    # physical range wastes iterations. The clamp must not reach the returned
+    # value, since for an unsaturated state T_unsat is itself the exact solution.
+    T = max(TP.T_init_min(param_set), T_unsat)
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, Val(false))
@@ -538,7 +547,7 @@ end
         dh_dT = ∂h_∂T_sat_p(param_set, T, p, q_tot, Val(false))
         (T, ΔT) = _newton_update(param_set, T, (h - h_val) / dh_dT)
     end
-    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_unsat)
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
     return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
@@ -553,11 +562,12 @@ end
     maxiter,
 )
     T_unsat = air_temperature(param_set, pθ_li(), p, θ_li, q_tot)
-    T_init_min = TP.T_init_min(param_set)
-    T_0 = max(T_init_min, T_unsat)
-    saturated = _is_saturated_from_p(param_set, T_0, p, q_tot)
+    saturated = _is_saturated_from_p(param_set, T_unsat, p, q_tot)
 
-    T = T_0
+    # Clamp only the iteration's starting guess: beginning Newton far below the
+    # physical range wastes iterations. The clamp must not reach the returned
+    # value, since for an unsaturated state T_unsat is itself the exact solution.
+    T = max(TP.T_init_min(param_set), T_unsat)
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, Val(false))
@@ -565,7 +575,7 @@ end
         dθ_li_dT = ∂θ_li_∂T_sat_p(param_set, T, p, q_tot, Val(false))
         (T, ΔT) = _newton_update(param_set, T, (θ_li - θ_li_val) / dθ_li_dT)
     end
-    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_unsat)
 
     (ρ, q_liq, q_ice) = _phase_partition_from_T_p(param_set, T, p, q_tot)
     return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
@@ -580,11 +590,12 @@ end
     maxiter,
 )
     T_unsat = air_temperature(param_set, ρθ_li(), ρ, θ_li, q_tot)
-    T_init_min = TP.T_init_min(param_set)
-    T_0 = max(T_init_min, T_unsat)
-    saturated = _is_saturated(param_set, T_0, ρ, q_tot)
+    saturated = _is_saturated(param_set, T_unsat, ρ, q_tot)
 
-    T = T_0
+    # Clamp only the iteration's starting guess: beginning Newton far below the
+    # physical range wastes iterations. The clamp must not reach the returned
+    # value, since for an unsaturated state T_unsat is itself the exact solution.
+    T = max(TP.T_init_min(param_set), T_unsat)
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot, Val(false))
@@ -592,7 +603,7 @@ end
         dθ_li_dT = ∂θ_li_∂T_sat_ρ(param_set, T, ρ, q_tot, Val(false))
         (T, ΔT) = _newton_update(param_set, T, (θ_li - θ_li_val) / dθ_li_dT)
     end
-    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_unsat)
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
@@ -607,11 +618,12 @@ end
     maxiter,
 )
     T_unsat = air_temperature(param_set, pρ(), p, ρ, q_tot)
-    T_init_min = TP.T_init_min(param_set)
-    T_0 = max(T_init_min, T_unsat)
-    saturated = _is_saturated(param_set, T_0, ρ, q_tot)
+    saturated = _is_saturated(param_set, T_unsat, ρ, q_tot)
 
-    T = T_0
+    # Clamp only the iteration's starting guess: beginning Newton far below the
+    # physical range wastes iterations. The clamp must not reach the returned
+    # value, since for an unsaturated state T_unsat is itself the exact solution.
+    T = max(TP.T_init_min(param_set), T_unsat)
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot, Val(false))
@@ -619,7 +631,7 @@ end
         dp_dT = ∂p_∂T_sat_ρ(param_set, T, ρ, q_tot, Val(false))
         (T, ΔT) = _newton_update(param_set, T, (p - p_val) / dp_dT)
     end
-    (T, ΔT) = _select_solution(saturated, T, ΔT, T_0)
+    (T, ΔT) = _select_solution(saturated, T, ΔT, T_unsat)
 
     (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot)
     return (; T, q_liq, q_ice, converged = _fixed_iters_converged(T, ΔT))
@@ -1211,11 +1223,9 @@ on `indep_vars`.
         relative_temperature_tol
 
     # Unsaturated check: the no-condensate temperature solves the problem exactly whenever
-    # the state turns out to be subsaturated there.
-    T_unsat = max(
-        _T_min,
-        _temperature_unsaturated(param_set, indep_vars, var₁, var₂, q_tot),
-    )
+    # the state turns out to be subsaturated there, so it is returned unmodified. Clamping
+    # it would replace an exact answer with the clamp.
+    T_unsat = _temperature_unsaturated(param_set, indep_vars, var₁, var₂, q_tot)
 
     q_v_sat = _q_vap_sat_at(param_set, indep_vars, var₁, var₂, T_unsat, q_tot)
     if q_tot <= q_v_sat
@@ -1227,8 +1237,10 @@ on `indep_vars`.
     roots_func =
         _make_roots_function(Method, param_set, indep_vars, var₁, var₂, q_tot)
 
-    # Initialize solver (logic merged from config_sa_method.jl)
-    solver = _make_sa_solver(Method, param_set, T_unsat, T_ice, T_guess)
+    # Initialize solver (logic merged from config_sa_method.jl). The lower bracket is
+    # clamped to `T_min`: that is a bound on the search, not on the answer.
+    solver =
+        _make_sa_solver(Method, param_set, max(_T_min, T_unsat), T_ice, T_guess)
 
     # `solution_type()` rather than a hard-coded `RS.CompactSolution()`, so that redefining
     # it to `RS.VerboseSolution()` actually reaches the solver and lets `DataCollection`

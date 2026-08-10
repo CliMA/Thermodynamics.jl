@@ -4,6 +4,21 @@ Thermodynamics.jl Release Notes
 main
 --------
 
+- ![][badge-🐛bugfix] Saturation adjustment returned `max(T_init_min, T_unsat)` rather than
+  `T_unsat` for unsaturated states, so any state colder than `T_init_min` (150 K) silently
+  came back as 150 K — an error of up to ~100 K at the cold end, reported as converged. For
+  an unsaturated state the no-condensate temperature is the exact solution and is now
+  returned unmodified. The clamp remains, but only as the starting guess for the saturated
+  iteration and as the lower bracket of the convergence-tested solvers, where it constrains
+  the search rather than the answer. Applied consistently to all six formulations in both
+  the fixed-iteration and convergence-tested paths. Results for saturated states are
+  unchanged.
+- ![][badge-🐛bugfix] `saturation_vapor_pressure` threw a `DomainError` for negative
+  temperatures, which a solver iterate can transiently reach and which cannot be recovered
+  from inside a GPU kernel. It now returns zero for all non-positive temperatures, which is
+  also the physical limit; tiny positive temperatures already underflowed to zero. This
+  removed the last reason the unsaturated answer had to be clamped.
+
 v1.3.0
 --------
 

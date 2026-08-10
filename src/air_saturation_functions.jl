@@ -259,10 +259,17 @@ the return type a `Union`.
     _saturation_vapor_pressure_calc(param_set, promote(T, LH_0, Δcp)...)
 
 @inline function _saturation_vapor_pressure_calc(param_set::APS, T, LH_0, Δcp)
+    FT = eltype(param_set)
     press_triple = TP.press_triple(param_set)
     R_v = TP.R_v(param_set)
     T_triple = TP.T_triple(param_set)
     T_0 = TP.T_0(param_set)
+
+    # Evaluate at a strictly positive temperature. `log` of a non-positive `T` throws a
+    # DomainError, which is unrecoverable inside a GPU kernel, and a solver iterate can
+    # transiently go non-positive. A tiny positive temperature is harmless: the `-1/T`
+    # term dominates, the exponent underflows, and the result is 0 — the physical limit.
+    T_pos = max(T, ϵ_numerics(FT))
 
     # Combine the power-law and exponential factors of the Clausius-Clapeyron relation
     # into a single exp() call:
@@ -271,10 +278,10 @@ the return type a `Union`.
     # and reduces floating-point rounding by summing the exponents before exponentiation.
     p_v_sat =
         press_triple * exp(
-            (Δcp / R_v) * log(T / T_triple) +
-            (LH_0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T),
+            (Δcp / R_v) * log(T_pos / T_triple) +
+            (LH_0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T_pos),
         )
-    return ifelse(iszero(T), zero(p_v_sat), p_v_sat)
+    return ifelse(T <= 0, zero(p_v_sat), p_v_sat)
 end
 
 """

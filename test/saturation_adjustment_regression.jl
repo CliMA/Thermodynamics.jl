@@ -205,6 +205,92 @@ end
             end
         end
 
+        @testset "Cold unsaturated states are not clamped ($FT)" begin
+            # For an unsaturated state the no-condensate temperature is the exact answer.
+            # It used to be replaced by `max(T_init_min, T_unsat)`, so any state colder
+            # than T_init_min (150 K) silently came back as 150 K — an error of up to
+            # 100 K at the cold end, reported as converged.
+            T_init_min = TP.T_init_min(param_set)
+            @test T_init_min > 0
+            tol = FT === Float32 ? FT(1e-2) : FT(1e-8)
+
+            for T_target in FT.((149, 140, 100, 50, 10, 1))
+                q_tot = zero(FT)          # dry: unsaturated at any temperature
+                ρ = FT(1)
+                p = TD.air_pressure(param_set, T_target, ρ, q_tot)
+                e_int = TD.internal_energy(param_set, T_target, q_tot, q_tot, q_tot)
+                h = TD.enthalpy(param_set, T_target, q_tot, q_tot, q_tot)
+                θ_p = TD.liquid_ice_pottemp_given_pressure(
+                    param_set,
+                    T_target,
+                    p,
+                    q_tot,
+                    q_tot,
+                    q_tot,
+                )
+                θ_ρ = TD.liquid_ice_pottemp(
+                    param_set,
+                    T_target,
+                    ρ,
+                    q_tot,
+                    q_tot,
+                    q_tot,
+                )
+
+                for (indep_vars, var₁, var₂) in (
+                    (TD.ρe(), ρ, e_int),
+                    (TD.pe(), p, e_int),
+                    (TD.ph(), p, h),
+                    (TD.pρ(), p, ρ),
+                    (TD.pθ_li(), p, θ_p),
+                    (TD.ρθ_li(), ρ, θ_ρ),
+                )
+                    # Fixed-iteration path
+                    sol = TD.saturation_adjustment(
+                        param_set,
+                        indep_vars,
+                        var₁,
+                        var₂,
+                        q_tot,
+                    )
+                    @test isapprox(sol.T, T_target; atol = tol)
+                    @test sol.q_liq == 0
+                    @test sol.q_ice == 0
+
+                    # Convergence-tested path
+                    sol_full = TD.saturation_adjustment(
+                        RS.NewtonsMethod,
+                        param_set,
+                        indep_vars,
+                        var₁,
+                        var₂,
+                        q_tot,
+                        20,
+                        FT(1e-6),
+                    )
+                    @test sol_full.converged
+                    @test isapprox(sol_full.T, T_target; atol = tol)
+                end
+            end
+        end
+
+        @testset "Saturation vapor pressure is total below absolute zero ($FT)" begin
+            # A solver iterate can transiently go non-positive; `log` of a negative
+            # temperature used to throw a DomainError, which cannot be recovered from
+            # inside a GPU kernel.
+            for T in FT.((0, -1, -50, -300))
+                for phase in (TD.Liquid(), TD.Ice())
+                    p_v_sat = TD.saturation_vapor_pressure(param_set, T, phase)
+                    @test p_v_sat == 0
+                end
+            end
+            # Tiny positive temperatures underflow to zero rather than producing NaN
+            for T in (eps(FT), FT(1e-6), FT(1))
+                @test isfinite(TD.saturation_vapor_pressure(param_set, T, TD.Liquid()))
+                @test TD.saturation_vapor_pressure(param_set, T, TD.Liquid()) >= 0
+            end
+        end
+
         @testset "Temperature guards ($FT)" begin
             # Saturation vapor pressure used to throw for negative temperatures, which the
             # solver could reach from a bad iterate.
