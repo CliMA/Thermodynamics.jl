@@ -18,12 +18,18 @@ Three temperature profiles are currently available:
 
 ## Usage
 
-Each profile constructor requires two arguments:
+A profile is built once from a parameter set, then called at each altitude:
 
-- `param_set`: A thermodynamic parameter set from [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)
-- `z`: Altitude (height above surface)
+```julia
+profile = DecayingTemperatureProfile{FT}(param_set)   # construct
+T, p = profile(param_set, z)                          # evaluate at altitude z
+```
 
-The profiles return both temperature and pressure as a function of altitude.
+- The constructor takes `param_set`, a thermodynamic parameter set from
+  [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl), plus optional profile
+  parameters such as the surface temperature and scale heights.
+- The resulting object is callable, taking `param_set` and the altitude `z` [m], and
+  returning the temperature and pressure `(T, p)` there.
 
 ### Isothermal Profile
 

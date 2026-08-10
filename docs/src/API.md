@@ -12,7 +12,26 @@ Thermodynamics
 
 ```@docs
 Parameters
+Parameters.AbstractThermodynamicsParameters
 Parameters.ThermodynamicsParameters
+```
+
+### Derived parameter accessors
+
+Each field of [`Parameters.ThermodynamicsParameters`](@ref) has an accessor of the same
+name, e.g. `Parameters.R_d(param_set)`. The accessors below are derived from those fields
+rather than stored, and are used throughout the package and by downstream models.
+
+```@docs
+Parameters.Rv_over_Rd
+Parameters.LH_f0
+Parameters.e_int_v0
+Parameters.e_int_i0
+Parameters.kappa_d
+Parameters.cv_d
+Parameters.cv_v
+Parameters.cv_l
+Parameters.cv_i
 ```
 
 ## Types

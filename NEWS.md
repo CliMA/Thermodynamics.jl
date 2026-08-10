@@ -135,6 +135,34 @@ main
   returned bound exceeds `T_max`, rather than claiming it never does.
 - `internal_energy_sat` and `enthalpy_sat` added to the API reference; they are the physical
   core of saturation adjustment but were absent while their derivatives were listed.
+- Added a "Citing" section to the README and a `CITATION.cff`, so the paper the package
+  implements can be cited from GitHub's own interface.
+- Documented the `Parameters` accessors in the API reference. The derived ones
+  (`Rv_over_Rd`, `LH_f0`, `e_int_v0`, `e_int_i0`, `kappa_d`, `cv_d`, `cv_v`, `cv_l`, `cv_i`)
+  are used by the package's own examples and by downstream models, but appeared nowhere in
+  the docs; `checkdocs = :exports` does not reach into the submodule.
+- Fixed the last Documenter warnings: two inline math spans in `Formulation.md` began with a
+  bare identifier, which Julia's Markdown parser read as an interpolation. The docs now
+  build warning-free apart from a size hint on the API page.
+- Corrected the `TemperatureProfiles` usage description, which claimed the constructor takes
+  an altitude. It takes a parameter set; the resulting object is callable and takes the
+  altitude.
+
+### Repository
+
+- Populated `.github/pull_request_template.md`, which was an empty file, with a checklist
+  covering formatting, docstrings, tests, `NEWS.md`, and the extra steps that apply when a
+  change affects numerical results.
+- Fixed a broken link in `AGENTS.md` (`software_design_patterns.md` is under `code-quality/`,
+  not `architecture/`) and removed references to `perf/jet.jl` from `perf/README.md`; that
+  file does not exist, and its JET checks live in `test/optimization_tests.jl`.
+- Removed unused documentation dependencies (`CairoMakie`, `ExprTools`, `JLD2`,
+  `KernelAbstractions`, `Literate`) and the orphaned `docs/plot_helpers.jl`, and added the
+  missing `Plots` compat entry. `CairoMakie` had been pinned to `0.11`, constraining
+  resolution for a package the docs never loaded.
+- Deleted the stale `docs_output_api_check.txt` and `docs_output_final.txt` build artifacts
+  from the repository root and gitignored the pattern.
+- Aligned the copyright years in `LICENSE` (2026) with `NOTICE` (2022-2026).
 
 v1.2.2
 --------

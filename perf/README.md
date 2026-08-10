@@ -6,8 +6,10 @@ used by CI.
 ### What’s here
 
 - `perf/microbenchmarks.jl`: microbenchmarks for the functional `saturation_adjustment` API
-- `perf/jet.jl`: JET optimization checks for representative `saturation_adjustment` call paths
 - `perf/common*.jl`: shared helpers (inputs based on `test/TestedProfiles.jl`)
+
+JET optimization checks are part of the test suite (`test/optimization_tests.jl`) rather than
+a separate script here.
 
 ### How to run
 
@@ -16,7 +18,6 @@ Use a dedicated environment so benchmark/JET dependencies don’t affect the mai
 ```bash
 julia --project=perf -e 'using Pkg; Pkg.develop(path="."); Pkg.instantiate()'
 julia --project=perf perf/microbenchmarks.jl
-julia --project=perf perf/jet.jl
 ```
 
 

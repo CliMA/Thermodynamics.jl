@@ -414,7 +414,7 @@ The enthalpy is the relevant thermodynamic energy quantity in fluid transport. I
 
 ## 8. Moist Static Energy
 
-The sum of the specific enthalpy of moist air and the specific gravitational potential energy ``Φ`` is the moist static energy [Neelin1987](@cite)
+The sum of the specific enthalpy of moist air and the specific gravitational potential energy $Φ$ is the moist static energy [Neelin1987](@cite)
 
 ```math
 \begin{equation}\label{e:MSE}
@@ -524,7 +524,7 @@ I^*(T; \rho, q_t) - I = 0,
 \end{equation}
 ```
 
-where ``I^*(T; \rho, q_t)`` is the internal energy at phase equilibrium. In an unsaturated equilibrium, there is no condensate, so ``I^*`` is the internal energy with ``q_l=q_i=0``. At saturation, the internal energy ``I^*`` depends on the vapor specific humidity, ``q_v = q_v^*(T, \rho)``, and on the saturation excess (total condensate)
+where $I^*(T; \rho, q_t)$ is the internal energy at phase equilibrium. In an unsaturated equilibrium, there is no condensate, so $I^*$ is the internal energy with $q_l=q_i=0$. At saturation, the internal energy $I^*$ depends on the vapor specific humidity, $q_v = q_v^*(T, \rho)$, and on the saturation excess (total condensate)
 
 ```math
 \begin{equation}
@@ -532,7 +532,7 @@ q_c^* = \max\bigl[q_t - q_v^*(T, \rho), 0\bigr],
 \end{equation}
 ```
 
-which is partitioned according to the liquid fraction ``λ_p`` into
+which is partitioned according to the liquid fraction $λ_p$ into
 
 ```math
 \begin{equation}
@@ -569,7 +569,7 @@ and solving for the temperature $T$ gives the first-order Newton update
 \end{equation}
 ```
 
-The derivative ``\partial I^*/\partial T|_{T_n}`` is obtained by differentiation of the internal energy \eqref{e:TotalInternalEnergy}. The implementation in `Thermodynamics.jl` includes the full derivative, including the temperature dependence of the liquid fraction $\lambda_p(T)$:
+The derivative $\partial I^*/\partial T|_{T_n}$ is obtained by differentiation of the internal energy \eqref{e:TotalInternalEnergy}. The implementation in `Thermodynamics.jl` includes the full derivative, including the temperature dependence of the liquid fraction $\lambda_p(T)$:
 
 ```math
 \begin{equation}
@@ -604,7 +604,7 @@ The relative humidity is defined as the ratio of the partial pressure of water v
 \mathrm{RH} = \frac{p_v}{p_v^*}.
 ```
 
-Using the ideal gas law for water vapor, ``p_v = q_v \rho R_v T``, this can be written as
+Using the ideal gas law for water vapor, $p_v = q_v \rho R_v T$, this can be written as
 
 ```math
 \begin{equation}
@@ -612,7 +612,7 @@ Using the ideal gas law for water vapor, ``p_v = q_v \rho R_v T``, this can be w
 \end{equation}
 ```
 
-where ``p_v^*`` is the saturation vapor pressure \eqref{e:SatVaporPressure}. Over a mixture of ice and liquid, the saturation vapor pressure \eqref{e:SatVaporPressure} is evaluated with a specific latent heat ``L = λ_p L_v + (1-λ_p) L_s`` that is a weighted sum of those for vaporization and sublimation.
+where $p_v^*$ is the saturation vapor pressure \eqref{e:SatVaporPressure}. Over a mixture of ice and liquid, the saturation vapor pressure \eqref{e:SatVaporPressure} is evaluated with a specific latent heat $L = λ_p L_v + (1-λ_p) L_s$ that is a weighted sum of those for vaporization and sublimation.
 
 ### 12.2 Potential Temperature
 
@@ -625,7 +625,7 @@ The potential temperature $\theta$ is the temperature an air mass would have if 
 \end{equation}
 ```
 
-where ``\Pi`` is known as the Exner function
+where $\Pi$ is known as the Exner function
 
 ```math
 \begin{equation}
@@ -638,7 +638,7 @@ Note that the adiabatic exponent $\kappa$ takes the effect of  moisture on the e
 ### 12.3 Virtual Temperature and Virtual Potential Temperature
 
 The virtual or density temperature $T_v$ is the temperature dry air would need to have to have the same density as moist air at the same pressure.
-Using the ideal gas law $p/\rho = R_m T$, this implies $R_m T  = R_d T_v $, or
+Using the ideal gas law $p/\rho = R_m T$, this implies $R_m T = R_d T_v$, or
 
 ```math
 \begin{equation} \label{e:virtual_temp}
@@ -659,7 +659,7 @@ A virtual potential temperature can be defined analogously:
     Some texts distinguish a "(condensate-ignoring) virtual temperature" and a "density temperature", and an analogous condensate-ignoring virtual potential temperature and density potential temperature.
     In those texts, the definition of density temperature incorporates condensate mass but their "condensate-ignoring virtual temperature" does not.
     We always take the mass of any condensate into account in the thermodynamics of moist air, so this distinction is irrelevant here.
-    In other words, because the virtual temperature defined above incorporates the mass of condensate into ``R_m(q)`` (and virtual potential temperature is additionally defined in terms of ``c_{pm}(q)``) via the potential temperature exponent ``κ``), there is no distinction between our virtual temperature and a hypothetical "density temperature".
+    In other words, because the virtual temperature defined above incorporates the mass of condensate into $R_m(q)$ (and virtual potential temperature is additionally defined in terms of $c_{pm}(q)$ via the potential temperature exponent $\kappa$), there is no distinction between our virtual temperature and a hypothetical "density temperature".
 
 ### 12.4 Liquid-Ice Potential Temperature
 

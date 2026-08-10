@@ -153,6 +153,14 @@ Thermodynamics.jl is the thermodynamic core for the [CliMA](https://github.com/C
 - [SurfaceFluxes](https://github.com/CliMA/SurfaceFluxes.jl)
 - [KinematicDriver](https://github.com/CliMA/KinematicDriver.jl)
 
+## Citing
+
+If you use `Thermodynamics.jl` in your research, please cite the paper describing the formulation it implements:
+
+> Yatunin, D., Byrne, S., Kawczynski, C., Kandala, S., Bozzola, G., Sridhar, A., Shen, Z., Jaruga, A., Sloan, J., He, J., Huang, D. Z., Barra, V., Chew, R., Boral, A., Chen, Y.-F., Knoth, O., Ullrich, P., Mbengue, C., and Schneider, T. (2026). The Climate Modeling Alliance Atmosphere Dynamical Core: Concepts, Numerics, and Scaling. *Journal of Advances in Modeling Earth Systems*. doi:[10.1029/2025MS005014](https://doi.org/10.1029/2025MS005014)
+
+Machine-readable metadata is in [`CITATION.cff`](CITATION.cff).
+
 ## Getting Help
 
 For questions, check the [documentation](https://clima.github.io/Thermodynamics.jl/dev/) or open an issue on [GitHub](https://github.com/CliMA/Thermodynamics.jl).

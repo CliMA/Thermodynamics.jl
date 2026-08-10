@@ -1,0 +1,61 @@
+cff-version: 1.2.0
+message: >-
+  If you use Thermodynamics.jl in your research, please cite the paper describing the
+  formulation it implements.
+title: Thermodynamics.jl
+abstract: >-
+  A Julia package for atmospheric moist thermodynamics, implementing the thermodynamic
+  formulation of the CliMA Earth System Model. It provides thermodynamic functions for moist
+  air including all phases of water, based on the Rankine-Kirchhoff approximations.
+type: software
+authors:
+  - name: The Climate Modeling Alliance
+repository-code: https://github.com/CliMA/Thermodynamics.jl
+url: https://clima.github.io/Thermodynamics.jl/dev/
+license: Apache-2.0
+preferred-citation:
+  type: article
+  title: >-
+    The Climate Modeling Alliance Atmosphere Dynamical Core: Concepts, Numerics, and Scaling
+  journal: Journal of Advances in Modeling Earth Systems
+  year: 2026
+  doi: 10.1029/2025MS005014
+  authors:
+    - family-names: Yatunin
+      given-names: Dennis
+    - family-names: Byrne
+      given-names: Simon
+    - family-names: Kawczynski
+      given-names: Charles
+    - family-names: Kandala
+      given-names: Sriharsha
+    - family-names: Bozzola
+      given-names: Gabriele
+    - family-names: Sridhar
+      given-names: Akshay
+    - family-names: Shen
+      given-names: Zhaoyi
+    - family-names: Jaruga
+      given-names: Anna
+    - family-names: Sloan
+      given-names: Julia
+    - family-names: He
+      given-names: Jia
+    - family-names: Huang
+      given-names: Daniel Zhengyu
+    - family-names: Barra
+      given-names: Valeria
+    - family-names: Chew
+      given-names: Ray
+    - family-names: Boral
+      given-names: Anudhyan
+    - family-names: Chen
+      given-names: Yi-fan
+    - family-names: Knoth
+      given-names: Oswald
+    - family-names: Ullrich
+      given-names: Paul
+    - family-names: Mbengue
+      given-names: Cheikh
+    - family-names: Schneider
+      given-names: Tapio
