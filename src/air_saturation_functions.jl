@@ -813,12 +813,21 @@ If the specific humidities are not given, the result is the saturation vapor pre
     q_ice = 0,
 )
     Tᶠ = TP.T_freeze(param_set)
+    cp_v = TP.cp_v(param_set)
     above_freezing = T > Tᶠ
-    return ifelse(
+
+    # Select the phase's parameters rather than the two results, so that only one
+    # saturation vapor pressure is evaluated.
+    LH_0 = ifelse(above_freezing, TP.LH_v0(param_set), TP.LH_s0(param_set))
+    Δcp = ifelse(
         above_freezing,
-        vapor_pressure_deficit(param_set, T, p, q_tot, q_liq, q_ice, Liquid()),
-        vapor_pressure_deficit(param_set, T, p, q_tot, q_liq, q_ice, Ice()),
+        cp_v - TP.cp_l(param_set),
+        cp_v - TP.cp_i(param_set),
     )
+
+    es = saturation_vapor_pressure_calc(param_set, T, LH_0, Δcp)
+    ea = partial_pressure_vapor(param_set, p, q_tot, q_liq, q_ice)
+    return ReLU(es - ea)
 end
 
 """

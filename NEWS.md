@@ -20,11 +20,27 @@ main
   unsaturated first guess and the solution, that gap stays under 4 K across the tested
   profiles, and two iterations hold the error below 2e-3 K there. What changed is the failure
   mode — remaining error is now a truncation error that decreases monotonically with
-  `maxiter`, rather than a limit cycle that no iteration count could escape. Per-iteration
-  cost also fell about 11%.
+  `maxiter`, rather than a limit cycle that no iteration count could escape.
 
 - The `converged` field returned by the full signature is now computed from the final Newton
   increment rather than hard-coded to `true`.
+
+### Internals
+
+- ![][badge-🚀performance] The saturation derivatives evaluated the saturation vapor pressure
+  several times per call. Each now computes it once and passes it along, so
+  `∂e_int_∂T_sat_ρ` costs one `exp`/two `log` instead of three/four, and `∂θ_li_∂T_sat_ρ` two
+  and three instead of four and six. `vapor_pressure_deficit` selects the phase's parameters
+  rather than evaluating both phases. At the default `maxiter = 2`, a `ρe` CPU solve is about 11% faster and a `ρθ_li` solve about 22% faster than before this release, with
+  `∂e_int_∂T_sat_ρ` about 42% faster; the numerical results are unchanged.
+
+- The six `saturation_adjustment` methods, and the six convenience methods, were near
+  duplicates of each other. Each formulation is now described by four small dispatch methods
+  (`_temperature_unsaturated`, `_temperature_all_ice`, `_q_vap_sat_at`,
+  `_equilibrium_partition`) collected in one place so the six can be read side by side, and
+  the solver itself is written once. Similarly, the internal-energy and enthalpy derivatives
+  now share `_∂energy_∂T_sat`, and the two liquid-ice potential temperature derivatives share
+  `_θ_li_derivative_state`. This removes roughly 700 lines of duplicated code.
 
 ### Robustness
 

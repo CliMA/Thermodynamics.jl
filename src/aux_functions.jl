@@ -27,5 +27,9 @@ Note: requires `x > 0` since it uses `log(x)`.
 
 Smallest acceptable number that is different than zero.
 """
-ϵ_numerics(FT) = sqrt(floatmin(FT))
-ϵ_numerics(::Type{<:Integer}) = 0
+@inline ϵ_numerics(FT) = sqrt(floatmin(FT))
+
+# Integer arguments reach this when a caller passes an integer literal `0` for a condensate
+# specific humidity and the element type is taken from that argument. `floatmin` has no
+# integer method, so without this the call is a MethodError rather than a no-op regularization.
+@inline ϵ_numerics(::Type{<:Integer}) = 0
