@@ -4,6 +4,9 @@ Thermodynamics.jl Release Notes
 main
 --------
 
+v1.3.0
+--------
+
 ### Saturation adjustment: correctness fixes (changes model output)
 
 - ![][badge-🐛bugfix] The fixed-iteration saturation adjustment used by the GPU path could
