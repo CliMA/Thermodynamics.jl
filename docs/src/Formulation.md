@@ -158,8 +158,8 @@ Equations \eqref{e:eos} and \eqref{e:Rm} constitute the equation of state of the
     | $R_d$ | $287.0$ J/(kg·K) |
     | $R_v$ | $461.5$ J/(kg·K) |
     | $\varepsilon_{dv}$ | $1.61$ |
-    | $R_m$ (typical moist air, $q_t = 0.01$) | $288.7$ J/(kg·K) |
-    | $R_m$ (air with precipitation, $q_t = 0.015$) | $289.0$ J/(kg·K) |
+    | $R_m$ (moist air, $q_t = q_v = 0.01$) | $288.7$ J/(kg·K) |
+    | $R_m$ (cloudy air, $q_t = 0.015$ of which $q_c = 0.0015$ condensate) | $288.9$ J/(kg·K) |
 
 ## 4. Heat Capacities
 
@@ -410,7 +410,7 @@ The enthalpy is the relevant thermodynamic energy quantity in fluid transport. I
     For typical moist air at $T = 300$ K with $q_t = 0.01$, the specific enthalpy is
     $h \approx 52.2 \times 10^3$ J/kg. Note that this is measured relative to the reference
     temperature $T_0$, following the convention of Section 6; it is larger than the specific
-    internal energy of the same state by $R_m T \approx 86 \times 10^3$ J/kg.
+    internal energy of the same state by $R_m T \approx 86.6 \times 10^3$ J/kg.
 
 ## 8. Moist Static Energy
 
@@ -454,20 +454,18 @@ Substituting the linear relation \eqref{e:LHTemperature} between latent heat and
 With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity difference $\Delta c_p$, this gives saturation vapor pressures over liquid or ice that are accurate within 3% for temperatures between 200K and 330K [Ambaum2020](@cite). The accuracy of this approximation depends on the choice of thermodynamic constants; the values used in `Thermodynamics.jl` (specified in [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)) are chosen to minimize errors in the Rankine-Kirchhoff approximation [Yatunin2026](@cite).
 
 !!! example "Typical Values"
-    At $T = 300$ K:
+    | Temperature | $p_v^*$ (liquid) | $p_v^*$ (ice) |
+    |----------|-------|-------|
+    | $T = 300$ K | $3532$ Pa | — |
+    | $T = 273.16$ K (triple point) | $611.7$ Pa | $611.7$ Pa |
+    | $T = 250$ K | $95$ Pa (supercooled) | $76$ Pa |
 
-    | Quantity | Value |
-    |----------|-------|
-    | $p_v^*$ (liquid) | $3537$ Pa |
-    | $p_v^*$ (ice)    | $286$ Pa  |
-
-    At $T = 273.16$ K (triple point):
-
-    | Quantity | Value |
-    |----------|-------|
-    | $p_v^*$ (liquid) = $p_v^*$ (ice) | $611$ Pa |
-
-    The ratio of liquid to ice saturation vapor pressure at 300 K is approximately 12.4, reflecting the higher energy required for sublimation compared to vaporization.
+    The two curves coincide at the triple point. Because $L_s > L_v$, the Clausius-Clapeyron
+    slope of the ice curve is steeper, so below the triple point the saturation vapor pressure
+    over ice is *lower* than over supercooled liquid. Air saturated with respect to liquid is
+    then supersaturated with respect to ice — the basis of the Wegener-Bergeron-Findeisen
+    process, by which ice crystals in mixed-phase clouds grow at the expense of supercooled
+    droplets.
 
 To obtain the saturation vapor pressure over a mixture of liquid and ice (e.g., in mixed-phase clouds), using a weighted average of the relevant specific latent heats in the vapor pressure \eqref{e:SatVaporPressure} leads to a thermodynamically consistent formulation [Pressel2015](@cite). That is, if a fraction $\lambda_p$ of the condensate is liquid and the complement $1-\lambda_p$ is ice, calculating the saturation vapor pressure with a specific latent heat $\lambda_p L_v + (1-\lambda_p)L_s$ gives a thermodynamically consistent saturation vapor pressure over the mixture.
 
@@ -582,11 +580,11 @@ where $I_{cond} = \lambda_p I_l + (1-\lambda_p) I_i$, $q_{cond}^* = q_t - q_v^*$
 
 ```math
 \begin{equation}
-    \left. \frac{\partial q_v^*}{\partial T}\right|_{T_n} = q_v^*(T_n) \left( \frac{L}{R_v T_n^2} - \frac{1}{T_n} \right),
+    \left. \frac{\partial q_v^*}{\partial T}\right|_{T_n} = q_v^*(T_n) \left( \frac{L}{R_v T_n^2} - \frac{1}{T_n} + \ln\!\left(\frac{p_{v,\mathrm{liq}}^*}{p_{v,\mathrm{ice}}^*}\right) \frac{\partial \lambda_p}{\partial T} \right),
 \end{equation}
 ```
 
-which follows from differentiation of the ideal gas law for vapor and the Clausius-Clapeyron relation. Note the inclusion of the $-1/T$ term, which arises from the density dependence. The derivative of the liquid fraction $\partial \lambda_p / \partial T$ is non-zero in the supercooled liquid mixed-phase region.
+which follows from differentiation of the ideal gas law for vapor and the Clausius-Clapeyron relation. Note the inclusion of the $-1/T$ term, which arises from the density dependence. The last term arises because the mixed-phase saturation vapor pressure, evaluated with the $\lambda_p$-weighted latent heat, is exactly the geometric mean $(p_{v,\mathrm{liq}}^*)^{\lambda_p} (p_{v,\mathrm{ice}}^*)^{1-\lambda_p}$ of the single-phase saturation vapor pressures, so $\partial \ln p_v^* / \partial \lambda_p = \ln(p_{v,\mathrm{liq}}^*/p_{v,\mathrm{ice}}^*)$. The derivative of the liquid fraction $\partial \lambda_p / \partial T$ is non-zero only in the supercooled liquid mixed-phase region, where the saturation curve migrates from the ice curve toward the liquid curve as temperature rises; outside that region the last term vanishes.
 
 The resulting successive Newton approximations $T_n$ generally converge quadratically. Because condensate specific humidities are usually small, $T_1$ provides a close initial estimate, and few iterations are needed. Even the first-order approximation $T\approx T_2$ often suffices. With the smoothed liquid fraction $\lambda_p$ ramp (see [`liquid_fraction_ramp`](@ref)), the derivative of $I^*$ with respect to temperature remains continuous across the phase transition. It is, however, *not* continuous across the saturation boundary itself, where the condensate terms switch off: the fixed-iteration solvers therefore iterate on the analytic continuation of the saturated branch and select against the exact unsaturated solution afterwards, rather than stepping across the kink.
 

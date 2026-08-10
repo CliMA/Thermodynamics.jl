@@ -206,7 +206,7 @@ param_set = TD.Parameters.ThermodynamicsParameters(Float64)
 sol = TD.saturation_adjustment(
     RS.NewtonsMethod, param_set, TD.ρe(), ρ, e_int, q_tot, 20, 1e-4,
 )
-sol.T, sol.q_liq, sol.q_ice, sol.converged   # ≈ (290.4, 0.0046, 0.0, true)
+sol.T, sol.q_liq, sol.q_ice, sol.converged   # ≈ (290.0, 0.0049, 0.0, true)
 ```
 
 See also the convenience methods below, which pick GPU-friendly defaults for you.

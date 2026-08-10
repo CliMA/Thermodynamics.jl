@@ -195,11 +195,12 @@ every lane executes the same instructions. They accept `maxiter` as a *keyword* 
 `(; T, q_liq, q_ice)` without a `converged` field.
 
 ```julia
-# GPU-optimized broadcasting using the convenience method
+# GPU-optimized broadcasting using the convenience method (conceptual:
+# ρ_gpu, e_int_gpu, and q_tot_gpu are arrays already on the device)
 # This is the fast, branch-free fixed-iteration solver
 sol = TD.saturation_adjustment.(
     Ref(params_f32),
-    Ref(TD.ρe()),
+    TD.ρe(),
     ρ_gpu, e_int_gpu, q_tot_gpu
 )
 ```
@@ -212,7 +213,11 @@ Across the tested profiles that gap stays under 4 K and two iterations hold the 
 error below `2e-3` K. Raise `maxiter` when adjusting states quenched much further from
 equilibrium (roughly 0.1 K of error at a 10 K gap, a few K beyond 20 K):
 
-```julia
+```@example HowToGuide
+FT = Float32
+# A cloudy state near 290 K and 850 hPa; internal energy is measured relative
+# to the reference temperature T_0, so it is negative here.
+ρ_val, e_int_val, q_val = FT(1.0175), FT(-30923), FT(0.019)
 sol = TD.saturation_adjustment(params_f32, TD.ρe(), ρ_val, e_int_val, q_val; maxiter = 6)
 ```
 
@@ -220,9 +225,7 @@ Use the full signature when you want a convergence-tested solve and the `converg
 takes a `RootSolvers` method type, and `maxiter`, `tol`, `T_guess`, and `forced_fixed_iters`
 as positional arguments:
 
-```julia
-import RootSolvers as RS
-
+```@example HowToGuide
 sol = TD.saturation_adjustment(
     RS.NewtonsMethod,
     params_f32,
@@ -232,6 +235,7 @@ sol = TD.saturation_adjustment(
     FT(1e-4),    # tol
 )
 sol.converged || @warn "saturation adjustment did not converge"
+sol
 ```
 
 ## Integration with Models

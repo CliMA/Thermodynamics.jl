@@ -20,9 +20,15 @@ Three temperature profiles are currently available:
 
 A profile is built once from a parameter set, then called at each altitude:
 
-```julia
-profile = DecayingTemperatureProfile{FT}(param_set)   # construct
-T, p = profile(param_set, z)                          # evaluate at altitude z
+```@example usage
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+import ClimaParams
+FT = Float64
+param_set = TP.ThermodynamicsParameters(FT)
+
+profile = TD.TemperatureProfiles.DecayingTemperatureProfile{FT}(param_set) # construct
+T, p = profile(param_set, FT(1000))    # evaluate at altitude z = 1000 m
 ```
 
 - The constructor takes `param_set`, a thermodynamic parameter set from
@@ -133,7 +139,8 @@ Additional temperature profiles can be added by:
 Example structure:
 
 ```julia
-struct CustomProfile{FT} <: TemperatureProfile{FT}
+# Skeleton: fill in the parameters and the (T, p) calculation
+struct CustomProfile{FT} <: TD.TemperatureProfiles.TemperatureProfile{FT}
     # Profile parameters
 end
 
