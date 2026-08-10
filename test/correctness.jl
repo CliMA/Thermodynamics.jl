@@ -269,7 +269,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
             @test vpd_sat_warm == 0
         end
 
-        @testset "Static energy definitions (\$FT)" begin
+        @testset "Static energy definitions ($FT)" begin
             # Test that static energies satisfy their definitions: s = h + Ф
             T = FT(300)
             e_pot = FT(1000) # Geopotential [J/kg]
@@ -309,7 +309,7 @@ This file contains tests for fundamental thermodynamic relations and physical la
             @test h_tot ≈ e_tot + R_m * T
         end
 
-        @testset "Humidity definitions (\$FT)" begin
+        @testset "Humidity definitions ($FT)" begin
             q_tot = FT(0.02)
             q_liq = FT(0.005)
             q_ice = FT(0.001)

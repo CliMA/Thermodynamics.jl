@@ -38,7 +38,9 @@ steps:
 
   - label: "GPU tests"
     command:
-      - "julia --project=test/ --color=yes test/runtests_gpu.jl"
+      # Pass CuArray explicitly: the run then fails if the agent's GPU is unusable,
+      # rather than passing while silently exercising only the CPU.
+      - "julia --project=test/ --color=yes test/runtests_gpu.jl CuArray"
     agents:
       slurm_ntasks: 1
       slurm_gpus: 1

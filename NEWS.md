@@ -70,6 +70,46 @@ main
 - Temperature guards are applied consistently across all root-finding closures; previously
   only the `ρe` non-Newton path was guarded.
 
+### Testing
+
+- Added direct tests for exported functions missing before:
+  `soundspeed_air`, both `supersaturation` methods, `vol_vapor_mixing_ratio`, `exner`,
+  `potential_temperature`, `virtual_pottemp` and `saturation_vapor_pressure_mixture`.
+- Added property tests that constrain the physics rather than restating the implementation:
+  Clausius-Clapeyron for both pure phases at several temperatures and across the
+  mixed-phase band, `p_ice^* < p_liq^*` below the triple point, monotonicity of the
+  saturation curves and of `q_vap_saturation` in temperature and density, bounds on the
+  liquid fraction and relative humidity, and the dry limit of the mixture properties.
+- Added round-trip tests for `enthalpy`, `internal_energy`, `pρ` and `pθ_li`, and quantified
+  the truncation error of `air_temperature(::ρθ_li)`, which is a second-order Taylor
+  approximation rather than an exact inverse.
+- Added regression tests pinning this release's fixes: exact recovery of equilibrium states
+  by all six formulations, monotone convergence of the fixed-iteration solver with
+  `maxiter`, the accuracy envelope of the default iteration count, the saturation-humidity
+  derivative against automatic differentiation, safety of non-integer `pow_icenuc`, AD type
+  stability of `saturation_vapor_pressure_calc`, and that `solution_type` reaches the solver.
+- Extended type-stability and allocation coverage from the `ρe` formulation alone to all
+  six, plus the phase partitioning and the six analytic derivatives the solvers call every
+  iteration.
+- Every `RootSolvers` method is now checked for accuracy, not merely for returning a finite
+  number; `T_guess` (good, poor, and absent) and varying `maxiter` are exercised.
+- `exceptions.jl` and `liquid_fraction_ramp_tests.jl` now run in both precisions, and the
+  suite has its first `@test_throws` coverage.
+- Removed the `Documenter.doctest` call from the test suite and the corresponding test
+  dependency. There are no `jldoctest` blocks in the package, so it asserted nothing.
+- ![][badge-🐛bugfix] `test/runtests_gpu.jl` fell back to `Array` whenever CUDA was
+  unavailable, so a CI agent with a broken GPU produced a green run labelled "GPU tests"
+  while exercising no kernel at all. Reaching a GPU is now required: `CuArray` fails if CUDA
+  is unusable, an argument-less run fails unless `THERMODYNAMICS_ALLOW_CPU_FALLBACK=true`,
+  and the Buildkite step passes `CuArray` explicitly. `Array` still selects the CPU
+  deliberately.
+- Broadened the device-broadcast tests from three functions to the full saturation
+  adjustment surface: the saturation functions, phase partitioning, latent heats, entropy,
+  relative humidity, all six analytic derivatives that the fixed-iteration solver evaluates
+  each iteration, and `saturation_adjustment` itself for all six formulations. These now run
+  in both `Float32` and `Float64`; previously the GPU suite was `Float32`-only, so promotion
+  bugs on device were invisible.
+
 ### Documentation
 
 - Corrected the How-To Guide's description of the GPU solver, which had the API backwards:

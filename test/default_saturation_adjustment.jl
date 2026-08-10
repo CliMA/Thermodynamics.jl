@@ -38,7 +38,7 @@ All of the convenience methods run the same safeguarded fixed-iteration Newton s
             profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
             (; T, p, ρ, q_tot) = profiles
 
-            # Sample ~120 points across the full profile grid
+            # Sample 250 points across the full profile grid
             idxs = unique(round.(Int, range(1, length(T), length = 250)))
 
             function targets(i::Int)

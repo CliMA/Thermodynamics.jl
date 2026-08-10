@@ -46,7 +46,7 @@ const TDTP_SA = TD.TemperatureProfiles
             profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
             (; T, p, ρ, q_tot) = profiles
 
-            # Sample ~120 points across the full profile grid.
+            # Sample 250 points across the full profile grid.
             idxs = unique(round.(Int, range(1, length(T), length = 250)))
 
             # For each sampled point, compute reference targets for each formulation.
@@ -273,6 +273,98 @@ const TDTP_SA = TD.TemperatureProfiles
                     @info "ρeq saturation_adjustment timing (TestedProfiles)" FT solver elapsed_s =
                         elapsed ncases = length(timing_idxs)
                     @test isfinite(elapsed) && elapsed ≥ 0
+                end
+            end
+
+            @testset "All solvers agree on the reference temperature ($FT)" begin
+                # The loop above only checks that each solver returns something finite and
+                # non-negative, which would pass even if a solver were badly wrong. Check
+                # accuracy for every solver, not just the Secant method used elsewhere.
+                solvers = (
+                    RS.SecantMethod,
+                    RS.RegulaFalsiMethod,
+                    RS.BrentsMethod,
+                    RS.NewtonsMethod,
+                    RS.NewtonsMethodAD,
+                )
+                for solver in solvers, i in idxs[1:min(end, 50)]
+                    inp = targets(i)
+                    res = TD.saturation_adjustment(
+                        solver,
+                        param_set,
+                        TD.ρe(),
+                        inp.ρ0,
+                        inp.e_int_ρ,
+                        inp.q0,
+                        maxiter,
+                        tol,
+                    )
+                    @test res.converged
+                    @test isapprox(
+                        res.T,
+                        inp.T0;
+                        atol = FT(atol_temperature),
+                        rtol = FT(0),
+                    )
+                    check_partition(res.T, inp.ρ0, inp.q0, res.q_liq, res.q_ice)
+                end
+            end
+
+            @testset "T_guess and maxiter ($FT)" begin
+                # `T_guess` was never exercised anywhere in the suite. A good guess, a
+                # deliberately poor one, and none at all must all reach the same answer.
+                for i in idxs[1:min(end, 50)]
+                    inp = targets(i)
+                    for T_guess in
+                        (nothing, inp.T0, inp.T0 + FT(30), inp.T0 - FT(30), FT(200))
+                        res = TD.saturation_adjustment(
+                            RS.NewtonsMethod,
+                            param_set,
+                            TD.ρe(),
+                            inp.ρ0,
+                            inp.e_int_ρ,
+                            inp.q0,
+                            maxiter,
+                            tol,
+                            T_guess,
+                        )
+                        @test res.converged
+                        @test isapprox(
+                            res.T,
+                            inp.T0;
+                            atol = FT(atol_temperature),
+                            rtol = FT(0),
+                        )
+                    end
+                end
+
+                # A converged solve should be insensitive to the iteration budget once it
+                # is large enough to converge.
+                inp = targets(first(idxs))
+                T_ref =
+                    TD.saturation_adjustment(
+                        RS.NewtonsMethod,
+                        param_set,
+                        TD.ρe(),
+                        inp.ρ0,
+                        inp.e_int_ρ,
+                        inp.q0,
+                        maxiter,
+                        tol,
+                    ).T
+                for m in (10, 20, 40, 80)
+                    res = TD.saturation_adjustment(
+                        RS.NewtonsMethod,
+                        param_set,
+                        TD.ρe(),
+                        inp.ρ0,
+                        inp.e_int_ρ,
+                        inp.q0,
+                        m,
+                        tol,
+                    )
+                    @test res.converged
+                    @test isapprox(res.T, T_ref; atol = FT(atol_temperature))
                 end
             end
         end

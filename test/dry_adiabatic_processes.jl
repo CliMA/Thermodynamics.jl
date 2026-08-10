@@ -32,8 +32,12 @@ using Random
 
         @testset "Dry Adiabatic Processes" begin
             Φ = FT(1)
-            Random.seed!(15)
-            perturbation = FT(0.1) * rand(FT, length(T))
+            # A local RNG, so that this file does not perturb the global stream that later
+            # test files draw from. The perturbation is centered on 1 (±5%): scaling by a
+            # factor in [0, 0.1) as before would drive T∞ towards zero, where (T/T∞)^(1/κ_d)
+            # overflows in Float32, and would exercise a physically meaningless regime.
+            rng = MersenneTwister(15)
+            perturbation = FT(1) .+ FT(0.1) .* (rand(rng, FT, length(T)) .- FT(0.5))
 
             T∞, p∞ = T .* perturbation, p .* perturbation
             @test air_temperature.(
