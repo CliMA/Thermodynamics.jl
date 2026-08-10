@@ -125,6 +125,8 @@ q_vap_saturation_from_pressure
 
 ```@docs
 saturation_adjustment
+internal_energy_sat
+enthalpy_sat
 ∂e_int_∂T_sat_ρ
 ∂e_int_∂T_sat_p
 ∂θ_li_∂T_sat_ρ

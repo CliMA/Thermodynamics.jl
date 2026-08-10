@@ -249,8 +249,16 @@ The computed value is:
 
 where ``T_{tr}`` is the triple point temperature, ``p_{tr}`` is the triple point pressure,
 ``T_0`` is the reference temperature, and ``R_v`` is the gas constant for water vapor.
+
+The arguments are promoted to a common type first. Without that, differentiating with
+respect to `LH_0` or `Δcp` leaves `T` a plain float while the result is a dual number, and
+the two branches of the zero-temperature guard below then have different types, which makes
+the return type a `Union`.
 """
-@inline function saturation_vapor_pressure_calc(param_set::APS, T, LH_0, Δcp)
+@inline saturation_vapor_pressure_calc(param_set::APS, T, LH_0, Δcp) =
+    _saturation_vapor_pressure_calc(param_set, promote(T, LH_0, Δcp)...)
+
+@inline function _saturation_vapor_pressure_calc(param_set::APS, T, LH_0, Δcp)
     press_triple = TP.press_triple(param_set)
     R_v = TP.R_v(param_set)
     T_triple = TP.T_triple(param_set)
@@ -261,17 +269,13 @@ where ``T_{tr}`` is the triple point temperature, ``p_{tr}`` is the triple point
     #   p_tr * (T/T_tr)^(Δcp/Rv) * exp[...]  →  p_tr * exp( (Δcp/Rv)*log(T/T_tr) + ... )
     # This avoids computing a separate pow, which is less efficient on GPUs,
     # and reduces floating-point rounding by summing the exponents before exponentiation.
-    q_vap_sat =
+    p_v_sat =
         press_triple * exp(
             (Δcp / R_v) * log(T / T_triple) +
             (LH_0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T),
         )
-    return ifelse(iszero(T), zero(T), q_vap_sat)
+    return ifelse(iszero(T), zero(p_v_sat), p_v_sat)
 end
-
-# Promote the arguments to a common type to allow AD with dual numbers
-@inline saturation_vapor_pressure_calc(param_set, T, LH_0, Δcp) =
-    saturation_vapor_pressure_calc(param_set, promote(T, LH_0, Δcp)...)
 
 """
     saturation_vapor_pressure(param_set, T)
@@ -918,9 +922,6 @@ temperature by Kirchhoff's law: `L(T) = LH_0 + Δcp * (T - T_0)`.
     T_0 = TP.T_0(param_set)
     return LH_0 + Δcp * (T - T_0)
 end
-
-@inline latent_heat_generic(param_set, T, LH_0, Δcp) =
-    latent_heat_generic(param_set, promote(T, LH_0, Δcp)...)
 
 """
     latent_heat_mixed(param_set, T, λ)

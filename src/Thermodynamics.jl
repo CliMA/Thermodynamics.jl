@@ -78,7 +78,11 @@ include("air_entropies.jl")
 include("air_dry_adiabatic.jl")
 include("TemperatureProfiles.jl")
 
+# Treat the dispatch singletons as scalars under broadcasting, so that they can be passed
+# to broadcast calls directly rather than wrapped in `Ref`. `IndepVars` is included because
+# it is the most frequently broadcast of the three, via `saturation_adjustment`.
 Base.broadcastable(dap::DryAdiabaticProcess) = tuple(dap)
 Base.broadcastable(phase::Phase) = tuple(phase)
+Base.broadcastable(indep_vars::IndepVars) = tuple(indep_vars)
 
 end # module Thermodynamics

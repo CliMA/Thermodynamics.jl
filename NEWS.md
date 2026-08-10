@@ -34,6 +34,23 @@ main
   rather than evaluating both phases. At the default `maxiter = 2`, a `ρe` CPU solve is about 11% faster and a `ρθ_li` solve about 22% faster than before this release, with
   `∂e_int_∂T_sat_ρ` about 42% faster; the numerical results are unchanged.
 
+- ![][badge-🐛bugfix] `saturation_vapor_pressure_calc` and `latent_heat_generic` each carried
+  a fallback method that promoted its arguments to a common type "to allow AD with dual
+  numbers". Those fallbacks were unreachable, so the promotion never happened. For
+  `saturation_vapor_pressure_calc` this was a defect: differentiating with respect to
+  `LH_0` or `Δcp` left the zero-temperature guard comparing a float against a dual, and the
+  function inferred as `Any`. It now promotes for real and infers concretely. The
+  `latent_heat_generic` fallback was removed: that function is unbranched arithmetic and
+  promotes on its own.
+
+- ![][badge-🐛bugfix] `solution_type()` had no call sites (`_saturation_adjustment_generic`
+  hard-coded `RS.CompactSolution()`), so the `DataCollection` workflow documented in that
+  module could never collect anything and always reported zeros. The solver now calls
+  `solution_type()`.
+
+- `Base.broadcastable` is now defined for `IndepVars`, which is the most frequently broadcast
+  of the dispatch singletons, so it no longer needs a `Ref` wrapper at broadcast call sites.
+
 - The six `saturation_adjustment` methods, and the six convenience methods, were near
   duplicates of each other. Each formulation is now described by four small dispatch methods
   (`_temperature_unsaturated`, `_temperature_all_ice`, `_q_vap_sat_at`,
@@ -68,6 +85,16 @@ main
   Guide had listed four.
 - `julia` compat raised to `1.10` in `Project.toml`, `docs/Project.toml`, and
   `test/Project.toml`, matching what CI actually tests.
+- `relative_humidity` now warns that it uses a different liquid-fraction parameterization
+  from `q_vap_saturation` and the saturation adjustment solvers, so that the two can differ
+  appreciably in condensate-free air below freezing. The divergence is intentional; the
+  docstring says which to use when consistency with the solver matters.
+- `entropy_dry` and `entropy_vapor` now state that their reference pressure is `MSLP`, not
+  the `p_ref_theta` used by `exner` and the potential temperatures.
+- `bound_upper_temperature` documented the case where its two requirements conflict and the
+  returned bound exceeds `T_max`, rather than claiming it never does.
+- `internal_energy_sat` and `enthalpy_sat` added to the API reference; they are the physical
+  core of saturation adjustment but were absent while their derivatives were listed.
 
 v1.2.2
 --------

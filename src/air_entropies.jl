@@ -53,6 +53,11 @@ The specific entropy of dry air at its partial pressure.
 In the dry limit (`q_tot = q_liq = q_ice = 0`, the default), the dry-air partial pressure equals the total pressure.
 Note: `entropy_dry` diverges logarithmically as `q_tot → 1` (since `p_d → 0`). See also
 the analogous warning in [`entropy_vapor`](@ref).
+
+The entropy reference pressure is `MSLP`, which is *not* the reference pressure
+`p_ref_theta` used by [`exner`](@ref) and the potential temperatures. The two reference
+states are independent and need not agree; entropies from this function are therefore not
+directly comparable to potential temperatures without accounting for the offset.
 """
 @inline function entropy_dry(
     param_set::APS,

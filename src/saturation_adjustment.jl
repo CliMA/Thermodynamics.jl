@@ -199,11 +199,14 @@ import Thermodynamics as TD
 using ClimaParams
 
 param_set = TD.Parameters.ThermodynamicsParameters(Float64)
-ρ, e_int, q_tot = 1.0, 50000.0, 0.015
+
+# A cloudy state near 290 K and 850 hPa. Internal energy is measured relative to the
+# reference temperature T_0, so it is negative here.
+ρ, e_int, q_tot = 1.0175, -30923.0, 0.019
 sol = TD.saturation_adjustment(
     RS.NewtonsMethod, param_set, TD.ρe(), ρ, e_int, q_tot, 20, 1e-4,
 )
-sol.T, sol.q_liq, sol.q_ice, sol.converged
+sol.T, sol.q_liq, sol.q_ice, sol.converged   # ≈ (290.4, 0.0046, 0.0, true)
 ```
 
 See also the convenience methods below, which pick GPU-friendly defaults for you.
@@ -287,8 +290,8 @@ import Thermodynamics as TD
 using ClimaParams
 
 param_set = TD.Parameters.ThermodynamicsParameters(Float64)
-sol = TD.saturation_adjustment(param_set, TD.ρe(), 1.0, 50000.0, 0.015)
-sol.T, sol.q_liq, sol.q_ice
+sol = TD.saturation_adjustment(param_set, TD.ρe(), 1.0175, -30923.0, 0.019)
+sol.T, sol.q_liq, sol.q_ice   # ≈ (290.4, 0.0046, 0.0)
 ```
 """
 function saturation_adjustment(
@@ -631,8 +634,13 @@ end
 
 Internal function. Bounds the upper temperature guess `T_hi` for bracket methods.
 
-Returns `T_hi` bounded by `T_max`, ensuring it is at least `T_lo + 0.1` for
-valid numerical initialization.
+Returns `T_hi` capped at `T_max`, then raised if necessary to keep it above `T_lo` so that
+the bracket is non-degenerate.
+
+Note that the two requirements can conflict: when `T_lo` is itself at or above `T_max`, the
+separation requirement wins and the result exceeds `T_max`. That is deliberate, since a
+collapsed bracket would break the solver outright, whereas a slightly too-warm upper bound
+only widens the search.
 """
 @inline function bound_upper_temperature(param_set, T_lo, T_hi)
     FT = eltype(param_set)
@@ -1139,7 +1147,7 @@ Returns `(root, converged)` tuple.
 
 Used by `saturation_adjustment` functions to handle common solver logic.
 """
-function _find_zero_and_convergence(
+@inline function _find_zero_and_convergence(
     roots_func,
     numerical_method,
     solution_type,
@@ -1222,10 +1230,13 @@ on `indep_vars`.
     # Initialize solver (logic merged from config_sa_method.jl)
     solver = _make_sa_solver(Method, param_set, T_unsat, T_ice, T_guess)
 
+    # `solution_type()` rather than a hard-coded `RS.CompactSolution()`, so that redefining
+    # it to `RS.VerboseSolution()` actually reaches the solver and lets `DataCollection`
+    # gather iteration statistics.
     (T, converged) = _find_zero_and_convergence(
         roots_func,
         solver,
-        RS.CompactSolution(),
+        solution_type(),
         tol,
         maxiter,
     )
