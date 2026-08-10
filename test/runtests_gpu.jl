@@ -16,6 +16,18 @@ include("TestedProfiles.jl")
 #
 # The silent fallback this replaces meant that a CI agent whose GPU was broken produced a
 # green run labelled "GPU tests" while exercising nothing but the CPU.
+# Load CUDA here, at top level, rather than inside the function below. `import` executed
+# inside a function defines its methods in a world age newer than that function's own, so a
+# `CUDA.functional()` call in the same body fails with "method too new to be called from
+# this world context" — which looks like an absent GPU rather than the loading bug it is.
+# Top-level statements each see the world created by the ones before them, so this is safe.
+const CUDA_LOAD_ERROR = try
+    @eval import CUDA
+    nothing
+catch err
+    sprint(showerror, err)
+end
+
 """
     _cuda_unavailable_reason() -> Union{Nothing, String}
 
@@ -23,12 +35,10 @@ Return `nothing` if a usable CUDA device is present, or a short description of w
 Covers both a missing/unloadable CUDA package and a present one that reports no device.
 """
 function _cuda_unavailable_reason()
-    try
-        @eval import CUDA
-        return CUDA.functional() ? nothing : "CUDA.functional() returned false"
-    catch err
-        return "CUDA is not usable ($(sprint(showerror, err)))"
-    end
+    isnothing(CUDA_LOAD_ERROR) || return "CUDA could not be loaded ($CUDA_LOAD_ERROR)"
+    # `invokelatest` in case the import above only just became visible.
+    return Base.invokelatest(CUDA.functional) ? nothing :
+           "CUDA.functional() returned false"
 end
 
 arg = get(ARGS, 1, "")
