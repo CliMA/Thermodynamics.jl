@@ -236,6 +236,56 @@ Two kinds of test live here:
             @test sol.q_ice ≈ z
         end
 
+        @testset "Reference-temperature invariance ($FT)" begin
+            # The formulation is invariant under shifts of the reference temperature T_0,
+            # provided the reference latent heats are shifted along their Kirchhoff lines:
+            # L_v0 -> L_v0 + (cp_v - cp_l) δ and L_s0 -> L_s0 + (cp_v - cp_i) δ (Yatunin
+            # et al. 2026, §2.3 and §2.6). Energies then change only by constant reference
+            # offsets, while every measurable quantity is unchanged. This is the central
+            # consistency property of the formulation, so it is pinned here directly.
+            δ = FT(10)
+            cp_v = TP.cp_v(param_set)
+            cp_l = TP.cp_l(param_set)
+            cp_i = TP.cp_i(param_set)
+            fields = fieldnames(typeof(param_set))
+            shifted = TP.ThermodynamicsParameters{FT}(;
+                (f => getfield(param_set, f) for f in fields)...,
+                T_0 = TP.T_0(param_set) + δ,
+                LH_v0 = TP.LH_v0(param_set) + (cp_v - cp_l) * δ,
+                LH_s0 = TP.LH_s0(param_set) + (cp_v - cp_i) * δ,
+            )
+            rtol = FT === Float32 ? FT(1e-5) : FT(1e-12)
+
+            # Saturation vapor pressure is invariant (exactly; the closed form pins the
+            # value at the triple point, which does not move).
+            for T in FT.((210, 250, 273.16, 300)), λ in FT.((0, 0.4, 1))
+                @test TD.saturation_vapor_pressure_mixture(shifted, T, λ) ≈
+                      TD.saturation_vapor_pressure_mixture(param_set, T, λ) rtol = rtol
+            end
+
+            # The same physical state has different internal energy *values* under the two
+            # conventions (a constant reference offset), but the temperature recovered
+            # from each is identical, as is the saturation adjustment result.
+            T, p, q_tot = FT(285), FT(90000), FT(0.015)
+            (q_liq, q_ice) =
+                TD._condensate_partition_from_p(param_set, T, p, q_tot)
+            ρ = TD.air_density(param_set, T, p, q_tot, q_liq, q_ice)
+            e_base = TD.internal_energy(param_set, T, q_tot, q_liq, q_ice)
+            e_shift = TD.internal_energy(shifted, T, q_tot, q_liq, q_ice)
+            @test !isapprox(e_base, e_shift; rtol = FT(1e-3))   # offsets differ ...
+            @test TD.air_temperature(shifted, TD.ρe(), e_shift, q_tot, q_liq, q_ice) ≈
+                  TD.air_temperature(param_set, TD.ρe(), e_base, q_tot, q_liq, q_ice) rtol =
+                rtol                                            # ... physics does not
+
+            sol_base =
+                TD.saturation_adjustment(param_set, TD.ρe(), ρ, e_base, q_tot; maxiter = 6)
+            sol_shift =
+                TD.saturation_adjustment(shifted, TD.ρe(), ρ, e_shift, q_tot; maxiter = 6)
+            @test sol_shift.T ≈ sol_base.T rtol = rtol
+            @test sol_shift.q_liq ≈ sol_base.q_liq rtol = sqrt(rtol)
+            @test sol_shift.q_ice ≈ sol_base.q_ice atol = sqrt(eps(FT))
+        end
+
         @testset "Round trips ($FT)" begin
             # Build a genuinely cloudy equilibrium state
             T = FT(285)

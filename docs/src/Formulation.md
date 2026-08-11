@@ -256,7 +256,7 @@ where $\Delta c_p$ is the difference in isobaric specific heat capacities betwee
 \end{equation}
 ```
 
-where $T_0$ is a reference temperature and $L_0$ is the specific latent heat at $T_0$.
+where $T_0$ is a reference temperature and $L_0$ is the specific latent heat at $T_0$. Thus, in a calorically perfect fluid, specific latent heats depend linearly on temperature. The formulation's energetics are invariant under shifts of the reference temperature (see [Reference-Temperature Invariance](@ref) below); however, the quality of the linearization in \eqref{e:LHTemperature} depends on this choice, suggesting that $T_0$ should be a value typical for the atmosphere [Ambaum2020](@cite). We choose the triple-point temperature of water, $T_0 = 273.16$ K, as the reference [Yatunin2026](@cite).
 
 !!! note "Physical Interpretation"
     Kirchhoff's relation follows from the fact that the enthalpy difference between phases changes with temperature due to the different heat capacities of the phases. The latent heat represents the energy required to transform a unit mass from one phase to another at constant pressure.
@@ -312,7 +312,11 @@ I_i(T) & = c_{vi} (T - T_0) - I_{i,0}.
 \end{equation}
 ```
 
-Here, the reference specific internal energy $I_{v,0}$ is the difference in specific internal energy between vapor and liquid at the reference temperature $T_0$, and $I_{i,0}$ is the difference in specific internal energy between ice and liquid at $T_0$. We have included an arbitrary constant offset $- R_d T_0$ in the definition of the dry specific internal energy as that simplifies the corresponding specific enthalpies \eqref{e:Enthalpies}. The formulation is **reference-temperature invariant**, meaning that the physics is independent of the choice of the arbitrary reference temperature $T_0$ used to define energies, enthalpies, and entropies, provided that boundary conditions (as implemented in [SurfaceFluxes.jl](https://github.com/CliMA/SurfaceFluxes.jl)) also respect this invariance. Measurable thermodynamic variables such as temperature, pressure, etc. do not depend on a shift in the reference temperature $T_0$.
+Here, the reference specific internal energy $I_{v,0}$ is the difference in specific internal energy between vapor and liquid at the reference temperature $T_0$, and $I_{i,0}$ is the difference in specific internal energy between ice and liquid at $T_0$. Since dry air and water are distinct constituents that cannot be converted into one another, their reference internal energies at $T_0$ can be specified independently: we set that of liquid water to zero and that of dry air to $-R_d T_0$, which simplifies the corresponding specific enthalpies \eqref{e:Enthalpies}. The equations of motion are invariant under the addition of arbitrary constants here [Yatunin2026](@cite).
+
+### Reference-Temperature Invariance
+
+The formulation is **reference-temperature invariant**: measurable thermodynamic variables — temperature, pressure, saturation vapor pressure, phase partitioning — do not depend on the arbitrary reference temperature $T_0$ used to define energies, enthalpies, and entropies. Concretely, shifting $T_0 \to T_0 + \delta T_0$ while shifting the reference latent heats along their Kirchhoff lines \eqref{e:LHTemperature}, $L_{v,0} \to L_{v,0} + (c_{pv} - c_{pl})\,\delta T_0$ and $L_{s,0} \to L_{s,0} + (c_{pv} - c_{pi})\,\delta T_0$, changes the numerical values of energies and enthalpies only by constant offsets per unit mass of each constituent, and leaves every measurable quantity unchanged: the temperature recovered from \eqref{e:temperature}, the saturation vapor pressure \eqref{e:SatVaporPressure}, and the result of saturation adjustment are all invariant. (This property is verified in the test suite.) The invariance holds provided that boundary conditions (as implemented in [SurfaceFluxes.jl](https://github.com/CliMA/SurfaceFluxes.jl)) respect the same convention.
 
 !!! note "Physical Interpretation"
     The internal energy represents the total energy of a substance excluding kinetic and potential energy. The reference energies $I_{v,0}$ and $I_{i,0}$ represent the energy differences between phases at the reference temperature, accounting for the fact that vapor has higher internal energy than liquid, and ice has lower internal energy than liquid.
@@ -451,7 +455,9 @@ Substituting the linear relation \eqref{e:LHTemperature} between latent heat and
 !!! tip "Implementation Note"
     The saturation vapor pressure is implemented in the [`saturation_vapor_pressure`](@ref) function. The closed-form expression enables efficient computation without numerical integration.
 
-With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity difference $\Delta c_p$, this gives saturation vapor pressures over liquid or ice that are accurate within 3% for temperatures between 200K and 330K [Ambaum2020](@cite). The accuracy of this approximation depends on the choice of thermodynamic constants; the values used in `Thermodynamics.jl` (specified in [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)) are chosen to minimize errors in the Rankine-Kirchhoff approximation [Yatunin2026](@cite).
+With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity difference $\Delta c_p$, this gives saturation vapor pressures over liquid or ice that are accurate within 3% for temperatures between 200 K and 330 K [Ambaum2020](@cite). With the triple point as reference and the constants of [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl), the approximation is highly accurate: the saturation vapor pressure over liquid lies within 0.4% of measured values between 248 K and 325 K, and the ratio of the saturation vapor pressure over ice to that over liquid within 0.6% between 233 K and 273 K [Yatunin2026](@cite).
+
+This formulation is mathematically consistent: the saturation vapor pressure is *invariant to the choice of reference temperature* $T_0$. It does not change when the reference is shifted from $T_0$ to $T_0 + \delta T_0$, provided the reference latent heats are shifted correspondingly according to \eqref{e:LHTemperature} — that is, $L_{v,0} \to L_{v,0} + (c_{pv} - c_{pl})\,\delta T_0$ and $L_{s,0} \to L_{s,0} + (c_{pv} - c_{pi})\,\delta T_0$ [Yatunin2026](@cite). See [Reference-Temperature Invariance](@ref).
 
 !!! example "Typical Values"
     | Temperature | $p_v^*$ (liquid) | $p_v^*$ (ice) |
