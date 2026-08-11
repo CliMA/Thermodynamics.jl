@@ -4,42 +4,7 @@ Thermodynamics.jl Release Notes
 main
 --------
 
-- ![][badge-🐛bugfix] The analytic derivatives used by the fixed-iteration solvers computed
-  the phase partition with a clamped saturation excess, while the residual they differentiate
-  uses the unclamped analytic continuation. In the mixed-phase ramp, where the two differ and
-  `∂λ/∂T` is non-zero, the derivative was 1-2% wrong, degrading the quadratic convergence the
-  default iteration count relies on. The clamping flag is now threaded through, and all six
-  derivatives match finite differences of their own residual to round-off.
-- ![][badge-🐛bugfix] `∂q_v^*/∂T` at fixed pressure was non-zero in the regime where
-  `q_vap_saturation_from_pressure` saturates at its cap of 1 and is therefore constant. It is
-  now zero there, matching the value the function actually returns.
-- ![][badge-🐛bugfix] The convergence flag of the fixed-iteration solvers was both too strict
-  and too permissive. It compared the last Newton increment against a tolerance appropriate
-  to the *error*, so a solve accurate to 1e-9 K reported failure; and it used the increment
-  that survived step limiting, so a step cut off at `T_init_min` looked like a settled
-  iteration. It now tests the increment Newton requested against a fixed relative tolerance,
-  which behaves identically in both precisions: over a sweep of saturated states, everything
-  reported converged agrees with the fixed point to better than 3e-5 K.
-- ![][badge-🐛bugfix] Added the missing `ReLU` temperature guard to the `ρθ_li` and `pρ`
-  non-Newton root functions, the only two of the twelve without it. `liquid_ice_pottemp`
-  takes `log(p/p₀)` with `p = ρ R_m T`, so a negative iterate could still throw.
-
-- ![][badge-🐛bugfix] Saturation adjustment returned `max(T_init_min, T_unsat)` rather than
-  `T_unsat` for unsaturated states, so any state colder than `T_init_min` (150 K) silently
-  came back as 150 K — an error of up to ~100 K at the cold end, reported as converged. For
-  an unsaturated state the no-condensate temperature is the exact solution and is now
-  returned unmodified. The clamp remains, but only as the starting guess for the saturated
-  iteration and as the lower bracket of the convergence-tested solvers, where it constrains
-  the search rather than the answer. Applied consistently to all six formulations in both
-  the fixed-iteration and convergence-tested paths. Results for saturated states are
-  unchanged.
-- ![][badge-🐛bugfix] `saturation_vapor_pressure` threw a `DomainError` for negative
-  temperatures, which a solver iterate can transiently reach and which cannot be recovered
-  from inside a GPU kernel. It now returns zero for all non-positive temperatures, which is
-  also the physical limit; tiny positive temperatures already underflowed to zero. This
-  removed the last reason the unsaturated answer had to be clamped.
-
-v1.3.0
+v1.2.3
 --------
 
 ### Saturation adjustment: correctness fixes (changes model output)
@@ -60,8 +25,34 @@ v1.3.0
   mode — remaining error is now a truncation error that decreases monotonically with
   `maxiter`, rather than a limit cycle that no iteration count could escape.
 
-- The `converged` field returned by the full signature is now computed from the final Newton
-  increment rather than hard-coded to `true`.
+- The `converged` field returned by the full signature is now computed rather than
+  hard-coded to `true`; see the entry below for what it tests.
+
+- ![][badge-🐛bugfix] The analytic derivatives used by the fixed-iteration solvers computed
+  the phase partition with a clamped saturation excess, while the residual they differentiate
+  uses the unclamped analytic continuation. In the mixed-phase ramp, where the two differ and
+  `∂λ/∂T` is non-zero, the derivative was 1-2% wrong, degrading the quadratic convergence the
+  default iteration count relies on. The clamping flag is now threaded through, and all six
+  derivatives match finite differences of their own residual to round-off.
+- ![][badge-🐛bugfix] `∂q_v^*/∂T` at fixed pressure was non-zero in the regime where
+  `q_vap_saturation_from_pressure` saturates at its cap of 1 and is therefore constant. It is
+  now zero there, matching the value the function actually returns.
+- ![][badge-🐛bugfix] The convergence flag of the fixed-iteration solvers was both too strict
+  and too permissive. It compared the last Newton increment against a tolerance appropriate
+  to the *error*, so a solve accurate to 1e-9 K reported failure; and it used the increment
+  that survived step limiting, so a step cut off at `T_init_min` looked like a settled
+  iteration. It now tests the increment Newton requested against a fixed relative tolerance,
+  which behaves identically in both precisions: over a sweep of saturated states, everything
+  reported converged agrees with the fixed point to better than 3e-5 K.
+- ![][badge-🐛bugfix] Saturation adjustment returned `max(T_init_min, T_unsat)` rather than
+  `T_unsat` for unsaturated states, so any state colder than `T_init_min` (150 K) silently
+  came back as 150 K — an error of up to ~100 K at the cold end, reported as converged. For
+  an unsaturated state the no-condensate temperature is the exact solution and is now
+  returned unmodified. The clamp remains, but only as the starting guess for the saturated
+  iteration and as the lower bracket of the convergence-tested solvers, where it constrains
+  the search rather than the answer. Applied consistently to all six formulations in both
+  the fixed-iteration and convergence-tested paths. Results for saturated states are
+  unchanged.
 
 ### Internals
 
@@ -107,6 +98,14 @@ v1.3.0
   de-optimizes GPU kernels. Both branches now share a type.
 - Temperature guards are applied consistently across all root-finding closures; previously
   only the `ρe` non-Newton path was guarded.
+- ![][badge-🐛bugfix] Added the missing `ReLU` temperature guard to the `ρθ_li` and `pρ`
+  non-Newton root functions, the only two of the twelve without it. `liquid_ice_pottemp`
+  takes `log(p/p₀)` with `p = ρ R_m T`, so a negative iterate could still throw.
+- ![][badge-🐛bugfix] `saturation_vapor_pressure` threw a `DomainError` for negative
+  temperatures, which a solver iterate can transiently reach and which cannot be recovered
+  from inside a GPU kernel. It now returns zero for all non-positive temperatures, which is
+  also the physical limit; tiny positive temperatures already underflowed to zero. This
+  removed the last reason the unsaturated answer had to be clamped.
 
 ### Testing
 
