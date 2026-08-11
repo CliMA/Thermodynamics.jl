@@ -98,7 +98,7 @@ p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
 
 ### 🔧 **Flexible Design**
 
-- **Multiple formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc., or using direct functional relationships.
+- **Six formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, e_int)`, `(p, h)`, `(p, ρ)`, `(p, θ_li)`, or `(ρ, θ_li)`, or use direct functional relationships.
 - **Extensible parameters**: Easily adapt to different planetary atmospheres via `ClimaParams`.
 - **Comprehensive testing** and validation suite.
 
@@ -129,7 +129,7 @@ e_int = -7.0e4
 q_tot = 0.01
 
 # Solve for phase equilibrium
-# (using SecantMethod, but NewtonsMethod is also available for ρe)
+# (using SecantMethod; NewtonsMethod with analytic derivatives is available for every formulation)
 sol = TD.saturation_adjustment(
     RS.SecantMethod, 
     params, 

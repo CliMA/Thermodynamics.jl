@@ -18,12 +18,24 @@ Three temperature profiles are currently available:
 
 ## Usage
 
-Each profile constructor requires two arguments:
+A profile is built once from a parameter set, then called at each altitude:
 
-- `param_set`: A thermodynamic parameter set from [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)
-- `z`: Altitude (height above surface)
+```@example usage
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+import ClimaParams
+FT = Float64
+param_set = TP.ThermodynamicsParameters(FT)
 
-The profiles return both temperature and pressure as a function of altitude.
+profile = TD.TemperatureProfiles.DecayingTemperatureProfile{FT}(param_set) # construct
+T, p = profile(param_set, FT(1000))    # evaluate at altitude z = 1000 m
+```
+
+- The constructor takes `param_set`, a thermodynamic parameter set from
+  [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl), plus optional profile
+  parameters such as the surface temperature and scale heights.
+- The resulting object is callable, taking `param_set` and the altitude `z` [m], and
+  returning the temperature and pressure `(T, p)` there.
 
 ### Isothermal Profile
 
@@ -127,7 +139,8 @@ Additional temperature profiles can be added by:
 Example structure:
 
 ```julia
-struct CustomProfile{FT} <: TemperatureProfile{FT}
+# Skeleton: fill in the parameters and the (T, p) calculation
+struct CustomProfile{FT} <: TD.TemperatureProfiles.TemperatureProfile{FT}
     # Profile parameters
 end
 

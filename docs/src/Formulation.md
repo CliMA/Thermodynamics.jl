@@ -158,8 +158,8 @@ Equations \eqref{e:eos} and \eqref{e:Rm} constitute the equation of state of the
     | $R_d$ | $287.0$ J/(kg·K) |
     | $R_v$ | $461.5$ J/(kg·K) |
     | $\varepsilon_{dv}$ | $1.61$ |
-    | $R_m$ (typical moist air, $q_t = 0.01$) | $288.7$ J/(kg·K) |
-    | $R_m$ (air with precipitation, $q_t = 0.015$) | $289.0$ J/(kg·K) |
+    | $R_m$ (moist air, $q_t = q_v = 0.01$) | $288.7$ J/(kg·K) |
+    | $R_m$ (cloudy air, $q_t = 0.015$ of which $q_c = 0.0015$ condensate) | $288.9$ J/(kg·K) |
 
 ## 4. Heat Capacities
 
@@ -211,17 +211,28 @@ Straightforward substitution shows that the above relation between the specific 
 \end{equation}
 ```
 
-!!! example "Typical Values"
-    For Earth's atmosphere at standard conditions:
+Typical values for Earth's atmosphere, evaluated from the `ClimaParams` defaults so that
+they stay in step with the parameters actually used:
 
-    | Quantity | Value |
-    |----------|-------|
-    | $c_{vd}$ | $717.6$ J/(kg·K) |
-    | $c_{vv}$ | $1410.0$ J/(kg·K) |
-    | $c_{vl}$ | $4219.0$ J/(kg·K) |
-    | $c_{vi}$ | $2106.0$ J/(kg·K) |
-    | $c_{vm}$ (typical moist air, $q_t = 0.01$) | $720.0$ J/(kg·K) |
-    | $c_{pm}$ (typical moist air, $q_t = 0.01$) | $1008.0$ J/(kg·K) |
+```@example heat_capacities
+import Thermodynamics as TD
+import Thermodynamics.Parameters as TP
+import ClimaParams
+
+param_set = TP.ThermodynamicsParameters(Float64)
+q_t = 0.01
+
+for (name, value) in (
+    ("c_vd", TP.cv_d(param_set)),
+    ("c_vv", TP.cv_v(param_set)),
+    ("c_vl", TP.cv_l(param_set)),
+    ("c_vi", TP.cv_i(param_set)),
+    ("c_vm (q_t = 0.01)", TD.cv_m(param_set, q_t, 0.0, 0.0)),
+    ("c_pm (q_t = 0.01)", TD.cp_m(param_set, q_t, 0.0, 0.0)),
+)
+    println(rpad(name, 20), round(value; digits = 1), " J/(kg K)")
+end
+```
 
 !!! tip "Implementation Note"
     The specific heat capacities are implemented as weighted sums in the [`cp_m`](@ref) and [`cv_m`](@ref) functions. The implementation uses the rearranged form of equation \eqref{e:SpecificHeat} for computational efficiency.
@@ -245,7 +256,7 @@ where $\Delta c_p$ is the difference in isobaric specific heat capacities betwee
 \end{equation}
 ```
 
-where $T_0$ is a reference temperature and $L_0$ is the specific latent heat at $T_0$.
+where $T_0$ is a reference temperature and $L_0$ is the specific latent heat at $T_0$. Thus, in a calorically perfect fluid, specific latent heats depend linearly on temperature. The formulation's energetics are invariant under shifts of the reference temperature (see [Reference-Temperature Invariance](@ref) below); however, the quality of the linearization in \eqref{e:LHTemperature} depends on this choice, suggesting that $T_0$ should be a value typical for the atmosphere [Ambaum2020](@cite). We choose the triple-point temperature of water, $T_0 = 273.16$ K, as the reference [Yatunin2026](@cite).
 
 !!! note "Physical Interpretation"
     Kirchhoff's relation follows from the fact that the enthalpy difference between phases changes with temperature due to the different heat capacities of the phases. The latent heat represents the energy required to transform a unit mass from one phase to another at constant pressure.
@@ -270,7 +281,7 @@ With $L_{s,0} = L_{v,0} + L_{f,0}$, this gives $L_s(T) = L_v(T) + L_f(T)$, as it
     |----------|-------|
     | $L_{v,0}$ | $2.501 \times 10^6$ J/kg (latent heat of vaporization) |
     | $L_{f,0}$ | $0.334 \times 10^6$ J/kg (latent heat of fusion) |
-    | $L_{s,0}$ | $2.835 \times 10^6$ J/kg (latent heat of sublimation) |
+    | $L_{s,0}$ | $2.834 \times 10^6$ J/kg (latent heat of sublimation) |
 
     At $T = 300$ K (with $\Delta T = T - T_0 = 26.84$ K):
 
@@ -301,7 +312,11 @@ I_i(T) & = c_{vi} (T - T_0) - I_{i,0}.
 \end{equation}
 ```
 
-Here, the reference specific internal energy $I_{v,0}$ is the difference in specific internal energy between vapor and liquid at the reference temperature $T_0$, and $I_{i,0}$ is the difference in specific internal energy between ice and liquid at $T_0$. We have included an arbitrary constant offset $- R_d T_0$ in the definition of the dry specific internal energy as that simplifies the corresponding specific enthalpies \eqref{e:Enthalpies}. The formulation is **reference-temperature invariant**, meaning that the physics is independent of the choice of the arbitrary reference temperature $T_0$ used to define energies, enthalpies, and entropies, provided that boundary conditions (as implemented in [SurfaceFluxes.jl](https://github.com/CliMA/SurfaceFluxes.jl)) also respect this invariance. Measurable thermodynamic variables such as temperature, pressure, etc. do not depend on a shift in the reference temperature $T_0$.
+Here, the reference specific internal energy $I_{v,0}$ is the difference in specific internal energy between vapor and liquid at the reference temperature $T_0$, and $I_{i,0}$ is the difference in specific internal energy between ice and liquid at $T_0$. Since dry air and water are distinct constituents that cannot be converted into one another, their reference internal energies at $T_0$ can be specified independently: we set that of liquid water to zero and that of dry air to $-R_d T_0$, which simplifies the corresponding specific enthalpies \eqref{e:Enthalpies}. The equations of motion are invariant under the addition of arbitrary constants here [Yatunin2026](@cite).
+
+### Reference-Temperature Invariance
+
+The formulation is **reference-temperature invariant**: measurable thermodynamic variables — temperature, pressure, saturation vapor pressure, phase partitioning — do not depend on the arbitrary reference temperature $T_0$ used to define energies, enthalpies, and entropies. Concretely, shifting $T_0 \to T_0 + \delta T_0$ while shifting the reference latent heats along their Kirchhoff lines \eqref{e:LHTemperature}, $L_{v,0} \to L_{v,0} + (c_{pv} - c_{pl})\,\delta T_0$ and $L_{s,0} \to L_{s,0} + (c_{pv} - c_{pi})\,\delta T_0$, changes the numerical values of energies and enthalpies only by constant offsets per unit mass of each constituent, and leaves every measurable quantity unchanged: the temperature recovered from \eqref{e:temperature}, the saturation vapor pressure \eqref{e:SatVaporPressure}, and the result of saturation adjustment are all invariant. (This property is verified in the test suite.) The invariance holds provided that boundary conditions (as implemented in [SurfaceFluxes.jl](https://github.com/CliMA/SurfaceFluxes.jl)) respect the same convention.
 
 !!! note "Physical Interpretation"
     The internal energy represents the total energy of a substance excluding kinetic and potential energy. The reference energies $I_{v,0}$ and $I_{i,0}$ represent the energy differences between phases at the reference temperature, accounting for the fact that vapor has higher internal energy than liquid, and ice has lower internal energy than liquid.
@@ -396,11 +411,14 @@ where the last equality used $c_{pm} = c_{vm} + R_m$ (Eq. \ref{e:SpecificHeatRel
 The enthalpy is the relevant thermodynamic energy quantity in fluid transport. It arises in boundary conditions for energy fluxes and in the modeling of subgrid-scale (SGS) turbulent transport.
 
 !!! example "Typical Values"
-    For typical moist air at $T = 300$ K with $q_t = 0.01$, we have the specific enthalpy $h = 302.0 \times 10^3$ J/kg. This is significantly larger than the specific internal energy due to the $R_m T$ term.
+    For typical moist air at $T = 300$ K with $q_t = 0.01$, the specific enthalpy is
+    $h \approx 52.2 \times 10^3$ J/kg. Note that this is measured relative to the reference
+    temperature $T_0$, following the convention of Section 6; it is larger than the specific
+    internal energy of the same state by $R_m T \approx 86.6 \times 10^3$ J/kg.
 
 ## 8. Moist Static Energy
 
-The sum of the specific enthalpy of moist air and the specific gravitational potential energy ``Φ`` is the moist static energy [Neelin1987](@cite)
+The sum of the specific enthalpy of moist air and the specific gravitational potential energy $Φ$ is the moist static energy [Neelin1987](@cite)
 
 ```math
 \begin{equation}\label{e:MSE}
@@ -437,23 +455,23 @@ Substituting the linear relation \eqref{e:LHTemperature} between latent heat and
 !!! tip "Implementation Note"
     The saturation vapor pressure is implemented in the [`saturation_vapor_pressure`](@ref) function. The closed-form expression enables efficient computation without numerical integration.
 
-With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity difference $\Delta c_p$, this gives saturation vapor pressures over liquid or ice that are accurate within 3% for temperatures between 200K and 330K [Ambaum2020](@cite). The accuracy of this approximation depends on the choice of thermodynamic constants; the values used in `Thermodynamics.jl` (specified in [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl)) are chosen to minimize errors in the Rankine-Kirchhoff approximation [Yatunin2026](@cite).
+With $L_0 = L_{v,0}$ or $L_0 = L_{s,0}$ and the corresponding heat capacity difference $\Delta c_p$, this gives saturation vapor pressures over liquid or ice that are accurate within 3% for temperatures between 200 K and 330 K [Ambaum2020](@cite). With the triple point as reference and the constants of [ClimaParams.jl](https://github.com/CliMA/ClimaParams.jl), the approximation is highly accurate: the saturation vapor pressure over liquid lies within 0.4% of measured values between 248 K and 325 K, and the ratio of the saturation vapor pressure over ice to that over liquid within 0.6% between 233 K and 273 K [Yatunin2026](@cite).
+
+This formulation is mathematically consistent: the saturation vapor pressure is *invariant to the choice of reference temperature* $T_0$. It does not change when the reference is shifted from $T_0$ to $T_0 + \delta T_0$, provided the reference latent heats are shifted correspondingly according to \eqref{e:LHTemperature} — that is, $L_{v,0} \to L_{v,0} + (c_{pv} - c_{pl})\,\delta T_0$ and $L_{s,0} \to L_{s,0} + (c_{pv} - c_{pi})\,\delta T_0$ [Yatunin2026](@cite). See [Reference-Temperature Invariance](@ref).
 
 !!! example "Typical Values"
-    At $T = 300$ K:
+    | Temperature | $p_v^*$ (liquid) | $p_v^*$ (ice) |
+    |----------|-------|-------|
+    | $T = 300$ K | $3532$ Pa | — |
+    | $T = 273.16$ K (triple point) | $611.7$ Pa | $611.7$ Pa |
+    | $T = 250$ K | $95$ Pa (supercooled) | $76$ Pa |
 
-    | Quantity | Value |
-    |----------|-------|
-    | $p_v^*$ (liquid) | $3537$ Pa |
-    | $p_v^*$ (ice)    | $286$ Pa  |
-
-    At $T = 273.16$ K (triple point):
-
-    | Quantity | Value |
-    |----------|-------|
-    | $p_v^*$ (liquid) = $p_v^*$ (ice) | $611$ Pa |
-
-    The ratio of liquid to ice saturation vapor pressure at 300 K is approximately 12.4, reflecting the higher energy required for sublimation compared to vaporization.
+    The two curves coincide at the triple point. Because $L_s > L_v$, the Clausius-Clapeyron
+    slope of the ice curve is steeper, so below the triple point the saturation vapor pressure
+    over ice is *lower* than over supercooled liquid. Air saturated with respect to liquid is
+    then supersaturated with respect to ice — the basis of the Wegener-Bergeron-Findeisen
+    process, by which ice crystals in mixed-phase clouds grow at the expense of supercooled
+    droplets.
 
 To obtain the saturation vapor pressure over a mixture of liquid and ice (e.g., in mixed-phase clouds), using a weighted average of the relevant specific latent heats in the vapor pressure \eqref{e:SatVaporPressure} leads to a thermodynamically consistent formulation [Pressel2015](@cite). That is, if a fraction $\lambda_p$ of the condensate is liquid and the complement $1-\lambda_p$ is ice, calculating the saturation vapor pressure with a specific latent heat $\lambda_p L_v + (1-\lambda_p)L_s$ gives a thermodynamically consistent saturation vapor pressure over the mixture.
 
@@ -483,8 +501,8 @@ This definition makes no assumption about the temperature dependence of the phas
 
 !!! tip "Implementation Note"
     The [`liquid_fraction`](@ref) function in `Thermodynamics.jl` dispatches on the arguments provided.
-    - [`liquid_fraction(param_set, T)`](@ref) computes the phase equilibrium temperature-dependent fraction.
-    - [`liquid_fraction(param_set, T, q_liq, q_ice)`](@ref) computes the fraction from specific humidities. If no condensate is present (`q_liq + q_ice ≈ 0`), it falls back to a **slightly smoothed Heaviside function** (a linear ramp over $\pm 0.1$ K around freezing) to ensure differentiability of derived quantities such as saturation vapor pressure.
+    - [`liquid_fraction_ramp(param_set, T)`](@ref) computes the phase equilibrium temperature-dependent fraction.
+    - [`liquid_fraction(param_set, T, q_liq, q_ice)`](@ref) computes the fraction from specific humidities. If no condensate is present (`q_liq + q_ice ≈ 0`), it falls back to a **slightly smoothed Heaviside function** (a linear ramp over the 0.2 K interval $[T_f - 0.2\,\mathrm{K},\, T_f]$, so that the fraction is exactly 1 at $T_f$) to ensure differentiability of derived quantities such as saturation vapor pressure.
 
 ## 10. Saturation Specific Humidity
 
@@ -510,7 +528,7 @@ I^*(T; \rho, q_t) - I = 0,
 \end{equation}
 ```
 
-where ``I^*(T; \rho, q_t)`` is the internal energy at phase equilibrium. In an unsaturated equilibrium, there is no condensate, so ``I^*`` is the internal energy with ``q_l=q_i=0``. At saturation, the internal energy ``I^*`` depends on the vapor specific humidity, ``q_v = q_v^*(T, \rho)``, and on the saturation excess (total condensate)
+where $I^*(T; \rho, q_t)$ is the internal energy at phase equilibrium. In an unsaturated equilibrium, there is no condensate, so $I^*$ is the internal energy with $q_l=q_i=0$. At saturation, the internal energy $I^*$ depends on the vapor specific humidity, $q_v = q_v^*(T, \rho)$, and on the saturation excess (total condensate)
 
 ```math
 \begin{equation}
@@ -518,7 +536,7 @@ q_c^* = \max\bigl[q_t - q_v^*(T, \rho), 0\bigr],
 \end{equation}
 ```
 
-which is partitioned according to the liquid fraction ``λ_p`` into
+which is partitioned according to the liquid fraction $λ_p$ into
 
 ```math
 \begin{equation}
@@ -533,7 +551,7 @@ A zeroth-order approximation of the temperature $T$ satisfying the saturation ad
 
 ```math
 \begin{equation}
-    T_1 = T_0 + \frac{I - q_t I_{v,0}}{c_{vm}^*}.
+    T_1 = T_0 + \frac{I - q_t I_{v,0} + (1 - q_t) R_d T_0}{c_{vm}^*}.
 \end{equation}
 ```
 
@@ -555,7 +573,7 @@ and solving for the temperature $T$ gives the first-order Newton update
 \end{equation}
 ```
 
-The derivative ``\partial I^*/\partial T|_{T_n}`` is obtained by differentiation of the internal energy \eqref{e:TotalInternalEnergy}. The implementation in `Thermodynamics.jl` includes the full derivative, including the temperature dependence of the liquid fraction $\lambda_p(T)$:
+The derivative $\partial I^*/\partial T|_{T_n}$ is obtained by differentiation of the internal energy \eqref{e:TotalInternalEnergy}. The implementation in `Thermodynamics.jl` includes the full derivative, including the temperature dependence of the liquid fraction $\lambda_p(T)$:
 
 ```math
 \begin{equation}
@@ -564,17 +582,17 @@ The derivative ``\partial I^*/\partial T|_{T_n}`` is obtained by differentiation
 \end{equation}
 ```
 
-where $I_{cond} = \lambda_p I_l + (1-\lambda_p) I_i$, $q_{cond}^* = q_t - q_v^*$, and $I_v$, $I_l$, $I_i$ are the specific internal energies of vapor, liquid, and ice (Eq. \eqref{e:InternalEnergies}). In the code, the corresponding variables are named `e_vap`, `e_liq`, `e_ice`. The derivative of the saturation specific humidity is given by
+where $I_{cond} = \lambda_p I_l + (1-\lambda_p) I_i$, $q_{cond}^* = q_t - q_v^*$, and $I_v$, $I_l$, $I_i$ are the specific internal energies of vapor, liquid, and ice (Eq. \eqref{e:InternalEnergies}). In the code, these are computed by `internal_energy_vapor`, `internal_energy_liquid`, and `internal_energy_ice`. The derivative of the saturation specific humidity is given by
 
 ```math
 \begin{equation}
-    \left. \frac{\partial q_v^*}{\partial T}\right|_{T_n} = q_v^*(T_n) \left( \frac{L}{R_v T_n^2} - \frac{1}{T_n} \right),
+    \left. \frac{\partial q_v^*}{\partial T}\right|_{T_n} = q_v^*(T_n) \left( \frac{L}{R_v T_n^2} - \frac{1}{T_n} + \ln\!\left(\frac{p_{v,\mathrm{liq}}^*}{p_{v,\mathrm{ice}}^*}\right) \frac{\partial \lambda_p}{\partial T} \right),
 \end{equation}
 ```
 
-which follows from differentiation of the ideal gas law for vapor and the Clausius-Clapeyron relation. Note the inclusion of the $-1/T$ term, which arises from the density dependence. The derivative of the liquid fraction $\partial \lambda_p / \partial T$ is non-zero in the supercooled liquid mixed-phase region.
+which follows from differentiation of the ideal gas law for vapor and the Clausius-Clapeyron relation. Note the inclusion of the $-1/T$ term, which arises from the density dependence. The last term arises because the mixed-phase saturation vapor pressure, evaluated with the $\lambda_p$-weighted latent heat, is exactly the geometric mean $(p_{v,\mathrm{liq}}^*)^{\lambda_p} (p_{v,\mathrm{ice}}^*)^{1-\lambda_p}$ of the single-phase saturation vapor pressures, so $\partial \ln p_v^* / \partial \lambda_p = \ln(p_{v,\mathrm{liq}}^*/p_{v,\mathrm{ice}}^*)$. The derivative of the liquid fraction $\partial \lambda_p / \partial T$ is non-zero only in the supercooled liquid mixed-phase region, where the saturation curve migrates from the ice curve toward the liquid curve as temperature rises; outside that region the last term vanishes.
 
-The resulting successive Newton approximations $T_n$ generally converge quadratically. Because condensate specific humidities are usually small, $T_1$ provides a close initial estimate, and few iterations are needed. Even the first-order approximation $T\approx T_2$ often suffices. With the smoothed liquid fraction $\lambda_p$ ramp (see [`liquid_fraction`](@ref)), the derivative of $I^*$ with respect to temperature remains continuous across the phase transition, allowing the saturation adjustment to converge reliably without requiring special treatment or limiters.
+The resulting successive Newton approximations $T_n$ generally converge quadratically. Because condensate specific humidities are usually small, $T_1$ provides a close initial estimate, and few iterations are needed. Even the first-order approximation $T\approx T_2$ often suffices. With the smoothed liquid fraction $\lambda_p$ ramp (see [`liquid_fraction_ramp`](@ref)), the derivative of $I^*$ with respect to temperature remains continuous across the phase transition. It is, however, *not* continuous across the saturation boundary itself, where the condensate terms switch off: the fixed-iteration solvers therefore iterate on the analytic continuation of the saturated branch and select against the exact unsaturated solution afterwards, rather than stepping across the kink.
 
 Using saturation adjustment makes it possible to construct a moist dynamical core that has the total specific humidity $q_t$ as the only prognostic moisture variable. The price for this simplicity is the necessity to solve a nonlinear problem iteratively (or approximately) at each time step, and being confined to a phase equilibrium framework which cannot adequately account for non-equilibrium processes. Using explicit tracers for the condensates $q_l$ and $q_i$ in addition to $q_t$ avoids iterations at each time step and allows the inclusion of explicit non-equilibrium processes, such as those leading to the formation of supercooled liquid in mixed-phase clouds.
 
@@ -590,7 +608,7 @@ The relative humidity is defined as the ratio of the partial pressure of water v
 \mathrm{RH} = \frac{p_v}{p_v^*}.
 ```
 
-Using the ideal gas law for water vapor, ``p_v = q_v \rho R_v T``, this can be written as
+Using the ideal gas law for water vapor, $p_v = q_v \rho R_v T$, this can be written as
 
 ```math
 \begin{equation}
@@ -598,7 +616,7 @@ Using the ideal gas law for water vapor, ``p_v = q_v \rho R_v T``, this can be w
 \end{equation}
 ```
 
-where ``p_v^*`` is the saturation vapor pressure \eqref{e:SatVaporPressure}. Over a mixture of ice and liquid, the saturation vapor pressure \eqref{e:SatVaporPressure} is evaluated with a specific latent heat ``L = λ_p L_v + (1-λ_p) L_s`` that is a weighted sum of those for vaporization and sublimation.
+where $p_v^*$ is the saturation vapor pressure \eqref{e:SatVaporPressure}. Over a mixture of ice and liquid, the saturation vapor pressure \eqref{e:SatVaporPressure} is evaluated with a specific latent heat $L = λ_p L_v + (1-λ_p) L_s$ that is a weighted sum of those for vaporization and sublimation.
 
 ### 12.2 Potential Temperature
 
@@ -611,7 +629,7 @@ The potential temperature $\theta$ is the temperature an air mass would have if 
 \end{equation}
 ```
 
-where ``\Pi`` is known as the Exner function
+where $\Pi$ is known as the Exner function
 
 ```math
 \begin{equation}
@@ -624,7 +642,7 @@ Note that the adiabatic exponent $\kappa$ takes the effect of  moisture on the e
 ### 12.3 Virtual Temperature and Virtual Potential Temperature
 
 The virtual or density temperature $T_v$ is the temperature dry air would need to have to have the same density as moist air at the same pressure.
-Using the ideal gas law $p/\rho = R_m T$, this implies $R_m T  = R_d T_v $, or
+Using the ideal gas law $p/\rho = R_m T$, this implies $R_m T = R_d T_v$, or
 
 ```math
 \begin{equation} \label{e:virtual_temp}
@@ -645,7 +663,7 @@ A virtual potential temperature can be defined analogously:
     Some texts distinguish a "(condensate-ignoring) virtual temperature" and a "density temperature", and an analogous condensate-ignoring virtual potential temperature and density potential temperature.
     In those texts, the definition of density temperature incorporates condensate mass but their "condensate-ignoring virtual temperature" does not.
     We always take the mass of any condensate into account in the thermodynamics of moist air, so this distinction is irrelevant here.
-    In other words, because the virtual temperature defined above incorporates the mass of condensate into ``R_m(q)`` (and virtual potential temperature is additionally defined in terms of ``c_{pm}(q)``) via the potential temperature exponent ``κ``), there is no distinction between our virtual temperature and a hypothetical "density temperature".
+    In other words, because the virtual temperature defined above incorporates the mass of condensate into $R_m(q)$ (and virtual potential temperature is additionally defined in terms of $c_{pm}(q)$ via the potential temperature exponent $\kappa$), there is no distinction between our virtual temperature and a hypothetical "density temperature".
 
 ### 12.4 Liquid-Ice Potential Temperature
 

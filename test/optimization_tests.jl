@@ -6,7 +6,8 @@ import Thermodynamics.Parameters as TP
 import RootSolvers as RS
 import Thermodynamics as TD
 
-include(joinpath(@__DIR__, "TestedProfiles.jl"))
+# TestedProfiles is included once by runtests.jl; including it again here would
+# redefine the module and emit a "replacing module" warning.
 using .TestedProfiles
 
 #####
@@ -60,12 +61,6 @@ function find_dry(inputs)
     return i
 end
 
-function find_moist_index(inputs)
-    i = findfirst(>(0.01), inputs.q_tot)
-    isnothing(i) && error("Moist index not found")
-    return i
-end
-
 function find_saturated_index(inputs; use_p_based::Bool)
     q_liq = use_p_based ? inputs.q_liq_p : inputs.q_liq
     q_ice = use_p_based ? inputs.q_ice_p : inputs.q_ice
@@ -82,8 +77,6 @@ use_p_based(::Type) = false
 function conditions_index(inputs, sym, ftype::Type)
     if sym == :dry
         return find_dry(inputs)
-    elseif sym == :moist
-        return find_moist_index(inputs)
     elseif sym == :saturated
         return find_saturated_index(inputs; use_p_based = use_p_based(ftype))
     else

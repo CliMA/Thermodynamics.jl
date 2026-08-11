@@ -65,7 +65,6 @@ Focus:
                 )
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
                 @test isapprox(q_liq, q_liq0; atol = FT(0), rtol = FT(1e-6))
-                @test isapprox(q_liq, q_liq0; atol = FT(0), rtol = FT(1e-6))
                 @test isapprox(q_ice, q_ice0; atol = FT(0), rtol = FT(1e-6))
                 @test converged
                 @test isapprox(
@@ -86,14 +85,18 @@ Focus:
                     80,
                     FT(1e-10),
                 )
-                ρ = TD.air_density(param_set, T, p0, q_tot)
+                # The pressure-based formulations solve for the state whose equilibrium
+                # partition follows from (T, p), so the reference quantities must be
+                # formed the same way rather than from a condensate-free density.
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
                 @test isapprox(
-                    TD.internal_energy_sat(param_set, T, ρ, q_tot),
+                    TD._internal_energy_sat_from_p(param_set, T, p0, q_tot),
                     e_int_sat;
                     rtol = FT(1e-6),
                 )
-                @test q_liq + q_ice ≈ TD.saturation_excess(param_set, T, ρ, q_tot)
+                let (ql, qi) = TD._condensate_partition_from_p(param_set, T, p0, q_tot)
+                    @test q_liq + q_ice ≈ ql + qi
+                end
             end
 
             # phq
@@ -107,14 +110,15 @@ Focus:
                     80,
                     FT(1e-10),
                 )
-                ρ = TD.air_density(param_set, T, p0, q_tot)
                 @test isapprox(T, T0; atol = FT(atol_temperature), rtol = FT(0))
                 @test isapprox(
-                    TD.enthalpy_sat(param_set, T, ρ, q_tot),
+                    TD._enthalpy_sat_from_p(param_set, T, p0, q_tot),
                     h_sat;
                     rtol = FT(1e-6),
                 )
-                @test q_liq + q_ice ≈ TD.saturation_excess(param_set, T, ρ, q_tot)
+                let (ql, qi) = TD._condensate_partition_from_p(param_set, T, p0, q_tot)
+                    @test q_liq + q_ice ≈ ql + qi
+                end
             end
 
             # pρq (solve for T at saturation such that computed pressure matches)

@@ -76,8 +76,8 @@ e_int = -7.0e4
 q_tot = 0.01
 
 # Solve for phase equilibrium
-# We use the convenience method which handles defaults automatically
-# For ρe(), this defaults to the optimized fixed-iteration solver
+# We use the convenience method which handles defaults automatically.
+# For every formulation this is the optimized fixed-iteration solver
 sol = TD.saturation_adjustment(
     params,                 # Parameter set
     TD.ρe(),                # Formulation
@@ -96,7 +96,9 @@ println("Equilibrium T: $T_equil")
 - `TD.ρe()`: Inputs: `ρ`, `e_int`, `q_tot`
 - `TD.pe()`: Inputs: `p`, `e_int`, `q_tot`
 - `TD.ph()`: Inputs: `p`, `h`, `q_tot`
+- `TD.pρ()`: Inputs: `p`, `ρ`, `q_tot`
 - `TD.pθ_li()`: Inputs: `p`, `θ_li`, `q_tot`
+- `TD.ρθ_li()`: Inputs: `ρ`, `θ_li`, `q_tot`
 
 ### **2. Phase Non-Equilibrium Calculations (Explicit Phases)**
 
@@ -186,27 +188,55 @@ params_f32 = TD.Parameters.ThermodynamicsParameters(FT)
 
 #### **Optimized Saturation Adjustment**
 
-For GPU performance, avoiding branch divergence is important. For the `ρe` formulation, use the fixed-iteration path by passing `forced_fixed_iters=true` as the last positional argument.
+For GPU performance, avoiding branch divergence is important. The convenience methods —
+those taking only `(param_set, formulation, args..., q_tot)` — are already the branch-free
+path: they run a fixed number of safeguarded Newton iterations with no convergence test, so
+every lane executes the same instructions. They accept `maxiter` as a *keyword* and return
+`(; T, q_liq, q_ice)` without a `converged` field.
 
 ```julia
-# GPU-optimized broadcasting using the convenience method
-# This automatically uses the fast, branch-free fixed-iteration solver
+# GPU-optimized broadcasting using the convenience method (conceptual:
+# ρ_gpu, e_int_gpu, and q_tot_gpu are arrays already on the device)
+# This is the fast, branch-free fixed-iteration solver
 sol = TD.saturation_adjustment.(
     Ref(params_f32),
-    Ref(TD.ρe()),
+    TD.ρe(),
     ρ_gpu, e_int_gpu, q_tot_gpu
 )
 ```
 
-For CPU single calls, you can omit the last two arguments to use the standard solver:
+The default `maxiter = 2` suits the way saturation adjustment is used in a time-stepping
+model: applied each step to a state that was near equilibrium at the previous one, so only a
+little water condenses per call. What sets the required iteration count is the gap between
+the unsaturated first guess and the solution — the warming from condensing the excess vapor.
+Across the tested profiles that gap stays under 4 K and two iterations hold the temperature
+error below `2e-3` K. Raise `maxiter` when adjusting states quenched much further from
+equilibrium — up to a few tenths of a K around a 10 K gap and of order 10 K beyond a 20 K
+gap, depending on the formulation:
 
-```julia
-# CPU single-call (uses defaults)
+```@example HowToGuide
+FT = Float32
+# A cloudy state near 290 K and 850 hPa; internal energy is measured relative
+# to the reference temperature T_0, so it is negative here.
+ρ_val, e_int_val, q_val = FT(1.0175), FT(-30923), FT(0.019)
+sol = TD.saturation_adjustment(params_f32, TD.ρe(), ρ_val, e_int_val, q_val; maxiter = 6)
+```
+
+Use the full signature when you want a convergence-tested solve and the `converged` flag. It
+takes a `RootSolvers` method type, and `maxiter`, `tol`, `T_guess`, and `forced_fixed_iters`
+as positional arguments:
+
+```@example HowToGuide
 sol = TD.saturation_adjustment(
+    RS.NewtonsMethod,
     params_f32,
     TD.ρe(),
-    ρ_val, e_int_val, q_tot_val
+    ρ_val, e_int_val, q_val,
+    20,          # maxiter
+    FT(1e-4),    # tol
 )
+sol.converged || @warn "saturation adjustment did not converge"
+sol
 ```
 
 ## Integration with Models

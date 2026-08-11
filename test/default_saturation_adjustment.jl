@@ -1,11 +1,11 @@
 """
 Tests for default convenience methods of saturation_adjustment.
 
-This suite verifies that the convenience methods with default settings (without 
-explicit solver method type) work correctly across all formulations:
+This suite verifies that the convenience methods with default settings (without
+explicit solver method type) work correctly across all formulations.
 
-- ρe: Uses RS.NewtonsMethod with forced_fixed_iters=true
-- Other formulations: Use RS.SecantMethod
+All of the convenience methods run the same safeguarded fixed-iteration Newton solver
+(`saturation_adjustment_fixed_iters`); none of them dispatches to a RootSolvers method.
 """
 
 @testset "Thermodynamics - saturation_adjustment default methods" begin
@@ -25,11 +25,20 @@ explicit solver method type) work correctly across all formulations:
             return nothing
         end
 
+        # Pressure-based counterpart, for the formulations whose independent variables
+        # include p rather than ρ.
+        function check_partition_from_p(Tsol, p0, q0, ql, qi)
+            (ql_exp, qi_exp) = TD._condensate_partition_from_p(param_set, Tsol, p0, q0)
+            @test approx_tight(ql, ql_exp)
+            @test approx_tight(qi, qi_exp)
+            return nothing
+        end
+
         @testset "ρe default method accuracy ($FT)" begin
             profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
             (; T, p, ρ, q_tot) = profiles
 
-            # Sample ~120 points across the full profile grid
+            # Sample 250 points across the full profile grid
             idxs = unique(round.(Int, range(1, length(T), length = 250)))
 
             function targets(i::Int)
@@ -102,11 +111,10 @@ explicit solver method type) work correctly across all formulations:
                 p_ρ = TD.air_pressure(param_set, T0, ρ0, q0, q_liq_ρ, q_ice_ρ)
                 θ_ρ = TD.liquid_ice_pottemp(param_set, T0, ρ0, q0, q_liq_ρ, q_ice_ρ)
 
-                # p-based targets
-                ρ_p = TD.air_density(param_set, T0, p0, q0)
-                (q_liq_p, q_ice_p) = TD.condensate_partition(param_set, T0, ρ_p, q0)
-                e_int_p = TD.internal_energy_sat(param_set, T0, ρ_p, q0)
-                h_p = TD.enthalpy_sat(param_set, T0, ρ_p, q0)
+                # p-based targets: the equilibrium partition follows from (p, T, q_tot)
+                (q_liq_p, q_ice_p) = TD._condensate_partition_from_p(param_set, T0, p0, q0)
+                e_int_p = TD._internal_energy_sat_from_p(param_set, T0, p0, q0)
+                h_p = TD._enthalpy_sat_from_p(param_set, T0, p0, q0)
                 θ_p =
                     TD.liquid_ice_pottemp_given_pressure(
                         param_set,
@@ -148,8 +156,7 @@ explicit solver method type) work correctly across all formulations:
                         atol = FT(default_atol_temperature),
                         rtol = FT(0),
                     )
-                    ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
-                    check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
+                    check_partition_from_p(T, inp.p0, inp.q0, q_liq, q_ice)
                 end
             end
 
@@ -170,8 +177,7 @@ explicit solver method type) work correctly across all formulations:
                         atol = FT(default_atol_temperature),
                         rtol = FT(0),
                     )
-                    ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
-                    check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
+                    check_partition_from_p(T, inp.p0, inp.q0, q_liq, q_ice)
                 end
             end
 
@@ -213,8 +219,7 @@ explicit solver method type) work correctly across all formulations:
                         atol = FT(default_atol_temperature),
                         rtol = FT(0),
                     )
-                    ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
-                    check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
+                    check_partition_from_p(T, inp.p0, inp.q0, q_liq, q_ice)
                 end
             end
 

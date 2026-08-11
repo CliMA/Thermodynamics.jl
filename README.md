@@ -47,6 +47,7 @@ The `Thermodynamics.jl` package implements the thermodynamic formulation of the 
 using Pkg
 Pkg.add("Thermodynamics")
 Pkg.add("ClimaParams")
+Pkg.add("RootSolvers")  # needed to select a solver for saturation adjustment
 ```
 
 ### Basic Usage
@@ -113,7 +114,7 @@ println("Converged: ",     sol.converged)
 
 ### 🔧 **Flexible Design**
 
-- **Multiple formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, h)`, `(p, θ_li)`, etc.
+- **Six formulations**: Solve for phase equilibrium from `(ρ, e_int)`, `(p, e_int)`, `(p, h)`, `(p, ρ)`, `(p, θ_li)`, or `(ρ, θ_li)`.
 - **Extensible parameters**: Easily adapt to different planetary atmospheres via `ClimaParams`.
 
 ## Core Design Principles
@@ -151,6 +152,14 @@ Thermodynamics.jl is the thermodynamic core for the [CliMA](https://github.com/C
 - [CloudMicrophysics](https://github.com/CliMA/CloudMicrophysics.jl)
 - [SurfaceFluxes](https://github.com/CliMA/SurfaceFluxes.jl)
 - [KinematicDriver](https://github.com/CliMA/KinematicDriver.jl)
+
+## Citing
+
+If you use `Thermodynamics.jl` in your research, please cite the paper describing the formulation it implements:
+
+> Yatunin, D., Byrne, S., Kawczynski, C., Kandala, S., Bozzola, G., Sridhar, A., Shen, Z., Jaruga, A., Sloan, J., He, J., Huang, D. Z., Barra, V., Chew, R., Boral, A., Chen, Y.-F., Knoth, O., Ullrich, P., Mbengue, C., and Schneider, T. (2026). The Climate Modeling Alliance Atmosphere Dynamical Core: Concepts, Numerics, and Scaling. *Journal of Advances in Modeling Earth Systems*. doi:[10.1029/2025MS005014](https://doi.org/10.1029/2025MS005014)
+
+Machine-readable metadata is in [`CITATION.cff`](CITATION.cff).
 
 ## Getting Help
 

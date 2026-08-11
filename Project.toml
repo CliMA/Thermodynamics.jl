@@ -1,7 +1,7 @@
 name = "Thermodynamics"
 uuid = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 authors = ["Climate Modeling Alliance"]
-version = "1.2.2"
+version = "1.2.3"
 
 [deps]
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
@@ -19,4 +19,4 @@ ClimaParams = "1.0.15"
 ForwardDiff = "1.0.1"
 Random = "1"
 RootSolvers = "1"
-julia = "1.6"
+julia = "1.10"

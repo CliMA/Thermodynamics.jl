@@ -43,7 +43,7 @@ Thermodynamics.jl provides a library of thermodynamic functions for the CliMA ec
 
 - For package tests, prefer `Pkg.test()` over manually `include`ing `test/runtests.jl` because test-only deps are loaded through the package test path.
 - Match existing style: explicit names, narrow imports, comments that explain why.
-- Follow the software design patterns in [docs/dev-guides/architecture/software_design_patterns.md](docs/dev-guides/architecture/software_design_patterns.md) for new code and refactor toward them when touching existing code.
+- Follow the software design patterns in [docs/dev-guides/code-quality/software_design_patterns.md](docs/dev-guides/code-quality/software_design_patterns.md) for new code and refactor toward them when touching existing code.
 - Run `julia -e 'using JuliaFormatter; format(".")'` before committing code.
 
 ## Self-correction

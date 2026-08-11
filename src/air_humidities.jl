@@ -219,7 +219,18 @@ and ice, with the liquid fraction given by the ratio `q_liq / (q_liq + q_ice)`.
 
 Note: `relative_humidity` uses `saturation_vapor_pressure(param_set, T, q_liq, q_ice)`. In
 particular, for `q_liq == q_ice == 0` it includes a small smooth transition around freezing
-(via `liquid_fraction(param_set, T, q_liq, q_ice)`).
+(via [`liquid_fraction`](@ref)).
+
+!!! warning "Two liquid-fraction parameterizations"
+    That is a *different* parameterization from the one used by [`q_vap_saturation`](@ref),
+    [`saturation_excess`](@ref), [`condensate_partition`](@ref) and the saturation
+    adjustment solvers, which use [`liquid_fraction_ramp`](@ref) — a power law between
+    `T_icenuc` and `T_freeze` rather than a 0.2 K ramp below freezing. The two agree at
+    `T_freeze` and above, but in condensate-free air well below freezing, this function
+    saturates over ice while the solver chain still carries some liquid, so
+    `relative_humidity` can differ appreciably from `q_vap / q_vap_saturation(param_set, T, ρ)`
+    computed from the same state. The difference is intentional; use
+    [`q_vap_saturation`](@ref) directly if you need consistency with the solver.
 """
 @inline function relative_humidity(
     param_set::APS,

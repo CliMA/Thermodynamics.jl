@@ -33,11 +33,20 @@ const TDTP_SA = TD.TemperatureProfiles
             return nothing
         end
 
+        # Pressure-based counterpart, for the formulations whose independent variables
+        # include p rather than ρ.
+        function check_partition_from_p(Tsol, p0, q0, ql, qi)
+            (ql_exp, qi_exp) = TD._condensate_partition_from_p(param_set, Tsol, p0, q0)
+            @test approx_tight(ql, ql_exp)
+            @test approx_tight(qi, qi_exp)
+            return nothing
+        end
+
         @testset "TestedProfiles equilibrium columns ($FT)" begin
             profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
             (; T, p, ρ, q_tot) = profiles
 
-            # Sample ~120 points across the full profile grid.
+            # Sample 250 points across the full profile grid.
             idxs = unique(round.(Int, range(1, length(T), length = 250)))
 
             # For each sampled point, compute reference targets for each formulation.
@@ -53,11 +62,13 @@ const TDTP_SA = TD.TemperatureProfiles
                 p_ρ = TD.air_pressure(param_set, T0, ρ0, q0, q_liq_ρ, q_ice_ρ)
                 θ_ρ = TD.liquid_ice_pottemp(param_set, T0, ρ0, q0, q_liq_ρ, q_ice_ρ)
 
-                # p-based targets (matches pe/ph/pθ_li internals: ρ(T) computed from (p,T,q_tot))
-                ρ_p = TD.air_density(param_set, T0, p0, q0)
-                (q_liq_p, q_ice_p) = TD.condensate_partition(param_set, T0, ρ_p, q0)
-                e_int_p = TD.internal_energy_sat(param_set, T0, ρ_p, q0)
-                h_p = TD.enthalpy_sat(param_set, T0, ρ_p, q0)
+                # p-based targets (matches pe/ph/pθ_li internals: the equilibrium
+                # partition is obtained from (p, T, q_tot) directly, so that the density
+                # is consistent with the condensate it implies)
+                (q_liq_p, q_ice_p) =
+                    TD._condensate_partition_from_p(param_set, T0, p0, q0)
+                e_int_p = TD._internal_energy_sat_from_p(param_set, T0, p0, q0)
+                h_p = TD._enthalpy_sat_from_p(param_set, T0, p0, q0)
                 θ_p =
                     TD.liquid_ice_pottemp_given_pressure(
                         param_set,
@@ -127,8 +138,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
-                        check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
+                        check_partition_from_p(T, inp.p0, inp.q0, q_liq, q_ice)
                     end
 
                     # phq
@@ -150,8 +160,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
-                        check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
+                        check_partition_from_p(T, inp.p0, inp.q0, q_liq, q_ice)
                     end
 
                     # pρ (uses ρ-based equilibrium; p target is p_ρ)
@@ -195,8 +204,7 @@ const TDTP_SA = TD.TemperatureProfiles
                             atol = FT(atol_temperature),
                             rtol = FT(0),
                         )
-                        ρ_eff = TD.air_density(param_set, T, inp.p0, inp.q0)
-                        check_partition(T, ρ_eff, inp.q0, q_liq, q_ice)
+                        check_partition_from_p(T, inp.p0, inp.q0, q_liq, q_ice)
                     end
 
                     # ρθ_li (ρ-based)
@@ -267,6 +275,98 @@ const TDTP_SA = TD.TemperatureProfiles
                     @test isfinite(elapsed) && elapsed ≥ 0
                 end
             end
+
+            @testset "All solvers agree on the reference temperature ($FT)" begin
+                # The loop above only checks that each solver returns something finite and
+                # non-negative, which would pass even if a solver were badly wrong. Check
+                # accuracy for every solver, not just the Secant method used elsewhere.
+                solvers = (
+                    RS.SecantMethod,
+                    RS.RegulaFalsiMethod,
+                    RS.BrentsMethod,
+                    RS.NewtonsMethod,
+                    RS.NewtonsMethodAD,
+                )
+                for solver in solvers, i in idxs[1:min(end, 50)]
+                    inp = targets(i)
+                    res = TD.saturation_adjustment(
+                        solver,
+                        param_set,
+                        TD.ρe(),
+                        inp.ρ0,
+                        inp.e_int_ρ,
+                        inp.q0,
+                        maxiter,
+                        tol,
+                    )
+                    @test res.converged
+                    @test isapprox(
+                        res.T,
+                        inp.T0;
+                        atol = FT(atol_temperature),
+                        rtol = FT(0),
+                    )
+                    check_partition(res.T, inp.ρ0, inp.q0, res.q_liq, res.q_ice)
+                end
+            end
+
+            @testset "T_guess and maxiter ($FT)" begin
+                # `T_guess` was never exercised anywhere in the suite. A good guess, a
+                # deliberately poor one, and none at all must all reach the same answer.
+                for i in idxs[1:min(end, 50)]
+                    inp = targets(i)
+                    for T_guess in
+                        (nothing, inp.T0, inp.T0 + FT(30), inp.T0 - FT(30), FT(200))
+                        res = TD.saturation_adjustment(
+                            RS.NewtonsMethod,
+                            param_set,
+                            TD.ρe(),
+                            inp.ρ0,
+                            inp.e_int_ρ,
+                            inp.q0,
+                            maxiter,
+                            tol,
+                            T_guess,
+                        )
+                        @test res.converged
+                        @test isapprox(
+                            res.T,
+                            inp.T0;
+                            atol = FT(atol_temperature),
+                            rtol = FT(0),
+                        )
+                    end
+                end
+
+                # A converged solve should be insensitive to the iteration budget once it
+                # is large enough to converge.
+                inp = targets(first(idxs))
+                T_ref =
+                    TD.saturation_adjustment(
+                        RS.NewtonsMethod,
+                        param_set,
+                        TD.ρe(),
+                        inp.ρ0,
+                        inp.e_int_ρ,
+                        inp.q0,
+                        maxiter,
+                        tol,
+                    ).T
+                for m in (10, 20, 40, 80)
+                    res = TD.saturation_adjustment(
+                        RS.NewtonsMethod,
+                        param_set,
+                        TD.ρe(),
+                        inp.ρ0,
+                        inp.e_int_ρ,
+                        inp.q0,
+                        m,
+                        tol,
+                    )
+                    @test res.converged
+                    @test isapprox(res.T, T_ref; atol = FT(atol_temperature))
+                end
+            end
         end
 
         @testset "TemperatureProfiles smoke convergence ($FT)" begin
@@ -296,9 +396,8 @@ const TDTP_SA = TD.TemperatureProfiles
                 e_int_ρ = TD.internal_energy_sat(param_set, T0, ρ0, q0)
 
                 # p-based targets computed using the mapping the implementation uses
-                ρ_p = TD.air_density(param_set, T0, p0, q0)
-                e_int_p = TD.internal_energy_sat(param_set, T0, ρ_p, q0)
-                h_p = TD.enthalpy_sat(param_set, T0, ρ_p, q0)
+                e_int_p = TD._internal_energy_sat_from_p(param_set, T0, p0, q0)
+                h_p = TD._enthalpy_sat_from_p(param_set, T0, p0, q0)
 
                 # Quick smoke: ensure each IndepVars converges and returns a self-consistent partition
                 let (; T, q_liq, q_ice) = TD.saturation_adjustment(
@@ -326,8 +425,7 @@ const TDTP_SA = TD.TemperatureProfiles
                         tol,
                     )
                     @test isfinite(T)
-                    ρ_eff = TD.air_density(param_set, T, p0, q0)
-                    check_partition(T, ρ_eff, q0, q_liq, q_ice)
+                    check_partition_from_p(T, p0, q0, q_liq, q_ice)
                 end
 
                 let (; T, q_liq, q_ice) = TD.saturation_adjustment(
@@ -341,8 +439,7 @@ const TDTP_SA = TD.TemperatureProfiles
                         tol,
                     )
                     @test isfinite(T)
-                    ρ_eff = TD.air_density(param_set, T, p0, q0)
-                    check_partition(T, ρ_eff, q0, q_liq, q_ice)
+                    check_partition_from_p(T, p0, q0, q_liq, q_ice)
                 end
             end
         end

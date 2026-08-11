@@ -9,26 +9,65 @@ import ClimaParams as CP
 include("TestedProfiles.jl")
 
 # Determine array type.
-# - If ARGS[1] is "CuArray" or "Array", honor it.
-# - Otherwise, default to GPU when CUDA is available and functional.
+# - If ARGS[1] is "CuArray" or "Array", honor it. "CuArray" is a hard requirement: if CUDA
+#   is unavailable the run fails rather than quietly testing the CPU.
+# - With no argument, use the GPU when CUDA is functional. Otherwise fail, unless
+#   THERMODYNAMICS_ALLOW_CPU_FALLBACK is set.
+#
+# The silent fallback this replaces meant that a CI agent whose GPU was broken produced a
+# green run labelled "GPU tests" while exercising nothing but the CPU.
+# Load CUDA here, at top level, rather than inside the function below. `import` executed
+# inside a function defines its methods in a world age newer than that function's own, so a
+# `CUDA.functional()` call in the same body fails with "method too new to be called from
+# this world context" — which looks like an absent GPU rather than the loading bug it is.
+# Top-level statements each see the world created by the ones before them, so this is safe.
+const CUDA_LOAD_ERROR = try
+    @eval import CUDA
+    nothing
+catch err
+    sprint(showerror, err)
+end
+
+"""
+    _cuda_unavailable_reason() -> Union{Nothing, String}
+
+Return `nothing` if a usable CUDA device is present, or a short description of why not.
+Covers both a missing/unloadable CUDA package and a present one that reports no device.
+"""
+function _cuda_unavailable_reason()
+    isnothing(CUDA_LOAD_ERROR) || return "CUDA could not be loaded ($CUDA_LOAD_ERROR)"
+    # `invokelatest` in case the import above only just became visible.
+    return Base.invokelatest(CUDA.functional) ? nothing :
+           "CUDA.functional() returned false"
+end
+
 arg = get(ARGS, 1, "")
+allow_cpu_fallback = get(ENV, "THERMODYNAMICS_ALLOW_CPU_FALLBACK", "false") == "true"
+
 if arg == "Array"
     ArrayType = Array
 elseif arg == "CuArray"
-    import CUDA
+    reason = _cuda_unavailable_reason()
+    isnothing(reason) || error(
+        "GPU tests were requested with `CuArray`, but CUDA is not usable ($reason). " *
+        "Pass `Array` to run these tests on the CPU deliberately.",
+    )
     ArrayType = CUDA.CuArray
     CUDA.allowscalar(false)
 else
-    ArrayType = try
-        import CUDA
-        if CUDA.functional()
-            CUDA.allowscalar(false)
-            CUDA.CuArray
-        else
-            Array
-        end
-    catch
-        Array
+    reason = _cuda_unavailable_reason()
+    if isnothing(reason)
+        ArrayType = CUDA.CuArray
+        CUDA.allowscalar(false)
+    elseif allow_cpu_fallback
+        @warn "Falling back to CPU: these tests will not exercise any GPU kernel" reason
+        ArrayType = Array
+    else
+        error(
+            "GPU tests could not reach a GPU ($reason). Falling back to the CPU silently " *
+            "would report success without testing a single kernel. Pass `Array` to run on " *
+            "the CPU deliberately, or set THERMODYNAMICS_ALLOW_CPU_FALLBACK=true.",
+        )
     end
 end
 
@@ -79,13 +118,14 @@ end
     p_ρ = TD.air_pressure.(Ref(param_set), T0, ρ0, q0, q_liq0, q_ice0)
     θ_ρ = TD.liquid_ice_pottemp.(Ref(param_set), T0, ρ0, q0, q_liq0, q_ice0)
 
-    # p-based targets (match pe/ph/pθ internals: ρ(T) = air_density(T,p,q_tot))
+    # p-based targets (match pe/ph/pθ internals: the equilibrium partition is taken from
+    # (p, T, q_tot) directly, so the density is consistent with the condensate it implies)
     p0 = profiles.p[sl]
-    ρ_p = TD.air_density.(Ref(param_set), T0, p0, q0)
     (q_liq_p, q_ice_p) =
-        TD.condensate_partition.(Ref(param_set), T0, ρ_p, q0) |> x -> (first.(x), last.(x))
-    e_int_p = TD.internal_energy_sat.(Ref(param_set), T0, ρ_p, q0)
-    h_p = TD.enthalpy_sat.(Ref(param_set), T0, ρ_p, q0)
+        TD._condensate_partition_from_p.(Ref(param_set), T0, p0, q0) |>
+        x -> (first.(x), last.(x))
+    e_int_p = TD._internal_energy_sat_from_p.(Ref(param_set), T0, p0, q0)
+    h_p = TD._enthalpy_sat_from_p.(Ref(param_set), T0, p0, q0)
     θ_p =
         TD.liquid_ice_pottemp_given_pressure.(Ref(param_set), T0, p0, q0, q_liq_p, q_ice_p)
 
@@ -615,5 +655,186 @@ end
         θ_dev = TD.liquid_ice_pottemp.(Ref(param_set), dT0, dρ0, dq0, dql0, dqi0)
         θ_cpu = TD.liquid_ice_pottemp.(Ref(param_set), T0, ρ0, q0, q_liq0, q_ice0)
         @test all(Array(θ_dev) .≈ θ_cpu)
+    end
+end
+
+"""
+    test_device_broadcasts(::Type{FT}, ArrayType)
+
+Broadcast the saturation-adjustment machinery on the device and compare against the CPU.
+
+The three functions checked above cover only a small part of what a model actually calls.
+The functions here are the ones the fixed-iteration solver evaluates on every iteration —
+the phase partitioning, the saturation functions, and all six analytic derivatives — so a
+kernel-lowering failure in any of them would otherwise surface only in a downstream model.
+"""
+function test_device_broadcasts(::Type{FT}, ArrayType) where {FT}
+    param_set = parameter_set(FT)
+    profiles = TestedProfiles.EquilMoistProfiles(param_set, Array{FT})
+    n = min(length(profiles.z), 256)
+    sl = 1:n
+    T = profiles.T[sl]
+    ρ = profiles.ρ[sl]
+    q_tot = profiles.q_tot[sl]
+    q_liq = profiles.q_liq[sl]
+    q_ice = profiles.q_ice[sl]
+    p = TD.air_pressure.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
+
+    dT, dρ, dp = ArrayType(T), ArrayType(ρ), ArrayType(p)
+    dq, dql, dqi = ArrayType(q_tot), ArrayType(q_liq), ArrayType(q_ice)
+
+    # (name, device call, CPU call). Each is compared elementwise.
+    cases = (
+        (
+            "saturation_vapor_pressure",
+            () -> TD.saturation_vapor_pressure.(Ref(param_set), dT),
+            () -> TD.saturation_vapor_pressure.(Ref(param_set), T),
+        ),
+        (
+            "q_vap_saturation",
+            () -> TD.q_vap_saturation.(Ref(param_set), dT, dρ),
+            () -> TD.q_vap_saturation.(Ref(param_set), T, ρ),
+        ),
+        (
+            "q_vap_saturation_from_pressure",
+            () -> TD.q_vap_saturation_from_pressure.(Ref(param_set), dq, dp, dT),
+            () -> TD.q_vap_saturation_from_pressure.(Ref(param_set), q_tot, p, T),
+        ),
+        (
+            "liquid_fraction_ramp",
+            () -> TD.liquid_fraction_ramp.(Ref(param_set), dT),
+            () -> TD.liquid_fraction_ramp.(Ref(param_set), T),
+        ),
+        (
+            "saturation_excess",
+            () -> TD.saturation_excess.(Ref(param_set), dT, dρ, dq),
+            () -> TD.saturation_excess.(Ref(param_set), T, ρ, q_tot),
+        ),
+        (
+            "relative_humidity",
+            () -> TD.relative_humidity.(Ref(param_set), dT, dp, dq, dql, dqi),
+            () -> TD.relative_humidity.(Ref(param_set), T, p, q_tot, q_liq, q_ice),
+        ),
+        (
+            "latent_heat_vapor",
+            () -> TD.latent_heat_vapor.(Ref(param_set), dT),
+            () -> TD.latent_heat_vapor.(Ref(param_set), T),
+        ),
+        (
+            "entropy",
+            () -> TD.entropy.(Ref(param_set), dp, dT, dq, dql, dqi),
+            () -> TD.entropy.(Ref(param_set), p, T, q_tot, q_liq, q_ice),
+        ),
+        # The solver's inner loop: the saturation-humidity derivative and all six
+        # formulation-specific Jacobians.
+        (
+            "∂q_vap_sat_∂T",
+            () -> TD.∂q_vap_sat_∂T.(Ref(param_set), dT, dρ),
+            () -> TD.∂q_vap_sat_∂T.(Ref(param_set), T, ρ),
+        ),
+        (
+            "∂e_int_∂T_sat_ρ",
+            () -> TD.∂e_int_∂T_sat_ρ.(Ref(param_set), dT, dρ, dq),
+            () -> TD.∂e_int_∂T_sat_ρ.(Ref(param_set), T, ρ, q_tot),
+        ),
+        (
+            "∂e_int_∂T_sat_p",
+            () -> TD.∂e_int_∂T_sat_p.(Ref(param_set), dT, dp, dq),
+            () -> TD.∂e_int_∂T_sat_p.(Ref(param_set), T, p, q_tot),
+        ),
+        (
+            "∂h_∂T_sat_p",
+            () -> TD.∂h_∂T_sat_p.(Ref(param_set), dT, dp, dq),
+            () -> TD.∂h_∂T_sat_p.(Ref(param_set), T, p, q_tot),
+        ),
+        (
+            "∂θ_li_∂T_sat_ρ",
+            () -> TD.∂θ_li_∂T_sat_ρ.(Ref(param_set), dT, dρ, dq),
+            () -> TD.∂θ_li_∂T_sat_ρ.(Ref(param_set), T, ρ, q_tot),
+        ),
+        (
+            "∂θ_li_∂T_sat_p",
+            () -> TD.∂θ_li_∂T_sat_p.(Ref(param_set), dT, dp, dq),
+            () -> TD.∂θ_li_∂T_sat_p.(Ref(param_set), T, p, q_tot),
+        ),
+        (
+            "∂p_∂T_sat_ρ",
+            () -> TD.∂p_∂T_sat_ρ.(Ref(param_set), dT, dρ, dq),
+            () -> TD.∂p_∂T_sat_ρ.(Ref(param_set), T, ρ, q_tot),
+        ),
+    )
+
+    for (name, dev_call, cpu_call) in cases
+        @testset "$name ($FT)" begin
+            dev = Array(dev_call())
+            cpu = cpu_call()
+            @test all(isfinite, dev)
+            @test all(dev .≈ cpu)
+        end
+    end
+
+    @testset "condensate_partition ($FT)" begin
+        # Returns a tuple, so it is broadcast into a device array of tuples.
+        dev = Array(TD.condensate_partition.(Ref(param_set), dT, dρ, dq))
+        cpu = TD.condensate_partition.(Ref(param_set), T, ρ, q_tot)
+        @test all(first.(dev) .≈ first.(cpu))
+        @test all(last.(dev) .≈ last.(cpu))
+    end
+
+    @testset "saturation_adjustment, all formulations ($FT)" begin
+        # `IndepVars` is broadcastable, so the formulation singleton needs no `Ref`.
+        h = TD.enthalpy.(Ref(param_set), T, q_tot, q_liq, q_ice)
+        e_int = TD.internal_energy.(Ref(param_set), T, q_tot, q_liq, q_ice)
+        θ_p =
+            TD.liquid_ice_pottemp_given_pressure.(
+                Ref(param_set),
+                T,
+                p,
+                q_tot,
+                q_liq,
+                q_ice,
+            )
+        θ_ρ = TD.liquid_ice_pottemp.(Ref(param_set), T, ρ, q_tot, q_liq, q_ice)
+
+        for (indep_vars, var₁, var₂) in (
+            (TD.ρe(), ρ, e_int),
+            (TD.pe(), p, e_int),
+            (TD.ph(), p, h),
+            (TD.pρ(), p, ρ),
+            (TD.pθ_li(), p, θ_p),
+            (TD.ρθ_li(), ρ, θ_ρ),
+        )
+            d₁, d₂ = ArrayType(var₁), ArrayType(var₂)
+            dev = Array(
+                TD.saturation_adjustment.(
+                    Ref(param_set),
+                    indep_vars,
+                    d₁,
+                    d₂,
+                    ArrayType(q_tot),
+                ),
+            )
+            cpu = TD.saturation_adjustment.(
+                Ref(param_set),
+                indep_vars,
+                var₁,
+                var₂,
+                q_tot,
+            )
+            @test all(x -> isfinite(x.T), dev)
+            @test all(getproperty.(dev, :T) .≈ getproperty.(cpu, :T))
+            @test all(getproperty.(dev, :q_liq) .≈ getproperty.(cpu, :q_liq))
+            @test all(getproperty.(dev, :q_ice) .≈ getproperty.(cpu, :q_ice))
+        end
+    end
+
+    return nothing
+end
+
+# Float32 is what models run at; Float64 is included to catch promotion bugs that a
+# Float32-only run cannot see.
+@testset "Thermodynamics - device broadcasts" begin
+    for FT in (Float32, Float64)
+        test_device_broadcasts(FT, ArrayType)
     end
 end

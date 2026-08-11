@@ -1,5 +1,5 @@
 using Thermodynamics
-using Documenter, DocumenterCitations, Literate, Printf
+using Documenter, DocumenterCitations
 
 # https://github.com/jheinen/GR.jl/issues/278#issuecomment-587090846
 ENV["GKSwstype"] = "nul"
