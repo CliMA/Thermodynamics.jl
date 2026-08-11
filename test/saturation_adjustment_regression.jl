@@ -205,6 +205,113 @@ end
             end
         end
 
+        @testset "Derivatives match the residual the solver iterates on ($FT)" begin
+            # The fixed-iteration solvers evaluate the residual on the analytic
+            # continuation of the saturated branch (`Val(false)`, negative saturation
+            # excess allowed). The derivative helpers used to compute with a clamped
+            # excess regardless, so in the mixed-phase ramp — where ∂λ/∂T is non-zero and
+            # the two differ — the derivative was ~1-2% wrong and the quadratic
+            # convergence the default `maxiter` relies on degraded.
+            δ = FT === Float32 ? FT(2e-2) : FT(1e-5)
+            rtol = FT === Float32 ? FT(2e-2) : FT(1e-4)
+
+            e_cont(t, ρ, q) = TD.internal_energy_sat(param_set, t, ρ, q, Val(false))
+            h_cont(t, p, q) = TD._enthalpy_sat_from_p(param_set, t, p, q, Val(false))
+            function θρ_cont(t, ρ, q)
+                (ql, qi) = TD.condensate_partition(param_set, t, ρ, q, Val(false))
+                TD.liquid_ice_pottemp(param_set, t, ρ, q, ql, qi)
+            end
+            function θp_cont(t, p, q)
+                (ql, qi) = TD._condensate_partition_from_p(param_set, t, p, q, Val(false))
+                TD.liquid_ice_pottemp_given_pressure(param_set, t, p, q, ql, qi)
+            end
+
+            # Subsaturated points inside the ramp, where clamped and unclamped differ
+            for (T, q_tot) in
+                ((FT(270), FT(0.003)), (FT(272), FT(0.003)), (FT(265), FT(0.002)))
+                ρ = FT(0.9)
+                p = TD.air_pressure(param_set, T, ρ, q_tot)
+                for (f, an) in (
+                    (t -> e_cont(t, ρ, q_tot),
+                        TD.∂e_int_∂T_sat_ρ(param_set, T, ρ, q_tot, Val(false))),
+                    (t -> h_cont(t, p, q_tot),
+                        TD.∂h_∂T_sat_p(param_set, T, p, q_tot, Val(false))),
+                    (t -> θρ_cont(t, ρ, q_tot),
+                        TD.∂θ_li_∂T_sat_ρ(param_set, T, ρ, q_tot, Val(false))),
+                    (t -> θp_cont(t, p, q_tot),
+                        TD.∂θ_li_∂T_sat_p(param_set, T, p, q_tot, Val(false))),
+                )
+                    fd = (f(T + δ) - f(T - δ)) / (2δ)
+                    @test isapprox(an, fd; rtol = rtol)
+                end
+            end
+        end
+
+        @testset "Saturation humidity derivative is zero where it is capped ($FT)" begin
+            # `q_vap_saturation_from_pressure_calc` returns the constant 1 once the
+            # saturation vapor pressure reaches the total pressure, so the derivative of
+            # what it computes there is zero, not the uncapped Clausius-Clapeyron slope.
+            T = FT(400)          # p_v_sat far exceeds p
+            p = FT(1000)
+            q_tot = FT(0.02)
+            λ = TD.liquid_fraction_ramp(param_set, T)
+            @test TD.saturation_vapor_pressure_mixture(param_set, T, λ) > p
+            @test TD.q_vap_saturation_from_pressure(param_set, q_tot, p, T) == FT(1)
+            vars = TD._saturation_derivative_vars_p(param_set, T, p, q_tot)
+            @test vars.∂qvs_∂T == 0
+        end
+
+        @testset "Convergence flag is neither vacuous nor wrong ($FT)" begin
+            (; ρ, q_liq, q_ice) =
+                equilibrium_state_ρ(param_set, FT(300), FT(100000), FT(0.03))
+            e_int = TD.internal_energy(param_set, FT(300), FT(0.03), q_liq, q_ice)
+            T_fixed_point =
+                TD.saturation_adjustment_fixed_iters(
+                    param_set,
+                    TD.ρe(),
+                    ρ,
+                    e_int,
+                    FT(0.03),
+                    40,
+                ).T
+
+            for m in (2, 3, 5, 8, 12)
+                r = TD.saturation_adjustment_fixed_iters(
+                    param_set,
+                    TD.ρe(),
+                    ρ,
+                    e_int,
+                    FT(0.03),
+                    m,
+                )
+                # No false positives: anything flagged converged really is converged.
+                if r.converged
+                    @test abs(r.T - T_fixed_point) < FT(1e-3)
+                end
+            end
+            # And it is reachable: a well-iterated solve is not reported as a failure.
+            r_many = TD.saturation_adjustment_fixed_iters(
+                param_set,
+                TD.ρe(),
+                ρ,
+                e_int,
+                FT(0.03),
+                12,
+            )
+            @test r_many.converged
+        end
+
+        @testset "A step stopped by the guards is not called converged ($FT)" begin
+            # `_newton_update` reports the increment Newton requested, not the one that
+            # survived clamping. Returning the applied increment made a step cut off at
+            # `T_init_min` look like a settled iteration.
+            T_floor = FT(TP.T_init_min(param_set))
+            (T_new, ΔT) = TD._newton_update(param_set, T_floor, FT(-1000))
+            @test T_new == T_floor           # the guard held
+            @test ΔT == FT(-1000)            # but the requested step is reported
+            @test !TD._fixed_iters_converged(T_new, ΔT)
+        end
+
         @testset "Cold unsaturated states are not clamped ($FT)" begin
             # For an unsaturated state the no-condensate temperature is the exact answer.
             # It used to be replaced by `max(T_init_min, T_unsat)`, so any state colder

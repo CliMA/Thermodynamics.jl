@@ -4,6 +4,26 @@ Thermodynamics.jl Release Notes
 main
 --------
 
+- ![][badge-🐛bugfix] The analytic derivatives used by the fixed-iteration solvers computed
+  the phase partition with a clamped saturation excess, while the residual they differentiate
+  uses the unclamped analytic continuation. In the mixed-phase ramp, where the two differ and
+  `∂λ/∂T` is non-zero, the derivative was 1-2% wrong, degrading the quadratic convergence the
+  default iteration count relies on. The clamping flag is now threaded through, and all six
+  derivatives match finite differences of their own residual to round-off.
+- ![][badge-🐛bugfix] `∂q_v^*/∂T` at fixed pressure was non-zero in the regime where
+  `q_vap_saturation_from_pressure` saturates at its cap of 1 and is therefore constant. It is
+  now zero there, matching the value the function actually returns.
+- ![][badge-🐛bugfix] The convergence flag of the fixed-iteration solvers was both too strict
+  and too permissive. It compared the last Newton increment against a tolerance appropriate
+  to the *error*, so a solve accurate to 1e-9 K reported failure; and it used the increment
+  that survived step limiting, so a step cut off at `T_init_min` looked like a settled
+  iteration. It now tests the increment Newton requested against a fixed relative tolerance,
+  which behaves identically in both precisions: over a sweep of saturated states, everything
+  reported converged agrees with the fixed point to better than 3e-5 K.
+- ![][badge-🐛bugfix] Added the missing `ReLU` temperature guard to the `ρθ_li` and `pρ`
+  non-Newton root functions, the only two of the twelve without it. `liquid_ice_pottemp`
+  takes `log(p/p₀)` with `p = ρ R_m T`, so a negative iterate could still throw.
+
 - ![][badge-🐛bugfix] Saturation adjustment returned `max(T_init_min, T_unsat)` rather than
   `T_unsat` for unsaturated states, so any state colder than `T_init_min` (150 K) silently
   came back as 150 K — an error of up to ~100 K at the cold end, reported as converged. For

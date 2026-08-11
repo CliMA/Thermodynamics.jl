@@ -395,7 +395,10 @@ branch. The unsaturated solution is returned unmodified by [`_select_solution`](
     ΔT_max = FT(50)
     ΔT = clamp(ΔT_raw, -ΔT_max, ΔT_max)
     T_new = max(T_init_min, T + ΔT)
-    return (T_new, T_new - T)
+    # Return the increment Newton *asked* for, not the one that survived the guards. The
+    # applied increment is zero whenever a step is cut off at `T_init_min`, which would
+    # otherwise read as a settled iteration rather than a step the guards had to stop.
+    return (T_new, ΔT_raw)
 end
 
 """
@@ -456,17 +459,27 @@ temperature.
 
 # Arguments
  - `T`: final temperature [K]
- - `ΔT`: increment applied by the final iteration [K]
+ - `ΔT`: increment requested by the final Newton step [K], before step limiting
 
 # Returns
- - `converged`: `true` when the last increment left the temperature essentially unchanged
+ - `converged`: `true` when the remaining error is at the level of round-off
 
 This is a test on the iteration itself, not on a residual: the fixed-iteration solvers take
-a set number of steps and never evaluate a stopping criterion. A small final increment means
-the iteration has settled; a large one means `maxiter` ran out before it did.
+a set number of steps and never evaluate a stopping criterion.
+
+The tolerance is a fixed relative temperature, not one derived from `eps`. Because Newton
+converges quadratically here, an increment this small leaves an error far below it, so the
+test is conservative: measured against the fixed point of the iteration, states reported as
+converged agree to better than 3e-3 K. Tying the tolerance to `eps` instead would make the
+flag mean different things in different precisions — `sqrt(eps)` is so tight in `Float64`
+that solutions accurate to 1e-9 K report failure, while `eps^(1/4)` is loose enough in
+`Float32` to accept errors of several K.
 """
 @inline function _fixed_iters_converged(T, ΔT)
-    rtol = sqrt(eps(typeof(T)))
+    FT = typeof(T)
+    # An increment below 1e-5 T is a few mK at atmospheric temperatures, and is reachable
+    # in Float32 (~80x its eps) as well as Float64.
+    rtol = FT(1e-5)
     return isfinite(T) & (abs(ΔT) <= rtol * abs(T))
 end
 
@@ -953,9 +966,10 @@ end
     θ_li,
     q_tot,
 ) where {M}
-    return T -> begin
-        (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-        liquid_ice_pottemp(param_set, T, ρ, q_tot, _q_liq, _q_ice) - θ_li
+    return _T -> begin
+        T_val = ReLU(_T)
+        (_q_liq, _q_ice) = condensate_partition(param_set, T_val, ρ, q_tot)
+        liquid_ice_pottemp(param_set, T_val, ρ, q_tot, _q_liq, _q_ice) - θ_li
     end
 end
 
@@ -984,9 +998,10 @@ end
     ρ,
     q_tot,
 ) where {M}
-    return T -> begin
-        (_q_liq, _q_ice) = condensate_partition(param_set, T, ρ, q_tot)
-        air_pressure(param_set, T, ρ, q_tot, _q_liq, _q_ice) - p
+    return _T -> begin
+        T_val = ReLU(_T)
+        (_q_liq, _q_ice) = condensate_partition(param_set, T_val, ρ, q_tot)
+        air_pressure(param_set, T_val, ρ, q_tot, _q_liq, _q_ice) - p
     end
 end
 
@@ -1123,9 +1138,11 @@ denominator as well. It approaches 1 when `p_v^* ≪ p` but grows in warm, moist
     ∂lnp_v_sat_∂T = L / (R_v * T^2) + ∂lnp_∂λ * ∂λ_∂T
 
     # Guard the denominator the same way q_vap_saturation_from_pressure_calc does, so that
-    # p approaching p_v_sat cannot produce a division by zero inside a kernel.
+    # p approaching p_v_sat cannot produce a division by zero inside a kernel. In that
+    # regime that function returns the constant 1, so the derivative of what it actually
+    # computes is zero — using 1 here would differentiate a value it never returns.
     Δp = p - p_v_sat
-    amplification = ifelse(Δp ≥ ϵ_numerics(FT), p / Δp, one(Δp))
+    amplification = ifelse(Δp ≥ ϵ_numerics(FT), p / Δp, zero(Δp))
     ∂qvs_∂T = q_vap_sat * ∂lnp_v_sat_∂T * amplification
 
     ∂q_liq_∂T = ∂λ_∂T * q_c + λ * (-∂qvs_∂T)
@@ -1261,7 +1278,7 @@ end
 # -------------------------------
 
 """
-    _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, ::Val{:ρ})
+    _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, ::Val{:ρ}, clamped)
 
 Helper to compute common intermediate variables for saturation derivatives at fixed
 density. The fixed-pressure counterpart is `_saturation_derivative_vars_p`, which takes
@@ -1271,6 +1288,10 @@ Returns a named tuple with phase partition and derivative information:
 - `λ`, `q_c`, `q_liq`, `q_ice`: Phase partition variables
 - `∂λ_∂T`, `∂qvs_∂T`: Temperature derivatives of liquid fraction and saturation humidity
 - `∂q_liq_∂T`, `∂q_ice_∂T`: Phase partition derivatives
+
+`clamped` must match the setting used for the residual being differentiated: with
+`Val(false)` the saturation excess is allowed to go negative, so that the derivative
+describes the same analytic continuation the fixed-iteration solvers iterate on.
 """
 @inline function _saturation_derivative_vars(
     param_set::APS,
@@ -1279,9 +1300,10 @@ Returns a named tuple with phase partition and derivative information:
     q_tot,
     q_vap_sat,
     ::Val{:ρ},
+    clamped::Val = Val(true),
 )
     λ = liquid_fraction_ramp(param_set, T)
-    q_c = saturation_excess(param_set, T, ρ, q_tot)
+    q_c = saturation_excess(param_set, T, ρ, q_tot, clamped)
     q_liq = λ * q_c
     q_ice = (1 - λ) * q_c
 
@@ -1339,7 +1361,15 @@ see `_select_sat_branch`.
     unsat_branch::Val = Val(true),
 )
     q_vap_sat = q_vap_saturation(param_set, T, ρ)
-    vars = _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, Val(:ρ))
+    vars = _saturation_derivative_vars(
+        param_set,
+        T,
+        ρ,
+        q_tot,
+        q_vap_sat,
+        Val(:ρ),
+        unsat_branch,
+    )
 
     (c_unsat, de_dT_sat) =
         _∂energy_∂T_sat(param_set, T, q_tot, vars, cv_m, internal_energy_vapor,
@@ -1408,7 +1438,7 @@ by an additional `q_vap_sat / T` term.
     q_tot,
     unsat_branch::Val = Val(true),
 )
-    vars = _saturation_derivative_vars_p(param_set, T, p, q_tot)
+    vars = _saturation_derivative_vars_p(param_set, T, p, q_tot, unsat_branch)
 
     (c_unsat, de_dT_sat) =
         _∂energy_∂T_sat(param_set, T, q_tot, vars, cv_m, internal_energy_vapor,
@@ -1432,7 +1462,7 @@ Structured identically to [`∂e_int_∂T_sat_p`](@ref) but with component entha
     q_tot,
     unsat_branch::Val = Val(true),
 )
-    vars = _saturation_derivative_vars_p(param_set, T, p, q_tot)
+    vars = _saturation_derivative_vars_p(param_set, T, p, q_tot, unsat_branch)
 
     (c_unsat, dh_dT_sat) = _∂energy_∂T_sat(param_set, T, q_tot, vars, cp_m,
         enthalpy_vapor, enthalpy_liquid, enthalpy_ice)
@@ -1456,7 +1486,7 @@ each factor through the T-dependent phase partition.
     q_tot,
     unsat_branch::Val = Val(true),
 )
-    vars = _saturation_derivative_vars_p(param_set, T, p, q_tot)
+    vars = _saturation_derivative_vars_p(param_set, T, p, q_tot, unsat_branch)
     st = _θ_li_derivative_state(param_set, T, p, q_tot, vars)
 
     # At fixed p only α varies with T: ∂θ/∂T = θ (1/T + ln(p₀/p) ∂α/∂T)
@@ -1554,7 +1584,15 @@ relative to the fixed-p Clausius–Clapeyron form.
     unsat_branch::Val = Val(true),
 )
     q_vap_sat = q_vap_saturation(param_set, T, ρ)
-    vars = _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, Val(:ρ))
+    vars = _saturation_derivative_vars(
+        param_set,
+        T,
+        ρ,
+        q_tot,
+        q_vap_sat,
+        Val(:ρ),
+        unsat_branch,
+    )
 
     R_m = gas_constant_air(param_set, q_tot, vars.q_liq, vars.q_ice)
     p = ρ * R_m * T  # ideal gas at fixed ρ
@@ -1608,7 +1646,15 @@ Unsaturated: `R_m` is constant, so `∂p/∂T = ρ R_m`.
     R_m_unsat = gas_constant_air(param_set, q_tot, zero(q_tot), zero(q_tot))
     dp_dT_unsat = ρ * R_m_unsat
 
-    vars = _saturation_derivative_vars(param_set, T, ρ, q_tot, q_vap_sat, Val(:ρ))
+    vars = _saturation_derivative_vars(
+        param_set,
+        T,
+        ρ,
+        q_tot,
+        q_vap_sat,
+        Val(:ρ),
+        unsat_branch,
+    )
     R_m = gas_constant_air(param_set, q_tot, vars.q_liq, vars.q_ice)
 
     # ∂R_m/∂T
