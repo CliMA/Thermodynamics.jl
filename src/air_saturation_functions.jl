@@ -312,7 +312,7 @@ The two-argument form `saturation_vapor_pressure(param_set, T)` uses
 
 The four-argument form `saturation_vapor_pressure(param_set, T, q_liq, q_ice)` uses
 [`liquid_fraction`](@ref), which returns `q_liq / (q_liq + q_ice)` when condensate is
-present, or a ±0.1 K linear ramp around `T_freeze` when there is no condensate.
+present, or a linear ramp over `[T_freeze - 0.2 K, T_freeze]` when there is no condensate.
 
 As a result, `saturation_vapor_pressure(param_set, T, 0, 0)` and
 `saturation_vapor_pressure(param_set, T)` give the same value at `T_freeze` (both λ=1)
@@ -497,10 +497,13 @@ and is set to 1 if `p - p_v_sat` is less than machine epsilon.
     FT = eltype(param_set)
     R_v = TP.R_v(param_set)
     R_d = TP.R_d(param_set)
+    q_v_sat_uncapped = R_d / R_v * (1 - q_tot) * p_v_sat / (p - p_v_sat)
+    # Both branches must share a type: a bare `FT(1)` makes the return type a Union when
+    # the arguments are wider than `FT` (Float64 inputs with a Float32 parameter set).
     q_v_sat = ifelse(
         p - p_v_sat ≥ ϵ_numerics(FT),
-        R_d / R_v * (1 - q_tot) * p_v_sat / (p - p_v_sat),
-        FT(1),
+        q_v_sat_uncapped,
+        oftype(q_v_sat_uncapped, 1),
     )
     return q_v_sat
 end

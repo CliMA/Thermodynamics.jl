@@ -31,7 +31,7 @@ One entry point is [`saturation_adjustment`](@ref). It accepts:
 - Thermodynamic state variables appropriate for the formulation.
 
 Supported methods in RootSolvers.jl:
-- `NewtonsMethod`: Newton method with analytic gradients (recommended for `ρe`).
+- `NewtonsMethod`: Newton method with analytic gradients (recommended; analytic derivatives exist for all formulations).
 - `NewtonsMethodAD`: Newton method with automatic differentiation.
 - `SecantMethod`: Secant method (derivative-free).
 - `BrentsMethod`: Brent's method (hybrid root-finding).

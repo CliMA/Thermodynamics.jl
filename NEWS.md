@@ -43,7 +43,8 @@ v1.2.3
   that survived step limiting, so a step cut off at `T_init_min` looked like a settled
   iteration. It now tests the increment Newton requested against a fixed relative tolerance,
   which behaves identically in both precisions: over a sweep of saturated states, everything
-  reported converged agrees with the fixed point to better than 3e-5 K.
+  reported converged agrees with the fixed point to better than 1e-4 K (3e-5 K in
+  `Float32`, 2e-7 K in `Float64`).
 - ![][badge-🐛bugfix] Saturation adjustment returned `max(T_init_min, T_unsat)` rather than
   `T_unsat` for unsaturated states, so any state colder than `T_init_min` (150 K) silently
   came back as 150 K — an error of up to ~100 K at the cold end, reported as converged. For
@@ -59,7 +60,9 @@ v1.2.3
   not been true since it was made total. Every quantity the iteration evaluates is finite
   for any strictly positive temperature, so the solvers now start from `T_unsat` directly,
   keep iterates positive by letting a step lose at most half the current temperature, and
-  floor starting values only at `sqrt(eps)` — a numerics bound, not a physical one. Cold
+  floor starting values at `sqrt(eps)` — a numerics bound, not a physical one (the
+  convergence-tested path additionally respects the user-settable search bound `T_min`,
+  default 1 K). Cold
   saturated states down to at least 125 K are recovered exactly by all solver paths; results
   for ordinary states are bit-identical. The `T_init_min` parameter is retained for
   backward compatibility.
@@ -70,8 +73,10 @@ v1.2.3
   several times per call. Each now computes it once and passes it along, so
   `∂e_int_∂T_sat_ρ` costs one `exp`/two `log` instead of three/four, and `∂θ_li_∂T_sat_ρ` two
   and three instead of four and six. `vapor_pressure_deficit` selects the phase's parameters
-  rather than evaluating both phases. At the default `maxiter = 2`, a `ρe` CPU solve is about 11% faster and a `ρθ_li` solve about 22% faster than before this release, with
-  `∂e_int_∂T_sat_ρ` about 42% faster; the numerical results are unchanged.
+  rather than evaluating both phases. Net of the correctness work in this release, which put
+  physics back into the derivatives (the `∂λ/∂T` term and residual-consistent clamping), a
+  `ρe` CPU solve at the default `maxiter = 2` is about 20% faster and a `ρθ_li` solve about
+  8% faster than v1.2.2, and `∂e_int_∂T_sat_ρ` about 45% faster.
 
 - ![][badge-🐛bugfix] `saturation_vapor_pressure_calc` and `latent_heat_generic` each carried
   a fallback method that promoted its arguments to a common type "to allow AD with dual

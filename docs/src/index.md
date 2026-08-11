@@ -129,7 +129,7 @@ e_int = -7.0e4
 q_tot = 0.01
 
 # Solve for phase equilibrium
-# (using SecantMethod, but NewtonsMethod is also available for ρe)
+# (using SecantMethod; NewtonsMethod with analytic derivatives is available for every formulation)
 sol = TD.saturation_adjustment(
     RS.SecantMethod, 
     params, 

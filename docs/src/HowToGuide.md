@@ -76,8 +76,8 @@ e_int = -7.0e4
 q_tot = 0.01
 
 # Solve for phase equilibrium
-# We use the convenience method which handles defaults automatically
-# For ρe(), this defaults to the optimized fixed-iteration solver
+# We use the convenience method which handles defaults automatically.
+# For every formulation this is the optimized fixed-iteration solver
 sol = TD.saturation_adjustment(
     params,                 # Parameter set
     TD.ρe(),                # Formulation
@@ -211,7 +211,8 @@ little water condenses per call. What sets the required iteration count is the g
 the unsaturated first guess and the solution — the warming from condensing the excess vapor.
 Across the tested profiles that gap stays under 4 K and two iterations hold the temperature
 error below `2e-3` K. Raise `maxiter` when adjusting states quenched much further from
-equilibrium (roughly 0.1 K of error at a 10 K gap, a few K beyond 20 K):
+equilibrium — up to a few tenths of a K around a 10 K gap and of order 10 K beyond a 20 K
+gap, depending on the formulation:
 
 ```@example HowToGuide
 FT = Float32

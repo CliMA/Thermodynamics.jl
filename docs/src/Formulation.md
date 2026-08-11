@@ -281,7 +281,7 @@ With $L_{s,0} = L_{v,0} + L_{f,0}$, this gives $L_s(T) = L_v(T) + L_f(T)$, as it
     |----------|-------|
     | $L_{v,0}$ | $2.501 \times 10^6$ J/kg (latent heat of vaporization) |
     | $L_{f,0}$ | $0.334 \times 10^6$ J/kg (latent heat of fusion) |
-    | $L_{s,0}$ | $2.835 \times 10^6$ J/kg (latent heat of sublimation) |
+    | $L_{s,0}$ | $2.834 \times 10^6$ J/kg (latent heat of sublimation) |
 
     At $T = 300$ K (with $\Delta T = T - T_0 = 26.84$ K):
 
@@ -545,7 +545,7 @@ A zeroth-order approximation of the temperature $T$ satisfying the saturation ad
 
 ```math
 \begin{equation}
-    T_1 = T_0 + \frac{I - q_t I_{v,0}}{c_{vm}^*}.
+    T_1 = T_0 + \frac{I - q_t I_{v,0} + (1 - q_t) R_d T_0}{c_{vm}^*}.
 \end{equation}
 ```
 
@@ -576,7 +576,7 @@ The derivative $\partial I^*/\partial T|_{T_n}$ is obtained by differentiation o
 \end{equation}
 ```
 
-where $I_{cond} = \lambda_p I_l + (1-\lambda_p) I_i$, $q_{cond}^* = q_t - q_v^*$, and $I_v$, $I_l$, $I_i$ are the specific internal energies of vapor, liquid, and ice (Eq. \eqref{e:InternalEnergies}). In the code, the corresponding variables are named `e_vap`, `e_liq`, `e_ice`. The derivative of the saturation specific humidity is given by
+where $I_{cond} = \lambda_p I_l + (1-\lambda_p) I_i$, $q_{cond}^* = q_t - q_v^*$, and $I_v$, $I_l$, $I_i$ are the specific internal energies of vapor, liquid, and ice (Eq. \eqref{e:InternalEnergies}). In the code, these are computed by `internal_energy_vapor`, `internal_energy_liquid`, and `internal_energy_ice`. The derivative of the saturation specific humidity is given by
 
 ```math
 \begin{equation}
