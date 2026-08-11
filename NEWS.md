@@ -48,11 +48,21 @@ v1.2.3
   `T_unsat` for unsaturated states, so any state colder than `T_init_min` (150 K) silently
   came back as 150 K — an error of up to ~100 K at the cold end, reported as converged. For
   an unsaturated state the no-condensate temperature is the exact solution and is now
-  returned unmodified. The clamp remains, but only as the starting guess for the saturated
-  iteration and as the lower bracket of the convergence-tested solvers, where it constrains
-  the search rather than the answer. Applied consistently to all six formulations in both
-  the fixed-iteration and convergence-tested paths. Results for saturated states are
-  unchanged.
+  returned unmodified. Applied consistently to all six formulations in both the
+  fixed-iteration and convergence-tested paths.
+- ![][badge-🐛bugfix] The same floor also capped the *saturated* branch: iterates were kept
+  at or above `T_init_min`, so a saturated state whose solution lies below 150 K — trace
+  moisture at polar-mesosphere temperatures — was unrepresentable, and every solver returned
+  150 K (the bracketing methods additionally constructed a bracket that excluded the root).
+  `T_init_min` is no longer used anywhere: the historical reason for it was that the
+  saturation vapor pressure could not be evaluated at very low temperatures, and that has
+  not been true since it was made total. Every quantity the iteration evaluates is finite
+  for any strictly positive temperature, so the solvers now start from `T_unsat` directly,
+  keep iterates positive by letting a step lose at most half the current temperature, and
+  floor starting values only at `sqrt(eps)` — a numerics bound, not a physical one. Cold
+  saturated states down to at least 125 K are recovered exactly by all solver paths; results
+  for ordinary states are bit-identical. The `T_init_min` parameter is retained for
+  backward compatibility.
 
 ### Internals
 

@@ -34,7 +34,9 @@ Concrete parameter set for Thermodynamics.jl.
 - `T_icenuc`: temperature of homogeneous ice nucleation [K].
 - `T_min`: minimum allowable temperature for saturation adjustment [K].
 - `T_max`: maximum allowable temperature for saturation adjustment [K].
-- `T_init_min`: minimum initial temperature guess for saturation adjustment [K].
+- `T_init_min`: no longer used; retained for backward compatibility [K]. Saturation
+  adjustment starts from the unsaturated temperature directly, floored only by a
+  numerics bound far below any physical temperature.
 - `T_surf_ref`: reference surface temperature [K].
 - `T_min_ref`: minimum reference temperature (for temperature profiles) [K].
 - `entropy_reference_temperature`: reference temperature for entropy [K].

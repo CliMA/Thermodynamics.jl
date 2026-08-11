@@ -373,31 +373,31 @@ Internal function. Apply one safeguarded Newton increment to the temperature.
 
 # Arguments
  - `param_set`: thermodynamics parameter set, see [`Thermodynamics`](@ref)
- - `T`: current temperature iterate [K]
+ - `T`: current temperature iterate [K], strictly positive
  - `ΔT_raw`: unsafeguarded Newton increment [K]
 
 # Returns
- - `(T_new, ΔT)`: updated temperature and the increment actually applied [K]
+ - `(T_new, ΔT)`: updated temperature and the increment Newton requested [K]
 
-The increment is limited to `ΔT_max` and the iterate is kept at or above `T_init_min`. Both
-guards are branchless. Limiting matters because the residual's derivative changes sharply
-across the saturation boundary, so an unlimited step can traverse the whole physical
-temperature range in one iteration and land somewhere with no useful information.
+Two branchless guards constrain the *search*, never the answer. The increment is limited to
+`ΔT_max`, because the residual's derivative changes sharply across the saturation boundary
+and an unlimited step can traverse the whole physical temperature range in one iteration.
+And the iterate can lose at most half its value per step, which keeps it strictly positive —
+the saturation functions are evaluable at any positive temperature but not at zero — while
+still allowing descent to an arbitrarily cold solution at a geometric rate. There is no
+fixed lower bound: a saturated solution at, say, 130 K is reachable, which it was not when
+iterates were floored at `T_init_min`.
 
-Both guards constrain the *search*, not the answer: they apply only along the saturated
-branch. The unsaturated solution is returned unmodified by [`_select_solution`](@ref).
+The returned increment is the one Newton *asked* for, not the one that survived the guards:
+a guarded step reading as "settled" is exactly the false convergence signal to avoid.
 """
 @inline function _newton_update(param_set::APS, T, ΔT_raw)
     FT = eltype(param_set)
-    T_init_min = TP.T_init_min(param_set)
     # Wide enough never to bind near a solution, small enough to keep a diverging
     # iterate within the range where the saturation functions remain informative.
     ΔT_max = FT(50)
     ΔT = clamp(ΔT_raw, -ΔT_max, ΔT_max)
-    T_new = max(T_init_min, T + ΔT)
-    # Return the increment Newton *asked* for, not the one that survived the guards. The
-    # applied increment is zero whenever a step is cut off at `T_init_min`, which would
-    # otherwise read as a settled iteration rather than a step the guards had to stop.
+    T_new = max(T + ΔT, T / 2)
     return (T_new, ΔT_raw)
 end
 
@@ -494,10 +494,11 @@ end
     T_unsat = air_temperature(param_set, e_int, q_tot)
     saturated = _is_saturated(param_set, T_unsat, ρ, q_tot)
 
-    # Clamp only the iteration's starting guess: beginning Newton far below the
-    # physical range wastes iterations. The clamp must not reach the returned
-    # value, since for an unsaturated state T_unsat is itself the exact solution.
-    T = max(TP.T_init_min(param_set), T_unsat)
+    # Start strictly positive: the saturation functions are evaluable at any positive
+    # temperature but not at zero or below. The floor is numerics, not physics, and must
+    # not reach the returned value — for an unsaturated state T_unsat is exact, and a
+    # saturated solution may lie at any positive temperature.
+    T = max(T_unsat, T_positive_floor(eltype(param_set)))
     ΔT = zero(T)
     for _ in 1:maxiter
         e_val = internal_energy_sat(param_set, T, ρ, q_tot, Val(false))
@@ -521,10 +522,11 @@ end
     T_unsat = air_temperature(param_set, e_int, q_tot)
     saturated = _is_saturated_from_p(param_set, T_unsat, p, q_tot)
 
-    # Clamp only the iteration's starting guess: beginning Newton far below the
-    # physical range wastes iterations. The clamp must not reach the returned
-    # value, since for an unsaturated state T_unsat is itself the exact solution.
-    T = max(TP.T_init_min(param_set), T_unsat)
+    # Start strictly positive: the saturation functions are evaluable at any positive
+    # temperature but not at zero or below. The floor is numerics, not physics, and must
+    # not reach the returned value — for an unsaturated state T_unsat is exact, and a
+    # saturated solution may lie at any positive temperature.
+    T = max(T_unsat, T_positive_floor(eltype(param_set)))
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, Val(false))
@@ -549,10 +551,11 @@ end
     T_unsat = air_temperature(param_set, ph(), h, q_tot, zero(q_tot), zero(q_tot))
     saturated = _is_saturated_from_p(param_set, T_unsat, p, q_tot)
 
-    # Clamp only the iteration's starting guess: beginning Newton far below the
-    # physical range wastes iterations. The clamp must not reach the returned
-    # value, since for an unsaturated state T_unsat is itself the exact solution.
-    T = max(TP.T_init_min(param_set), T_unsat)
+    # Start strictly positive: the saturation functions are evaluable at any positive
+    # temperature but not at zero or below. The floor is numerics, not physics, and must
+    # not reach the returned value — for an unsaturated state T_unsat is exact, and a
+    # saturated solution may lie at any positive temperature.
+    T = max(T_unsat, T_positive_floor(eltype(param_set)))
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, Val(false))
@@ -577,10 +580,11 @@ end
     T_unsat = air_temperature(param_set, pθ_li(), p, θ_li, q_tot)
     saturated = _is_saturated_from_p(param_set, T_unsat, p, q_tot)
 
-    # Clamp only the iteration's starting guess: beginning Newton far below the
-    # physical range wastes iterations. The clamp must not reach the returned
-    # value, since for an unsaturated state T_unsat is itself the exact solution.
-    T = max(TP.T_init_min(param_set), T_unsat)
+    # Start strictly positive: the saturation functions are evaluable at any positive
+    # temperature but not at zero or below. The floor is numerics, not physics, and must
+    # not reach the returned value — for an unsaturated state T_unsat is exact, and a
+    # saturated solution may lie at any positive temperature.
+    T = max(T_unsat, T_positive_floor(eltype(param_set)))
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = _condensate_partition_from_p(param_set, T, p, q_tot, Val(false))
@@ -605,10 +609,11 @@ end
     T_unsat = air_temperature(param_set, ρθ_li(), ρ, θ_li, q_tot)
     saturated = _is_saturated(param_set, T_unsat, ρ, q_tot)
 
-    # Clamp only the iteration's starting guess: beginning Newton far below the
-    # physical range wastes iterations. The clamp must not reach the returned
-    # value, since for an unsaturated state T_unsat is itself the exact solution.
-    T = max(TP.T_init_min(param_set), T_unsat)
+    # Start strictly positive: the saturation functions are evaluable at any positive
+    # temperature but not at zero or below. The floor is numerics, not physics, and must
+    # not reach the returned value — for an unsaturated state T_unsat is exact, and a
+    # saturated solution may lie at any positive temperature.
+    T = max(T_unsat, T_positive_floor(eltype(param_set)))
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot, Val(false))
@@ -633,10 +638,11 @@ end
     T_unsat = air_temperature(param_set, pρ(), p, ρ, q_tot)
     saturated = _is_saturated(param_set, T_unsat, ρ, q_tot)
 
-    # Clamp only the iteration's starting guess: beginning Newton far below the
-    # physical range wastes iterations. The clamp must not reach the returned
-    # value, since for an unsaturated state T_unsat is itself the exact solution.
-    T = max(TP.T_init_min(param_set), T_unsat)
+    # Start strictly positive: the saturation functions are evaluable at any positive
+    # temperature but not at zero or below. The floor is numerics, not physics, and must
+    # not reach the returned value — for an unsaturated state T_unsat is exact, and a
+    # saturated solution may lie at any positive temperature.
+    T = max(T_unsat, T_positive_floor(eltype(param_set)))
     ΔT = zero(T)
     for _ in 1:maxiter
         (q_liq, q_ice) = condensate_partition(param_set, T, ρ, q_tot, Val(false))
@@ -694,9 +700,12 @@ Internal helper to construct a root-solving method instance for saturation adjus
 
 # Notes
 - For Newton-type methods (`NewtonsMethod`, `NewtonsMethodAD`): Uses `T_guess` if provided,
-  otherwise `max(T_init_min, T_unsat)`.
+  otherwise `T_unsat` (floored at `T_positive_floor`, a numerics bound far below
+  any physical temperature).
 - For bracket methods (`SecantMethod`, `BrentsMethod`): Constructs bracket `[T_lo, T_hi]`
-  where `T_hi` is bounded by `T_ice` and `T_max`.
+  where `T_lo` is `T_unsat` with the same floor and `T_hi` is bounded by `T_ice` and
+  `T_max`. `T_unsat` is a true lower bound on the saturated solution, since condensation
+  can only warm the state.
 """
 @inline function _make_sa_solver(
     ::Type{RS.NewtonsMethod},
@@ -705,8 +714,9 @@ Internal helper to construct a root-solving method instance for saturation adjus
     T_ice,
     T_guess,
 )
-    T_init_min = TP.T_init_min(param_set)
-    T_init = T_guess isa Nothing ? max(T_init_min, T_unsat) : T_guess
+    T_init =
+        T_guess isa Nothing ?
+        max(T_unsat, T_positive_floor(eltype(param_set))) : T_guess
     return RS.NewtonsMethod(T_init)
 end
 
@@ -717,8 +727,9 @@ end
     T_ice,
     T_guess,
 )
-    T_init_min = TP.T_init_min(param_set)
-    T_init = T_guess isa Nothing ? max(T_init_min, T_unsat) : T_guess
+    T_init =
+        T_guess isa Nothing ?
+        max(T_unsat, T_positive_floor(eltype(param_set))) : T_guess
     return RS.NewtonsMethodAD(T_init)
 end
 
@@ -729,8 +740,8 @@ end
     T_ice,
     T_guess,
 )
-    T_init_min = TP.T_init_min(param_set)
-    T_lo = T_guess isa Nothing ? max(T_init_min, T_unsat) : max(T_init_min, T_guess)
+    T_floor = T_positive_floor(eltype(param_set))
+    T_lo = T_guess isa Nothing ? max(T_unsat, T_floor) : max(T_guess, T_floor)
     T_hi = bound_upper_temperature(param_set, T_lo, T_ice)
     return RS.SecantMethod(T_lo, T_hi)
 end
@@ -742,9 +753,8 @@ end
     T_ice,
     T_guess,
 )
-    T_init_min = TP.T_init_min(param_set)
     # BrentsMethod requires strict bracketing - ignore T_guess
-    T_lo = max(T_init_min, T_unsat)
+    T_lo = max(T_unsat, T_positive_floor(eltype(param_set)))
     T_hi = bound_upper_temperature(param_set, T_lo, T_ice)
     return RS.BrentsMethod(T_lo, T_hi)
 end

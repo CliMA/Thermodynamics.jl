@@ -171,6 +171,7 @@ temperature through the liquid fraction. Evaluating it directly avoids the two
 `exp` calls that forming the ratio explicitly would require.
 """
 @inline function log_saturation_vapor_pressure_ratio(param_set::APS, T)
+    FT = eltype(param_set)
     R_v = TP.R_v(param_set)
     T_triple = TP.T_triple(param_set)
     T_0 = TP.T_0(param_set)
@@ -178,9 +179,14 @@ temperature through the liquid fraction. Evaluating it directly avoids the two
     cp_l = TP.cp_l(param_set)
     cp_i = TP.cp_i(param_set)
 
+    # Guarded like `saturation_vapor_pressure_calc`: `log` of a non-positive temperature
+    # throws, and this function multiplies a `∂λ/∂T` that is zero outside the mixed-phase
+    # ramp anyway, so the guarded value is never physically consulted.
+    T_pos = max(T, T_positive_floor(FT))
+
     Δcp = cp_i - cp_l
-    return (Δcp / R_v) * log(T / T_triple) +
-           (-LH_f0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T)
+    return (Δcp / R_v) * log(T_pos / T_triple) +
+           (-LH_f0 - Δcp * T_0) / R_v * (1 / T_triple - 1 / T_pos)
 end
 
 """

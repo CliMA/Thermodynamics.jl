@@ -303,13 +303,28 @@ end
 
         @testset "A step stopped by the guards is not called converged ($FT)" begin
             # `_newton_update` reports the increment Newton requested, not the one that
-            # survived clamping. Returning the applied increment made a step cut off at
-            # `T_init_min` look like a settled iteration.
-            T_floor = FT(TP.T_init_min(param_set))
-            (T_new, ΔT) = TD._newton_update(param_set, T_floor, FT(-1000))
-            @test T_new == T_floor           # the guard held
+            # survived the guards. Returning the applied increment made a guarded step
+            # look like a settled iteration.
+            #
+            # The guard halves the iterate at most: a huge downward step from a cold
+            # iterate lands at T/2, strictly positive, and is reported unconverged.
+            (T_new, ΔT) = TD._newton_update(param_set, FT(10), FT(-1000))
+            @test T_new == FT(5)             # lost at most half its value
             @test ΔT == FT(-1000)            # but the requested step is reported
             @test !TD._fixed_iters_converged(T_new, ΔT)
+
+            # Iterates can never reach zero or below, where the saturation functions
+            # stop being evaluable.
+            T = FT(300)
+            for _ in 1:60
+                (T, _) = TD._newton_update(param_set, T, FT(-1000))
+            end
+            @test T > 0
+
+            # And there is no fixed lower bound: descent below the old 150 K floor
+            # is possible when the physics asks for it.
+            (T_new, _) = TD._newton_update(param_set, FT(160), FT(-30))
+            @test T_new == FT(130)
         end
 
         @testset "Cold unsaturated states are not clamped ($FT)" begin
@@ -378,6 +393,45 @@ end
                     @test sol_full.converged
                     @test isapprox(sol_full.T, T_target; atol = tol)
                 end
+            end
+        end
+
+        @testset "Cold saturated states are reachable ($FT)" begin
+            # With iterates floored at T_init_min (150 K), a saturated state whose
+            # solution lies below the floor — trace moisture at polar-mesosphere
+            # temperatures — could never be represented: every formulation returned
+            # 150 K no matter how many iterations were allowed. The floor is now a
+            # numerics bound (~sqrt(eps)) instead of a physical one.
+            atol = FT === Float32 ? FT(0.1) : FT(1e-4)
+            for T0 in FT.((145, 135, 125))
+                q_tot = FT(1e-6)
+                ρ = FT(1e-4)
+                (q_liq, q_ice) = TD.condensate_partition(param_set, T0, ρ, q_tot)
+                @test q_liq + q_ice > 0    # genuinely saturated: q_sat ≈ 0 here
+                e_int = TD.internal_energy(param_set, T0, q_tot, q_liq, q_ice)
+
+                sol = TD.saturation_adjustment(
+                    param_set,
+                    TD.ρe(),
+                    ρ,
+                    e_int,
+                    q_tot;
+                    maxiter = 10,
+                )
+                @test isapprox(sol.T, T0; atol = atol)
+
+                sol_full = TD.saturation_adjustment(
+                    RS.NewtonsMethod,
+                    param_set,
+                    TD.ρe(),
+                    ρ,
+                    e_int,
+                    q_tot,
+                    50,
+                    FT(1e-6),
+                )
+                @test sol_full.converged
+                @test isapprox(sol_full.T, T0; atol = atol)
             end
         end
 
