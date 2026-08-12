@@ -4,7 +4,7 @@ Thermodynamics.jl Release Notes
 main
 --------
 
-v1.2.3
+v1.3.0
 --------
 
 ### Saturation adjustment: correctness fixes (changes model output)
