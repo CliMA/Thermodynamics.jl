@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>How-To Guide · Thermodynamics.jl</title><meta name="title" content="How-To Guide · Thermodynamics.jl"/><meta property="og:title" content="How-To Guide · Thermodynamics.jl"/><meta property="twitter:title" content="How-To Guide · Thermodynamics.jl"/><meta name="description" content="Documentation for Thermodynamics.jl."/><meta property="og:description" content="Documentation for Thermodynamics.jl."/><meta property="twitter:description" content="Documentation for Thermodynamics.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../src/assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="Thermodynamics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Thermodynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../Formulation/">Mathematical Formulation</a></li><li class="is-active"><a class="tocitem" href>How-To Guide</a><ul class="internal"><li><a class="tocitem" href="#Table-of-Contents"><span>Table of Contents</span></a></li><li><a class="tocitem" href="#Basic-Setup"><span>Basic Setup</span></a></li><li><a class="tocitem" href="#Core-Workflow"><span>Core Workflow</span></a></li><li><a class="tocitem" href="#Thermodynamic-Calculations"><span>Thermodynamic Calculations</span></a></li><li><a class="tocitem" href="#Performance-Considerations"><span>Performance Considerations</span></a></li><li><a class="tocitem" href="#Integration-with-Models"><span>Integration with Models</span></a></li><li><a class="tocitem" href="#Automatic-Differentiation"><span>Automatic Differentiation</span></a></li><li><a class="tocitem" href="#Common-Pitfalls"><span>Common Pitfalls</span></a></li></ul></li><li><a class="tocitem" href="../TemperatureProfiles/">Temperature Profiles</a></li><li><a class="tocitem" href="../TestedProfiles/">Tested Profiles</a></li><li><a class="tocitem" href="../API/">API Reference</a></li><li><a class="tocitem" href="../References/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>How-To Guide</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>How-To Guide</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/CliMA/Thermodynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/CliMA/Thermodynamics.jl/blob/main/docs/src/HowToGuide.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="How-To-Guide"><a class="docs-heading-anchor" href="#How-To-Guide">How-To Guide</a><a id="How-To-Guide-1"></a><a class="docs-heading-anchor-permalink" href="#How-To-Guide" title="Permalink"></a></h1><p>This guide covers the essential aspects of using <code>Thermodynamics.jl</code>, specifically focusing on its <strong>functional, stateless API</strong>.</p><h2 id="Table-of-Contents"><a class="docs-heading-anchor" href="#Table-of-Contents">Table of Contents</a><a id="Table-of-Contents-1"></a><a class="docs-heading-anchor-permalink" href="#Table-of-Contents" title="Permalink"></a></h2><ol><li><a href="#Basic-Setup">Basic Setup</a></li><li><a href="#Core-Workflow">Core Workflow</a></li><li><a href="#Thermodynamic-Calculations">Thermodynamic Calculations</a></li><li><a href="#Performance-Considerations">Performance Considerations</a></li><li><a href="#Integration-with-Models">Integration with Models</a></li><li><a href="#Automatic-Differentiation">Automatic Differentiation</a></li><li><a href="#Common-Pitfalls">Common Pitfalls</a></li></ol><h2 id="Basic-Setup"><a class="docs-heading-anchor" href="#Basic-Setup">Basic Setup</a><a id="Basic-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Setup" title="Permalink"></a></h2><h3 id="Installation-and-Import"><a class="docs-heading-anchor" href="#Installation-and-Import">Installation and Import</a><a id="Installation-and-Import-1"></a><a class="docs-heading-anchor-permalink" href="#Installation-and-Import" title="Permalink"></a></h3><pre><code class="language-julia hljs">using Pkg
+Pkg.add(&quot;Thermodynamics&quot;)
+Pkg.add(&quot;ClimaParams&quot;)</code></pre><pre><code class="language-julia hljs">import Thermodynamics as TD
+import RootSolvers as RS  # Needed for saturation adjustment
+using ClimaParams</code></pre><h3 id="Creating-Parameters"><a class="docs-heading-anchor" href="#Creating-Parameters">Creating Parameters</a><a id="Creating-Parameters-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-Parameters" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Create thermodynamic parameters for Float64 precision
+params = TD.Parameters.ThermodynamicsParameters(Float64);
+
+# For Float32 precision (useful for GPU computations)
+params_f32 = TD.Parameters.ThermodynamicsParameters(Float32);</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Thermodynamics.Parameters.ThermodynamicsParameters{Float32}(273.16f0, 273.16f0, 273.15f0, 233.0f0, 1.0f0, 1000.0f0, 150.0f0, 290.0f0, 220.0f0, 298.15f0, 101325.0f0, 100000.0f0, 611.657f0, 287.0f0, 461.5f0, 1004.5f0, 1859.0f0, 4181.0f0, 2070.0f0, 2.5008f6, 2.8344f6, 6864.8f0, 10513.6f0, 9.81f0, 1.0f0)</code></pre><h2 id="Core-Workflow"><a class="docs-heading-anchor" href="#Core-Workflow">Core Workflow</a><a id="Core-Workflow-1"></a><a class="docs-heading-anchor-permalink" href="#Core-Workflow" title="Permalink"></a></h2><p><code>Thermodynamics.jl</code> operates on <strong>independent thermodynamic variables</strong> directly, rather than wrapping them in a state configuration object. The general pattern is:</p><ol><li><strong>Define your independent variables</strong> (e.g., density <code>ρ</code>, internal energy <code>e_int</code>, specific humidities <code>q_...</code>).</li><li><strong>Pass them to a function</strong> along with the parameter set <code>params</code>.</li></ol><pre><code class="language-julia hljs"># Define variables
+ρ = 1.0          # Density [kg/m³]
+e_int = -7.0e4   # Internal energy [J/kg]
+q_tot = 0.01     # Total specific humidity [kg/kg]
+q_liq = 0.005    # Liquid specific humidity [kg/kg]
+q_ice = 0.0      # Ice specific humidity [kg/kg]
+
+# Compute a property
+T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
+p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+
+(T=T, p=p)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(T = 267.3883507231948, p = 76590.0507102751)</code></pre><div class="admonition is-success" id="Temperature-Profiles-for-Testing-cefb449966020bed"><header class="admonition-header">Temperature Profiles for Testing<a class="admonition-anchor" href="#Temperature-Profiles-for-Testing-cefb449966020bed" title="Permalink"></a></header><div class="admonition-body"><p>For testing and validation, you can use pre-defined atmospheric temperature profiles from <code>TD.TemperatureProfiles</code>. See <a href="../API/#Temperature-Profiles">Temperature Profiles</a> for available profiles and usage examples.</p></div></div><h2 id="Thermodynamic-Calculations"><a class="docs-heading-anchor" href="#Thermodynamic-Calculations">Thermodynamic Calculations</a><a id="Thermodynamic-Calculations-1"></a><a class="docs-heading-anchor-permalink" href="#Thermodynamic-Calculations" title="Permalink"></a></h2><h3 id="**1.-Phase-Equilibrium-Calculations-(Saturation-Adjustment)**"><a class="docs-heading-anchor" href="#**1.-Phase-Equilibrium-Calculations-(Saturation-Adjustment)**"><strong>1. Phase Equilibrium Calculations (Saturation Adjustment)</strong></a><a id="**1.-Phase-Equilibrium-Calculations-(Saturation-Adjustment)**-1"></a><a class="docs-heading-anchor-permalink" href="#**1.-Phase-Equilibrium-Calculations-(Saturation-Adjustment)**" title="Permalink"></a></h3><p>When you have conservative variables (e.g., <code>ρ</code>, <code>e_int</code>, <code>q_tot</code>) and need to find the temperature <code>T</code> and phase partition <code>(q_liq, q_ice)</code> that satisfy phase equilibrium, use <a href="../API/#Thermodynamics.saturation_adjustment"><code>saturation_adjustment</code></a>.</p><pre><code class="language-julia hljs"># Input variables
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+
+# Solve for phase equilibrium
+# We use the convenience method which handles defaults automatically
+# For ρe(), this defaults to the optimized fixed-iteration solver
+sol = TD.saturation_adjustment(
+    params,                 # Parameter set
+    TD.ρe(),                # Formulation
+    ρ, e_int, q_tot         # Inputs
+)
+
+T_equil = sol.T
+q_liq_equil = sol.q_liq
+q_ice_equil = sol.q_ice
+converged = sol.converged
+
+println(&quot;Equilibrium T: $T_equil&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">Equilibrium T: 270.81223569567135</code></pre><p><strong>Supported formulations for saturation adjustment:</strong></p><ul><li><code>TD.ρe()</code>: Inputs: <code>ρ</code>, <code>e_int</code>, <code>q_tot</code></li><li><code>TD.pe()</code>: Inputs: <code>p</code>, <code>e_int</code>, <code>q_tot</code></li><li><code>TD.ph()</code>: Inputs: <code>p</code>, <code>h</code>, <code>q_tot</code></li><li><code>TD.pθ_li()</code>: Inputs: <code>p</code>, <code>θ_li</code>, <code>q_tot</code></li></ul><h3 id="**2.-Phase-Non-Equilibrium-Calculations-(Explicit-Phases)**"><a class="docs-heading-anchor" href="#**2.-Phase-Non-Equilibrium-Calculations-(Explicit-Phases)**"><strong>2. Phase Non-Equilibrium Calculations (Explicit Phases)</strong></a><a id="**2.-Phase-Non-Equilibrium-Calculations-(Explicit-Phases)**-1"></a><a class="docs-heading-anchor-permalink" href="#**2.-Phase-Non-Equilibrium-Calculations-(Explicit-Phases)**" title="Permalink"></a></h3><p>If you already know the phase partition (e.g., <code>q_liq</code> and <code>q_ice</code> are prognostic variables in your model), you can compute properties directly without iteration.</p><pre><code class="language-julia hljs">q_tot = 0.01
+q_liq = 0.002
+q_ice = 0.001
+
+# Temperature from internal energy
+e_int = -6.5e4
+T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
+
+# Temperature from enthalpy
+h = -5.0e4
+T_from_h = TD.air_temperature(params, TD.ph(), h, q_tot, q_liq, q_ice)
+
+# Pressure
+p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)
+
+# Sound speed
+c_s = TD.soundspeed_air(params, T, q_tot, q_liq, q_ice)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">327.6534435486545</code></pre><h3 id="**3.-Saturation-Properties**"><a class="docs-heading-anchor" href="#**3.-Saturation-Properties**"><strong>3. Saturation Properties</strong></a><a id="**3.-Saturation-Properties**-1"></a><a class="docs-heading-anchor-permalink" href="#**3.-Saturation-Properties**" title="Permalink"></a></h3><p>Compute saturation properties given thermodynamic variables.</p><pre><code class="language-julia hljs">T = 290.0
+ρ = 1.1
+
+# Saturation vapor pressure over liquid
+p_v_sat_l = TD.saturation_vapor_pressure(params, T, TD.Liquid())
+
+# Saturation vapor pressure over ice
+p_v_sat_i = TD.saturation_vapor_pressure(params, T, TD.Ice())
+
+# Saturation specific humidity
+q_v_sat = TD.q_vap_saturation(params, T, ρ)
+
+(p_v_sat_l=p_v_sat_l, p_v_sat_i=p_v_sat_i, q_v_sat=q_v_sat)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(p_v_sat_l = 1918.4961549063355, p_v_sat_i = 2255.1877042255223, q_v_sat = 0.01303162411589804)</code></pre><h2 id="Performance-Considerations"><a class="docs-heading-anchor" href="#Performance-Considerations">Performance Considerations</a><a id="Performance-Considerations-1"></a><a class="docs-heading-anchor-permalink" href="#Performance-Considerations" title="Permalink"></a></h2><h3 id="**Type-Stability**"><a class="docs-heading-anchor" href="#**Type-Stability**"><strong>Type Stability</strong></a><a id="**Type-Stability**-1"></a><a class="docs-heading-anchor-permalink" href="#**Type-Stability**" title="Permalink"></a></h3><p>Ensure all inputs map to the same floating-point type (e.g., <code>Float64</code> or <code>Float32</code>). Mixed precision can cause allocations and slowdowns.</p><pre><code class="language-julia hljs"># Good: Consistent types
+FT = Float64
+params = TD.Parameters.ThermodynamicsParameters(FT)
+val = TD.air_temperature(params, FT(-7.0e4), FT(0.01))
+
+# Avoid: Mixed types (e.g. Float64 params with Float32 inputs)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">250.88412563854757</code></pre><h3 id="**Vectorized-Operations**"><a class="docs-heading-anchor" href="#**Vectorized-Operations**"><strong>Vectorized Operations</strong></a><a id="**Vectorized-Operations**-1"></a><a class="docs-heading-anchor-permalink" href="#**Vectorized-Operations**" title="Permalink"></a></h3><p><code>Thermodynamics.jl</code> functions broadcast efficiently over arrays.</p><pre><code class="language-julia hljs"># Arrays of thermodynamic variables
+e_int_arr = [-7.0e4, -6.5e4, -6.0e4]
+densities = [1.0, 1.1, 1.2]
+q_tots    = [0.01, 0.012, 0.015]
+
+# Broadcast the function call
+T_arr = TD.air_temperature.(Ref(params), e_int_arr, q_tots)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">3-element Vector{Float64}:
+ 250.88412563854757
+ 251.05504318827002
+ 247.87474000274844</code></pre><h3 id="**GPU-Compatibility**"><a class="docs-heading-anchor" href="#**GPU-Compatibility**"><strong>GPU Compatibility</strong></a><a id="**GPU-Compatibility**-1"></a><a class="docs-heading-anchor-permalink" href="#**GPU-Compatibility**" title="Permalink"></a></h3><p>The functional API is GPU-friendly. Usage is identical, provided arrays are on the GPU (e.g., <code>CuArray</code>) and parameters are initialized with the correct type (<code>Float32</code>).</p><pre><code class="language-julia hljs"># Use Float32 for GPU
+FT = Float32
+params_f32 = TD.Parameters.ThermodynamicsParameters(FT)
+
+# On GPU (conceptual)
+# T_gpu = TD.air_temperature.(Ref(params_f32), e_int_gpu, q_tot_gpu)</code></pre><h4 id="**Optimized-Saturation-Adjustment**"><a class="docs-heading-anchor" href="#**Optimized-Saturation-Adjustment**"><strong>Optimized Saturation Adjustment</strong></a><a id="**Optimized-Saturation-Adjustment**-1"></a><a class="docs-heading-anchor-permalink" href="#**Optimized-Saturation-Adjustment**" title="Permalink"></a></h4><p>For GPU performance, avoiding branch divergence is important. For the <code>ρe</code> formulation, use the fixed-iteration path by passing <code>forced_fixed_iters=true</code> as the last positional argument.</p><pre><code class="language-julia hljs"># GPU-optimized broadcasting using the convenience method
+# This automatically uses the fast, branch-free fixed-iteration solver
+sol = TD.saturation_adjustment.(
+    Ref(params_f32),
+    Ref(TD.ρe()),
+    ρ_gpu, e_int_gpu, q_tot_gpu
+)</code></pre><p>For CPU single calls, you can omit the last two arguments to use the standard solver:</p><pre><code class="language-julia hljs"># CPU single-call (uses defaults)
+sol = TD.saturation_adjustment(
+    params_f32,
+    TD.ρe(),
+    ρ_val, e_int_val, q_tot_val
+)</code></pre><h2 id="Integration-with-Models"><a class="docs-heading-anchor" href="#Integration-with-Models">Integration with Models</a><a id="Integration-with-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Integration-with-Models" title="Permalink"></a></h2><h3 id="**Prognostic-Variable-Management**"><a class="docs-heading-anchor" href="#**Prognostic-Variable-Management**"><strong>Prognostic Variable Management</strong></a><a id="**Prognostic-Variable-Management**-1"></a><a class="docs-heading-anchor-permalink" href="#**Prognostic-Variable-Management**" title="Permalink"></a></h3><p>In a weather or climate model, you typically evolve a state vector. <code>Thermodynamics.jl</code> acts as a kernel to close the system of equations.</p><pre><code class="language-julia hljs"># Example: Computing pressure for the momentum equation
+# ----------------------------------------------------
+# Prognostic variables from the model state:
+ρ = 1.0 # arbitrary value for example
+e_tot = 20000.0 # arbitrary value for example
+u, v, w = 10.0, 0.0, 0.0 # arbitrary values
+q_tot, q_liq, q_ice = 0.01, 0.001, 0.0 # arbitrary values
+
+# 1. Recover internal energy
+e_kin = 0.5 * (u^2 + v^2 + w^2)
+e_pot = 0.0 # arbitrary
+e_int = e_tot - e_kin - e_pot
+
+# 2. Recover temperature (if q_liq/ice are prognostic)
+T = TD.air_temperature(params, e_int, q_tot, q_liq, q_ice)
+
+# 3. Compute pressure
+p = TD.air_pressure(params, T, ρ, q_tot, q_liq, q_ice)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">108956.44784520021</code></pre><h3 id="**Handling-Phase-Changes**"><a class="docs-heading-anchor" href="#**Handling-Phase-Changes**"><strong>Handling Phase Changes</strong></a><a id="**Handling-Phase-Changes**-1"></a><a class="docs-heading-anchor-permalink" href="#**Handling-Phase-Changes**" title="Permalink"></a></h3><p>If your model handles phase changes (microphysics), you might step <code>q_liq</code> and <code>q_ice</code> explicitly. If you assume instantaneous equilibrium (saturation adjustment), you use <a href="../API/#Thermodynamics.saturation_adjustment"><code>saturation_adjustment</code></a> at the end or beginning of the step.</p><pre><code class="language-julia hljs"># Saturation Adjustment Step
+# Re-define variables for example completeness
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+sol = TD.saturation_adjustment(params, TD.ρe(), ρ, e_int, q_tot)
+
+# Update thermodynamic variables
+T_new = sol.T
+q_liq_new = sol.q_liq
+q_ice_new = sol.q_ice
+
+(T_new, q_liq_new, q_ice_new)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">(270.81223569567135, 0.005542778779737338, 0.0003426856449946311)</code></pre><h2 id="Automatic-Differentiation"><a class="docs-heading-anchor" href="#Automatic-Differentiation">Automatic Differentiation</a><a id="Automatic-Differentiation-1"></a><a class="docs-heading-anchor-permalink" href="#Automatic-Differentiation" title="Permalink"></a></h2><p><code>Thermodynamics.jl</code> is compatible with automatic differentiation (AD) tools such as <a href="https://github.com/JuliaDiff/ForwardDiff.jl">ForwardDiff.jl</a>. This enables computing thermodynamic derivatives for sensitivity analysis, optimization, and adjoint-based methods.</p><h3 id="**Computing-Derivatives-Through-Saturation-Adjustment**"><a class="docs-heading-anchor" href="#**Computing-Derivatives-Through-Saturation-Adjustment**"><strong>Computing Derivatives Through Saturation Adjustment</strong></a><a id="**Computing-Derivatives-Through-Saturation-Adjustment**-1"></a><a class="docs-heading-anchor-permalink" href="#**Computing-Derivatives-Through-Saturation-Adjustment**" title="Permalink"></a></h3><p>A common use case is computing how phase variables change with respect to input thermodynamic variables. For example, computing <code>∂q_liq/∂e_int</code> (the rate of change of liquid condensate with internal energy):</p><pre><code class="language-julia hljs">using ForwardDiff
+
+# Setup: conditions at T = 290 K
+T_sat = 290.0
+ρ = 1.2
+
+# Create supersaturated conditions (q_tot &gt; q_vap_sat)
+q_vap_sat = TD.q_vap_saturation(params, T_sat, ρ)
+q_tot = q_vap_sat * 1.5  # 50% supersaturated
+
+# Get equilibrium partition
+(q_liq_eq, q_ice_eq) = TD.condensate_partition(params, T_sat, ρ, q_tot)
+
+# Compute consistent internal energy
+e_int = TD.internal_energy(params, T_sat, q_tot, q_liq_eq, q_ice_eq)
+
+# Define a function from e_int → q_liq through saturation adjustment
+function q_liq_from_e_int(e)
+    sol = TD.saturation_adjustment(
+        params,
+        TD.ρe(),
+        ρ, e, q_tot
+    )
+    return sol.q_liq
+end
+
+# Compute ∂q_liq/∂e_int using ForwardDiff
+dq_liq_de_int = ForwardDiff.derivative(q_liq_from_e_int, e_int)
+
+println(&quot;∂q_liq/∂e_int = &quot;, dq_liq_de_int, &quot; [kg/kg per J/kg]&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">∂q_liq/∂e_int = -2.57954532652718e-7 [kg/kg per J/kg]</code></pre><h3 id="**AD-Compatible-Derivatives**"><a class="docs-heading-anchor" href="#**AD-Compatible-Derivatives**"><strong>AD-Compatible Derivatives</strong></a><a id="**AD-Compatible-Derivatives**-1"></a><a class="docs-heading-anchor-permalink" href="#**AD-Compatible-Derivatives**" title="Permalink"></a></h3><p>All core thermodynamic functions and saturation adjustment routines propagate dual numbers correctly:</p><pre><code class="language-julia hljs"># ∂T/∂e_int at fixed composition
+function T_from_e_int(e)
+    q_tot, q_liq, q_ice = 0.01, 0.002, 0.0
+    TD.air_temperature(params, e, q_tot, q_liq, q_ice)
+end
+
+e_int_ref = -7.0e4
+dT_de_int = ForwardDiff.derivative(T_from_e_int, e_int_ref)
+
+println(&quot;∂T/∂e_int = &quot;, dT_de_int, &quot; [K per J/kg]&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">∂T/∂e_int = 0.0013701126369598845 [K per J/kg]</code></pre><div class="admonition is-info" id="Root-Solver-Compatibility-6cf1e06a94ff93c9"><header class="admonition-header">Root Solver Compatibility<a class="admonition-anchor" href="#Root-Solver-Compatibility-6cf1e06a94ff93c9" title="Permalink"></a></header><div class="admonition-body"><p>When using AD through <a href="../API/#Thermodynamics.saturation_adjustment"><code>saturation_adjustment</code></a>, prefer <code>RS.SecantMethod</code> or <code>RS.NewtonsMethod</code> for smooth derivative propagation.</p></div></div><h2 id="Common-Pitfalls"><a class="docs-heading-anchor" href="#Common-Pitfalls">Common Pitfalls</a><a id="Common-Pitfalls-1"></a><a class="docs-heading-anchor-permalink" href="#Common-Pitfalls" title="Permalink"></a></h2><h3 id="**Input-Units**"><a class="docs-heading-anchor" href="#**Input-Units**"><strong>Input Units</strong></a><a id="**Input-Units**-1"></a><a class="docs-heading-anchor-permalink" href="#**Input-Units**" title="Permalink"></a></h3><ul><li><strong>SI Units</strong>: All inputs must be in SI units (kg, m, s, K, Pa, J).</li><li><strong>Specific Quantities</strong>: Energies and humidities are <em>specific</em> (per kg of moist air).</li></ul><h3 id="**Specific-Humidity-Definition**"><a class="docs-heading-anchor" href="#**Specific-Humidity-Definition**"><strong>Specific Humidity Definition</strong></a><a id="**Specific-Humidity-Definition**-1"></a><a class="docs-heading-anchor-permalink" href="#**Specific-Humidity-Definition**" title="Permalink"></a></h3><ul><li><code>q_tot</code>, <code>q_liq</code>, <code>q_ice</code> are mass fractions (kg/kg moist air).</li><li>Ensure <code>q_liq + q_ice &lt;= q_tot</code>. <code>q_vapor</code> is implicitly <code>q_tot - q_liq - q_ice</code>.</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Formulation/">« Mathematical Formulation</a><a class="docs-footer-nextpage" href="../TemperatureProfiles/">Temperature Profiles »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.16.1 on <span class="colophon-date" title="Wednesday 21 January 2026 19:57">Wednesday 21 January 2026</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
