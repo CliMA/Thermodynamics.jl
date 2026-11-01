@@ -1,15 +1,13 @@
 # Searching Issues & PRs Across CliMA
 
-CliMA spans dozens of repositories with no built-in cross-repo view of
-issues and PRs. GitHub's **org-scoped search** is that view: one query
-returns matches from every repo in the org at once.
+GitHub's **org-scoped search** returns issues and PRs from every CliMA
+repository in one query.
 
 ## 1. The org-scoped search pattern
 
 Scope to the org with `org:CliMA` and narrow with state/type/label
-qualifiers. The canonical example (from the group-meeting discussion on
-getting an overview across CliMA) is open issues/PRs labelled "bug 🐞",
-shown here in all three forms:
+qualifiers. The example below, open issues and PRs labelled "bug 🐞", is
+shown in all three forms:
 
 - **Web UI**: paste into the box at <https://github.com/search>:
 
@@ -35,7 +33,7 @@ shown here in all three forms:
 Labels with spaces or emoji **must be quoted** (`label:"bug 🐞"`); the
 emoji is part of the string. Copy it from an existing labelled issue.
 
-## 2. Filter recipes
+## 2. Filters
 
 Combine `org:CliMA` with these qualifiers (all work in the web UI, the URL
 form, and `gh search` with the equivalent flags):
