@@ -15,6 +15,9 @@ RootSolvers = "7181ea78-2dcb-4de3-ab41-2b8ab5a31e74"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Thermodynamics = "b60c26fb-14c3-4610-9d3e-2d17fe7ff00c"
 
+[sources]
+ClimaParams = {rev = "dy/params_macro", url = "https://github.com/CliMA/ClimaParams.jl"}
+
 [compat]
 CUDA = "4, 5"
 ChainRulesCore = "1"

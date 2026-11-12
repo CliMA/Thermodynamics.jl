@@ -16,6 +16,9 @@ jobs:
       - uses: julia-actions/setup-julia@latest
         with:
           version: '1.10'
+      # Temporary: remove when ClimaParams with `@params` is released.
+      - name: Pin ClimaParams
+        run: julia --project=docs/ -e 'using Pkg; Pkg.add(PackageSpec(; url = "https://github.com/CliMA/ClimaParams.jl", rev = "dy/params_macro"))'
       - name: Install dependencies
         run: julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
       - name: Build and deploy

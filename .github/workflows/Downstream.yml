@@ -40,5 +40,11 @@ jobs:
           path: ${{ matrix.package }}
       - run: |
           julia --color=yes --project=${{ matrix.package }} -e 'using Pkg; Pkg.instantiate()'
+          # Temporary: remove when ClimaParams with `@params` is released.
+          julia --color=yes --project=${{ matrix.package }} -e 'using Pkg; Pkg.add(PackageSpec(; url = "https://github.com/CliMA/ClimaParams.jl", rev = "dy/params_macro"))'
           julia --color=yes --project=${{ matrix.package }} -e 'using Pkg; Pkg.develop(; path = ".")'
+          # Temporary: remove when ClimaParams with `@params` is released. The tests of downstream
+          # packages construct many parameter sets, each a new type to compile in the default
+          # "type" mode, so they run in "bits" mode.
+          printf '\n[preferences.ClimaParams]\nCLIMA_PARAMS_MODE = "bits"\n' >> ${{ matrix.package }}/Project.toml
           julia --color=yes --project=${{ matrix.package }} -e 'using Pkg; Pkg.test()'
