@@ -1,11 +1,20 @@
 Thermodynamics.jl Release Notes
 ========================
 
-main
+v1.3.1
 --------
 
 - CI: Buildkite runs Julia v1.13. GitHub Actions tests Julia v1.10 and v1.13,
   and the docs and invalidation checks run on v1.13.
+- ![][badge-🚀performance] `ThermodynamicsParameters` is defined with `ClimaParams.@params`. In
+  the default "type" mode of ClimaParams, it is a singleton that holds its values in a type
+  parameter, so GPU kernels do not allocate any registers or parameter memory for it. Read
+  parameter values with `getproperty`, since `getfield` returns `nothing` in "type" mode.
+  Workflows that construct many parameter sets should set the `CLIMA_PARAMS_MODE` preference of
+  ClimaParams to `"bits"`, which keeps parameter values in struct fields and avoids
+  recompilation for every new set of values.
+- ClimaParams 1.3.11 or later is a regular dependency, so constructing parameters no longer
+  needs `import ClimaParams`.
 
 v1.3.0
 --------
