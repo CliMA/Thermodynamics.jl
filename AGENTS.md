@@ -27,14 +27,13 @@ Thermodynamics.jl provides a library of thermodynamic functions for the CliMA ec
 | Path | Purpose |
 |------|---------|
 | `src/Thermodynamics.jl` | Module definition, exports |
-| `src/Parameters.jl` | Parameter interface (`AbstractThermodynamicsParameters`) |
+| `src/Parameters.jl` | Parameter interface (`AbstractThermodynamicsParameters`) and construction from ClimaParams |
 | `src/ThermoTypes.jl` | Independent-variable dispatch types (`IndepVars`) and phase types |
 | `src/saturation_adjustment.jl` | Saturation adjustment solvers |
 | `src/air_*.jl` | Thermodynamic property functions |
 | `src/TemperatureProfiles.jl` | Reference temperature/pressure profiles |
 | `src/DataCollection.jl` | Internal solver diagnostic statistics |
 | `src/aux_functions.jl` | Internal helpers (`ReLU`, `fast_power`, `ϵ_numerics`) |
-| `ext/CreateParametersExt.jl` | ClimaParams weak-dep extension for parameter construction |
 | `test/` | Test suite |
 | `perf/` | Performance benchmarks |
 | `docs/` | Documentation source |
