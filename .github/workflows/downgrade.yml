@@ -48,5 +48,8 @@ jobs:
           skip: Random
           julia_version: ${{ matrix.version }}
           mode: 'forcedeps'
+      # Temporary: remove when ClimaParams with `@params` is released.
+      - run: using Pkg; Pkg.add(PackageSpec(; url = "https://github.com/CliMA/ClimaParams.jl", rev = "dy/params_macro"); preserve = Pkg.PRESERVE_ALL)
+        shell: julia --color=yes --project=. {0}
       - uses: julia-actions/julia-buildpkg@latest
       - uses: julia-actions/julia-runtest@latest

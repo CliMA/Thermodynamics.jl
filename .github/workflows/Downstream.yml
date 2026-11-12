@@ -40,5 +40,7 @@ jobs:
           path: ${{ matrix.package }}
       - run: |
           julia --color=yes --project=${{ matrix.package }} -e 'using Pkg; Pkg.instantiate()'
+          # Temporary: remove when ClimaParams with `@params` is released.
+          julia --color=yes --project=${{ matrix.package }} -e 'using Pkg; Pkg.add(PackageSpec(; url = "https://github.com/CliMA/ClimaParams.jl", rev = "dy/params_macro"))'
           julia --color=yes --project=${{ matrix.package }} -e 'using Pkg; Pkg.develop(; path = ".")'
           julia --color=yes --project=${{ matrix.package }} -e 'using Pkg; Pkg.test()'
