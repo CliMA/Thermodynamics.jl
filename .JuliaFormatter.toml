@@ -4,5 +4,5 @@ always_for_in = true
 whitespace_typedefs = true
 whitespace_ops_in_indices = true
 remove_extra_newlines = false
-ignore = ["examples"]
+ignore = ["examples", "docs/dev-guides/.claude/skills/fix-ci/gpu_perf_model.jl", "docs/dev-guides/.claude/skills/fix-ci/gpu_perf_model_tests.jl"]
 join_lines_based_on_source = true  # https://domluna.github.io/JuliaFormatter.jl/dev/#join_lines_based_on_source
