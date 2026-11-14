@@ -43,6 +43,8 @@ jobs:
           restore-keys: |
             ubuntu-latest-julia-${{ matrix.version }}-
             ubuntu-latest-julia-
+      # The registry restored from the cache can predate the releases that the compat bounds require.
+      - run: julia --color=yes -e 'using Pkg; Pkg.Registry.update()'
       - uses: julia-actions/julia-downgrade-compat@v2
         with:
           skip: Random

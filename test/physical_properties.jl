@@ -249,7 +249,7 @@ Two kinds of test live here:
             cp_i = TP.cp_i(param_set)
             fields = fieldnames(typeof(param_set))
             shifted = TP.ThermodynamicsParameters{FT}(;
-                (f => getfield(param_set, f) for f in fields)...,
+                (f => getproperty(param_set, f) for f in fields)...,
                 T_0 = TP.T_0(param_set) + δ,
                 LH_v0 = TP.LH_v0(param_set) + (cp_v - cp_l) * δ,
                 LH_s0 = TP.LH_s0(param_set) + (cp_v - cp_i) * δ,

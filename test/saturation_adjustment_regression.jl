@@ -193,7 +193,7 @@ end
             fields = fieldnames(typeof(base))
             for n in FT.((0.5, 1.0, 1.5))
                 ps = TP.ThermodynamicsParameters{FT}(;
-                    (f => getfield(base, f) for f in fields)...,
+                    (f => getproperty(base, f) for f in fields)...,
                     pow_icenuc = n,
                 )
                 for T in FT.((150, 200, 233, 250, 273, 300))
