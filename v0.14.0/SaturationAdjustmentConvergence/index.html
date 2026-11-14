@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Saturation Adjustment Convergence · Thermodynamics.jl</title><meta name="title" content="Saturation Adjustment Convergence · Thermodynamics.jl"/><meta property="og:title" content="Saturation Adjustment Convergence · Thermodynamics.jl"/><meta property="twitter:title" content="Saturation Adjustment Convergence · Thermodynamics.jl"/><meta name="description" content="Documentation for Thermodynamics.jl."/><meta property="og:description" content="Documentation for Thermodynamics.jl."/><meta property="twitter:description" content="Documentation for Thermodynamics.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../src/assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="Thermodynamics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Thermodynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../Formulation/">Mathematical Formulation</a></li><li><a class="tocitem" href="../API/">API Reference</a></li><li><a class="tocitem" href="../HowToGuide/">How-To Guide</a></li><li><a class="tocitem" href="../TemperatureProfiles/">Temperature Profiles</a></li><li><a class="tocitem" href="../TestedProfiles/">Tested Profiles</a></li><li><a class="tocitem" href="../Clausius_Clapeyron/">Clausius-Clapeyron Validation</a></li><li class="is-active"><a class="tocitem" href>Saturation Adjustment Convergence</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Purpose"><span>Purpose</span></a></li><li><a class="tocitem" href="#Convergence-Maps"><span>Convergence Maps</span></a></li><li><a class="tocitem" href="#Implementation"><span>Implementation</span></a></li><li><a class="tocitem" href="#Interpretation"><span>Interpretation</span></a></li><li><a class="tocitem" href="#Numerical-Methods-Tested"><span>Numerical Methods Tested</span></a></li><li><a class="tocitem" href="#Usage-Guidelines"><span>Usage Guidelines</span></a></li></ul></li><li><a class="tocitem" href="../References/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Saturation Adjustment Convergence</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Saturation Adjustment Convergence</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/CliMA/Thermodynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/CliMA/Thermodynamics.jl/blob/main/docs/src/SaturationAdjustmentConvergence.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Saturation-Adjustment-Convergence-Testing"><a class="docs-heading-anchor" href="#Saturation-Adjustment-Convergence-Testing">Saturation Adjustment Convergence Testing</a><a id="Saturation-Adjustment-Convergence-Testing-1"></a><a class="docs-heading-anchor-permalink" href="#Saturation-Adjustment-Convergence-Testing" title="Permalink"></a></h1><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>The saturation adjustment procedure requires solving a non-linear equation to find the temperature that satisfies thermodynamic equilibrium conditions. This document describes the convergence testing framework used to validate the robustness of different numerical methods across the input parameter space.</p><h2 id="Purpose"><a class="docs-heading-anchor" href="#Purpose">Purpose</a><a id="Purpose-1"></a><a class="docs-heading-anchor-permalink" href="#Purpose" title="Permalink"></a></h2><p>While the <a href="../TestedProfiles/">Tested Profiles</a> section shows physically meaningful thermodynamic states, this section explores convergence behavior across a broader parameter space. We test all permutations of inputs within given ranges of density (<span>$\rho$</span>), internal energy (<span>$e_{int}$</span>), and total specific humidity (<span>$q_t$</span>), including combinations that may not be physically meaningful but help identify the boundaries where convergence fails.</p><p>This testing framework is dedicated to monitoring and improving the performance and robustness of various numerical methods in solving saturation adjustment equations.</p><div class="admonition is-info" id="Performance-Note-8a47de23c23d6980"><header class="admonition-header">Performance Note<a class="admonition-anchor" href="#Performance-Note-8a47de23c23d6980" title="Permalink"></a></header><div class="admonition-body"><p>The <code>dims</code> parameter in <code>docs/src/saturation_adjustment.jl</code> is currently set to <code>dims = (6, 6, 6)</code> to avoid heavy computations during documentation builds. For higher resolution testing, increase it to <code>dims = (10, 10, 10)</code> or higher when running locally.</p></div></div><h2 id="Convergence-Maps"><a class="docs-heading-anchor" href="#Convergence-Maps">Convergence Maps</a><a id="Convergence-Maps-1"></a><a class="docs-heading-anchor-permalink" href="#Convergence-Maps" title="Permalink"></a></h2><h3 id="3D-Parameter-Space"><a class="docs-heading-anchor" href="#3D-Parameter-Space">3D Parameter Space</a><a id="3D-Parameter-Space-1"></a><a class="docs-heading-anchor-permalink" href="#3D-Parameter-Space" title="Permalink"></a></h3><p>The following maps show convergence behavior across the full 3D parameter space:</p><table><tr><th style="text-align: center">Numerical Method</th><th style="text-align: center">Converged Cases</th><th style="text-align: center">Non-converged Cases</th></tr><tr><td style="text-align: center">SecantMethod</td><td style="text-align: center"><img src="../3DSpace_converged_SecantMethod.svg" alt/></td><td style="text-align: center"><img src="../3DSpace_non_converged_SecantMethod.svg" alt/></td></tr><tr><td style="text-align: center">NewtonsMethod</td><td style="text-align: center"><img src="../3DSpace_converged_NewtonsMethod.svg" alt/></td><td style="text-align: center"><img src="../3DSpace_non_converged_NewtonsMethod.svg" alt/></td></tr></table><h3 id="2D-Slices-by-Total-Specific-Humidity"><a class="docs-heading-anchor" href="#2D-Slices-by-Total-Specific-Humidity">2D Slices by Total Specific Humidity</a><a id="2D-Slices-by-Total-Specific-Humidity-1"></a><a class="docs-heading-anchor-permalink" href="#2D-Slices-by-Total-Specific-Humidity" title="Permalink"></a></h3><p>These maps show convergence behavior in 2D slices, binned by total specific humidity:</p><table><tr><th style="text-align: center">Numerical Method</th><th style="text-align: center">Converged Cases</th><th style="text-align: center">Non-converged Cases</th></tr><tr><td style="text-align: center">SecantMethod</td><td style="text-align: center"><img src="../2DSlice_converged_SecantMethod.svg" alt/></td><td style="text-align: center"><img src="../2DSlice_non_converged_SecantMethod.svg" alt/></td></tr><tr><td style="text-align: center">NewtonsMethod</td><td style="text-align: center"><img src="../2DSlice_converged_NewtonsMethod.svg" alt/></td><td style="text-align: center"><img src="../2DSlice_non_converged_NewtonsMethod.svg" alt/></td></tr></table><h2 id="Implementation"><a class="docs-heading-anchor" href="#Implementation">Implementation</a><a id="Implementation-1"></a><a class="docs-heading-anchor-permalink" href="#Implementation" title="Permalink"></a></h2><p>The convergence testing is implemented in the following code:</p><pre><code class="language-julia hljs">include(&quot;saturation_adjustment.jl&quot;)</code></pre><pre class="documenter-example-output"><code class="nohighlight hljs ansi">maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=-84813.56621455261, q_tot=0.033813235104001554, T=239.75351866358133, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=-84813.56621455261, q_tot=0.033813235104001554, T=239.75351866358133, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=276.7995785070541, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=276.7995785070541, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=384.876235835132, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=384.876235835132, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=235880.49299012238, q_tot=0.16906617552000777, T=152.47684875857732, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=235880.49299012238, q_tot=0.16906617552000777, T=152.47684875857732, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=-57041.650052958095, q_tot=0.033813235104001554, T=253.0398081354534, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=-57041.650052958095, q_tot=0.033813235104001554, T=253.0398081354534, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=-57041.650052958095, q_tot=0.033813235104001554, T=307.23112131390434, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=-57041.650052958095, q_tot=0.033813235104001554, T=307.23112131390434, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=23994.208706660924, q_tot=0.06762647020800311, T=418.8294431419178, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=23994.208706660924, q_tot=0.06762647020800311, T=418.8294431419178, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=105030.0674662799, q_tot=0.10143970531200466, T=261.43362196452017, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=105030.0674662799, q_tot=0.10143970531200466, T=261.43362196452017, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=186065.92622589893, q_tot=0.13525294041600622, T=265.9446181185822, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=186065.92622589893, q_tot=0.13525294041600622, T=265.9446181185822, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=267101.78498551797, q_tot=0.16906617552000777, T=268.64514934367764, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=267101.78498551797, q_tot=0.16906617552000777, T=268.64514934367764, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=276.40781683263253, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=276.40781683263253, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=52628.46882670568, q_tot=0.06762647020800311, T=258.13442619943066, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=52628.46882670568, q_tot=0.06762647020800311, T=258.13442619943066, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=52628.46882670568, q_tot=0.06762647020800311, T=339.90964726189725, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=52628.46882670568, q_tot=0.06762647020800311, T=339.90964726189725, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=134526.67154477493, q_tot=0.10143970531200466, T=265.03278185337945, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=134526.67154477493, q_tot=0.10143970531200466, T=265.03278185337945, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=134526.67154477493, q_tot=0.10143970531200466, T=394.8014407687639, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.026050603779540982, e_int=134526.67154477493, q_tot=0.10143970531200466, T=394.8014407687639, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=216424.87426284418, q_tot=0.13525294041600622, T=275.9326541322728, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=216424.87426284418, q_tot=0.13525294041600622, T=275.9326541322728, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=298323.07698091347, q_tot=0.16906617552000777, T=286.04808795501293, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=298323.07698091347, q_tot=0.16906617552000777, T=286.04808795501293, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=246783.8222997894, q_tot=0.13525294041600622, T=270.88207179544264, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=246783.8222997894, q_tot=0.13525294041600622, T=270.88207179544264, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=329544.36897630896, q_tot=0.16906617552000777, T=272.3748139880351, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.026050603779540982, e_int=329544.36897630896, q_tot=0.16906617552000777, T=272.3748139880351, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=378.38206290031525, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=378.38206290031525, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=75533.46338778487, q_tot=0.10143970531200466, T=318.13792017259954, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=75533.46338778487, q_tot=0.10143970531200466, T=318.13792017259954, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=75533.46338778487, q_tot=0.10143970531200466, T=481.2043740463403, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=75533.46338778487, q_tot=0.10143970531200466, T=481.2043740463403, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=155706.9781889536, q_tot=0.13525294041600622, T=295.23314907031954, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=155706.9781889536, q_tot=0.13525294041600622, T=295.23314907031954, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=155706.9781889536, q_tot=0.13525294041600622, T=569.6903870045321, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=155706.9781889536, q_tot=0.13525294041600622, T=569.6903870045321, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=235880.49299012238, q_tot=0.16906617552000777, T=648.9329767182816, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=235880.49299012238, q_tot=0.16906617552000777, T=648.9329767182816, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=-57041.650052958095, q_tot=0.033813235104001554, T=264.6746578509353, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=-57041.650052958095, q_tot=0.033813235104001554, T=264.6746578509353, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=23994.208706660924, q_tot=0.06762647020800311, T=417.3131074055367, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=23994.208706660924, q_tot=0.06762647020800311, T=417.3131074055367, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=105030.0674662799, q_tot=0.10143970531200466, T=516.0143276176141, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=105030.0674662799, q_tot=0.10143970531200466, T=516.0143276176141, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=186065.92622589893, q_tot=0.13525294041600622, T=290.39055598881254, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=186065.92622589893, q_tot=0.13525294041600622, T=290.39055598881254, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=186065.92622589893, q_tot=0.13525294041600622, T=603.2211997451624, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=186065.92622589893, q_tot=0.13525294041600622, T=603.2211997451624, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=267101.78498551797, q_tot=0.16906617552000777, T=301.95222797236187, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=267101.78498551797, q_tot=0.16906617552000777, T=301.95222797236187, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=267101.78498551797, q_tot=0.16906617552000777, T=681.5004125718266, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=267101.78498551797, q_tot=0.16906617552000777, T=681.5004125718266, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=321.3451495566251, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=321.3451495566251, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=52628.46882670568, q_tot=0.06762647020800311, T=430.84432870496966, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=52628.46882670568, q_tot=0.06762647020800311, T=430.84432870496966, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=134526.67154477493, q_tot=0.10143970531200466, T=293.6394502786625, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=134526.67154477493, q_tot=0.10143970531200466, T=293.6394502786625, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=134526.67154477493, q_tot=0.10143970531200466, T=520.2455764268262, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=134526.67154477493, q_tot=0.10143970531200466, T=520.2455764268262, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=216424.87426284418, q_tot=0.13525294041600622, T=299.5938793650153, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=216424.87426284418, q_tot=0.13525294041600622, T=299.5938793650153, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=216424.87426284418, q_tot=0.13525294041600622, T=600.4771904397818, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=216424.87426284418, q_tot=0.13525294041600622, T=600.4771904397818, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=298323.07698091347, q_tot=0.16906617552000777, T=297.84349754306476, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=298323.07698091347, q_tot=0.16906617552000777, T=297.84349754306476, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=298323.07698091347, q_tot=0.16906617552000777, T=673.2221859662394, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=298323.07698091347, q_tot=0.16906617552000777, T=673.2221859662394, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=81262.72894675043, q_tot=0.06762647020800311, T=289.1779444943907, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=81262.72894675043, q_tot=0.06762647020800311, T=289.1779444943907, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=164023.27562326993, q_tot=0.10143970531200466, T=308.9201404122731, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=164023.27562326993, q_tot=0.10143970531200466, T=308.9201404122731, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=246783.8222997894, q_tot=0.13525294041600622, T=326.2333382346173, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=246783.8222997894, q_tot=0.13525294041600622, T=326.2333382346173, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=329544.36897630896, q_tot=0.16906617552000777, T=305.95724926687393, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=329544.36897630896, q_tot=0.16906617552000777, T=305.95724926687393, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=329544.36897630896, q_tot=0.16906617552000777, T=340.0202608286658, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.2285162362517533, e_int=329544.36897630896, q_tot=0.16906617552000777, T=340.0202608286658, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=277142.7703367348, q_tot=0.13525294041600622, T=304.76449728554405, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=277142.7703367348, q_tot=0.13525294041600622, T=304.76449728554405, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=360765.6609717045, q_tot=0.16906617552000777, T=308.672727854837, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.2285162362517533, e_int=360765.6609717045, q_tot=0.16906617552000777, T=308.672727854837, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=371.14617210276305, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=371.14617210276305, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=75533.46338778487, q_tot=0.10143970531200466, T=319.62098484572005, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=75533.46338778487, q_tot=0.10143970531200466, T=319.62098484572005, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=75533.46338778487, q_tot=0.10143970531200466, T=479.1045264556239, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=75533.46338778487, q_tot=0.10143970531200466, T=479.1045264556239, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=155706.9781889536, q_tot=0.13525294041600622, T=568.0998934796543, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=155706.9781889536, q_tot=0.13525294041600622, T=568.0998934796543, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=235880.49299012238, q_tot=0.16906617552000777, T=647.1800833013846, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=235880.49299012238, q_tot=0.16906617552000777, T=647.1800833013846, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=23994.208706660924, q_tot=0.06762647020800311, T=290.6504155452771, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=23994.208706660924, q_tot=0.06762647020800311, T=290.6504155452771, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=23994.208706660924, q_tot=0.06762647020800311, T=414.1732991831849, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=23994.208706660924, q_tot=0.06762647020800311, T=414.1732991831849, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=105030.0674662799, q_tot=0.10143970531200466, T=514.5772395470452, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=105030.0674662799, q_tot=0.10143970531200466, T=514.5772395470452, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=186065.92622589893, q_tot=0.13525294041600622, T=601.9238432519464, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=186065.92622589893, q_tot=0.13525294041600622, T=601.9238432519464, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=267101.78498551797, q_tot=0.16906617552000777, T=189.9814790068615, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=267101.78498551797, q_tot=0.16906617552000777, T=189.9814790068615, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=267101.78498551797, q_tot=0.16906617552000777, T=679.8809243589847, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=267101.78498551797, q_tot=0.16906617552000777, T=679.8809243589847, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=315.7347952406941, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=315.7347952406941, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=52628.46882670568, q_tot=0.06762647020800311, T=439.221356771039, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=52628.46882670568, q_tot=0.06762647020800311, T=439.221356771039, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=134526.67154477493, q_tot=0.10143970531200466, T=532.6954546578386, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=134526.67154477493, q_tot=0.10143970531200466, T=532.6954546578386, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=216424.87426284418, q_tot=0.13525294041600622, T=310.8898578975765, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=216424.87426284418, q_tot=0.13525294041600622, T=310.8898578975765, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=216424.87426284418, q_tot=0.13525294041600622, T=615.6088209559853, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=216424.87426284418, q_tot=0.13525294041600622, T=615.6088209559853, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=298323.07698091347, q_tot=0.16906617552000777, T=315.9204025206726, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=298323.07698091347, q_tot=0.16906617552000777, T=315.9204025206726, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=298323.07698091347, q_tot=0.16906617552000777, T=690.1120022581217, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=298323.07698091347, q_tot=0.16906617552000777, T=690.1120022581217, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=81262.72894675043, q_tot=0.06762647020800311, T=300.77053411177315, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=81262.72894675043, q_tot=0.06762647020800311, T=300.77053411177315, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=164023.27562326993, q_tot=0.10143970531200466, T=329.1413684431685, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=164023.27562326993, q_tot=0.10143970531200466, T=329.1413684431685, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=246783.8222997894, q_tot=0.13525294041600622, T=348.70104810704584, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=246783.8222997894, q_tot=0.13525294041600622, T=348.70104810704584, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=329544.36897630896, q_tot=0.16906617552000777, T=317.92391665038207, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.4309818687239656, e_int=329544.36897630896, q_tot=0.16906617552000777, T=317.92391665038207, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=329544.36897630896, q_tot=0.16906617552000777, T=363.2498419237697, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=329544.36897630896, q_tot=0.16906617552000777, T=363.2498419237697, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=360765.6609717045, q_tot=0.16906617552000777, T=319.68990004875303, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.4309818687239656, e_int=360765.6609717045, q_tot=0.16906617552000777, T=319.68990004875303, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=362.92650560017967, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=362.92650560017967, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=75533.46338778487, q_tot=0.10143970531200466, T=321.08425473687885, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=75533.46338778487, q_tot=0.10143970531200466, T=321.08425473687885, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=75533.46338778487, q_tot=0.10143970531200466, T=476.9813687926026, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=75533.46338778487, q_tot=0.10143970531200466, T=476.9813687926026, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=155706.9781889536, q_tot=0.13525294041600622, T=312.54322555601607, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=155706.9781889536, q_tot=0.13525294041600622, T=312.54322555601607, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=155706.9781889536, q_tot=0.13525294041600622, T=566.5086398258696, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=155706.9781889536, q_tot=0.13525294041600622, T=566.5086398258696, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=235880.49299012238, q_tot=0.16906617552000777, T=645.4350014708555, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=235880.49299012238, q_tot=0.16906617552000777, T=645.4350014708555, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=23994.208706660924, q_tot=0.06762647020800311, T=410.8581857120598, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=23994.208706660924, q_tot=0.06762647020800311, T=410.8581857120598, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=105030.0674662799, q_tot=0.10143970531200466, T=513.0497372281551, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=105030.0674662799, q_tot=0.10143970531200466, T=513.0497372281551, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=186065.92622589893, q_tot=0.13525294041600622, T=600.5286190716735, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=186065.92622589893, q_tot=0.13525294041600622, T=600.5286190716735, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=267101.78498551797, q_tot=0.16906617552000777, T=321.42619167654425, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=267101.78498551797, q_tot=0.16906617552000777, T=321.42619167654425, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=267101.78498551797, q_tot=0.16906617552000777, T=678.1596677512637, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=267101.78498551797, q_tot=0.16906617552000777, T=678.1596677512637, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=303.01822309758916, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=303.01822309758916, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=52628.46882670568, q_tot=0.06762647020800311, T=441.2561219034126, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=52628.46882670568, q_tot=0.06762647020800311, T=441.2561219034126, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=134526.67154477493, q_tot=0.10143970531200466, T=536.6735489231304, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=134526.67154477493, q_tot=0.10143970531200466, T=536.6735489231304, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=216424.87426284418, q_tot=0.13525294041600622, T=256.8970051029065, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=216424.87426284418, q_tot=0.13525294041600622, T=256.8970051029065, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=216424.87426284418, q_tot=0.13525294041600622, T=620.5296996340223, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=216424.87426284418, q_tot=0.13525294041600622, T=620.5296996340223, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=298323.07698091347, q_tot=0.16906617552000777, T=695.3814385345242, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=298323.07698091347, q_tot=0.16906617552000777, T=695.3814385345242, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=81262.72894675043, q_tot=0.06762647020800311, T=307.2667499816313, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=81262.72894675043, q_tot=0.06762647020800311, T=307.2667499816313, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=164023.27562326993, q_tot=0.10143970531200466, T=338.7394905536768, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=164023.27562326993, q_tot=0.10143970531200466, T=338.7394905536768, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=246783.8222997894, q_tot=0.13525294041600622, T=320.52252925750656, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.6334475011961779, e_int=246783.8222997894, q_tot=0.13525294041600622, T=320.52252925750656, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=246783.8222997894, q_tot=0.13525294041600622, T=359.0443406581003, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=246783.8222997894, q_tot=0.13525294041600622, T=359.0443406581003, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=329544.36897630896, q_tot=0.16906617552000777, T=373.62957589439384, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=329544.36897630896, q_tot=0.16906617552000777, T=373.62957589439384, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=277142.7703367348, q_tot=0.13525294041600622, T=322.7608310035205, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=277142.7703367348, q_tot=0.13525294041600622, T=322.7608310035205, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=360765.6609717045, q_tot=0.16906617552000777, T=331.9997837423243, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.6334475011961779, e_int=360765.6609717045, q_tot=0.16906617552000777, T=331.9997837423243, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=353.3383036336824, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=353.3383036336824, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.8359131336683903, e_int=75533.46338778487, q_tot=0.10143970531200466, T=304.7831109912848, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.8359131336683903, e_int=75533.46338778487, q_tot=0.10143970531200466, T=304.7831109912848, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=75533.46338778487, q_tot=0.10143970531200466, T=474.83380648328335, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=75533.46338778487, q_tot=0.10143970531200466, T=474.83380648328335, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.8359131336683903, e_int=155706.9781889536, q_tot=0.13525294041600622, T=317.4850395877774, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.8359131336683903, e_int=155706.9781889536, q_tot=0.13525294041600622, T=317.4850395877774, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=155706.9781889536, q_tot=0.13525294041600622, T=564.9165131270775, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=155706.9781889536, q_tot=0.13525294041600622, T=564.9165131270775, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=235880.49299012238, q_tot=0.16906617552000777, T=643.6975629346858, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=235880.49299012238, q_tot=0.16906617552000777, T=643.6975629346858, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=23994.208706660924, q_tot=0.06762647020800311, T=407.40210648077334, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=23994.208706660924, q_tot=0.06762647020800311, T=407.40210648077334, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=105030.0674662799, q_tot=0.10143970531200466, T=511.4926360726395, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=105030.0674662799, q_tot=0.10143970531200466, T=511.4926360726395, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=186065.92622589893, q_tot=0.13525294041600622, T=599.1085015588601, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=186065.92622589893, q_tot=0.13525294041600622, T=599.1085015588601, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=267101.78498551797, q_tot=0.16906617552000777, T=676.4189018950784, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=267101.78498551797, q_tot=0.16906617552000777, T=676.4189018950784, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=288.8211413894441, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=288.8211413894441, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=52628.46882670568, q_tot=0.06762647020800311, T=441.4095596691365, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=52628.46882670568, q_tot=0.06762647020800311, T=441.4095596691365, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=134526.67154477493, q_tot=0.10143970531200466, T=538.168788404017, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=134526.67154477493, q_tot=0.10143970531200466, T=538.168788404017, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=216424.87426284418, q_tot=0.13525294041600622, T=622.4720016045358, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=216424.87426284418, q_tot=0.13525294041600622, T=622.4720016045358, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.8359131336683903, e_int=298323.07698091347, q_tot=0.16906617552000777, T=328.05970676757573, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.8359131336683903, e_int=298323.07698091347, q_tot=0.16906617552000777, T=328.05970676757573, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=298323.07698091347, q_tot=0.16906617552000777, T=697.278363858385, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=298323.07698091347, q_tot=0.16906617552000777, T=697.278363858385, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=81262.72894675043, q_tot=0.06762647020800311, T=310.47479221134057, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=81262.72894675043, q_tot=0.06762647020800311, T=310.47479221134057, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=164023.27562326993, q_tot=0.10143970531200466, T=343.44805621382534, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=164023.27562326993, q_tot=0.10143970531200466, T=343.44805621382534, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=246783.8222997894, q_tot=0.13525294041600622, T=364.25660157462715, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=246783.8222997894, q_tot=0.13525294041600622, T=364.25660157462715, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.8359131336683903, e_int=329544.36897630896, q_tot=0.16906617552000777, T=331.43455497055305, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=0.8359131336683903, e_int=329544.36897630896, q_tot=0.16906617552000777, T=331.43455497055305, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=329544.36897630896, q_tot=0.16906617552000777, T=378.83529990841095, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=329544.36897630896, q_tot=0.16906617552000777, T=378.83529990841095, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=277142.7703367348, q_tot=0.13525294041600622, T=330.52803053076696, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=277142.7703367348, q_tot=0.13525294041600622, T=330.52803053076696, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=360765.6609717045, q_tot=0.16906617552000777, T=344.3519814644913, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=0.8359131336683903, e_int=360765.6609717045, q_tot=0.16906617552000777, T=344.3519814644913, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=341.7236592090188, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=-4640.051413383888, q_tot=0.06762647020800311, T=341.7236592090188, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=1.0383787661406025, e_int=75533.46338778487, q_tot=0.10143970531200466, T=311.91211531798587, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=1.0383787661406025, e_int=75533.46338778487, q_tot=0.10143970531200466, T=311.91211531798587, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=75533.46338778487, q_tot=0.10143970531200466, T=472.6606420819709, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=75533.46338778487, q_tot=0.10143970531200466, T=472.6606420819709, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=1.0383787661406025, e_int=155706.9781889536, q_tot=0.13525294041600622, T=320.1836755695745, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=1.0383787661406025, e_int=155706.9781889536, q_tot=0.13525294041600622, T=320.1836755695745, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=155706.9781889536, q_tot=0.13525294041600622, T=563.3233614768377, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=155706.9781889536, q_tot=0.13525294041600622, T=563.3233614768377, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=235880.49299012238, q_tot=0.16906617552000777, T=641.967561809185, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=235880.49299012238, q_tot=0.16906617552000777, T=641.967561809185, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=23994.208706660924, q_tot=0.06762647020800311, T=403.8018993266887, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=23994.208706660924, q_tot=0.06762647020800311, T=403.8018993266887, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=105030.0674662799, q_tot=0.10143970531200466, T=509.91912793155507, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=105030.0674662799, q_tot=0.10143970531200466, T=509.91912793155507, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=186065.92622589893, q_tot=0.13525294041600622, T=597.6794741232213, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=186065.92622589893, q_tot=0.13525294041600622, T=597.6794741232213, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=267101.78498551797, q_tot=0.16906617552000777, T=674.6765159640985, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=267101.78498551797, q_tot=0.16906617552000777, T=674.6765159640985, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=290.10549642376037, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=-29269.733891363576, q_tot=0.033813235104001554, T=290.10549642376037, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=52628.46882670568, q_tot=0.06762647020800311, T=440.74256574872607, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=52628.46882670568, q_tot=0.06762647020800311, T=440.74256574872607, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=134526.67154477493, q_tot=0.10143970531200466, T=538.6011946899247, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=134526.67154477493, q_tot=0.10143970531200466, T=538.6011946899247, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=216424.87426284418, q_tot=0.13525294041600622, T=623.1445891408006, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=216424.87426284418, q_tot=0.13525294041600622, T=623.1445891408006, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=1.0383787661406025, e_int=298323.07698091347, q_tot=0.16906617552000777, T=290.1866280242773, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=1.0383787661406025, e_int=298323.07698091347, q_tot=0.16906617552000777, T=290.1866280242773, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=298323.07698091347, q_tot=0.16906617552000777, T=697.7454840555969, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=298323.07698091347, q_tot=0.16906617552000777, T=697.7454840555969, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=81262.72894675043, q_tot=0.06762647020800311, T=313.9837528080847, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=81262.72894675043, q_tot=0.06762647020800311, T=313.9837528080847, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=164023.27562326993, q_tot=0.10143970531200466, T=345.4979454036183, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=164023.27562326993, q_tot=0.10143970531200466, T=345.4979454036183, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=246783.8222997894, q_tot=0.13525294041600622, T=366.8043210559762, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=246783.8222997894, q_tot=0.13525294041600622, T=366.8043210559762, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=329544.36897630896, q_tot=0.16906617552000777, T=381.4283796648282, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=329544.36897630896, q_tot=0.16906617552000777, T=381.4283796648282, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=277142.7703367348, q_tot=0.13525294041600622, T=339.1955017826978, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=277142.7703367348, q_tot=0.13525294041600622, T=339.1955017826978, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=360765.6609717045, q_tot=0.16906617552000777, T=355.9683840214802, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+NewtonsMethod(ρ=1.0383787661406025, e_int=360765.6609717045, q_tot=0.16906617552000777, T=355.9683840214802, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=1.0383787661406025, e_int=391986.95296709996, q_tot=0.16906617552000777, T=341.1072424850764, maxiter=10, tol=0.0001)
+maxiter reached in saturation_adjustment(ρeq):
+SecantMethod(ρ=1.0383787661406025, e_int=391986.95296709996, q_tot=0.16906617552000777, T=341.1072424850764, maxiter=10, tol=0.0001)
+Convergence percentages:
+RootSolvers.NewtonsMethod = 0.5370370370370371
+RootSolvers.SecantMethod = 0.8101851851851852</code></pre><h2 id="Interpretation"><a class="docs-heading-anchor" href="#Interpretation">Interpretation</a><a id="Interpretation-1"></a><a class="docs-heading-anchor-permalink" href="#Interpretation" title="Permalink"></a></h2><ul><li><strong>Converged regions</strong> (green/blue areas) indicate parameter combinations where the numerical method successfully finds a solution</li><li><strong>Non-converged regions</strong> (red areas) indicate parameter combinations where the method fails to converge</li><li><strong>Boundary regions</strong> help identify the robustness limits of each numerical method</li><li><strong>Physical relevance</strong> should be considered when interpreting results - some non-converged regions may correspond to unphysical parameter combinations</li></ul><h2 id="Numerical-Methods-Tested"><a class="docs-heading-anchor" href="#Numerical-Methods-Tested">Numerical Methods Tested</a><a id="Numerical-Methods-Tested-1"></a><a class="docs-heading-anchor-permalink" href="#Numerical-Methods-Tested" title="Permalink"></a></h2><ol><li><strong>SecantMethod</strong>: A derivative-free method that uses finite differences to approximate derivatives</li><li><strong>NewtonsMethod</strong>: Uses analytical derivatives for potentially faster convergence</li></ol><h2 id="Usage-Guidelines"><a class="docs-heading-anchor" href="#Usage-Guidelines">Usage Guidelines</a><a id="Usage-Guidelines-1"></a><a class="docs-heading-anchor-permalink" href="#Usage-Guidelines" title="Permalink"></a></h2><ul><li>Use these maps to understand the convergence characteristics of different numerical methods</li><li>Consider the trade-offs between robustness (SecantMethod) and efficiency (NewtonsMethod)</li><li>The tested parameter ranges should cover your expected simulation conditions</li><li>For production use, ensure your parameter combinations fall within well-converged regions </li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../Clausius_Clapeyron/">« Clausius-Clapeyron Validation</a><a class="docs-footer-nextpage" href="../References/">References »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Thursday 21 August 2025 23:15">Thursday 21 August 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
