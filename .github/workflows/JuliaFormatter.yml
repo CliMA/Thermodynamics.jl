@@ -12,4 +12,5 @@ jobs:
     steps:
       - uses: julia-actions/julia-format@v4
         with:
+          version: '2.10.1'
           suggestion-label: 'format-suggest' # leave this unset or empty to show suggestions for all PRs
