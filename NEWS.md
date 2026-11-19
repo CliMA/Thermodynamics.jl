@@ -4,6 +4,9 @@ Thermodynamics.jl Release Notes
 main
 --------
 
+- CI: Buildkite runs Julia v1.13. GitHub Actions tests Julia v1.10 and v1.13,
+  and the docs and invalidation checks run on v1.13.
+
 v1.3.0
 --------
 
