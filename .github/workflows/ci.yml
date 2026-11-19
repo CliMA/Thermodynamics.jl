@@ -24,10 +24,13 @@ jobs:
           - '1.13'
         os:
           - ubuntu-latest
-          - macOS-latest
           - windows-latest
+          # Org-wide macOS runner limit: run macOS only on pushes (main, tags).
+          - ${{ github.event_name == 'push' && 'macOS-latest' || '' }}
         arch:
           - x64
+        exclude:
+          - os: ''
     steps:
       - uses: actions/checkout@v7
       - uses: julia-actions/setup-julia@v3
