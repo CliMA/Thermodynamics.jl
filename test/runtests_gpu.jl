@@ -72,8 +72,6 @@ else
 end
 
 # Pre-allocate parameter sets for different floating-point types.
-# Use ClimaParams to construct the TOML dict explicitly to avoid relying on extensions
-# being loaded implicitly in this standalone test runner.
 const param_set_Float64 = TP.ThermodynamicsParameters(CP.create_toml_dict(Float64))
 const param_set_Float32 = TP.ThermodynamicsParameters(CP.create_toml_dict(Float32))
 
