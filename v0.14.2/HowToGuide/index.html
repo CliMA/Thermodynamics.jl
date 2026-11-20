@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>How-To Guide · Thermodynamics.jl</title><meta name="title" content="How-To Guide · Thermodynamics.jl"/><meta property="og:title" content="How-To Guide · Thermodynamics.jl"/><meta property="twitter:title" content="How-To Guide · Thermodynamics.jl"/><meta name="description" content="Documentation for Thermodynamics.jl."/><meta property="og:description" content="Documentation for Thermodynamics.jl."/><meta property="twitter:description" content="Documentation for Thermodynamics.jl."/><script data-outdated-warner src="../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL=".."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../assets/documenter.js"></script><script src="../search_index.js"></script><script src="../siteinfo.js"></script><script src="../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../assets/themeswap.js"></script><link href="../src/assets/custom.css" rel="stylesheet" type="text/css"/></head><body><div id="documenter"><nav class="docs-sidebar"><a class="docs-logo" href="../"><img src="../assets/logo.svg" alt="Thermodynamics.jl logo"/></a><div class="docs-package-name"><span class="docs-autofit"><a href="../">Thermodynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../">Home</a></li><li><a class="tocitem" href="../Formulation/">Mathematical Formulation</a></li><li><a class="tocitem" href="../API/">API Reference</a></li><li class="is-active"><a class="tocitem" href>How-To Guide</a><ul class="internal"><li><a class="tocitem" href="#Table-of-Contents"><span>Table of Contents</span></a></li><li><a class="tocitem" href="#Basic-Setup"><span>Basic Setup</span></a></li><li><a class="tocitem" href="#Thermodynamic-States"><span>Thermodynamic States</span></a></li><li><a class="tocitem" href="#Performance-Considerations"><span>Performance Considerations</span></a></li><li><a class="tocitem" href="#Integration-with-Models"><span>Integration with Models</span></a></li><li><a class="tocitem" href="#Extending-the-Package"><span>Extending the Package</span></a></li><li><a class="tocitem" href="#Common-Pitfalls-and-Solutions"><span>Common Pitfalls and Solutions</span></a></li><li><a class="tocitem" href="#Next-Steps"><span>Next Steps</span></a></li></ul></li><li><a class="tocitem" href="../TemperatureProfiles/">Temperature Profiles</a></li><li><a class="tocitem" href="../TestedProfiles/">Tested Profiles</a></li><li><a class="tocitem" href="../Clausius_Clapeyron/">Clausius-Clapeyron Validation</a></li><li><a class="tocitem" href="../SaturationAdjustmentConvergence/">Saturation Adjustment Convergence</a></li><li><a class="tocitem" href="../References/">References</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>How-To Guide</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>How-To Guide</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/CliMA/Thermodynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/CliMA/Thermodynamics.jl/blob/main/docs/src/HowToGuide.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="How-To-Guide"><a class="docs-heading-anchor" href="#How-To-Guide">How-To Guide</a><a id="How-To-Guide-1"></a><a class="docs-heading-anchor-permalink" href="#How-To-Guide" title="Permalink"></a></h1><p>This guide covers the essential aspects of using Thermodynamics.jl, from basic usage to advanced patterns.</p><h2 id="Table-of-Contents"><a class="docs-heading-anchor" href="#Table-of-Contents">Table of Contents</a><a id="Table-of-Contents-1"></a><a class="docs-heading-anchor-permalink" href="#Table-of-Contents" title="Permalink"></a></h2><ol><li><a href="#basic-setup">Basic Setup</a></li><li><a href="#thermodynamic-states">Thermodynamic States</a></li><li><a href="#common-usage-patterns">Common Usage Patterns</a></li><li><a href="#performance-considerations">Performance Considerations</a></li><li><a href="#integration-with-models">Integration with Models</a></li><li><a href="#extending-the-package">Extending the Package</a></li></ol><h2 id="Basic-Setup"><a class="docs-heading-anchor" href="#Basic-Setup">Basic Setup</a><a id="Basic-Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Basic-Setup" title="Permalink"></a></h2><h3 id="Installation-and-Import"><a class="docs-heading-anchor" href="#Installation-and-Import">Installation and Import</a><a id="Installation-and-Import-1"></a><a class="docs-heading-anchor-permalink" href="#Installation-and-Import" title="Permalink"></a></h3><pre><code class="language-julia hljs">using Pkg
+Pkg.add(&quot;Thermodynamics&quot;)
+Pkg.add(&quot;ClimaParams&quot;)
+
+import Thermodynamics as TD
+using ClimaParams</code></pre><h3 id="Creating-Parameters"><a class="docs-heading-anchor" href="#Creating-Parameters">Creating Parameters</a><a id="Creating-Parameters-1"></a><a class="docs-heading-anchor-permalink" href="#Creating-Parameters" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Create thermodynamic parameters for Float64 precision
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# For Float32 precision (useful for GPU computations)
+params_f32 = TD.Parameters.ThermodynamicsParameters(Float32)</code></pre><h2 id="Thermodynamic-States"><a class="docs-heading-anchor" href="#Thermodynamic-States">Thermodynamic States</a><a id="Thermodynamic-States-1"></a><a class="docs-heading-anchor-permalink" href="#Thermodynamic-States" title="Permalink"></a></h2><p>Thermodynamics.jl uses a state-based approach where you create a thermodynamic state from independent variables, then compute any other thermodynamic property from that state.</p><div class="admonition is-success" id="Temperature-Profiles-996820a249a2b11f"><header class="admonition-header">Temperature Profiles<a class="admonition-anchor" href="#Temperature-Profiles-996820a249a2b11f" title="Permalink"></a></header><div class="admonition-body"><p>For testing and validation, you can use pre-defined atmospheric temperature profiles. See <a href="../TemperatureProfiles/">Temperature Profiles</a> for available profiles and usage examples.</p></div></div><h3 id="Available-State-Constructors"><a class="docs-heading-anchor" href="#Available-State-Constructors">Available State Constructors</a><a id="Available-State-Constructors-1"></a><a class="docs-heading-anchor-permalink" href="#Available-State-Constructors" title="Permalink"></a></h3><h4 id="**Equilibrium-States**-(Saturation-Adjustment)"><a class="docs-heading-anchor" href="#**Equilibrium-States**-(Saturation-Adjustment)"><strong>Equilibrium States</strong> (Saturation Adjustment)</a><a id="**Equilibrium-States**-(Saturation-Adjustment)-1"></a><a class="docs-heading-anchor-permalink" href="#**Equilibrium-States**-(Saturation-Adjustment)" title="Permalink"></a></h4><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# From density, internal energy, and total humidity
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
+
+# From density, potential temperature, and total humidity  
+θ_liq_ice = 300.0
+ts = TD.PhaseEquil_ρθq(params, ρ, θ_liq_ice, q_tot)
+
+# From pressure, internal energy, and total humidity
+p = 1.0e5
+ts = TD.PhaseEquil_peq(params, p, e_int, q_tot)</code></pre><h4 id="**Non-Equilibrium-States**-(Explicit-Phase-Partitioning)"><a class="docs-heading-anchor" href="#**Non-Equilibrium-States**-(Explicit-Phase-Partitioning)"><strong>Non-Equilibrium States</strong> (Explicit Phase Partitioning)</a><a id="**Non-Equilibrium-States**-(Explicit-Phase-Partitioning)-1"></a><a class="docs-heading-anchor-permalink" href="#**Non-Equilibrium-States**-(Explicit-Phase-Partitioning)" title="Permalink"></a></h4><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# With explicit liquid and ice partitioning
+q_tot = 0.01
+q_liq = 0.005
+q_ice = 0.0003
+ts = TD.PhaseNonEquil(params, e_int, ρ, TD.PhasePartition(q_tot, q_liq, q_ice))
+
+# Or create phase partition separately
+q = TD.PhasePartition(q_tot, q_liq, q_ice)
+ts = TD.PhaseNonEquil(params, e_int, ρ, q)</code></pre><h4 id="**Dry-Air-States**"><a class="docs-heading-anchor" href="#**Dry-Air-States**"><strong>Dry Air States</strong></a><a id="**Dry-Air-States**-1"></a><a class="docs-heading-anchor-permalink" href="#**Dry-Air-States**" title="Permalink"></a></h4><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# Dry air from pressure and temperature
+p = 1.0e5
+T = 300.0
+ts = TD.PhaseDry_pT(params, p, T)</code></pre><h3 id="Extracting-Properties-from-States"><a class="docs-heading-anchor" href="#Extracting-Properties-from-States">Extracting Properties from States</a><a id="Extracting-Properties-from-States-1"></a><a class="docs-heading-anchor-permalink" href="#Extracting-Properties-from-States" title="Permalink"></a></h3><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# Create a thermodynamic state for demonstration
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
+
+# Basic thermodynamic properties
+T = TD.air_temperature(params, ts)      # Temperature
+p = TD.air_pressure(params, ts)         # Pressure
+ρ = TD.air_density(params, ts)          # Density
+
+# Phase partitioning
+q = TD.PhasePartition(params, ts)       # Complete phase partition
+q_tot = TD.total_specific_humidity(params, ts)  # Total humidity
+q_liq = TD.liquid_specific_humidity(params, ts) # Liquid humidity
+q_ice = TD.ice_specific_humidity(params, ts)    # Ice humidity
+q_vap = TD.vapor_specific_humidity(params, ts)  # Vapor humidity
+
+# Alternative: Extract directly from PhasePartition object
+q = TD.PhasePartition(params, ts)
+q_tot = q.tot  # Total specific humidity
+q_liq = q.liq  # Liquid specific humidity  
+q_ice = q.ice  # Ice specific humidity
+q_vap = q.tot - q.liq - q.ice  # Vapor specific humidity (computed)
+
+# Energy quantities
+e_int = TD.internal_energy(params, ts)  # Internal energy</code></pre><h3 id="Direct-Function-Usage"><a class="docs-heading-anchor" href="#Direct-Function-Usage">Direct Function Usage</a><a id="Direct-Function-Usage-1"></a><a class="docs-heading-anchor-permalink" href="#Direct-Function-Usage" title="Permalink"></a></h3><p>Thermodynamic functions can also be used directly without creating state objects, which can be more efficient because it avoids storing the state in memory:</p><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# Direct phase partitioning (for non-equilibrium)
+q_tot = 0.01
+q_liq = 0.005
+q_ice = 0.0003
+q = TD.PhasePartition(q_tot, q_liq, q_ice)         # Create phase partition directly
+
+# Direct temperature calculations
+e_int = -7.0e4
+T = TD.air_temperature(params, e_int, q)           # From internal energy and humidity
+h = -6.0e4
+T = TD.air_temperature_from_enthalpy(params, h, q) # From enthalpy and humidity
+
+# Direct pressure calculations  
+ρ = 1.0
+p = TD.air_pressure(params, ρ, T, q)               # From density, temperature, humidity
+
+# Direct humidity calculations
+q_vap_sat = TD.q_vap_saturation(params, T, ρ, TD.PhaseEquil{Float64})  # Saturation vapor humidity
+p_v_sat = TD.saturation_vapor_pressure(params, T, TD.Liquid())         # Saturation vapor pressure over liquid
+
+# Direct energy calculations
+e_int = TD.internal_energy(params, T, q)          # From temperature and humidity
+h = TD.specific_enthalpy(params, T, q)            # From temperature and humidity
+</code></pre><div class="admonition is-success" id="When-to-Use-Each-Approach-51c0a4bf465936d0"><header class="admonition-header">When to Use Each Approach<a class="admonition-anchor" href="#When-to-Use-Each-Approach-51c0a4bf465936d0" title="Permalink"></a></header><div class="admonition-body"><ul><li><strong>State-based approach</strong>: Use when you need multiple properties from the same thermodynamic state and storing them is more efficient than re-computing them each time (e.g., because of iterative saturation adjustment)</li><li><strong>Direct functions</strong>: Use for calculations when you already have the required variables or re-computing them is more efficient than storing them</li><li><strong>Saturation adjustment</strong>: State constructors automatically handle saturation adjustment</li></ul></div></div><h2 id="Performance-Considerations"><a class="docs-heading-anchor" href="#Performance-Considerations">Performance Considerations</a><a id="Performance-Considerations-1"></a><a class="docs-heading-anchor-permalink" href="#Performance-Considerations" title="Permalink"></a></h2><h3 id="**Type-Stability**"><a class="docs-heading-anchor" href="#**Type-Stability**"><strong>Type Stability</strong></a><a id="**Type-Stability**-1"></a><a class="docs-heading-anchor-permalink" href="#**Type-Stability**" title="Permalink"></a></h3><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+# Good: Type-stable operations
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
+T = TD.air_temperature(params, ts)
+
+# Avoid: Mixed precision (can cause type instability)
+params_f64 = TD.Parameters.ThermodynamicsParameters(Float64)
+ts = TD.PhaseEquil_ρeq(params_f64, Float32(ρ), Float32(e_int), Float32(q_tot))</code></pre><h3 id="**Vectorized-Operations**"><a class="docs-heading-anchor" href="#**Vectorized-Operations**"><strong>Vectorized Operations</strong></a><a id="**Vectorized-Operations**-1"></a><a class="docs-heading-anchor-permalink" href="#**Vectorized-Operations**" title="Permalink"></a></h3><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# For arrays of thermodynamic states
+ρ_array = [1.0, 1.1, 1.2]
+e_int_array = [2.0e5, 2.1e5, 2.2e5]
+q_tot_array = [0.01, 0.012, 0.008]
+
+# State-based approach 
+ts_array = [TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot) 
+            for (ρ, e_int, q_tot) in zip(ρ_array, e_int_array, q_tot_array)]
+T_array = [TD.air_temperature(params, ts) for ts in ts_array]
+
+# Direct function approach 
+T_array = [TD.air_temperature(params, e_int, TD.PhasePartition(q_tot)) 
+           for (e_int, q_tot) in zip(e_int_array, q_tot_array)]</code></pre><h3 id="**GPU-Compatibility**"><a class="docs-heading-anchor" href="#**GPU-Compatibility**"><strong>GPU Compatibility</strong></a><a id="**GPU-Compatibility**-1"></a><a class="docs-heading-anchor-permalink" href="#**GPU-Compatibility**" title="Permalink"></a></h3><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+# Use Float32 for GPU computations
+FT = Float32
+params_gpu = TD.Parameters.ThermodynamicsParameters(FT)
+
+# Ensure all inputs are Float32
+ρ = FT(1.0f0)
+e_int = FT(-7.0e4f0)
+q_tot = FT(0.01f0)
+ts_gpu = TD.PhaseEquil_ρeq(params_gpu, ρ, e_int, q_tot)</code></pre><h2 id="Integration-with-Models"><a class="docs-heading-anchor" href="#Integration-with-Models">Integration with Models</a><a id="Integration-with-Models-1"></a><a class="docs-heading-anchor-permalink" href="#Integration-with-Models" title="Permalink"></a></h2><h3 id="**Dynamical-Core-Integration**"><a class="docs-heading-anchor" href="#**Dynamical-Core-Integration**"><strong>Dynamical Core Integration</strong></a><a id="**Dynamical-Core-Integration**-1"></a><a class="docs-heading-anchor-permalink" href="#**Dynamical-Core-Integration**" title="Permalink"></a></h3><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+grav = 9.81  # m/s²
+cv_d = 718.0  # J/(kg K)
+
+# Initialize prognostic variables
+ρ = 1.0
+e_tot = cv_d * 20.0
+q_tot = 0.01
+q_liq = q_tot / 100.0
+q_ice = q_tot / 250.0
+u, v, w = 10.0, 5.0, 1.0
+
+# Timestepping loop
+for timestep in 1:10
+    # Advance prognostic variables (simplified example)
+    ρ += 0.01
+    e_tot += cv_d * 0.5
+    q_tot += 0.001
+    u += FT(0.1)
+    v += FT(-0.1)
+    w += FT(0.01)
+    
+    # Extract internal energy
+    e_kin = 0.5 * (u^2 + v^2 + w^2)
+    z = 1000.0
+    e_pot = grav * z
+    e_int = e_tot - e_kin - e_pot
+    
+    # Saturation adjustment (state-based approach)
+    ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)
+    T = TD.air_temperature(params, ts)
+    q = TD.PhasePartition(params, ts)
+    
+    # Or direct function approach (need to predict liquid and ice separately)
+    q_liq += 0.0001
+    q_ice -= 0.0001
+    T = TD.air_temperature(params, e_int, TD.PhasePartition(q_tot, q_liq, q_ice))  # No saturation adjustment, 
+    
+    # Use temperature in physics (radiation, etc.)
+    # compute_physics!(T, q)  # Placeholder for physics calculations
+end</code></pre><h2 id="Extending-the-Package"><a class="docs-heading-anchor" href="#Extending-the-Package">Extending the Package</a><a id="Extending-the-Package-1"></a><a class="docs-heading-anchor-permalink" href="#Extending-the-Package" title="Permalink"></a></h2><h3 id="**Adding-New-Thermodynamic-State-Constructors**"><a class="docs-heading-anchor" href="#**Adding-New-Thermodynamic-State-Constructors**"><strong>Adding New Thermodynamic State Constructors</strong></a><a id="**Adding-New-Thermodynamic-State-Constructors**-1"></a><a class="docs-heading-anchor-permalink" href="#**Adding-New-Thermodynamic-State-Constructors**" title="Permalink"></a></h3><p>If Thermodynamics.jl doesn&#39;t have a constructor for your specific use case, you can implement one in <code>src/states.jl</code>. The constructor must translate your inputs into one of the fundamental state types:</p><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+# Example: Constructor from pressure, temperature, and humidity
+function PhaseEquil_pTq(param_set::APS, p::FT, T::FT, q_tot::FT) where {FT}
+    # Compute density from equation of state
+    ρ = TD.air_density(param_set, T, p, TD.PhasePartition(q_tot))
+    
+    # Compute internal energy
+    e_int = TD.internal_energy(param_set, T, TD.PhasePartition(q_tot))
+    
+    # Return equilibrium state
+    return TD.PhaseEquil_ρeq(param_set, ρ, e_int, q_tot)
+end</code></pre><h3 id="**Available-Base-State-Types**"><a class="docs-heading-anchor" href="#**Available-Base-State-Types**"><strong>Available Base State Types</strong></a><a id="**Available-Base-State-Types**-1"></a><a class="docs-heading-anchor-permalink" href="#**Available-Base-State-Types**" title="Permalink"></a></h3><ul><li><strong><code>PhaseDry</code></strong>: Dry air state (2 independent variables)</li><li><strong><code>PhaseEquil</code></strong>: Moist air in thermodynamic equilibrium (3 independent variables)</li><li><strong><code>PhaseNonEquil</code></strong>: Moist air in non-equilibrium (3+ independent variables)</li></ul><h3 id="**Best-Practices-for-Extensions**"><a class="docs-heading-anchor" href="#**Best-Practices-for-Extensions**"><strong>Best Practices for Extensions</strong></a><a id="**Best-Practices-for-Extensions**-1"></a><a class="docs-heading-anchor-permalink" href="#**Best-Practices-for-Extensions**" title="Permalink"></a></h3><ol><li><strong>Maintain type stability</strong>: Use consistent floating-point types</li><li><strong>Follow naming conventions</strong>: Use descriptive names with parameter types</li><li><strong>Add tests</strong>: Include unit tests for new constructors using <a href="../TestedProfiles/">Tested Profiles</a></li><li><strong>Document thoroughly</strong>: Add docstrings explaining the constructor&#39;s purpose</li></ol><h2 id="Common-Pitfalls-and-Solutions"><a class="docs-heading-anchor" href="#Common-Pitfalls-and-Solutions">Common Pitfalls and Solutions</a><a id="Common-Pitfalls-and-Solutions-1"></a><a class="docs-heading-anchor-permalink" href="#Common-Pitfalls-and-Solutions" title="Permalink"></a></h2><h3 id="**Pitfall-1:-Incorrect-State-Type**"><a class="docs-heading-anchor" href="#**Pitfall-1:-Incorrect-State-Type**"><strong>Pitfall 1: Incorrect State Type</strong></a><a id="**Pitfall-1:-Incorrect-State-Type**-1"></a><a class="docs-heading-anchor-permalink" href="#**Pitfall-1:-Incorrect-State-Type**" title="Permalink"></a></h3><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+
+# Wrong: Using equilibrium constructor for non-equilibrium conditions
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+q_liq = 0.005
+q_ice = 0.0003
+ts = TD.PhaseEquil_ρeq(params, ρ, e_int, q_tot)  # Assumes saturation adjustment
+
+# Right: Use non-equilibrium constructor when you have explicit partitionin
+q = TD.PhasePartition(q_tot, q_liq, q_ice)
+ts = TD.PhaseNonEquil(params, e_int, ρ, q)</code></pre><h3 id="**Pitfall-2:-Mixed-Precision**"><a class="docs-heading-anchor" href="#**Pitfall-2:-Mixed-Precision**"><strong>Pitfall 2: Mixed Precision</strong></a><a id="**Pitfall-2:-Mixed-Precision**-1"></a><a class="docs-heading-anchor-permalink" href="#**Pitfall-2:-Mixed-Precision**" title="Permalink"></a></h3><pre><code class="language-julia hljs">import Thermodynamics as TD
+using ClimaParams
+
+# Wrong: Mixing Float32 and Float64
+params = TD.Parameters.ThermodynamicsParameters(Float64)
+ρ = 1.0
+e_int = -7.0e4
+q_tot = 0.01
+ts = TD.PhaseEquil_ρeq(params, Float32(ρ), Float32(e_int), Float32(q_tot))
+
+# Right: Consistent precision
+params = TD.Parameters.ThermodynamicsParameters(Float32)
+ts = TD.PhaseEquil_ρeq(params, Float32(ρ), Float32(e_int), Float32(q_tot))</code></pre><h2 id="Next-Steps"><a class="docs-heading-anchor" href="#Next-Steps">Next Steps</a><a id="Next-Steps-1"></a><a class="docs-heading-anchor-permalink" href="#Next-Steps" title="Permalink"></a></h2><ol><li><strong>Explore the <a href="../API/">API Reference</a></strong> for complete function documentation</li><li><strong>Read the <a href="../Formulation/">Mathematical Formulation</a></strong> for theoretical background</li><li><strong>Check <a href="../SaturationAdjustmentConvergence/">Saturation Adjustment Convergence</a></strong> for numerical method testing</li><li><strong>Explore the API Reference</strong> for complete function documentation</li></ol><hr/><div class="admonition is-success" id="Getting-Help-c880fae6e353e71"><header class="admonition-header">Getting Help<a class="admonition-anchor" href="#Getting-Help-c880fae6e353e71" title="Permalink"></a></header><div class="admonition-body"><p>For specific questions or issues, check the documentation or open an issue on the <a href="https://github.com/CliMA/Thermodynamics.jl">GitHub repository</a>.</p></div></div></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../API/">« API Reference</a><a class="docs-footer-nextpage" href="../TemperatureProfiles/">Temperature Profiles »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.14.1 on <span class="colophon-date" title="Tuesday 30 September 2025 06:55">Tuesday 30 September 2025</span>. Using Julia version 1.10.10.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
